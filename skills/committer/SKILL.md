@@ -46,18 +46,20 @@ Rules:
 - Keep each line under 100 characters
 - Keep bullets concise and group related changes
 - Do not insert blank lines between body items
+- For small or trivial changes, the body is optional; if included, use a single bullet and avoid restating the subject
 
 ## Commit execution
 
 - Generate the full commit message from staged context
 - Write the message to a temporary file to preserve formatting
 - Run `git commit -F <temp-file>` and remove the temp file afterward
+- Capture the exit status in `rc` or `exit_code` (do not use `status`)
 - If the commit fails, report the error and do not claim success
 
 ## Output and clarification rules
 
-- Do not output the commit message in a code block
-- After committing, respond with a brief confirmation including the subject and commit hash
+- After a successful commit, run `git-scope commit HEAD`
+- Print the `git-scope` output in a code block
 - If type, scope, or change summary is missing, ask a concise clarifying question and do not commit
 
 ## Example
@@ -67,7 +69,6 @@ refactor(members): simplify otp purpose validation logic in requestOtp
 
 - Merged duplicated member existence checks into a single query
 - Reordered conditional logic for better readability
-- Kept validation inline to avoid introducing an extra function
 ```
 
 ## Input completeness
