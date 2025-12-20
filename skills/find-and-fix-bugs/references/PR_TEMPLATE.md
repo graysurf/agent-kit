@@ -1,3 +1,6 @@
+# PR Title
+<capitalize the first word; do not reuse the commit subject; describe the primary issue or fix summary>
+
 # Summary
 <one paragraph summary of the fix and scope>
 
@@ -8,7 +11,7 @@ Status: open | fixed | deferred | needs-info
 
 | ID | Severity | Confidence | Area | Summary | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| BUG-001 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | fixed |
+| PR-<number>-BUG-001 | high | medium | <module/path> | <one-line summary> | <file:line or repro> | fixed |
 
 ## Fix Approach
 - <key changes>
