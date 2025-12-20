@@ -21,7 +21,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Exclude generated, vendor, or codegen directories when present (node_modules, dist, build, vendor, .git, gen, generated, codegen).
 - Keep scan rules general; do not add repo-specific patterns.
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
-- Produce an issues list in English using `references/ISSUES_TEMPLATE.md`.
+- Produce an issues list using `references/ISSUES_TEMPLATE.md`.
 - Use the ID format `PR-<number>-BUG-###` (example: `PR-128-BUG-001`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
 
 ## Selection
@@ -38,12 +38,31 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - medium: incorrect behavior with workaround, edge cases, or performance regression
 - low: minor bug, UX issue, or noisy logs without functional impact
 
+## Confidence rubric
+
+- high: clear reproduction or strong evidence, root cause identified, fix is validated
+- medium: likely issue with partial evidence, root cause inferred, fix is plausible
+- low: speculative issue, weak evidence, or no repro path
+
+## High-risk guardrails
+
+- Do not auto-fix changes involving auth, permission/authorization, payment/billing, migration, or infrastructure/deployment.
+- If autonomous and the top issue is high-risk, record it and move to the next eligible issue. If all issues are high-risk, stop after reporting.
+
 ## Fix workflow
 
 1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
 2. Implement the fix with minimal scope; avoid refactors.
-3. Add or update tests when possible; run relevant tests if available.
+3. Add or update tests when possible; run lint/test/build commands when present (see Validation commands).
 4. Update the issues list with status.
+
+## Validation commands
+
+- package.json scripts: `lint`, `test`, `build` (npm, pnpm, yarn, or bun)
+- Makefile targets: `lint`, `test`, `build`
+- Justfile targets: `lint`, `test`, `build`
+- Taskfile targets: `lint`, `test`, `build`
+- Language defaults when applicable: `go test ./...`, `pytest`, `cargo test`, `mvn test`, `gradle test`, `dotnet test`
 
 ## Commit
 
@@ -52,7 +71,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## PR
 
-- Use `gh pr create` and write the body in English using `references/PR_TEMPLATE.md`.
+- Use `gh pr create` and write the body using `references/PR_TEMPLATE.md`.
 - Set the PR title to the primary issue or a short summary of the fix. Do not reuse the commit subject. Capitalize the first word.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the same PR title.
 - The PR must include:
@@ -68,4 +87,5 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - The response must include, in order:
   1. Issues list
   2. `git-scope` output
-  3. PR link
+  3. Tests run (commands and results)
+  4. PR link
