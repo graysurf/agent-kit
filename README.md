@@ -26,13 +26,6 @@ are intentionally excluded via `.gitignore`.
 | openspec-archive | Archive an OpenSpec change and update specs | `/prompts:openspec-archive <id>` |
 | openspec-proposal | Scaffold a new OpenSpec change | `/prompts:openspec-proposal <request>` |
 
-### Project-specific
-
-| Prompt | Description | Usage |
-| --- | --- | --- |
-| fr-psql | Run fr-psql with args or SQL | `/prompts:fr-psql <args>` |
-| qb-mysql | Run qb-mysql with args or SQL | `/prompts:qb-mysql <args>` |
-
 ## 🛠️ Skills
 
 ### Common
