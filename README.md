@@ -44,6 +44,7 @@ are intentionally excluded via `.gitignore`.
 | fr-psql | Run PostgreSQL queries via the fr-psql wrapper |
 | qb-mysql | Run MySQL queries via the qb-mysql wrapper |
 | tun-mssql | Run SQL Server queries via the tun-mssql wrapper |
+| tun-psql | Run PostgreSQL queries via the tun-psql wrapper |
 
 ## 📜 Notes
 
