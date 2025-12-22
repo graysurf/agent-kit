@@ -1,6 +1,9 @@
 # OS metadata
 .DS_Store
 
+# Codex configuration
+codex.toml
+
 # Auth/session/history
 auth.json
 history.jsonl
