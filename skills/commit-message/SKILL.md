@@ -5,6 +5,10 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 # Commit Message
 
+## Setup
+
+- Load commands with `source ~/.codex/tools/codex-tools.zsh`
+
 ## Use staged context only
 
 Rules:
@@ -18,12 +22,6 @@ Rules:
   - If a file is deleted and has no index version, note it as deleted
 - Do not infer from unstaged changes or untracked files
 - If staged diff is empty, ask for staged changes or a change summary
-
-## Setup (if command missing)
-
-- `git-commit-context` is defined in `~/.config/zsh/scripts/git/git-tools.zsh`
-- Load it with `source ~/.codex/tools/codex-tools.zsh`
-- If that is unavailable, run `source ~/.config/zsh/scripts/git/git-tools.zsh`
 
 ## Follow Semantic Commit format
 

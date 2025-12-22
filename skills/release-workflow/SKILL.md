@@ -5,6 +5,10 @@ description: Execute project release workflows by locating and following project
 
 # Release Workflow
 
+## Setup
+
+- Load commands with `source ~/.codex/tools/codex-tools.zsh`
+
 ## Workflow
 
 1. Identify the target repository root; ask if the repo path is unclear.

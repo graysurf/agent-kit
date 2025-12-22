@@ -5,9 +5,9 @@ description: Create a new feature branch, implement feature work, commit with co
 
 # Create Feature PR
 
-## Overview
+## Setup
 
-Use this skill to turn a feature request or the latest commit into a clean feature branch and PR with a consistent format.
+- Load commands with `source ~/.codex/tools/codex-tools.zsh`
 
 ## Inputs
 

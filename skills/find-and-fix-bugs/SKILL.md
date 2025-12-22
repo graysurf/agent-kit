@@ -5,6 +5,10 @@ description: Find, triage, and fix bugs with or without user input. Autonomously
 
 # Find and Fix Bugs
 
+## Setup
+
+- Load commands with `source ~/.codex/tools/codex-tools.zsh`
+
 ## Trigger
 
 Use this skill when the user asks to find or fix bugs, or when no concrete issue is provided and you are asked to proactively discover issues.
