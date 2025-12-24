@@ -77,10 +77,8 @@
 ## 🧰 可用指令（全域工具）
 
 - 工具入口：`~/.codex/tools`（symlink → `~/.config/zsh/.private/tools`）。
-- 建議載入全部工具：`source ~/.codex/tools/codex-tools.sh`。
+- 載入全部工具：`source ~/.codex/tools/codex-tools.zsh`。
 - 單一工具載入：`source ~/.codex/tools/<tool>/<tool>.sh`。
-- 驗證是否成功載入：`type <command>` 或（zsh）`whence <command>`。
-- 工具實際載入內容與條件判斷，以 `~/.codex/tools/codex-tools.sh` 為準。
 
 ## 🧯 Troubleshooting（tools）
 
