@@ -47,4 +47,4 @@ Do not print secrets from `.env` or echo `TUN_PGPASSWORD`.
 
 ## Output and clarification rules
 
-- Follow the shared template at `skills/_templates/sql-output.md`.
+- Follow the shared template at `templates/sql-output.md`.

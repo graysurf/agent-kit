@@ -12,6 +12,7 @@ are intentionally excluded via `.gitignore`.
 ├── config.toml                             # default model and runtime settings
 ├── prompts/                                # prompt templates
 ├── skills/                                 # custom skills
+├── templates/                              # shared templates
 └── tools -> ../zsh/.private/tools          # private Zsh tool wrappers
 ```
 
