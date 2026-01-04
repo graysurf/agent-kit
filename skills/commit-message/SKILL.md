@@ -13,9 +13,9 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 Rules:
 
-- Prefer staged changes as input via `git-commit-context --stdout`
+- Prefer staged changes as input via `git-tools commit context --stdout --no-color`
 - **Never** run `git add` on your own; **do not** stage files the user has not explicitly staged
-- If `git-commit-context` is not available, collect fallback inputs:
+- If `git-tools` is not available, collect fallback inputs:
   - `git diff --staged --no-color` for the diff
   - `git-scope staged --no-color` for the scope tree (fallback: `git diff --staged --name-only`)
   - For each staged file, include its staged version via `git show :<path>`
