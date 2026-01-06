@@ -11,9 +11,9 @@ PR column format:
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-07 | [Progress PR create and close](20260107_progress-pr-create-and-close.md) | [#5](https://github.com/graysurf/codex-kit/pull/5) |
 
 ### Archived
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-07 | [Progress PR create and close](archived/20260107_progress-pr-create-and-close.md) | [#5](https://github.com/graysurf/codex-kit/pull/5) |
