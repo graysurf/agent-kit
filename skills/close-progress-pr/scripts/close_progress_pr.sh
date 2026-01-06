@@ -134,7 +134,7 @@ import re
 import sys
 
 body = sys.argv[1]
-matches = re.findall(r"docs/progress/(?:archived/)?\\d{8}_[A-Za-z0-9_-]+\\.md", body)
+matches = re.findall(r"docs/progress/(?:archived/)?\d{8}_[A-Za-z0-9_-]+\.md", body)
 
 unique = []
 for m in matches:
