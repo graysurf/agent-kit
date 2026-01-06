@@ -47,4 +47,4 @@ Do not print secrets from `.env` or echo `TUN_MSSQL_PASSWORD`.
 
 ## Output and clarification rules
 
-- Follow the shared template at `templates/sql-output.md`.
+- Follow the shared template at `docs/templates/SQL_OUTPUT_TEMPLATE.md`.
