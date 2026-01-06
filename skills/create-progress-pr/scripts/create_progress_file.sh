@@ -202,6 +202,7 @@ with open(path, "r", encoding="utf-8") as f:
 
 text = text.replace("# [[feature]]: [[short title]]", f"# {feature}: {title}")
 text = text.replace("[[[repository/pull/number](url) or TBD]]", "TBD")
+text = text.replace("[[url or path or TBD or None]]", "TBD")
 text = text.replace("[[url or path or TBD]]", "TBD")
 text = text.replace("[[DRAFT\\|IN PROGRESS\\|DONE]]", status)
 text = text.replace("[[YYYY-MM-DD]]", date_iso)

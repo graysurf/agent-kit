@@ -52,7 +52,7 @@ Upstream reference (example):
 
 ## Authoring rules
 
-- Replace every `[[...]]` placeholder token (use `TBD` if unknown).
+- Replace every `[[...]]` placeholder token (use `TBD` if unknown; use `None` if not applicable, e.g. `Links -> Docs`).
 - Follow the glossary language policy: headings/labels/narrative in English; keep paths/commands/identifiers as code.
 - Make the checklist executable:
   - Each Step has Work Items, Artifacts, Exit Criteria.

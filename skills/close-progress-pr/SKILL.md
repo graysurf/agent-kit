@@ -39,6 +39,7 @@ Patch the PR body `## Progress` link to point to the base branch (usually `main`
      - Set Status to `DONE`
      - Update the `Updated` date to today
      - Set `Links -> PR` to the PR URL
+     - If there are no related docs for this PR, set `Links -> Docs` to `None` (do not guess a random file)
    - Move it to `docs/progress/archived/<file>.md` if not already archived
    - Update `docs/progress/README.md` (move row to Archived; set PR link to `[#<number>](<url>)`; best-effort if table format differs)
 5. Commit and push these changes to the PR branch

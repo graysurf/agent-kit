@@ -1,4 +1,4 @@
-> Note: Before committing, replace all `[[...]]` placeholder tokens (use `TBD` if unknown).
+> Note: Before committing, replace all `[[...]]` placeholder tokens (use `TBD` if unknown; use `None` if not applicable).
 
 # [[feature]]: [[short title]]
 
@@ -9,7 +9,7 @@
 Links:
 
 - PR: [[[repository/pull/number](url) or TBD]]
-- Docs: [[url or path or TBD]]
+- Docs: [[url or path or TBD or None]]
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
 ## Goal
