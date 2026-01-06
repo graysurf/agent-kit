@@ -242,17 +242,19 @@ PY
 title="$(extract_title "$progress_file")"
 
 if [[ -f "docs/progress/README.md" ]]; then
-  python3 - "docs/progress/README.md" "$filename" "$title" "$pr_url" <<'PY'
+  python3 - "docs/progress/README.md" "$filename" "$title" "$pr_url" "$pr_number" <<'PY'
 import datetime
 import sys
 
-index_path, filename, title, pr_url = sys.argv[1:]
+index_path, filename, title, pr_url, pr_number = sys.argv[1:]
 
 yyyymmdd = filename.split("_", 1)[0]
 try:
   date_iso = datetime.datetime.strptime(yyyymmdd, "%Y%m%d").date().isoformat()
 except ValueError:
   date_iso = "TBD"
+
+pr_cell = f"[#{pr_number}]({pr_url})"
 
 with open(index_path, "r", encoding="utf-8") as f:
   lines = f.readlines()
@@ -287,7 +289,7 @@ def row_cells(row_line):
   return [p.strip() for p in row_line.strip().strip("|").split("|")]
 
 def render_row(feature_cell):
-  return f"| {date_iso} | {feature_cell} | {pr_url} |\\n"
+  return f"| {date_iso} | {feature_cell} | {pr_cell} |\\n"
 
 def normalize_feature_cell(cell):
   cell = cell.replace(f"(docs/progress/{filename})", f"(docs/progress/archived/{filename})")

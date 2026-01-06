@@ -9,6 +9,7 @@
 
 ## Validation
 - `rg -n "\\[\\[.*\\]\\]" docs/progress -S` (no output)
+- `scripts/validate_progress_index.sh` (pass)
 - `docs/progress/README.md` updated (yes/no)
 
 ## Open Questions

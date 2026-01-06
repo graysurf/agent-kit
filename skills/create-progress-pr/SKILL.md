@@ -64,16 +64,19 @@ Upstream reference (example):
 - Add a row under “In progress”:
   - Date: `YYYY-MM-DD`
   - Feature: short title
-  - PR: `TBD` (or the PR URL if already created)
+  - PR: `TBD` (or `[#<number>](<url>)` after PR creation)
 
 ## Validate before commit
 
 - Ensure no placeholders remain: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` should return no output.
+- Ensure progress index PR links are well-formed: `scripts/validate_progress_index.sh` should succeed.
 
 ## Optional helper scripts
 
 - Create a new progress file skeleton (defaults to this skill’s templates; use `--use-project-templates` only when requested):
   - `scripts/create_progress_file.sh --title "<short title>"`
+- Validate progress index formatting:
+  - `scripts/validate_progress_index.sh`
 - Render templates for copy/paste or `gh pr create --body-file ...`:
   - `scripts/render_progress_pr.sh --pr`
   - `scripts/render_progress_pr.sh --progress-template`
