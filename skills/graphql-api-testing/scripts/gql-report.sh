@@ -32,14 +32,16 @@ Options:
       --jwt <name>       JWT profile name (passed through to gql.sh)
       --run              Execute the request via gql.sh and embed the response
       --response <file>  Use response from a file (use "-" for stdin); formatted with jq
+      --allow-empty      Allow generating a report with an empty/no-data response (or as a draft without --run/--response)
       --no-redact        Do not redact token/password fields in variables/response
       --project-root <p> Override project root (default: git root or current dir)
-      --config-dir <dir> Passed through to gql.sh (directory containing endpoints.env)
+      --config-dir <dir> Passed through to gql.sh (GraphQL setup dir containing endpoints.env/jwts.env)
 
 Environment variables:
   GQL_REPORT_DIR          Default output directory when --out is not set.
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
+  GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
 
 Notes:
   - Requires jq for JSON formatting.
@@ -57,6 +59,7 @@ explicit_url=""
 jwt_name=""
 run_request=false
 redact=true
+allow_empty=false
 project_root=""
 config_dir=""
 
@@ -100,6 +103,10 @@ while [[ $# -gt 0 ]]; do
 				;;
 			--run)
 				run_request=true
+				shift
+				;;
+			--allow-empty|--expect-empty)
+				allow_empty=true
 				shift
 				;;
 		--no-redact)
@@ -175,6 +182,50 @@ redact_jq='
   redact
 '
 
+has_meaningful_data_jq='
+  def is_meta_key($k):
+    ($k | tostring | ascii_downcase) as $s
+    | ($s == "__typename"
+      or $s == "pageinfo"
+      or $s == "totalcount"
+      or $s == "count"
+      or $s == "cursor"
+      or $s == "edges"
+      or $s == "nodes"
+      or $s == "hasnextpage"
+      or $s == "haspreviouspage"
+      or $s == "startcursor"
+      or $s == "endcursor");
+
+  def key_for_path($p):
+    if ($p | length) == 0 then
+      null
+    else
+      ($p[-1]) as $last
+      | if ($last | type) == "string" then
+          $last
+        elif ($last | type) == "number"
+          and ($p | length) >= 2
+          and ($p[-2] | type) == "string" then
+          $p[-2]
+        else
+          null
+        end
+    end;
+
+  def meaningful_scalar:
+    paths(scalars) as $p
+    | getpath($p) as $v
+    | select($v != null)
+    | key_for_path($p) as $k
+    | select($k != null)
+    | select((is_meta_key($k)) | not);
+
+  (.data? // empty)
+  | [ meaningful_scalar ]
+  | length > 0
+'
+
 format_json_file() {
 	local file="$1"
 	if [[ "$redact" == "true" ]]; then
@@ -200,6 +251,7 @@ fi
 response_note=""
 response_lang="json"
 response_body="{}"
+response_raw=""
 
 if [[ "$run_request" == "true" ]]; then
 	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -238,6 +290,24 @@ elif [[ -n "$response_file" ]]; then
 	fi
 else
 	response_note="> TODO: run the operation and replace this section with the real response (formatted JSON)."
+fi
+
+case "${GQL_ALLOW_EMPTY:-}" in
+	1|true|TRUE|yes|YES)
+		allow_empty=true
+		;;
+esac
+
+if [[ "$allow_empty" == "false" ]]; then
+	if [[ "$run_request" != "true" && -z "$response_file" ]]; then
+		die "Refusing to write a report without a real response. Use --run or --response (or pass --allow-empty for an intentionally empty/draft report)."
+	fi
+
+	if [[ "$response_lang" != "json" ]]; then
+		die "Response is not JSON; refusing to write a no-data report. Re-run with --allow-empty if this is expected."
+	fi
+
+	printf "%s" "$response_body" | jq -e "$has_meaningful_data_jq" >/dev/null 2>&1 || die "Response appears to contain no data records; refusing to write report. Adjust query/variables to return at least one record, or pass --allow-empty if an empty result is expected."
 fi
 
 operation_content="$(cat "$operation_file")"

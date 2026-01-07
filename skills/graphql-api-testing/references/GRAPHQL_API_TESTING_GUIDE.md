@@ -29,14 +29,14 @@ Store project-specific, non-secret templates under `setup/graphql/`:
 
 - `setup/graphql/endpoints.env` (commit this)
 - `setup/graphql/jwts.env` (commit this; placeholders only)
-- `setup/graphql/*.graphql` operations (commit these)
-- `setup/graphql/*.json` variables (commit these, but keep secrets out)
+- `setup/graphql/operations/*.graphql` operations (commit these)
+- `setup/graphql/operations/*.json` variables (commit these, but keep secrets out)
 
 Optional local-only overrides:
 
 - `setup/graphql/endpoints.local.env` (do not commit; recommended to gitignore)
 - `setup/graphql/jwts.local.env` (do not commit; real JWTs)
-- `setup/graphql/*.local.json` (do not commit; recommended to gitignore)
+- `setup/graphql/operations/*.local.json` (do not commit; recommended to gitignore)
 
 ## Steps
 
@@ -68,14 +68,14 @@ GQL_JWT_DEFAULT="<your token>"
 GQL_JWT_ADMIN="<admin token>"
 ```
 
-Select a profile with `--jwt <name>` (or `GQL_JWT_NAME=<name>`). If the selected JWT is missing/empty, `gql.sh` falls back to calling `setup/graphql/login.graphql` to fetch one (requires `jq`).
+Select a profile with `--jwt <name>` (or `GQL_JWT_NAME=<name>`; you can also put `GQL_JWT_NAME=<name>` in `jwts.local.env`). If the selected JWT is missing/empty, `gql.sh` falls back to calling `setup/graphql/operations/login.graphql` to fetch one (requires `jq`).
 
 4) Prepare operation and variables files
 
 Example structure:
 
-- `setup/graphql/login.graphql`
-- `setup/graphql/login.variables.json`
+- `setup/graphql/operations/login.graphql`
+- `setup/graphql/operations/login.variables.json`
 
 5) Call GraphQL operations (recommended: Codex skill script)
 
@@ -96,8 +96,8 @@ Unauthenticated call (login):
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
-  setup/graphql/login.graphql \
-  setup/graphql/login.variables.json \
+  setup/graphql/operations/login.graphql \
+  setup/graphql/operations/login.variables.json \
 | jq .
 ```
 
@@ -107,8 +107,8 @@ Authenticated call (select JWT profile; will auto-login if missing):
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
   --jwt default \
-  setup/graphql/<operation>.graphql \
-  setup/graphql/<variables>.json \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
 | jq .
 ```
 
@@ -118,8 +118,8 @@ Manual token export (optional; example path, adjust to your schema):
 export ACCESS_TOKEN="$(
   $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
     --env local \
-    setup/graphql/login.graphql \
-    setup/graphql/login.variables.json \
+    setup/graphql/operations/login.graphql \
+    setup/graphql/operations/login.variables.json \
   | jq -r '.data.<loginMutation>.accessToken'
 )"
 ```
@@ -129,35 +129,38 @@ Authenticated call (ACCESS_TOKEN):
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
-  setup/graphql/<operation>.graphql \
-  setup/graphql/<variables>.json \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
 | jq .
 ```
 
 6) Generate a test report under `docs/`
 
-Generate a report stub (auto-fills date + formats JSON):
+Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the query/variables (filters, time range, IDs) and re-run before writing the report.
 
 ```bash
 export GQL_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
 
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
   --case "<test case name>" \
-  --op setup/graphql/<operation>.graphql \
-  --vars setup/graphql/<variables>.json
-```
-
-Run the request and embed the response:
-
-```bash
-$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
-  --case "<test case name>" \
-  --op setup/graphql/<operation>.graphql \
-  --vars setup/graphql/<variables>.json \
+  --op setup/graphql/operations/<operation>.graphql \
+  --vars setup/graphql/operations/<variables>.json \
   --env <local|staging|dev> \
   --jwt <default|admin|...> \
   --run
 ```
+
+Use a saved response file instead of running (for replayability):
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
+  --case "<test case name>" \
+  --op setup/graphql/operations/<operation>.graphql \
+  --vars setup/graphql/operations/<variables>.json \
+  --response setup/graphql/operations/<operation>.response.json
+```
+
+If you intentionally expect an empty/no-data result (or want a draft without running yet), pass `--allow-empty`.
 
 ## Notes for stability
 

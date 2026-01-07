@@ -22,7 +22,7 @@ Options:
   -e, --env <name>       Use endpoint preset from endpoints.env (e.g. local/staging/dev)
   -u, --url <url>        Use an explicit GraphQL endpoint URL
       --jwt <name>        Select JWT profile name (default: "default")
-      --config-dir <dir> Directory that contains endpoints.env (defaults to operation file's directory)
+      --config-dir <dir> GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
       --list-envs         Print available env names from endpoints.env, then exit
       --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
 
@@ -34,8 +34,8 @@ Environment variables:
 Notes:
   - Project presets live under: setup/graphql/endpoints.env (+ optional endpoints.local.env overrides).
   - JWT presets live under: setup/graphql/jwts.env (+ optional jwts.local.env with real tokens).
-  - If the selected JWT is missing/empty, gql.sh falls back to running setup/graphql/login.graphql
-    (and setup/graphql/login.variables(.local).json if present) to fetch a token.
+  - If the selected JWT is missing/empty, gql.sh falls back to running login.graphql under setup/graphql/
+    (supports both setup/graphql/login.graphql and setup/graphql/operations/login.graphql) to fetch a token.
   - Prefers xh or HTTPie if available; falls back to curl (requires jq).
   - Prints response body only.
 EOF
@@ -101,26 +101,27 @@ variables_file="${2:-}"
 declare -A endpoint_map=()
 gql_env_default=""
 declare -A jwt_map=()
+gql_jwt_name_default=""
 
 parse_endpoints_file() {
 	local file="$1"
 	[[ -f "$file" ]] || return 0
 
-	while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
-		raw_line="${raw_line%$'\r'}"
-		local line
-		line="$(trim "$raw_line")"
-		[[ -z "$line" ]] && continue
-		[[ "$line" == \#* ]] && continue
+		while IFS= read -r raw_line || [[ -n "$raw_line" ]]; do
+			raw_line="${raw_line%$'\r'}"
+			local line
+			line="$(trim "$raw_line")"
+			[[ -z "$line" ]] && continue
+			[[ "$line" == \#* ]] && continue
 
-		if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-			local key="${BASH_REMATCH[1]}"
-			local value
-			value="$(trim "${BASH_REMATCH[2]}")"
+			if [[ "$line" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+				local key="${BASH_REMATCH[2]}"
+				local value
+				value="$(trim "${BASH_REMATCH[3]}")"
 
-			if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-				value="${BASH_REMATCH[1]}"
-			elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
+				if [[ "$value" =~ ^\"(.*)\"$ ]]; then
+					value="${BASH_REMATCH[1]}"
+				elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
 				value="${BASH_REMATCH[1]}"
 			fi
 
@@ -146,8 +147,8 @@ list_available_envs() {
 		raw_line="${raw_line%$'\r'}"
 		local line
 		line="$(trim "$raw_line")"
-		[[ "$line" =~ ^GQL_URL_([A-Za-z0-9_]+)= ]] || continue
-		printf "%s\n" "${BASH_REMATCH[1],,}"
+		[[ "$line" =~ ^(export[[:space:]]+)?GQL_URL_([A-Za-z0-9_]+)[[:space:]]*= ]] || continue
+		printf "%s\n" "${BASH_REMATCH[2],,}"
 	done < "$file" | sort -u
 }
 
@@ -162,10 +163,10 @@ parse_jwts_file() {
 		[[ -z "$line" ]] && continue
 		[[ "$line" == \#* ]] && continue
 
-		if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
-			local key="${BASH_REMATCH[1]}"
+		if [[ "$line" =~ ^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+			local key="${BASH_REMATCH[2]}"
 			local value
-			value="$(trim "${BASH_REMATCH[2]}")"
+			value="$(trim "${BASH_REMATCH[3]}")"
 
 			if [[ "$value" =~ ^\"(.*)\"$ ]]; then
 				value="${BASH_REMATCH[1]}"
@@ -174,6 +175,9 @@ parse_jwts_file() {
 			fi
 
 			case "$key" in
+				GQL_JWT_NAME)
+					gql_jwt_name_default="$value"
+					;;
 				GQL_JWT_*)
 					local jwt_key="${key#GQL_JWT_}"
 					jwt_key="${jwt_key,,}"
@@ -192,50 +196,91 @@ list_available_jwts() {
 		raw_line="${raw_line%$'\r'}"
 		local line
 		line="$(trim "$raw_line")"
-		[[ "$line" =~ ^GQL_JWT_([A-Za-z0-9_]+)= ]] || continue
-		printf "%s\n" "${BASH_REMATCH[1],,}"
+		[[ "$line" =~ ^(export[[:space:]]+)?GQL_JWT_([A-Za-z0-9_]+)[[:space:]]*= ]] || continue
+		local jwt_name="${BASH_REMATCH[2],,}"
+		[[ "$jwt_name" == "name" ]] && continue
+		printf "%s\n" "$jwt_name"
 	done < "$file" | sort -u
 }
 
-resolve_endpoints_dir() {
-	if [[ -n "$config_dir" ]]; then
-		printf "%s" "$config_dir"
-		return 0
+find_upwards_for_file() {
+	local start_dir="$1"
+	local filename="$2"
+	local dir="$start_dir"
+
+	if [[ "$dir" == /* ]]; then
+		dir="/${dir##/}"
 	fi
 
-	if [[ -n "$operation_file" ]]; then
-		local op_dir
-		if op_dir="$(cd "$(dirname "$operation_file")" 2>/dev/null && pwd -P)"; then
-			printf "%s" "$op_dir"
+	while [[ -n "$dir" ]]; do
+		if [[ -f "$dir/$filename" ]]; then
+			printf "%s" "$dir"
 			return 0
 		fi
-	fi
 
-	if [[ -d "setup/graphql" ]]; then
-		printf "%s" "setup/graphql"
-		return 0
-	fi
+		local parent
+		parent="$(cd "$dir" 2>/dev/null && cd .. && pwd -P)" || break
+		if [[ "$parent" == /* ]]; then
+			parent="/${parent##/}"
+		fi
+		[[ "$parent" == "$dir" ]] && break
+		dir="$parent"
+	done
 
 	return 1
 }
 
-endpoints_dir="$(resolve_endpoints_dir 2>/dev/null || true)"
+resolve_setup_dir() {
+	local seed=""
+	local config_dir_explicit=false
+
+	if [[ -n "$config_dir" ]]; then
+		seed="$config_dir"
+		config_dir_explicit=true
+	elif [[ -n "$operation_file" ]]; then
+		seed="$(dirname "$operation_file")"
+	else
+		seed="."
+	fi
+
+	local seed_abs=""
+	seed_abs="$(cd "$seed" 2>/dev/null && pwd -P || true)"
+	[[ -n "$seed_abs" ]] || return 1
+
+	local found=""
+	found="$(find_upwards_for_file "$seed_abs" "endpoints.env" 2>/dev/null || true)"
+	if [[ -z "$found" ]]; then
+		found="$(find_upwards_for_file "$seed_abs" "jwts.env" 2>/dev/null || true)"
+	fi
+	if [[ -z "$found" ]]; then
+		found="$(find_upwards_for_file "$seed_abs" "jwts.local.env" 2>/dev/null || true)"
+	fi
+
+	if [[ -n "$found" ]]; then
+		printf "%s" "$found"
+		return 0
+	fi
+
+	if [[ "$config_dir_explicit" == "true" ]]; then
+		printf "%s" "$seed_abs"
+		return 0
+	fi
+
+	if [[ -d "setup/graphql" ]]; then
+		(cd "setup/graphql" 2>/dev/null && pwd -P) || true
+		return 0
+	fi
+
+	printf "%s" "$seed_abs"
+}
+
+setup_dir="$(resolve_setup_dir 2>/dev/null || true)"
 endpoints_file=""
 endpoints_local_file=""
 
-if [[ -n "$endpoints_dir" && -f "$endpoints_dir/endpoints.env" ]]; then
-	endpoints_file="$endpoints_dir/endpoints.env"
-	endpoints_local_file="$endpoints_dir/endpoints.local.env"
-elif [[ -f "setup/graphql/endpoints.env" ]]; then
-	endpoints_file="setup/graphql/endpoints.env"
-	endpoints_local_file="setup/graphql/endpoints.local.env"
-fi
-
-setup_dir=""
-if [[ -n "$endpoints_dir" && -d "$endpoints_dir" ]]; then
-	setup_dir="$endpoints_dir"
-elif [[ -d "setup/graphql" ]]; then
-	setup_dir="setup/graphql"
+if [[ -n "$setup_dir" && -f "$setup_dir/endpoints.env" ]]; then
+	endpoints_file="$setup_dir/endpoints.env"
+	endpoints_local_file="$setup_dir/endpoints.local.env"
 fi
 
 if [[ -n "$setup_dir" && -d "$setup_dir" ]]; then
@@ -259,13 +304,11 @@ if [[ "$list_envs" == "true" ]]; then
 fi
 
 if [[ "$list_jwts" == "true" ]]; then
-	[[ -n "$jwts_file" || -n "$jwts_local_file" ]] || die "jwts(.local).env not found (expected under setup/graphql/)"
-	if [[ -n "$jwts_file" ]]; then
-		list_available_jwts "$jwts_file"
-	fi
-	if [[ -n "$jwts_local_file" && -f "$jwts_local_file" ]]; then
-		list_available_jwts "$jwts_local_file"
-	fi
+	[[ -n "$jwts_file" && -f "$jwts_file" || -n "$jwts_local_file" && -f "$jwts_local_file" ]] || die "jwts(.local).env not found (expected under setup/graphql/)"
+	{
+		[[ -n "$jwts_file" && -f "$jwts_file" ]] && list_available_jwts "$jwts_file"
+		[[ -n "$jwts_local_file" && -f "$jwts_local_file" ]] && list_available_jwts "$jwts_local_file"
+	} | sort -u
 	exit 0
 fi
 
@@ -321,14 +364,17 @@ if [[ -n "$jwts_local_file" && -f "$jwts_local_file" ]]; then
 fi
 
 jwt_name_env="$(trim "${GQL_JWT_NAME:-}")"
+jwt_name_file="$(trim "$gql_jwt_name_default")"
 jwt_profile_selected=false
 if [[ -n "$jwt_name_arg" ]]; then
 	jwt_profile_selected=true
 elif [[ -n "$jwt_name_env" ]]; then
 	jwt_profile_selected=true
+elif [[ -n "$jwt_name_file" ]]; then
+	jwt_profile_selected=true
 fi
 
-jwt_name="${jwt_name_arg:-${jwt_name_env:-default}}"
+jwt_name="${jwt_name_arg:-${jwt_name_env:-${jwt_name_file:-default}}}"
 jwt_name="${jwt_name,,}"
 
 access_token=""
@@ -441,23 +487,36 @@ maybe_auto_login() {
 	local profile="$1"
 	local login_op=""
 	local login_vars=""
+	local login_dir=""
 
-	if [[ -f "$setup_dir/login.${profile}.graphql" ]]; then
-		login_op="$setup_dir/login.${profile}.graphql"
-	elif [[ -f "$setup_dir/login.graphql" ]]; then
-		login_op="$setup_dir/login.graphql"
-	else
-		return 1
-	fi
+	local -a candidates
+	candidates=("$setup_dir" "$setup_dir/operations" "$setup_dir/ops")
 
-	if [[ -f "$setup_dir/login.${profile}.variables.local.json" ]]; then
-		login_vars="$setup_dir/login.${profile}.variables.local.json"
-	elif [[ -f "$setup_dir/login.${profile}.variables.json" ]]; then
-		login_vars="$setup_dir/login.${profile}.variables.json"
-	elif [[ -f "$setup_dir/login.variables.local.json" ]]; then
-		login_vars="$setup_dir/login.variables.local.json"
-	elif [[ -f "$setup_dir/login.variables.json" ]]; then
-		login_vars="$setup_dir/login.variables.json"
+	local dir
+	for dir in "${candidates[@]}"; do
+		[[ -d "$dir" ]] || continue
+		if [[ -f "$dir/login.${profile}.graphql" ]]; then
+			login_op="$dir/login.${profile}.graphql"
+			login_dir="$dir"
+			break
+		fi
+		if [[ -f "$dir/login.graphql" ]]; then
+			login_op="$dir/login.graphql"
+			login_dir="$dir"
+			break
+		fi
+	done
+
+	[[ -n "$login_op" && -n "$login_dir" ]] || return 1
+
+	if [[ -f "$login_dir/login.${profile}.variables.local.json" ]]; then
+		login_vars="$login_dir/login.${profile}.variables.local.json"
+	elif [[ -f "$login_dir/login.${profile}.variables.json" ]]; then
+		login_vars="$login_dir/login.${profile}.variables.json"
+	elif [[ -f "$login_dir/login.variables.local.json" ]]; then
+		login_vars="$login_dir/login.variables.local.json"
+	elif [[ -f "$login_dir/login.variables.json" ]]; then
+		login_vars="$login_dir/login.variables.json"
 	fi
 
 	local op_abs login_abs

@@ -9,8 +9,8 @@ description: Test GraphQL APIs with repeatable, file-based operations and variab
 
 Make GraphQL API calls reproducible (for humans and LLMs) by standardizing:
 
-- Operation files: `setup/graphql/*.graphql`
-- Variables files: `setup/graphql/*.json`
+- Operation files: `setup/graphql/**/*.graphql` (recommended: `setup/graphql/operations/*.graphql`)
+- Variables files: `setup/graphql/**/*.json` (recommended: `setup/graphql/operations/*.json`)
 - Endpoint presets: `setup/graphql/endpoints.env` (+ optional `endpoints.local.env` overrides)
 - JWT presets: `setup/graphql/jwts.env` (+ optional `jwts.local.env` with real tokens)
 - A single caller: `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`
@@ -19,14 +19,14 @@ Make GraphQL API calls reproducible (for humans and LLMs) by standardizing:
 
 In each project, keep non-secret templates under `setup/graphql/` (commit these):
 
-- `setup/graphql/login.graphql`
-- `setup/graphql/login.variables.json`
+- `setup/graphql/operations/login.graphql`
+- `setup/graphql/operations/login.variables.json`
 - `setup/graphql/endpoints.env`
 - `setup/graphql/jwts.env`
 
 If credentials/tokens must be private, use local-only files (gitignored):
 
-- `setup/graphql/*.local.json` (variables)
+- `setup/graphql/operations/*.local.json` (variables)
 - `setup/graphql/endpoints.local.env` (endpoint overrides)
 - `setup/graphql/jwts.local.env` (real JWTs)
 
@@ -52,10 +52,10 @@ cp "$CODEX_HOME/skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.
 
 - Put non-secret placeholders in `setup/graphql/jwts.env` (commit this).
 - Put real tokens in `setup/graphql/jwts.local.env` (gitignored).
-- Select a profile with `--jwt <name>` or `GQL_JWT_NAME=<name>`.
+- Select a profile with `--jwt <name>` or `GQL_JWT_NAME=<name>` (you can also set `GQL_JWT_NAME=<name>` inside `jwts.local.env`).
 - List profiles with: `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --list-jwts`
 
-If no JWT is found for the selected profile, `gql.sh` falls back to calling `setup/graphql/login.graphql` to fetch one (requires `jq`).
+If no JWT is found for the selected profile, `gql.sh` falls back to calling `login.graphql` under `setup/graphql/` (supports `setup/graphql/login.graphql` and `setup/graphql/operations/login.graphql`) to fetch one (requires `jq`).
 
 3) Run an operation.
 
@@ -63,8 +63,8 @@ If no JWT is found for the selected profile, `gql.sh` falls back to calling `set
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
   --jwt default \
-  setup/graphql/<operation>.graphql \
-  setup/graphql/<variables>.json \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
 | jq .
 ```
 
@@ -75,8 +75,8 @@ If you prefer manual control, you can still call login and export `ACCESS_TOKEN`
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
-  setup/graphql/login.graphql \
-  setup/graphql/login.variables.json \
+  setup/graphql/operations/login.graphql \
+  setup/graphql/operations/login.variables.json \
 | jq .
 ```
 
@@ -86,8 +86,8 @@ Extract and reuse `accessToken` for subsequent calls:
 export ACCESS_TOKEN="$(
   $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
     --env local \
-    setup/graphql/login.graphql \
-    setup/graphql/login.variables.json \
+    setup/graphql/operations/login.graphql \
+    setup/graphql/operations/login.variables.json \
   | jq -r '.data.<loginMutation>.accessToken'
 )"
 ```
@@ -97,8 +97,8 @@ Authenticated call pattern:
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   --env local \
-  setup/graphql/<operation>.graphql \
-  setup/graphql/<variables>.json \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
 | jq .
 ```
 
@@ -110,13 +110,15 @@ When the user asks for a manual API test report, write it under `docs/` and incl
 - Variables (`.json`)
 - Full JSON response (redact tokens/PII)
 
+Do not generate a “no data” report: the response must include at least one real data record/value. If the result is empty and it’s not clearly intentional/correct, confirm the query conditions with the user (filters, time range, IDs) and re-run with adjusted variables.
+
 Prefer generating the report via script (auto-fills date + formats JSON):
 
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
   --case "<test case name>" \
-  --op setup/graphql/<operation>.graphql \
-  --vars setup/graphql/<variables>.json \
+  --op setup/graphql/operations/<operation>.graphql \
+  --vars setup/graphql/operations/<variables>.json \
   --env <local|staging|dev> \
   --jwt <default|admin|...> \
   --run
@@ -125,6 +127,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
 Notes:
 
 - `gql-report.sh` redacts `accessToken` / `refreshToken` / `password` by default; use `--no-redact` only if explicitly requested.
+- `gql-report.sh` refuses to write a report when the response has no data, unless you pass `--allow-empty` (only when an empty/no-data result is the intent or correct behavior).
 - Default report output dir is `<project root>/docs`; override with `GQL_REPORT_DIR` (relative paths are resolved from `<project root>`).
 
 ## Safety rules
