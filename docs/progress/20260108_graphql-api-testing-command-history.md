@@ -8,8 +8,8 @@ Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/8
 - Planning PR: https://github.com/graysurf/codex-kit/pull/7
-- Docs: [skills/graphql-api-testing/SKILL.md](../../skills/graphql-api-testing/SKILL.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Docs: [skills/graphql-api-testing/SKILL.md](skills/graphql-api-testing/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](docs/templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
