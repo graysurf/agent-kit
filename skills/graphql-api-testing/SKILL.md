@@ -44,6 +44,7 @@ Then:
 
 - Edit `setup/graphql/endpoints.env` for your project.
 - Copy `setup/graphql/jwts.local.env.example` to `setup/graphql/jwts.local.env` and fill real tokens (do not commit).
+- (Optional) Copy `setup/graphql/gql.local.env.example` to `setup/graphql/gql.local.env` for local runtime toggles (history/report), and `source` it in your shell (do not commit).
 - (Optional) Copy `setup/graphql/operations/login.variables.local.json.example` to `setup/graphql/operations/login.variables.local.json` and fill credentials (do not commit).
 
 ## Project guide (optional)
