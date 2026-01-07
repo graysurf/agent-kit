@@ -13,6 +13,7 @@ Make GraphQL API calls reproducible via:
 - `setup/graphql/endpoints.env` (+ optional `endpoints.local.env`)
 - `setup/graphql/jwts.env` (+ optional `jwts.local.env`)
 - `setup/graphql/schema.env` (+ committed schema SDL, e.g. `schema.gql`)
+- `setup/graphql/prompt.md` (optional, committed; project context for LLMs: what to test, DB tooling, other test utilities)
 
 ## TL;DR (fast paths)
 
