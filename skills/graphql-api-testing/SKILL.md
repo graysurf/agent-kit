@@ -23,12 +23,15 @@ In each project, keep non-secret templates under `setup/graphql/` (commit these)
 - `setup/graphql/operations/login.variables.json`
 - `setup/graphql/endpoints.env`
 - `setup/graphql/jwts.env`
+- `setup/graphql/schema.env`
+- `setup/graphql/schema.gql` (schema SDL; preferred)
 
 If credentials/tokens must be private, use local-only files (gitignored):
 
 - `setup/graphql/operations/*.local.json` (variables)
 - `setup/graphql/endpoints.local.env` (endpoint overrides)
 - `setup/graphql/jwts.local.env` (real JWTs)
+- `setup/graphql/schema.local.env` (schema path override)
 - `setup/graphql/.gql_history` (local command history; enabled by default; rotate at 10 MB)
 
 ## Bootstrap template (recommended)
@@ -99,6 +102,25 @@ Extract the last entry for replay:
 
 ```bash
 $CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh --command-only
+```
+
+## Schema (SDL)
+
+When a repo commits its GraphQL schema SDL, LLMs can generate operations/variables even without `api.graphql` docs.
+
+- Recommended: commit `setup/graphql/schema.gql` (or `schema.graphql` / `schema.graphqls`).
+- Configure the canonical path in `setup/graphql/schema.env`:
+  - `GQL_SCHEMA_FILE=schema.gql` (relative paths resolve under `setup/graphql/`)
+- Resolve the schema file path (for tooling/LLMs):
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql
+```
+
+Print the schema contents:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql --cat
 ```
 
 ## Manual token export (optional)

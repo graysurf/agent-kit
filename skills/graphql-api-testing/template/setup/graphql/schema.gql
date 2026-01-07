@@ -1,0 +1,19 @@
+# GraphQL schema (SDL) placeholder.
+#
+# Replace this file with your real schema SDL (recommended: commit it).
+# Common filename variants: schema.gql, schema.graphql, schema.graphqls.
+#
+# Minimal valid schema (update to match your server):
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  _placeholder: String
+}
+
+type Mutation {
+  _placeholder: String
+}
+
