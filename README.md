@@ -46,7 +46,6 @@ are intentionally excluded via `.gitignore`.
 
 | Skill | Description |
 | --- | --- |
-| fr-api-doc-playbook | Test FinanceReport GraphQL APIs and draft docs |
 | fr-psql | Run PostgreSQL queries via the fr-psql wrapper |
 | mb-mssql | Run SQL Server queries via the mb-mssql wrapper |
 | qb-mysql | Run MySQL queries via the qb-mysql wrapper |
