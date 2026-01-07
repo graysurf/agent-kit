@@ -19,7 +19,7 @@ Links:
 ## Acceptance Criteria
 
 - Running `skills/graphql-api-testing/scripts/gql.sh ...` appends a replayable shell snippet to the history file when history is enabled (default).
-- Default history location is under resolved `setup_dir`: `<setup_dir>/.gql_history`.
+- Default history location is under resolved `setup_dir`: `<setup_dir>/.gql_history` (typically `setup/graphql/.gql_history`).
 - Each entry includes a timestamp and exit code, plus resolved context (`config_dir`, `--env` or URL, `--jwt` name), and entries are separated by a blank line.
 - History logging can be disabled via env toggle (proposed: `GQL_HISTORY=0`) without changing `gql.sh` stdout/stderr behavior.
 - URL is logged by default; can be omitted via env (proposed: `GQL_HISTORY_LOG_URL=0`).
