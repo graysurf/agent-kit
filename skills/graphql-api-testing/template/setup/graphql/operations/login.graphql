@@ -4,4 +4,3 @@ mutation MemberLogin($input: LoginInput!) {
     refreshToken
   }
 }
-

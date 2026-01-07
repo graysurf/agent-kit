@@ -60,6 +60,26 @@ cp setup/graphql/gql.local.env.example setup/graphql/gql.local.env
 cp setup/graphql/operations/login.variables.local.json.example setup/graphql/operations/login.variables.local.json
 ```
 
+### Config discovery (setup_dir resolution)
+
+Most commands assume a per-repo `setup/graphql/` directory. All scripts support `--config-dir setup/graphql`:
+
+- `gql.sh` / `gql-report.sh` / `gql-history.sh` / `gql-schema.sh`
+
+If `--config-dir` is omitted, scripts try to discover the setup dir by searching upward for known files (e.g. `endpoints.env`, `jwts.env`, `.gql_history`, `schema.env`).
+
+Recommendation:
+
+- In automation (LLM runs, CI-like scripts), always pass `--config-dir setup/graphql` for deterministic behavior.
+
+### Runtime toggles (optional)
+
+`setup/graphql/gql.local.env` is a convenience file for local runtime toggles (history/report). It is not loaded automatically.
+
+- Load it in your shell:
+  - `source setup/graphql/gql.local.env`
+  - or via direnv (`.envrc`)
+
 ## Steps
 
 1) Start the API server (project-specific)
@@ -120,6 +140,8 @@ Example structure:
 - `setup/graphql/operations/login.variables.json`
 
 6) Call GraphQL operations (recommended: Codex skill script)
+
+Tip: if you are not running from the repo root, add `--config-dir setup/graphql` to the commands below.
 
 List envs:
 
@@ -213,5 +235,13 @@ By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet i
   - `$CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/graphql`
 - `gql.sh` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
   - `$CODEX_HOME/skills/graphql-api-testing/scripts/gql-history.sh --command-only`
+- History defaults and controls:
+  - Defaults: enabled, logs both success/failure with exit code; rotates at 10 MB and keeps N old files.
+  - One-off disable: `gql.sh --no-history ...`
+  - Disable: `GQL_HISTORY=0`
+  - Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
+  - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
+- Reports default to redacting common secrets (tokens/password fields). Use `gql-report.sh --no-redact` only when explicitly needed.
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.
+- If an operation is a mutation (writes data), confirm before running it against shared/staging/prod environments.

@@ -16,4 +16,3 @@ type Query {
 type Mutation {
   _placeholder: String
 }
-
