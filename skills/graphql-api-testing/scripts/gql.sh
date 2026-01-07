@@ -217,25 +217,25 @@ append_gql_history() {
 		fi
 		printf "\n"
 
-		printf "%s \\\n" "$script_cmd"
-		printf "  --config-dir %q \\\n" "$config_arg"
+		printf '%s \\\n' "$script_cmd"
+		printf '  --config-dir %q \\\n' "$config_arg"
 
 		if [[ "$endpoint_label" == "env" && -n "$endpoint_value" ]]; then
-			printf "  --env %q \\\n" "$endpoint_value"
+			printf '  --env %q \\\n' "$endpoint_value"
 		elif [[ "$endpoint_label" == "url" && -n "$endpoint_value" && "$log_url" == "true" ]]; then
-			printf "  --url %q \\\n" "$endpoint_value"
+			printf '  --url %q \\\n' "$endpoint_value"
 		fi
 
 		if [[ "$auth_label" == "jwt" && -n "$jwt_for_log" ]]; then
-			printf "  --jwt %q \\\n" "$jwt_for_log"
+			printf '  --jwt %q \\\n' "$jwt_for_log"
 		fi
 
-		printf "  %q" "$op_arg"
+		printf '  %q' "$op_arg"
 		if [[ -n "$vars_arg" ]]; then
-			printf " \\\n  %q \\\n" "$vars_arg"
-			printf "| jq .\n"
+			printf ' \\\n  %q \\\n' "$vars_arg"
+			printf '| jq .\n'
 		else
-			printf " \\\n| jq .\n"
+			printf ' \\\n| jq .\n'
 		fi
 		printf "\n"
 	} >>"$history_file"

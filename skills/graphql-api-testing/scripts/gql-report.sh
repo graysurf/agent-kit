@@ -385,23 +385,23 @@ if [[ "$include_command" == "true" ]]; then
 
 	command_snippet="$(
 		{
-			printf "%s \\\n" "\"\$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh\""
-			[[ -n "$config_arg" ]] && printf "  --config-dir %q \\\n" "$config_arg"
+			printf '%s \\\n' '"$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh"'
+			[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
 			if [[ -n "$explicit_url" ]]; then
 				if [[ "$include_command_url" == "true" ]]; then
-					printf "  --url %q \\\n" "$explicit_url"
+					printf '  --url %q \\\n' "$explicit_url"
 				else
-					printf "  --url %q \\\n" "<omitted>"
+					printf '  --url %q \\\n' "<omitted>"
 				fi
 			fi
-			[[ -n "$env_name" && -z "$explicit_url" ]] && printf "  --env %q \\\n" "$env_name"
-			[[ -n "$jwt_name" ]] && printf "  --jwt %q \\\n" "$jwt_name"
-			printf "  %q" "$op_arg"
+			[[ -n "$env_name" && -z "$explicit_url" ]] && printf '  --env %q \\\n' "$env_name"
+			[[ -n "$jwt_name" ]] && printf '  --jwt %q \\\n' "$jwt_name"
+			printf '  %q' "$op_arg"
 			if [[ -n "$vars_arg" ]]; then
-				printf " \\\n  %q \\\n" "$vars_arg"
-				printf "| jq .\n"
+				printf ' \\\n  %q \\\n' "$vars_arg"
+				printf '| jq .\n'
 			else
-				printf " \\\n| jq .\n"
+				printf ' \\\n| jq .\n'
 			fi
 		} | cat
 	)"
