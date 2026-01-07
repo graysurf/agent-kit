@@ -54,6 +54,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/
 
 ## Flow (decision tree)
 
+- If `setup/graphql/prompt.md` exists → read it first for project-specific context.
 - No `setup/graphql/` yet → bootstrap from template:
   - `cp -R "$CODEX_HOME/skills/graphql-api-testing/template/setup/graphql" setup/`
 - Have schema but no operation yet → resolve schema (`gql-schema.sh`) then add `setup/graphql/operations/<name>.graphql` + variables json.
@@ -64,6 +65,7 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql-schema.sh --config-dir setup/
 
 - History is on by default: `setup/graphql/.gql_history` (gitignored); one-off disable with `--no-history` (or `GQL_HISTORY=0`).
 - Reports include `## Command` by default; disable with `--no-command` (or `GQL_REPORT_INCLUDE_COMMAND=0`).
+- Variables: top-level `limit` is normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Prefer `--config-dir setup/graphql` in automation for deterministic discovery.
 
 ## References

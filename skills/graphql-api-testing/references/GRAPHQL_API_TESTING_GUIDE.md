@@ -31,6 +31,7 @@ Store project-specific, non-secret templates under `setup/graphql/`:
 - `setup/graphql/jwts.env` (commit this; placeholders only)
 - `setup/graphql/schema.env` (commit this; points to the schema SDL file)
 - `setup/graphql/schema.gql` (commit this; schema SDL, recommended)
+- `setup/graphql/prompt.md` (commit this; optional project context for LLMs)
 - `setup/graphql/operations/*.graphql` operations (commit these)
 - `setup/graphql/operations/*.json` variables (commit these, but keep secrets out)
 
@@ -42,6 +43,19 @@ Optional local-only overrides:
 - `setup/graphql/gql.local.env` (do not commit; runtime toggles for history/report)
 - `setup/graphql/operations/*.local.json` (do not commit; recommended to gitignore)
 - `setup/graphql/.gql_history` (do not commit; command history)
+
+### Project prompt (optional, for LLMs)
+
+If you work with LLMs to generate operations/variables or to debug API behaviors, keep a short, factual prompt at:
+
+- `setup/graphql/prompt.md`
+
+Suggested contents (avoid secrets):
+
+- What you want to test (features, key operations, expected invariants)
+- Auth notes (how to obtain JWTs, required roles)
+- DB tooling + structure (how to query, key tables/relations to verify)
+- Other test utilities (admin UI, log dashboards, scripts, Postman/Bruno collections)
 
 ### Bootstrap (copy template)
 
@@ -59,6 +73,10 @@ cp setup/graphql/jwts.local.env.example setup/graphql/jwts.local.env
 cp setup/graphql/gql.local.env.example setup/graphql/gql.local.env
 cp setup/graphql/operations/login.variables.local.json.example setup/graphql/operations/login.variables.local.json
 ```
+
+Then edit committed project context (recommended if you use LLMs):
+
+- `setup/graphql/prompt.md`
 
 ### Config discovery (setup_dir resolution)
 
@@ -138,6 +156,8 @@ Example structure:
 
 - `setup/graphql/operations/login.graphql`
 - `setup/graphql/operations/login.variables.json`
+
+For list queries, prefer a reasonable page size to avoid “too little data” reports. By default, `gql.sh` / `gql-report.sh` normalize a top-level `limit` variable to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 
 6) Call GraphQL operations (recommended: Codex skill script)
 
@@ -241,6 +261,8 @@ By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet i
   - Disable: `GQL_HISTORY=0`
   - Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
   - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
+- Variables defaults and controls:
+  - If variables JSON contains `limit` (number), scripts bump it to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Reports default to redacting common secrets (tokens/password fields). Use `gql-report.sh --no-redact` only when explicitly needed.
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.

@@ -83,6 +83,42 @@ maybe_relpath() {
 	printf "%s" "$path"
 }
 
+write_vars_with_min_limit() {
+	local in_file="$1"
+	local out_file="$2"
+	local min_limit="$3"
+
+	if command -v jq >/dev/null 2>&1; then
+		jq --argjson min "$min_limit" '
+      if (has("limit") and (.limit | type) == "number" and (.limit < $min)) then
+        .limit = $min
+      else
+        .
+      end
+    ' "$in_file" >"$out_file"
+		return $?
+	fi
+
+	if command -v python3 >/dev/null 2>&1; then
+		python3 - "$in_file" "$out_file" "$min_limit" <<'PY'
+import json
+import sys
+
+in_file, out_file, min_limit = sys.argv[1], sys.argv[2], int(sys.argv[3])
+with open(in_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+if isinstance(data, dict) and "limit" in data and isinstance(data["limit"], (int, float)):
+    if data["limit"] < min_limit:
+        data["limit"] = min_limit
+with open(out_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False)
+PY
+		return $?
+	fi
+
+	return 2
+}
+
 rotate_file_keep_n() {
 	local file="$1"
 	local keep="${2:-5}"
@@ -247,6 +283,7 @@ on_exit() {
 	local exit_code=$?
 	set +e
 	set +u
+	[[ -n "${variables_file_request_tmp:-}" ]] && rm -f "${variables_file_request_tmp:-}" 2>/dev/null || true
 	append_gql_history "$exit_code" || true
 }
 
@@ -270,6 +307,7 @@ Environment variables:
   GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
   ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
   GQL_JWT_NAME   JWT profile name (same as --jwt)
+  GQL_VARS_MIN_LIMIT        If variables JSON contains `limit` (number), bump it to at least N (default: 5; 0 disables)
   GQL_HISTORY              Enable/disable local command history (default: 1)
   GQL_HISTORY_FILE         Override history file path (default: <setup_dir>/.gql_history)
   GQL_HISTORY_LOG_URL      Include URL in history entries (default: 1)
@@ -804,4 +842,23 @@ maybe_auto_login() {
 if [[ -z "$access_token" ]]; then
 	access_token="$(maybe_auto_login "$jwt_name" 2>/dev/null || true)"
 fi
-graphql_request "$gql_url" "$access_token" "$operation_file" "$variables_file"
+
+variables_file_request="$variables_file"
+vars_min_limit="$(parse_int_default "${GQL_VARS_MIN_LIMIT:-}" "5" "0")"
+if [[ -n "$variables_file_request" && -f "$variables_file_request" && "$vars_min_limit" -gt 0 ]]; then
+	variables_file_request_tmp="$(mktemp 2>/dev/null || mktemp -t gql.vars.json)"
+	rc=0
+	write_vars_with_min_limit "$variables_file_request" "$variables_file_request_tmp" "$vars_min_limit" 2>/dev/null || rc=$?
+	if [[ "$rc" -eq 0 ]]; then
+		variables_file_request="$variables_file_request_tmp"
+	elif [[ "$rc" -eq 2 ]]; then
+		rm -f "$variables_file_request_tmp" 2>/dev/null || true
+		variables_file_request_tmp=""
+	else
+		rm -f "$variables_file_request_tmp" 2>/dev/null || true
+		variables_file_request_tmp=""
+		die "Failed to read variables JSON: $variables_file_request"
+	fi
+fi
+
+graphql_request "$gql_url" "$access_token" "$operation_file" "$variables_file_request"

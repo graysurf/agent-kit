@@ -28,6 +28,30 @@ is_falsy() {
 	return 1
 }
 
+parse_int_default() {
+	local raw="${1:-}"
+	local default_value="${2:-0}"
+	local min_value="${3:-}"
+
+	raw="$(trim "$raw")"
+	if [[ -z "$raw" ]]; then
+		printf "%s" "$default_value"
+		return 0
+	fi
+
+	if ! [[ "$raw" =~ ^[0-9]+$ ]]; then
+		printf "%s" "$default_value"
+		return 0
+	fi
+
+	if [[ -n "$min_value" && "$raw" -lt "$min_value" ]]; then
+		printf "%s" "$min_value"
+		return 0
+	fi
+
+	printf "%s" "$raw"
+}
+
 maybe_relpath() {
 	local path="$1"
 	local base="$2"
@@ -76,6 +100,7 @@ Environment variables:
                           If relative, it is resolved against <project root>.
                           Default: <project root>/docs
   GQL_ALLOW_EMPTY         Same as --allow-empty (1/true/yes).
+  GQL_VARS_MIN_LIMIT      If variables JSON contains `limit` (number), bump it to at least N (default: 5; 0 disables)
   GQL_REPORT_INCLUDE_COMMAND Include the `gql.sh` command snippet in the report (default: 1)
   GQL_REPORT_COMMAND_LOG_URL Include URL value in the command snippet when --url is used (default: 1)
 
@@ -298,8 +323,28 @@ format_json_stdin() {
 }
 
 variables_json="{}"
+variables_note=""
 if [[ -n "$variables_file" ]]; then
-	variables_json="$(format_json_file "$variables_file")"
+	vars_min_limit="$(parse_int_default "${GQL_VARS_MIN_LIMIT:-}" "5" "0")"
+
+	if [[ "$vars_min_limit" -gt 0 ]]; then
+		original_limit="$(jq -r '.limit // empty' "$variables_file" 2>/dev/null || true)"
+		if [[ "$original_limit" =~ ^[0-9]+$ && "$original_limit" -lt "$vars_min_limit" ]]; then
+			variables_note="> NOTE: variables normalized: limit bumped from ${original_limit} to ${vars_min_limit} (GQL_VARS_MIN_LIMIT)."
+		fi
+
+		variables_json="$(
+			jq --argjson min "$vars_min_limit" '
+        if (has("limit") and (.limit | type) == "number" and (.limit < $min)) then
+          .limit = $min
+        else
+          .
+        end
+      ' "$variables_file" | format_json_stdin
+		)"
+	else
+		variables_json="$(format_json_file "$variables_file")"
+	fi
 fi
 
 response_note=""
@@ -420,6 +465,7 @@ fi
 		printf '```graphql\n%s\n```\n\n' "$operation_content"
 
 		printf "### GraphQL Operation (Variables)\n\n"
+		[[ -n "$variables_note" ]] && printf "%s\n\n" "$variables_note"
 		printf '```json\n%s\n```\n\n' "$variables_json"
 
 		printf "### Response\n\n"
