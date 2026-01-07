@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/6
 - Docs: `skills/graphql-api-testing/SKILL.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 

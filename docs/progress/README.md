@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-07 | [GraphQL API testing skill](20260107_graphql-api-testing.md) | TBD |
+| 2026-01-07 | [GraphQL API testing skill](20260107_graphql-api-testing.md) | [#6](https://github.com/graysurf/codex-kit/pull/6) |
 
 ## Archived
 
