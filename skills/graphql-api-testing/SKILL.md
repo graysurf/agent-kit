@@ -111,6 +111,7 @@ When a repo commits its GraphQL schema SDL, LLMs can generate operations/variabl
 - Recommended: commit `setup/graphql/schema.gql` (or `schema.graphql` / `schema.graphqls`).
 - Configure the canonical path in `setup/graphql/schema.env`:
   - `GQL_SCHEMA_FILE=schema.gql` (relative paths resolve under `setup/graphql/`)
+  - If your repo keeps schema at repo root (e.g. `./schema.gql`): `GQL_SCHEMA_FILE=../../schema.gql`
 - Resolve the schema file path (for tooling/LLMs):
 
 ```bash
