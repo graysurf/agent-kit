@@ -1,0 +1,135 @@
+# GraphQL API Testing Guide (Project Template)
+
+Copy this file into your project and edit it to match your project-specific commands and operations.
+
+Suggested destination:
+
+- `docs/backend/graphql-api-testing-guide.md`
+
+Copy command:
+
+```bash
+cp "$CODEX_HOME/skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md" \
+  "docs/backend/graphql-api-testing-guide.md"
+```
+
+## Purpose
+
+This guide documents how to run manual API tests for a GraphQL server and how to record results as a markdown report.
+
+## Recommended tools
+
+- Browser (exploration): open your GraphQL endpoint in a browser to use Apollo Sandbox (docs, autocomplete, history).
+- CLI (repeatable calls): HTTPie (`http`) or `xh`, plus `jq` for formatting and extracting fields.
+- GUI clients (optional): Insomnia / Postman / Bruno (good for saved environments + collections).
+
+## Project setup (per repo)
+
+Store project-specific, non-secret templates under `setup/graphql/`:
+
+- `setup/graphql/endpoints.env` (commit this)
+- `setup/graphql/*.graphql` operations (commit these)
+- `setup/graphql/*.json` variables (commit these, but keep secrets out)
+
+Optional local-only overrides:
+
+- `setup/graphql/endpoints.local.env` (do not commit; recommended to gitignore)
+- `setup/graphql/*.local.json` (do not commit; recommended to gitignore)
+
+## Steps
+
+1) Start the API server (project-specific)
+
+```bash
+# Example
+# yarn serve:api
+```
+
+2) Configure endpoint presets (local/staging/dev)
+
+Edit `setup/graphql/endpoints.env` to match your environments. Example:
+
+```bash
+GQL_ENV_DEFAULT=local
+
+GQL_URL_LOCAL=http://localhost:<port>/graphql
+# GQL_URL_DEV=https://<dev-host>/graphql
+# GQL_URL_STAGING=https://<staging-host>/graphql
+```
+
+3) Prepare operation and variables files
+
+Example structure:
+
+- `setup/graphql/login.graphql`
+- `setup/graphql/login.variables.json`
+
+4) Call GraphQL operations (recommended: Codex skill script)
+
+List envs:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --list-envs
+```
+
+Unauthenticated call:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
+  --env local \
+  setup/graphql/login.graphql \
+  setup/graphql/login.variables.json \
+| jq .
+```
+
+Extract token for subsequent calls (example path; adjust to your schema):
+
+```bash
+export ACCESS_TOKEN="$(
+  $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
+    --env local \
+    setup/graphql/login.graphql \
+    setup/graphql/login.variables.json \
+  | jq -r '.data.<loginMutation>.accessToken'
+)"
+```
+
+Authenticated call:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
+  --env local \
+  setup/graphql/<operation>.graphql \
+  setup/graphql/<variables>.json \
+| jq .
+```
+
+5) Generate a test report under `docs/`
+
+Generate a report stub (auto-fills date + formats JSON):
+
+```bash
+export GQL_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
+
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
+  --case "<test case name>" \
+  --op setup/graphql/<operation>.graphql \
+  --vars setup/graphql/<variables>.json
+```
+
+Run the request and embed the response:
+
+```bash
+$CODEX_HOME/skills/graphql-api-testing/scripts/gql-report.sh \
+  --case "<test case name>" \
+  --op setup/graphql/<operation>.graphql \
+  --vars setup/graphql/<variables>.json \
+  --env <local|staging|dev> \
+  --run
+```
+
+## Notes for stability
+
+- Prefer “files + template command” (or `$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
+- Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
+- Do not paste tokens/PII into reports; redact sensitive fields before committing.
