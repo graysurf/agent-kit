@@ -118,7 +118,7 @@ if [[ ! -s "$tmpfile" ]]; then
   exit 1
 fi
 
-if command git commit -F "$tmpfile" 1>&2; then
+if command git commit -F "$tmpfile" >/dev/null; then
   :
 else
   rc=$?
