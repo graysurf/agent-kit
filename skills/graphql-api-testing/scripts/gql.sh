@@ -460,7 +460,30 @@ graphql_request() {
 			local -a curl_args
 			curl_args=(-sS -H "Content-Type: application/json")
 			[[ -n "$token" ]] && curl_args+=(-H "Authorization: Bearer $token")
-			curl "${curl_args[@]}" -d "$payload" "$url"
+			local body_file status
+			body_file="$(mktemp 2>/dev/null || mktemp -t gql.sh)"
+
+			if ! status="$(curl "${curl_args[@]}" -o "$body_file" -w "%{http_code}" -d "$payload" "$url")"; then
+				local rc=$?
+				[[ -s "$body_file" ]] && cat "$body_file" >&2
+				rm -f "$body_file"
+				exit "$rc"
+			fi
+
+			if [[ ! "$status" =~ ^[0-9]{3}$ ]]; then
+				[[ -s "$body_file" ]] && cat "$body_file" >&2
+				rm -f "$body_file"
+				die "Failed to parse HTTP status code from curl."
+			fi
+
+			if [[ "$status" -lt 200 || "$status" -ge 300 ]]; then
+				[[ -s "$body_file" ]] && cat "$body_file" >&2
+				rm -f "$body_file"
+				die "HTTP request failed with status $status."
+			fi
+
+			cat "$body_file"
+			rm -f "$body_file"
 			;;
 		*)
 			die "Unknown HTTP client: $client"
