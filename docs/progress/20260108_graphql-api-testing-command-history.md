@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-08 | 2026-01-08 |
+| IN PROGRESS | 2026-01-08 | 2026-01-08 |
 
 Links:
 
@@ -15,16 +15,20 @@ Links:
 - Record a local, append-only history of `gql.sh` invocations for quick review and replay.
 - Store history under the resolved GraphQL config dir (typically `setup/graphql/`) and keep it gitignored by default.
 - Keep history enabled by default, but controllable via environment variables (enable/disable, file path, optional size limits).
+- Optionally include a copy/pasteable `gql.sh` command snippet in `gql-report.sh` reports for quick reuse.
 
 ## Acceptance Criteria
 
 - Running `skills/graphql-api-testing/scripts/gql.sh ...` appends a replayable shell snippet to the history file when history is enabled (default).
 - Default history location is under resolved `setup_dir`: `<setup_dir>/.gql_history` (typically `setup/graphql/.gql_history`).
 - Each entry includes a timestamp and exit code, plus resolved context (`config_dir`, `--env` or URL, `--jwt` name), and entries are separated by a blank line.
-- History logging can be disabled via env toggle (proposed: `GQL_HISTORY=0`) without changing `gql.sh` stdout/stderr behavior.
-- URL is logged by default; can be omitted via env (proposed: `GQL_HISTORY_LOG_URL=0`).
+- History logging can be disabled via env toggle (`GQL_HISTORY=0`) without changing `gql.sh` stdout/stderr behavior.
+- URL is logged by default; can be omitted via env (`GQL_HISTORY_LOG_URL=0`).
+- History rotates by default when it grows beyond 10 MB (rotate keep old files); configurable via env (`GQL_HISTORY_MAX_MB`, `GQL_HISTORY_ROTATE_COUNT`).
 - No secrets are written: token values (`ACCESS_TOKEN`, resolved `GQL_JWT_*`) are never logged.
 - Template `.gitignore` ignores the history file by default and docs mention how to add it to existing repos.
+- `gql-report.sh` includes a `## Command` section by default with a replayable `gql.sh` snippet; disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`.
+- When the command uses `--url`, the URL is included by default but can be omitted via env (proposed: `GQL_REPORT_COMMAND_LOG_URL=0`).
 
 ## Scope
 
@@ -54,6 +58,10 @@ Links:
   - `GQL_HISTORY_FILE=<path>` (optional override; default under `setup_dir`)
   - `GQL_HISTORY_LOG_URL=0|1` (default: `1`)
   - `GQL_HISTORY_MAX_MB=<n>` (default: `10`; `0` disables the size limit)
+  - `GQL_HISTORY_ROTATE_COUNT=<n>` (default: `5`)
+- Report controls (proposed):
+  - `GQL_REPORT_INCLUDE_COMMAND=0|1` (default: `1`)
+  - `GQL_REPORT_COMMAND_LOG_URL=0|1` (default: `1`)
 
 ### Output
 
@@ -78,7 +86,7 @@ Links:
 
 - Command reconstruction: logging a canonical snippet may differ from the exact user-typed command; ensure it is replayable and handles quoting safely.
 - URLs can embed secrets (query params); default is to log URL, but allow omitting via `GQL_HISTORY_LOG_URL=0` (optional future: redact query string).
-- File growth and performance: enforce a default max size (10 MB) and decide truncate vs rotate strategy.
+- File growth and performance: enforce a default max size (10 MB) and rotate keep old files (keep N by policy).
 - Concurrency: parallel invocations could interleave writes; decide whether to add locking.
 - Existing repos already using `setup/graphql/`: template `.gitignore` updates do not apply retroactively; docs should include a short “add this line” note.
 
@@ -104,7 +112,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Work Items:
     - [ ] Implement history append in `skills/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
     - [ ] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
-    - [ ] Add size limit enforcement (default: 10 MB) and pick behavior (truncate vs rotate).
+    - [ ] Add size limit enforcement (default: 10 MB) and rotate keep old files (keep N by policy).
     - [ ] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
     - [ ] Update `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
     - [ ] Update docs: `skills/graphql-api-testing/SKILL.md` (and optionally `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
@@ -114,7 +122,7 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
     - `skills/graphql-api-testing/SKILL.md`
   - Exit Criteria:
     - [ ] `bash -n skills/graphql-api-testing/scripts/gql.sh` passes.
-    - [ ] History file is appended on both success and failure with a recorded exit code (design choice; confirm).
+    - [ ] History file is appended on both success and failure with a recorded exit code (confirmed).
     - [ ] Docs include a TL;DR snippet showing where history lives and how to disable it.
 - [ ] Step 2: Expansion / integration
   - Work Items:
