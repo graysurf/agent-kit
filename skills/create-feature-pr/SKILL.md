@@ -7,7 +7,7 @@ description: Create a new feature branch, implement feature work, commit with co
 
 ## Setup
 
-- Load commands with `source ~/.codex/tools/_codex-tools.zsh`
+- Load commands with `source $CODEX_TOOLS_PATH/_codex-tools.zsh`
 
 ## Inputs
 

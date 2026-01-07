@@ -1,20 +1,20 @@
 ---
 name: qb-mysql
-description: Run MySQL queries through the qb-mysql wrapper in ~/.codex/tools/qb-mysql/qb-mysql.zsh. Use when the user asks to query the QB MySQL database, inspect schemas/tables/columns, or execute SQL via qb-mysql/mysql using the QB_MYSQL_* environment.
+description: Run MySQL queries through the qb-mysql wrapper in $CODEX_TOOLS_PATH/qb-mysql/qb-mysql.zsh. Use when the user asks to query the QB MySQL database, inspect schemas/tables/columns, or execute SQL via qb-mysql/mysql using the QB_MYSQL_* environment.
 ---
 
 # Qb-mysql
 
 ## Overview
 
-Use qb-mysql to run mysql against the QB database using the values in `~/.codex/tools/qb-mysql/.env`. Favor read-only queries unless the user explicitly requests data changes.
+Use qb-mysql to run mysql against the QB database using the values in `$CODEX_TOOLS_PATH/qb-mysql/.env`. Favor read-only queries unless the user explicitly requests data changes.
 
 ## Quick Start
 
 1) Ensure the function is available.
 
 ```
-source ~/.codex/tools/qb-mysql/qb-mysql.zsh
+source $CODEX_TOOLS_PATH/qb-mysql/qb-mysql.zsh
 ```
 
 2) Run a query.
@@ -37,7 +37,7 @@ Run a lightweight query to confirm connectivity and basic output.
 qb-mysql -e "SELECT DATABASE();"
 ```
 
-If the function is missing, source the script again. If the connection fails, verify that all `QB_MYSQL_*` values exist in `~/.codex/tools/qb-mysql/.env`.
+If the function is missing, source the script again. If the connection fails, verify that all `QB_MYSQL_*` values exist in `$CODEX_TOOLS_PATH/qb-mysql/.env`.
 
 ## Safety Rules
 
@@ -47,4 +47,4 @@ Do not print secrets from `.env` or echo `QB_MYSQL_PASSWORD`.
 
 ## Output and clarification rules
 
-- Follow the shared template at `docs/templates/SQL_OUTPUT_TEMPLATE.md`.
+- Follow the shared template at `$CODEX_HOME/docs/templates/SQL_OUTPUT_TEMPLATE.md`.

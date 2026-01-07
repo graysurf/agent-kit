@@ -8,7 +8,7 @@ description: "Finalize and archive a progress file for a GitHub PR: locate the r
 ## Setup
 
 - Requires `gh` CLI authenticated with the target repo
-- Load local helper commands (optional): `source ~/.codex/tools/_codex-tools.zsh`
+- Load local helper commands (optional): `source $CODEX_TOOLS_PATH/_codex-tools.zsh`
 
 ## Key rule: Progress links must survive branch deletion
 

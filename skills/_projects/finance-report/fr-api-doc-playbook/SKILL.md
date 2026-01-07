@@ -7,7 +7,7 @@ description: Test FinanceReport GraphQL APIs and produce API docs with real resp
 
 ## Load the playbook
 
-- Read `../../Project/rytass/FinanceReport/setup/fr-api-doc-playbook.md` relative to `~/.config/codex-kit` (default cwd).
+- Read `$PROJECT_PATH/setup/fr-api-doc-playbook.md`.
 - Do not proceed until the file is fully read. If missing or cwd differs, resolve the absolute path or ask.
 
 ## Follow it exactly

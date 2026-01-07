@@ -61,7 +61,7 @@ resolve_browser_url() {
   printf 'http://127.0.0.1:%s' "$port"
 }
 
-# 1) Load .env (default: ~/.codex/.env) into environment
+# 1) Load .env (default: $CODEX_HOME/.env) into environment
 ENV_FILE="${ENV_FILE:-$HOME/.codex/.env}"
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -73,7 +73,7 @@ fi
 # 2) Defaults
 MODE="${CHROME_DEVTOOLS_MODE:-clean}"  # clean|profile|connect
 
-# Log setup (default to ~/.codex/output)
+# Log setup (default to $CODEX_HOME/output)
 # IMPORTANT: Do not redirect stdout; MCP uses stdout for the protocol.
 LOG_DIR="${CHROME_DEVTOOLS_LOG_DIR:-$HOME/.codex/output}"
 LOG_SUBDIR="${CHROME_DEVTOOLS_LOG_SUBDIR:-chrome-devtools-mcp}"

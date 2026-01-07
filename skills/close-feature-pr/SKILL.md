@@ -9,7 +9,7 @@ description: Merge and close a feature PR with gh after a quick PR hygiene revie
 
 - Requires `gh` CLI authenticated with the target repo
 - Requires `git`
-- Load local helper commands (optional): `source ~/.codex/tools/_codex-tools.zsh`
+- Load local helper commands (optional): `source $CODEX_TOOLS_PATH/_codex-tools.zsh`
 
 ## When to use
 

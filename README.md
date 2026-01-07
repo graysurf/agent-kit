@@ -54,4 +54,4 @@ are intentionally excluded via `.gitignore`.
 
 ## 📜 Notes
 
-- This repo lives at `~/.config/codex-kit`; `~/.codex` is a symlink here and is the configured Codex home.
+- This repo lives at `~/.config/codex-kit`; `$CODEX_HOME` is a symlink here and is the configured Codex home.

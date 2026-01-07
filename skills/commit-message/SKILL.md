@@ -12,8 +12,8 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 
 ## Scripts (only entrypoints)
 
-- Get staged context (stdout): `~/.codex/skills/commit-message/scripts/staged_context.sh`
-- Commit with a prepared message, then print a commit summary (stdout): `~/.codex/skills/commit-message/scripts/commit_with_message.sh`
+- Get staged context (stdout): `$CODEX_HOME/skills/commit-message/scripts/staged_context.sh`
+- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/commit-message/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
 - Do not call other helper commands directly; treat these scripts as the stable interface
 

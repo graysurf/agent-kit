@@ -7,7 +7,7 @@ description: Find, triage, and fix bugs with or without user input. Autonomously
 
 ## Setup
 
-- Load commands with `source ~/.codex/tools/_codex-tools.zsh`
+- Load commands with `source $CODEX_TOOLS_PATH/_codex-tools.zsh`
 
 ## Trigger
 

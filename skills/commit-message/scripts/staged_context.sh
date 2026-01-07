@@ -11,7 +11,7 @@ Prefers:
   git-tools commit context --stdout --no-color
 
 This script will attempt to load Codex git tools by sourcing:
-  ~/.codex/tools/_codex-tools.zsh
+  $CODEX_TOOLS_PATH/_codex-tools.zsh
 USAGE
 }
 

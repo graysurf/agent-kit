@@ -22,7 +22,7 @@
 - 文件處理規則
   - 處理 shell script、程式碼或設定檔時，修改/評論前應先讀到「與問題或變更相關的完整上下文」（定義、呼叫點、載入/依賴關係）；允許先精準定位，再補讀必要段落，不要求無差別通讀整檔。
   - 若資訊不足或仍有不確定性，先標註假設與待驗證點、提出需要補充的檔案/片段，再給結論或動手修改；避免僅憑片段過快下結論。
-  - 若產生回覆報告（如 `lighthouse-performance.json`），寫入 `~/.codex/output/` 並在回覆中引用該路徑；避免使用 `/tmp`。
+  - 若產生回覆報告（如 `lighthouse-performance.json`），寫入 `$CODEX_HOME/output/` 並在回覆中引用該路徑；避免使用 `/tmp`。
 
 - 語義與邏輯一致性
   - 回應在單回合與跨回合須保持語義、邏輯、術語與數據一致；不得出現語義鬆動、邏輯漂移、概念滑移。
@@ -84,20 +84,16 @@
 
 ## 可用指令（全域工具）
 
-- 工具入口：`~/.codex/tools`（symlink → `~/.config/zsh/.private/tools`）。
-- 載入全部工具：`source ~/.codex/tools/_codex-tools.zsh`。
-- 單一工具載入：`source ~/.codex/tools/<tool>/<tool>.sh`。
+- 工具入口：`$CODEX_TOOLS_PATH`。
+- 載入全部工具：`source $CODEX_TOOLS_PATH/_codex-tools.zsh`。
+- 單一工具載入：`source $CODEX_TOOLS_PATH/<tool>/<tool>.sh`。
 
 ## Troubleshooting（tools）
-
-- `~/.codex/tools` 不存在或找不到工具
-  - 檢查 symlink：`ls -l ~/.codex/tools`
-  - 確認目標路徑存在：`ls -l ~/.config/zsh/.private/tools`
 
 - `source ...` 後仍然 `command not found`
   - 確認 shell：`echo $SHELL`（多數工具以 zsh 為主）
   - 檢查載入結果：`type <command>` 或 `whence <command>`（zsh）
-  - 檢查腳本存在：`ls -l ~/.codex/tools/<tool>/<tool>.sh`
+  - 檢查腳本存在：`ls -l $CODEX_TOOLS_PATH/<tool>/<tool>.sh`
 
 - 非互動式或新 shell 執行
   - 需在同一 shell 先 `source`，再執行工具；否則重新開 shell 會失效。
