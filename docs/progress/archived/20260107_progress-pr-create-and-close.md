@@ -82,27 +82,27 @@ Links:
 
 ## Steps (Checklist)
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Confirm naming conventions (skill names, branch prefixes, progress filename rules).
-    - [ ] Confirm default vs project template rules (explicit opt-in for project templates).
-    - [ ] Confirm PR hygiene expectations for feature PRs (required sections + testing notes).
+    - [x] Confirm naming conventions (skill names, branch prefixes, progress filename rules).
+    - [x] Confirm default vs project template rules (explicit opt-in for project templates).
+    - [x] Confirm PR hygiene expectations for feature PRs (required sections + testing notes).
   - Artifacts:
     - `docs/progress/20260107_progress-pr-create-and-close.md` (this file)
     - `docs/templates/PROGRESS_TEMPLATE.md`
     - `docs/templates/PROGRESS_GLOSSARY.md`
     - `docs/progress/README.md`
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned (this document is complete).
-    - [ ] No progress placeholders remain: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output.
-    - [ ] Default scripts/commands to validate behavior are listed under later steps.
-- [ ] Step 1: Minimum viable output (MVP)
+    - [x] Requirements, scope, and acceptance criteria are aligned (this document is complete).
+    - [x] No progress placeholders remain: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output.
+    - [x] Default scripts/commands to validate behavior are listed under later steps.
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Add `create-progress-pr` skill with:
+    - [x] Add `create-progress-pr` skill with:
       - default templates (PR + progress + glossary)
       - scripts to create a progress file and render templates
       - explicit rules for “write `None` when empty” sections
-    - [ ] Ensure the skill defaults to docs-only changes for the progress PR.
+    - [x] Ensure the skill defaults to docs-only changes for the progress PR.
   - Artifacts:
     - `skills/create-progress-pr/SKILL.md`
     - `skills/create-progress-pr/references/PR_TEMPLATE.md`
@@ -112,18 +112,18 @@ Links:
     - `skills/create-progress-pr/scripts/create_progress_file.sh`
     - `skills/create-progress-pr/scripts/render_progress_pr.sh`
   - Exit Criteria:
-    - [ ] `bash -n skills/create-progress-pr/scripts/*.sh` passes.
-    - [ ] Create a progress file in this repo: `skills/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
-    - [ ] Placeholder check passes: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output (after filling).
-- [ ] Step 2: Expansion / integration
+    - [x] `bash -n skills/create-progress-pr/scripts/*.sh` passes.
+    - [x] Create a progress file in this repo: `skills/create-progress-pr/scripts/create_progress_file.sh --title "X"`.
+    - [x] Placeholder check passes: `rg -n "\\[\\[.*\\]\\]" docs/progress -S` returns no output (after filling).
+- [x] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add `close-progress-pr` skill and an automation script to:
+    - [x] Add `close-progress-pr` skill and an automation script to:
       - locate the progress file (prefer PR body Progress link)
       - set Status to `DONE` and update dates/PR link
       - move to `docs/progress/archived/` and update index
       - merge PR and patch PR body Progress link to base branch
-    - [ ] Refactor `close-feature-pr` to match `create-feature-pr` (no progress handling).
-    - [ ] Update `create-feature-pr` output to be PR-focused (no `git-scope` section).
+    - [x] Refactor `close-feature-pr` to match `create-feature-pr` (no progress handling).
+    - [x] Update `create-feature-pr` output to be PR-focused (no `git-scope` section).
   - Artifacts:
     - `skills/close-progress-pr/SKILL.md`
     - `skills/close-progress-pr/scripts/close_progress_pr.sh`
@@ -133,31 +133,31 @@ Links:
     - `skills/create-feature-pr/references/OUTPUT_TEMPLATE.md`
     - `README.md`
   - Exit Criteria:
-    - [ ] `bash -n skills/close-progress-pr/scripts/close_progress_pr.sh` passes.
-    - [ ] `close-feature-pr` no longer mentions or edits progress files.
-    - [ ] `create-feature-pr` output template contains only PR-related info.
-- [ ] Step 3: Validation / testing
+    - [x] `bash -n skills/close-progress-pr/scripts/close_progress_pr.sh` passes.
+    - [x] `close-feature-pr` no longer mentions or edits progress files.
+    - [x] `create-feature-pr` output template contains only PR-related info.
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Dry-run `create-progress-pr` in this repo: create a progress PR using the templates and scripts.
-    - [ ] Verify the PR body contains a full blob URL to the progress file on the head branch.
-    - [ ] Run `close-progress-pr` on a test PR and confirm:
+    - [x] Dry-run `create-progress-pr` in this repo: create a progress PR using the templates and scripts.
+    - [x] Verify the PR body contains a full blob URL to the progress file on the head branch.
+    - [x] Run `close-progress-pr` on a test PR and confirm:
       - progress file is archived
       - PR body Progress link points to the base branch
   - Artifacts:
     - PR URLs for the progress PR and a test close run (or record “not run” with reasons)
     - Evidence logs in PR comments or local command outputs
   - Exit Criteria:
-    - [ ] Progress PR created successfully and links resolve.
-    - [ ] Close flow validated at least once (or explicitly deferred with a follow-up plan).
-- [ ] Step 4: Release / wrap-up
+    - [x] Progress PR created successfully and links resolve.
+    - [x] Close flow validated at least once (or explicitly deferred with a follow-up plan).
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Merge the progress PR (this PR) and ensure the progress file is updated with the PR URL.
-    - [ ] After implementation is complete, set Status to `DONE`, archive, and update index.
+    - [x] Merge the progress PR (this PR) and ensure the progress file is updated with the PR URL.
+    - [x] After implementation is complete, set Status to `DONE`, archive, and update index.
   - Artifacts:
     - `docs/progress/archived/20260107_progress-pr-create-and-close.md`
   - Exit Criteria:
-    - [ ] Archived progress file exists and index is updated.
-    - [ ] PR body Progress link points to the base branch (survives branch deletion).
+    - [x] Archived progress file exists and index is updated.
+    - [x] PR body Progress link points to the base branch (survives branch deletion).
 
 ## Modules
 

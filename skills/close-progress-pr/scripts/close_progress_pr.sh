@@ -8,6 +8,7 @@ Usage:
 
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to rg by PR URL)
+  - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
   - Moves the progress file to docs/progress/archived/
@@ -194,6 +195,69 @@ fi
 
 filename="$(basename "$progress_file")"
 archived_path="docs/progress/archived/${filename}"
+
+validate_checklist() {
+  python3 - "$1" <<'PY'
+import re
+import sys
+
+path = sys.argv[1]
+
+with open(path, "r", encoding="utf-8") as f:
+  lines = f.read().splitlines()
+
+start = None
+for i, line in enumerate(lines):
+  if line.strip() == "## Steps (Checklist)":
+    start = i + 1
+    break
+
+if start is None:
+  raise SystemExit(f"error: cannot find '## Steps (Checklist)' in {path}")
+
+end = len(lines)
+for i in range(start, len(lines)):
+  if lines[i].startswith("## "):
+    end = i
+    break
+
+checkbox_re = re.compile(r"^(\s*)-\s*\[(?P<mark>[ xX])\]\s+.+$")
+missing = []
+in_code_block = False
+
+for i in range(start, end):
+  line = lines[i]
+  if line.strip().startswith("```"):
+    in_code_block = not in_code_block
+    continue
+  if in_code_block:
+    continue
+  m = checkbox_re.match(line)
+  if not m or m.group("mark") != " ":
+    continue
+  if "reason:" in line.lower():
+    continue
+  found = False
+  for j in range(i + 1, end):
+    next_line = lines[j]
+    if checkbox_re.match(next_line):
+      break
+    if "reason:" in next_line.lower():
+      found = True
+      break
+  if not found:
+    missing.append((i + 1, line.rstrip()))
+
+if missing:
+  print("error: unchecked checklist items in '## Steps (Checklist)' require a Reason:", file=sys.stderr)
+  for lineno, text in missing:
+    print(f"  - {path}:{lineno}: {text}", file=sys.stderr)
+  print("hint: add 'Reason: ...' to the same line or a following line before the next checkbox.", file=sys.stderr)
+  raise SystemExit(1)
+PY
+}
+
+validate_checklist "$progress_file"
 
 today="$(date +%Y-%m-%d)"
 

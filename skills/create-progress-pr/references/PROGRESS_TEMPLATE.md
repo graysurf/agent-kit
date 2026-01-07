@@ -56,6 +56,8 @@ Links:
 
 ## Steps (Checklist)
 
+Note: Any unchecked checkbox in this section must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete.
+
 - [ ] Step 0: [[Alignment / prerequisites]]
   - Work Items:
     - [ ] [[work item]]
