@@ -29,6 +29,7 @@ If credentials/tokens must be private, use local-only files (gitignored):
 - `setup/graphql/operations/*.local.json` (variables)
 - `setup/graphql/endpoints.local.env` (endpoint overrides)
 - `setup/graphql/jwts.local.env` (real JWTs)
+- `setup/graphql/.gql_history` (local command history; enabled by default; rotate at 10 MB)
 
 ## Bootstrap template (recommended)
 
@@ -82,6 +83,15 @@ $CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh \
   setup/graphql/operations/<variables>.json \
 | jq .
 ```
+
+## Command history (local-only)
+
+`gql.sh` appends a replayable snippet to `setup/graphql/.gql_history` by default (gitignored).
+
+- Disable: `GQL_HISTORY=0`
+- Omit URL in history entries: `GQL_HISTORY_LOG_URL=0`
+- Override history file path: `GQL_HISTORY_FILE=<path>` (relative paths resolve under `setup/graphql/`)
+- Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
 
 ## Manual token export (optional)
 
@@ -143,6 +153,7 @@ Notes:
 
 - `gql-report.sh` redacts `accessToken` / `refreshToken` / `password` by default; use `--no-redact` only if explicitly requested.
 - `gql-report.sh` refuses to write a report when the response has no data, unless you pass `--allow-empty` (only when an empty/no-data result is the intent or correct behavior).
+- `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet by default; disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`.
 - Default report output dir is `<project root>/docs`; override with `GQL_REPORT_DIR` (relative paths are resolved from `<project root>`).
 
 ## Safety rules
