@@ -6,7 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/7
+- PR: https://github.com/graysurf/codex-kit/pull/8
+- Planning PR: https://github.com/graysurf/codex-kit/pull/7
 - Docs: [skills/graphql-api-testing/SKILL.md](../../skills/graphql-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
@@ -28,7 +29,7 @@ Links:
 - No secrets are written: token values (`ACCESS_TOKEN`, resolved `GQL_JWT_*`) are never logged.
 - Template `.gitignore` ignores the history file by default and docs mention how to add it to existing repos.
 - `gql-report.sh` includes a `## Command` section by default with a replayable `gql.sh` snippet; disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`.
-- When the command uses `--url`, the URL is included by default but can be omitted via env (proposed: `GQL_REPORT_COMMAND_LOG_URL=0`).
+- When the command uses `--url`, the URL is included by default but can be omitted via `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
 
 ## Scope
 
@@ -94,39 +95,44 @@ Links:
 
 Note: Any unchecked checkbox in this section must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete.
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
     - [x] Decide history filename and default location: `<setup_dir>/.gql_history`.
-    - [ ] Define the env interface (enable/disable + optional override path + URL logging toggle + size limit/behavior).
-    - [ ] Define the entry format (metadata + canonical multi-line command + blank line separator).
+    - [x] Define the env interface (enable/disable + optional override path + URL logging toggle + size/rotation behavior).
+    - [x] Define the entry format (metadata + canonical multi-line command + blank line separator).
     - [x] Define a redaction policy baseline: tokens never logged; URL logged by default with an env toggle to omit.
   - Artifacts:
     - `docs/progress/20260108_graphql-api-testing-command-history.md` (this file)
     - Notes and examples captured under Exit Criteria
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned (this document is complete).
-    - [ ] Data flow and I/O contract are defined (what is logged, where, and under which controls).
-    - [ ] Risks, rollback plan (disable flag), and retroactive adoption guidance are defined.
-    - [ ] Minimal verification commands are defined (history file created/updated; no secrets logged).
-- [ ] Step 1: Minimum viable output (MVP)
+    - [x] Requirements, scope, and acceptance criteria are aligned (this document is complete).
+    - [x] Data flow and I/O contract are defined (what is logged, where, and under which controls).
+    - [x] Risks, rollback plan (disable flag), and retroactive adoption guidance are defined.
+    - [x] Minimal verification commands are defined (history file created/updated; no secrets logged).
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Implement history append in `skills/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
-    - [ ] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
-    - [ ] Add size limit enforcement (default: 10 MB) and rotate keep old files (keep N by policy).
-    - [ ] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
-    - [ ] Update `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
-    - [ ] Update docs: `skills/graphql-api-testing/SKILL.md` (and optionally `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
+    - [x] Implement history append in `skills/graphql-api-testing/scripts/gql.sh` (enabled by default; env toggle to disable).
+    - [x] Add `GQL_HISTORY_FILE` override and default path under resolved `setup_dir`.
+    - [x] Add size limit enforcement (default: 10 MB) and rotate keep old files (keep N by policy).
+    - [x] Add URL logging toggle (default on; `GQL_HISTORY_LOG_URL=0` omits URL).
+    - [x] Update `skills/graphql-api-testing/template/setup/graphql/.gitignore` to ignore the history file.
+    - [x] Add report `## Command` section in `skills/graphql-api-testing/scripts/gql-report.sh` (enabled by default; toggleable).
+    - [x] Add report URL omission toggle (`--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`).
+    - [x] Update docs: `skills/graphql-api-testing/SKILL.md` (and `skills/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`).
   - Artifacts:
     - `skills/graphql-api-testing/scripts/gql.sh`
+    - `skills/graphql-api-testing/scripts/gql-report.sh`
     - `skills/graphql-api-testing/template/setup/graphql/.gitignore`
     - `skills/graphql-api-testing/SKILL.md`
   - Exit Criteria:
-    - [ ] `bash -n skills/graphql-api-testing/scripts/gql.sh` passes.
-    - [ ] History file is appended on both success and failure with a recorded exit code (confirmed).
-    - [ ] Docs include a TL;DR snippet showing where history lives and how to disable it.
+    - [x] `bash -n skills/graphql-api-testing/scripts/gql.sh` passes.
+    - [x] `bash -n skills/graphql-api-testing/scripts/gql-report.sh` passes.
+    - [x] History file is appended on both success and failure with a recorded exit code (confirmed).
+    - [x] Docs include a TL;DR snippet showing where history lives and how to disable it.
+    - [x] Reports include `## Command` by default and can omit URL value with `--no-command-url` / `GQL_REPORT_COMMAND_LOG_URL=0`.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] If rotating, support keeping N rotated files (and document the policy).
+    - [x] If rotating, support keeping N rotated files (and document the policy).
     - [ ] Consider a CLI switch (`--no-history`) for one-off runs (optional; keep env as primary control).
     - [ ] Consider a helper to replay or extract the last entry (optional; follow-up).
   - Artifacts:
