@@ -43,7 +43,7 @@ Patch the PR body `## Progress` link to point to the base branch (usually `main`
      - Ensure `Links -> Docs` and `Links -> Glossary` are Markdown links (not backticks) that resolve to existing files
      - If there are no related docs for this PR, set `Links -> Docs` to `None` (do not guess a random file)
    - Move it to `docs/progress/archived/<file>.md` if not already archived
-   - Update `docs/progress/README.md` (move row to Archived; set PR link to `[#<number>](<url>)`; best-effort if table format differs)
+   - Update `docs/progress/README.md` (move row to Archived; keep Archived sorted newest-first by `Date`; set PR link to `[#<number>](<url>)`; best-effort if table format differs)
 5. Commit and push these changes to the PR branch
 6. Merge and delete branch
    - Default merge method: merge commit
