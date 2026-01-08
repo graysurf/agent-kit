@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "public-smoke",
+  "defaults": {
+    "env": "local",
+    "noHistory": true,
+    "rest": { "url": "https://httpbin.org" },
+    "graphql": { "url": "https://countries.trevorblades.com/" }
+  },
+  "cases": [
+    {
+      "id": "rest.httpbin.get",
+      "type": "rest",
+      "tags": ["public", "smoke"],
+      "request": "setup/rest/requests/httpbin.get.request.json"
+    },
+    {
+      "id": "graphql.countries.country",
+      "type": "graphql",
+      "tags": ["public", "smoke"],
+      "op": "setup/graphql/operations/country.graphql",
+      "vars": "setup/graphql/operations/country.variables.json",
+      "expect": {
+        "jq": "(.data.country.code == \"TW\") and ((.data.country.name | type) == \"string\") and ((.data.country.name | length) > 0)"
+      }
+    }
+  ]
+}
