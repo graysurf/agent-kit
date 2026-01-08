@@ -158,7 +158,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - [ ] Step 2: Expansion / integration
   - Work Items:
     - [x] Add optional URL omission controls for history/report command snippets (privacy / sharing).
-    - [ ] Add better error printing (include response body on non-2xx when safe).
+    - [x] Add better error printing (include response body on non-2xx when safe).
     - [ ] (Optional) Add request normalization knobs (e.g., bump numeric `limit` in query/body) if it proves useful.
   - Artifacts:
     - None
@@ -166,19 +166,20 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [ ] Common branches are covered (e.g. missing env/token, 4xx/5xx, `--no-history`, replay): TBD
     - [ ] Compatible with existing project workflows (same `setup/*` conventions as other skills): TBD
     - [ ] Required migrations / backfill scripts and documentation exist: None
-- [ ] Step 3: Validation / testing
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Validate `rest.sh` against a real REST endpoint using an existing project’s `setup/rest/` (or create one for validation).
-    - [ ] Validate report generation and default redaction behavior.
+    - [x] Validate `rest.sh` against a real REST endpoint using an existing project’s `setup/rest/` (or create one for validation).
+    - [x] Validate report generation and default redaction behavior.
   - Artifacts:
-    - `output/rest-api-testing/` (TBD: specific report paths)
+    - `output/rest-api-testing/smoke-20260108-234244/`
+    - `output/rest-api-testing/smoke-assert-20260108-235902/`
   - Exit Criteria:
-    - [ ] Validation and test commands executed with results recorded: TBD
-    - [ ] Run with real data or representative samples (including failure + rerun after fix): TBD
-    - [ ] Traceable evidence exists (logs, reports, command transcripts): `output/rest-api-testing/...` (TBD)
+    - [x] Validation and test commands executed with results recorded: `output/rest-api-testing/smoke-*/`.
+    - [x] Run with real data or representative samples (including failure + rerun after fix): local stub server + scripted smoke runs.
+    - [x] Traceable evidence exists (logs, reports, command transcripts): `output/rest-api-testing/smoke-*/`.
 - [ ] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Add the skill to the top-level `README.md` skills list.
+    - [x] Add the skill to the top-level `README.md` skills list.
     - [ ] After merge + validation, set Status to `DONE` and archive the progress file under `docs/progress/archived/`.
     - [ ] Follow-up: add CI usage guidance for `graphql-api-testing` (documented CI pattern + example assertions).
   - Artifacts:

@@ -42,6 +42,24 @@ is_falsy() {
 	return 1
 }
 
+maybe_print_failure_body_to_stderr() {
+	local file="$1"
+	local max_bytes="${2:-8192}"
+
+	[[ -t 1 ]] && return 0
+	[[ -f "$file" && -s "$file" ]] || return 0
+
+	if command -v jq >/dev/null 2>&1; then
+		if jq -e . "$file" >/dev/null 2>&1; then
+			return 0
+		fi
+	fi
+
+	echo "Response body (non-JSON; first ${max_bytes} bytes):" >&2
+	head -c "$max_bytes" "$file" >&2 || true
+	echo "" >&2
+}
+
 parse_int_default() {
 	local raw="${1:-}"
 	local default_value="${2:-0}"
@@ -775,20 +793,24 @@ if [[ -f "$response_body_file" ]]; then
 fi
 
 if [[ "$rc" -ne 0 ]]; then
-	die "HTTP request failed (curl exit=$rc)."
+	echo "HTTP request failed (curl exit=$rc): $rest_method $url" >&2
+	maybe_print_failure_body_to_stderr "$response_body_file" 8192 || true
+	exit 1
 fi
 
 if [[ ! "$status" =~ ^[0-9]{3}$ ]]; then
-	die "Failed to parse HTTP status code from curl."
+	echo "Failed to parse HTTP status code from curl: $rest_method $url" >&2
+	maybe_print_failure_body_to_stderr "$response_body_file" 8192 || true
+	exit 1
 fi
 
 ok=true
 
-if [[ "$expect_present" == "true" ]]; then
-	if [[ "$status" != "$expect_status" ]]; then
-		echo "Expected HTTP status $expect_status but got $status." >&2
-		ok=false
-	fi
+	if [[ "$expect_present" == "true" ]]; then
+		if [[ "$status" != "$expect_status" ]]; then
+			echo "Expected HTTP status $expect_status but got $status." >&2
+			ok=false
+		fi
 
 	if [[ "$ok" == "true" && -n "$expect_jq" ]]; then
 		if ! jq -e "$expect_jq" "$response_body_file" >/dev/null 2>&1; then
@@ -796,13 +818,14 @@ if [[ "$expect_present" == "true" ]]; then
 			ok=false
 		fi
 	fi
-else
-	if [[ "$status" -lt 200 || "$status" -ge 300 ]]; then
-		echo "HTTP request failed with status $status." >&2
-		ok=false
+	else
+		if [[ "$status" -lt 200 || "$status" -ge 300 ]]; then
+			echo "HTTP request failed with status $status: $rest_method $url" >&2
+			ok=false
+		fi
 	fi
-fi
 
-if [[ "$ok" != "true" ]]; then
-	exit 1
-fi
+	if [[ "$ok" != "true" ]]; then
+		maybe_print_failure_body_to_stderr "$response_body_file" 8192 || true
+		exit 1
+	fi
