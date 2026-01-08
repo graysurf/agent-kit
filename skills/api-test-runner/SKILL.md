@@ -148,6 +148,12 @@ $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
   --junit output/api-test-runner/junit.xml
 ```
 
+GitHub Actions (runs the bundled public smoke suite using the template bootstrap):
+
+- Example workflow file: `.github/workflows/api-test-runner.yml`
+
+If you want to run your own suite in CI, replace the bootstrap step with your repo’s committed `setup/api/`.
+
 Notes:
 
 - Keep `output/api-test-runner/results.json` as the primary machine-readable artifact.
