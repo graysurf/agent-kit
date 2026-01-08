@@ -7,8 +7,9 @@
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/11
-- Docs: TBD
+- Docs: None
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+
 ## Goal
 
 - Provide a lightweight, CI-friendly suite runner that executes REST and GraphQL API checks by calling existing runners (`rest.sh`, `gql.sh`).
