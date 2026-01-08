@@ -1,0 +1,4 @@
+# Local-only overrides (do not commit)
+*.local.suite.json
+*.local.env
+*.local.json

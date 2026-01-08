@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "path": "/get",
+  "query": { "hello": "world" },
+  "expect": {
+    "status": 200,
+    "jq": ".args.hello == \"world\" and (.url | contains(\"/get\"))"
+  }
+}
