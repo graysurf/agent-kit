@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-09 | [CI API test runner (REST + GraphQL)](20260109_ci-api-test-runner.md) | TBD |
 
 ## Archived
 
