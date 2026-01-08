@@ -98,11 +98,6 @@
 
 ## Troubleshooting（tools）
 
-- `source ...` 後仍然 `command not found`
-  - 確認 shell：`echo $SHELL`（多數工具以 zsh 為主）
-  - 檢查載入結果：`type <command>` 或 `whence <command>`（zsh）
-  - 檢查腳本存在：`ls -l $CODEX_TOOLS_PATH/<tool>/<tool>.sh`
-
 - 非互動式或新 shell 執行
   - 需在同一 shell 先 `source`，再執行工具；否則重新開 shell 會失效。
   - 若工具依賴 env 檔，請查看該工具資料夾下的 `.env` 或 README。
