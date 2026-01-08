@@ -1,0 +1,250 @@
+# codex-kit: CI API test runner (REST + GraphQL)
+
+| Status | Created | Updated |
+| --- | --- | --- |
+| DRAFT | 2026-01-09 | 2026-01-09 |
+
+Links:
+
+- PR: https://github.com/graysurf/codex-kit/pull/11
+- Docs: None
+- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+
+## Goal
+
+- Provide a lightweight, CI-friendly suite runner that executes REST and GraphQL API checks by calling existing runners (`rest.sh`, `gql.sh`).
+- Reduce CI boilerplate via a single manifest-driven command, deterministic selection, and machine-readable JSON results consumable by other tools (including LLMs).
+- Keep safety by default: no secret leakage in logs/results, and guardrails against unintended write operations in shared environments.
+
+## Acceptance Criteria
+
+- A new runner script exists (proposed: `skills/api-test-runner/scripts/api-test.sh`) that can run a suite manifest and exits non-zero when any case fails.
+- Suite manifests can include both REST and GraphQL cases and support shared defaults (environment name, auth profile names, history toggles).
+- Results are emitted in a machine-readable format (JSON to stdout and/or `--out <file>`), including per-case status, duration, and a replayable command snippet (without secrets).
+- GraphQL cases include a default assertion that `.errors` is empty, plus optional `expect.jq` assertions.
+- A bootstrap template exists so a repo can commit `setup/api/` and run CI with one command.
+
+## Scope
+
+- In-scope:
+  - A new `api-test-runner` skill (docs + scripts + templates) that runs suites for REST and GraphQL by delegating to `rest.sh` / `gql.sh`.
+  - Suite manifest schema v1 (JSON) with case defaults, per-case overrides, deterministic ordering, and selection filters (`--only`, `--tag`, `--skip`).
+  - CI-friendly execution contract: stable exit codes + machine-readable JSON results.
+  - Safety defaults: no token values in logs, and explicit opt-in required for write-capable cases in CI/shared envs.
+- Out-of-scope:
+  - Replacing standard test frameworks (JUnit/Pytest/Jest/etc); this runner is a small, composable harness.
+  - Parallel execution, retries/backoff, and JUnit XML output (may be follow-ups).
+  - Multi-step scenario chaining (extract from response -> feed into next request).
+  - REST multipart/file upload and REST API-key header auth (still separate REST TODOs).
+
+## I/O Contract
+
+### Input
+
+- Suite manifest: `setup/api/suites/<suite>.suite.json` (committed)
+- REST inputs: `setup/rest/endpoints.env`, `setup/rest/tokens.env`, `setup/rest/requests/*.request.json`
+- GraphQL inputs: `setup/graphql/endpoints.env`, `setup/graphql/jwts.env`, `setup/graphql/operations/*.graphql`, `setup/graphql/operations/*.json`
+- Secrets in CI: via env (e.g. `ACCESS_TOKEN`, `REST_URL`, `GQL_URL_*`) or local-only `*.local.env` files
+
+### Output
+
+- Runner stdout:
+  - Human-readable summary (stable enough for logs)
+  - Machine-readable JSON (structured results; schema defined in this plan)
+- Optional result file via `--out <path>` (recommended for CI artifacts), defaulting under `output/api-test-runner/`
+- Exit code:
+  - `0` when all selected cases pass
+  - non-zero when any case fails or when inputs are invalid (exact codes defined in Step 0)
+
+### Intermediate Artifacts
+
+- Temporary response files (per case) for assertions and optional debugging (default location under `output/api-test-runner/<run-id>/`).
+
+### Suite Manifest (proposed schema v1)
+
+Location (recommended, committed):
+
+- `setup/api/suites/<suite>.suite.json`
+
+Example:
+
+```json
+{
+  "version": 1,
+  "name": "smoke",
+  "defaults": {
+    "env": "staging",
+    "noHistory": true,
+    "rest": { "token": "ci" },
+    "graphql": { "jwt": "ci" }
+  },
+  "cases": [
+    {
+      "id": "rest.health",
+      "type": "rest",
+      "request": "setup/rest/requests/health.request.json"
+    },
+    {
+      "id": "graphql.countries",
+      "type": "graphql",
+      "op": "setup/graphql/operations/countries.graphql",
+      "vars": "setup/graphql/operations/countries.variables.json",
+      "expect": {
+        "jq": "(.errors? | length // 0) == 0 and (.data.countries | length) > 0"
+      }
+    }
+  ]
+}
+```
+
+Notes:
+
+- REST assertions live in the request file (`expect.status` + optional `expect.jq`); suite-level `expect.jq` is optional (extra checks).
+- GraphQL cases should at minimum enforce “no `.errors`” (runner default), plus optional `expect.jq` for stronger checks.
+
+### Result JSON (proposed schema v1)
+
+Example output (stdout and/or `--out` file):
+
+```json
+{
+  "version": 1,
+  "suite": "smoke",
+  "runId": "20260109-010000Z",
+  "startedAt": "2026-01-09T01:00:00Z",
+  "finishedAt": "2026-01-09T01:00:10Z",
+  "summary": { "total": 2, "passed": 2, "failed": 0, "skipped": 0 },
+  "cases": [
+    {
+      "id": "rest.health",
+      "type": "rest",
+      "status": "passed",
+      "durationMs": 120,
+      "command": "$CODEX_HOME/skills/rest-api-testing/scripts/rest.sh --config-dir setup/rest --env staging setup/rest/requests/health.request.json"
+    },
+    {
+      "id": "graphql.countries",
+      "type": "graphql",
+      "status": "passed",
+      "durationMs": 240,
+      "command": "$CODEX_HOME/skills/graphql-api-testing/scripts/gql.sh --config-dir setup/graphql --env staging --jwt ci setup/graphql/operations/countries.graphql setup/graphql/operations/countries.variables.json | jq -e '...'",
+      "assertions": {
+        "defaultNoErrors": "passed",
+        "jq": "passed"
+      }
+    }
+  ]
+}
+```
+
+## Design / Decisions
+
+### Rationale
+
+- Reuse existing stable callers (`skills/rest-api-testing/scripts/rest.sh`, `skills/graphql-api-testing/scripts/gql.sh`) instead of re-implementing HTTP/auth logic.
+- Keep assertions simple and composable (`expect.*` for REST, `jq -e` for GraphQL), so the runner can be called from CI scripts or higher-level tools.
+- Prefer deterministic, machine-readable outputs over a “full test framework” feature set.
+
+### Decisions (locked)
+
+- Suite location/discovery (Q1 = C):
+  - Canonical location: `setup/api/suites/*.suite.json`
+  - Runner supports both:
+    - `--suite <name>` (resolves to canonical path), and
+    - `--suite-file <path>` (explicit override)
+  - In CI: prefer canonical (`--suite`) or explicit `--suite-file` for deterministic runs; avoid discovery-only behavior.
+- Safety gating for write-capable cases (Q2 = A + B):
+  - Default: deny write-capable cases.
+  - Allow writes only when the case is explicitly marked `allowWrite: true`, AND:
+    - `env=local`, OR
+    - runner is invoked with `--allow-writes` (or `API_TEST_ALLOW_WRITES=1`).
+- Results contract (Q3 = B):
+  - Always emit JSON results.
+  - Optionally emit JUnit XML via `--junit <file>` for CI reporters.
+
+### Risks / Uncertainties
+
+- Network flakiness / rate limits can cause CI noise.
+  - Mitigation: define timeouts; optionally add retries/backoff as a follow-up (explicitly gated and off by default).
+- Side effects in shared environments (REST non-GET, GraphQL mutations).
+  - Mitigation: require explicit opt-in for write-capable cases (e.g. `allowWrite: true` per case and/or `--allow-writes` flag).
+- Project-specific naming drift (env names, auth profile names).
+  - Mitigation: support suite-level defaults + per-case overrides; document recommended naming alignment (`local`, `dev`, `staging`, etc.).
+
+## Steps (Checklist)
+
+Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
+
+- [ ] Step 0: Alignment / prerequisites
+  - Work Items:
+    - [ ] Finalize suite manifest schema v1 (fields, defaults, per-case overrides).
+    - [ ] Finalize runner CLI flags and stable exit code semantics.
+    - [ ] Finalize result JSON schema (per-case + summary) and redaction rules.
+    - [ ] Decide safety defaults (history behavior in CI, write-case gating, response capture policy).
+  - Artifacts:
+    - `docs/progress/20260109_ci-api-test-runner.md` (this file)
+    - Example suite manifest + example result JSON snippet (embedded in this file)
+  - Exit Criteria:
+    - [ ] Requirements, scope, and acceptance criteria are aligned (manifest + JSON results + safe defaults).
+    - [ ] Data flow and I/O contract are defined (suite -> rest/gql -> assertions -> results).
+    - [ ] Risks and safety guardrails are defined (write gating, redaction).
+    - [ ] Minimal reproducible verification commands are defined (public endpoints for REST + GraphQL).
+- [ ] Step 1: Minimum viable output (MVP)
+  - Work Items:
+    - [ ] Create `skills/api-test-runner/` (docs + scripts + templates).
+    - [ ] Implement `api-test.sh` to run a suite manifest sequentially.
+    - [ ] Support case type `rest` by invoking `rest.sh` (respecting request `expect`).
+    - [ ] Support case type `graphql` by invoking `gql.sh` and applying default + optional `expect.jq` assertions.
+    - [ ] Emit machine-readable results (JSON) and meaningful exit codes.
+  - Artifacts:
+    - `skills/api-test-runner/SKILL.md`
+    - `skills/api-test-runner/scripts/api-test.sh`
+    - `skills/api-test-runner/template/setup/api/` (suite manifest + sample cases)
+    - `README.md` (skills list entry)
+  - Exit Criteria:
+    - [ ] At least one happy path runs end-to-end (suite runner): `api-test.sh --suite <suite>`.
+    - [ ] Primary outputs are verifiable (results JSON and optional saved responses) under `output/api-test-runner/`.
+    - [ ] Usage docs skeleton exists (TL;DR + suite schema + CI example): `skills/api-test-runner/SKILL.md`.
+- [ ] Step 2: Expansion / integration
+  - Work Items:
+    - [ ] Add selection and control flags: `--only`, `--tag`, `--skip`, `--fail-fast`, `--continue`.
+    - [ ] Add deterministic ordering guarantees and clearer error reporting for invalid suite schemas.
+    - [ ] Add timeouts (and optional retries as a gated follow-up if needed).
+    - [ ] Add CI example snippets (GitHub Actions / generic shell) for both REST and GraphQL suites.
+  - Artifacts:
+    - `skills/api-test-runner/SKILL.md` (expanded)
+    - Optional: `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
+  - Exit Criteria:
+    - [ ] Common branches are covered (missing files, invalid schema, assertion fail, skip/only, underlying runner error).
+    - [ ] Compatible with existing naming conventions (`setup/rest`, `setup/graphql`, `*.local.env`, `output/`).
+    - [ ] Required migrations / backfill scripts and documentation exist: none required.
+- [ ] Step 3: Validation / testing
+  - Work Items:
+    - [ ] Validate the runner against public endpoints:
+      - REST: `https://httpbin.org`
+      - GraphQL: `https://countries.trevorblades.com/`
+    - [ ] Validate failure behavior (intentional failing assertion and non-zero exit code).
+  - Artifacts:
+    - `output/api-test-runner/` (run logs + results JSON)
+  - Exit Criteria:
+    - [ ] Validation commands executed with results recorded (happy path + failure case).
+    - [ ] Run with real data or representative samples (public endpoints; no secrets).
+    - [ ] Traceable evidence exists (results JSON files under `output/api-test-runner/`).
+- [ ] Step 4: Release / wrap-up
+  - Work Items:
+    - [ ] Add the new skill to `README.md`.
+    - [ ] After merge + validation, set progress Status to `DONE` and archive under `docs/progress/archived/`.
+  - Artifacts:
+    - `README.md`
+    - `docs/progress/archived/20260109_ci-api-test-runner.md` (after merge)
+  - Exit Criteria:
+    - [ ] Versioning and changes recorded: none required.
+    - [ ] Release actions completed: none required.
+    - [ ] Documentation completed and entry points updated (README / docs index links).
+    - [ ] Cleanup completed (archive progress, update index, mark DONE).
+
+## Modules
+
+- `skills/api-test-runner/scripts/api-test.sh`: Suite runner that executes REST/GraphQL cases and produces JSON results.
+- `skills/api-test-runner/SKILL.md`: End-user docs (suite schema, examples, CI usage, safety rules).
+- `skills/api-test-runner/template/setup/api`: Bootstrap template for committing `setup/api/` suite manifests in projects.
