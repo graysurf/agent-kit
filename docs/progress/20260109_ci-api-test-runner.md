@@ -144,6 +144,23 @@ Example output (stdout and/or `--out` file):
 - Keep assertions simple and composable (`expect.*` for REST, `jq -e` for GraphQL), so the runner can be called from CI scripts or higher-level tools.
 - Prefer deterministic, machine-readable outputs over a “full test framework” feature set.
 
+### Decisions (locked)
+
+- Suite location/discovery (Q1 = C):
+  - Canonical location: `setup/api/suites/*.suite.json`
+  - Runner supports both:
+    - `--suite <name>` (resolves to canonical path), and
+    - `--suite-file <path>` (explicit override)
+  - In CI: prefer canonical (`--suite`) or explicit `--suite-file` for deterministic runs; avoid discovery-only behavior.
+- Safety gating for write-capable cases (Q2 = A + B):
+  - Default: deny write-capable cases.
+  - Allow writes only when the case is explicitly marked `allowWrite: true`, AND:
+    - `env=local`, OR
+    - runner is invoked with `--allow-writes` (or `API_TEST_ALLOW_WRITES=1`).
+- Results contract (Q3 = B):
+  - Always emit JSON results.
+  - Optionally emit JUnit XML via `--junit <file>` for CI reporters.
+
 ### Risks / Uncertainties
 
 - Network flakiness / rate limits can cause CI noise.
