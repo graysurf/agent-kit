@@ -43,7 +43,7 @@ Links:
   - `setup/rest/tokens.env` (placeholders only; real tokens go in `setup/rest/tokens.local.env`):
     - `REST_TOKEN_DEFAULT=`
     - `REST_TOKEN_ADMIN=`
-    - `REST_TOKEN_STAFF=`
+    - `REST_TOKEN_MEMBER=`
 - `skills/rest-api-testing/scripts/rest-report.sh` can:
   - Run a request via `rest.sh` (or replay via `--response`) and write a Markdown report under `<project>/docs/` by default.
   - Redact common secret fields in request/response by default; allow opting out with `--no-redact`.
