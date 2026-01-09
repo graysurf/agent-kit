@@ -25,7 +25,7 @@ Usage:
 
 Behavior:
   - Derives title from PROJECT_PATH basename (preferred), else git root, else PWD basename.
-  - Delegates to scripts/desktop-notify.sh.
+  - Delegates to skills/desktop-notify/scripts/desktop-notify.sh.
 
 Environment:
   PROJECT_PATH                  Used to derive the title (preferred)
@@ -88,8 +88,24 @@ self_path="${BASH_SOURCE[0]:-$0}"
 self_dir="$(cd "$(dirname "$self_path")" >/dev/null 2>&1 && pwd -P || true)"
 [[ -n "$self_dir" ]] || die "Unable to resolve script directory"
 
-desktop_notify_abs="${self_dir%/}/desktop-notify.sh"
-[[ -f "$desktop_notify_abs" ]] || die "Missing desktop notifier: $desktop_notify_abs"
+desktop_notify_abs=""
+declare -a desktop_notify_candidates=()
+
+desktop_notify_candidates+=("${self_dir%/}/desktop-notify.sh")
+
+if [[ -n "${CODEX_HOME:-}" ]]; then
+  desktop_notify_candidates+=("${CODEX_HOME%/}/skills/desktop-notify/scripts/desktop-notify.sh")
+  desktop_notify_candidates+=("${CODEX_HOME%/}/scripts/desktop-notify.sh")
+fi
+
+for candidate in "${desktop_notify_candidates[@]}"; do
+  if [[ -f "$candidate" ]]; then
+    desktop_notify_abs="$candidate"
+    break
+  fi
+done
+
+[[ -n "$desktop_notify_abs" ]] || die "Missing desktop notifier (expected under skills/desktop-notify)"
 
 resolve_project_path_for_title() {
   local candidate

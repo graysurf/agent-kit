@@ -42,6 +42,7 @@ are intentionally excluded via `.gitignore`.
 | close-progress-pr | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | find-and-fix-bugs | Find, triage, and fix bugs; open a PR with a standard template |
 | open-changed-files-review | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
+| desktop-notify | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
 | api-test-runner | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
 | graphql-api-testing | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
 | rest-api-testing | Test REST APIs with repeatable, file-based requests and generate API test reports |
@@ -60,3 +61,4 @@ are intentionally excluded via `.gitignore`.
 ## 📜 Notes
 
 - This repo lives at `~/.config/codex-kit`; `$CODEX_HOME` is a symlink here and is the configured Codex home.
+- Desktop notifications: use `skills/desktop-notify/scripts/project-notify.sh` (project title) or `skills/desktop-notify/scripts/desktop-notify.sh` (custom title).

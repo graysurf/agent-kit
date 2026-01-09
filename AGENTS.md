@@ -45,7 +45,7 @@
   - 完成工作通知（Desktop notification）
     - 若本回合完成使用者請求（例如：已實作/修正/產出交付物），且使用者未明確要求不要通知：回合結尾應發送 1 則桌面通知（best-effort；失敗需 silent no-op）。
     - Message：20 個字內描述本回合完成什麼。
-    - 指令（跨平台；只輸入 message）：`$CODEX_HOME/scripts/project-notify.sh "<20字內>" --level info|success|warn|error`
+    - 指令（跨平台；只輸入 message）：`$CODEX_HOME/skills/desktop-notify/scripts/project-notify.sh "<Up to 20 words **In English**>" --level info|success|warn|error`
 
 ## 輸出模板（Output Template）
 
