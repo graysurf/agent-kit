@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "name": "public-auth-demo",
+  "defaults": {
+    "env": "local",
+    "noHistory": true,
+    "rest": { "url": "https://dummyjson.com" },
+    "graphql": { "url": "https://api.escuelajs.co/graphql" }
+  },
+  "cases": [
+    {
+      "id": "rest.dummyjson.login_then_me",
+      "type": "rest-flow",
+      "tags": ["public", "demo", "auth"],
+      "allowWrite": true,
+      "loginRequest": "setup/rest/requests/dummyjson.auth.login.request.json",
+      "tokenJq": ".accessToken",
+      "request": "setup/rest/requests/dummyjson.auth.me.request.json"
+    },
+    {
+      "id": "graphql.escuelajs.login.fail",
+      "type": "graphql",
+      "tags": ["public", "demo", "auth", "expected-fail"],
+      "allowWrite": true,
+      "op": "setup/graphql/operations/login.fail.graphql",
+      "vars": "setup/graphql/operations/login.fail.variables.json"
+    }
+  ]
+}

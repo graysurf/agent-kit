@@ -1,0 +1,9 @@
+{
+  "method": "POST",
+  "path": "/auth/login",
+  "body": { "username": "emilys", "password": "emilyspass" },
+  "expect": {
+    "status": 200,
+    "jq": "((.accessToken | type) == \"string\") and ((.accessToken | length) > 0) and (.username == \"emilys\")"
+  }
+}

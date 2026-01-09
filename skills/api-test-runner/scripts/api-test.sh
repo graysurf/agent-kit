@@ -464,6 +464,149 @@ for ((i=0; i<case_count; i++)); do
         fi
       fi
 
+    elif [[ "$type" == "rest-flow" || "$type" == "rest_flow" ]]; then
+      login_request="$(jq -r ".cases[$i].loginRequest // empty" "$suite_path")"
+      login_request="$(trim "$login_request")"
+      [[ -n "$login_request" ]] || die "rest-flow case '$id' is missing loginRequest"
+      login_request_abs="$(resolve_path "$login_request")"
+      [[ -f "$login_request_abs" ]] || die "rest-flow case '$id' loginRequest not found: $login_request"
+
+      request="$(jq -r ".cases[$i].request // empty" "$suite_path")"
+      request="$(trim "$request")"
+      [[ -n "$request" ]] || die "rest-flow case '$id' is missing request"
+      request_abs="$(resolve_path "$request")"
+      [[ -f "$request_abs" ]] || die "rest-flow case '$id' request not found: $request"
+
+      token_jq="$(jq -r ".cases[$i].tokenJq? // empty" "$suite_path")"
+      token_jq="$(trim "$token_jq")"
+      if [[ -z "$token_jq" ]]; then
+        token_jq='.. | objects | (.accessToken? // .access_token? // .token? // empty) | select(type=="string" and length>0) | .'
+      fi
+
+      rest_config_dir="$(jq -r ".cases[$i].configDir? // empty" "$suite_path")"
+      rest_config_dir="$(trim "$rest_config_dir")"
+      rest_config_dir="${rest_config_dir:-$default_rest_config_dir}"
+
+      rest_url="$(jq -r ".cases[$i].url? // empty" "$suite_path")"
+      rest_url="$(trim "$rest_url")"
+      rest_url="${rest_url:-$default_rest_url}"
+
+      login_method="$(jq -r '.method // empty' "$login_request_abs")"
+      login_method="$(trim "$login_method")"
+      main_method="$(jq -r '.method // empty' "$request_abs")"
+      main_method="$(trim "$main_method")"
+
+      if is_rest_write_method "$login_method" || is_rest_write_method "$main_method"; then
+        if [[ "$allow_write_case" != "true" ]]; then
+          status="failed"
+          message="write_capable_case_requires_allowWrite_true"
+          failed=$((failed + 1))
+          execute_case="0"
+        else
+          if [[ "$allow_writes" != "1" && "$(to_lower "$effective_env")" != "local" ]]; then
+            status="skipped"
+            message="write_cases_disabled"
+            skipped=$((skipped + 1))
+            execute_case="0"
+          fi
+        fi
+      fi
+
+      if [[ "$execute_case" == "1" ]]; then
+        stderr_file="$run_dir/${safe_id}.stderr.log"
+        stdout_file=""
+        : >"$stderr_file"
+
+        login_cmd=("$rest_runner_abs" "--config-dir" "$rest_config_dir")
+        if [[ "$effective_no_history" == "true" ]]; then
+          login_cmd+=("--no-history")
+        fi
+        if [[ -n "$rest_url" ]]; then
+          login_cmd+=("--url" "$rest_url")
+        elif [[ -n "$effective_env" ]]; then
+          login_cmd+=("--env" "$effective_env")
+        fi
+        login_cmd+=("${login_request_abs#"$repo_root"/}")
+
+        main_cmd=("$rest_runner_abs" "--config-dir" "$rest_config_dir")
+        if [[ "$effective_no_history" == "true" ]]; then
+          main_cmd+=("--no-history")
+        fi
+        if [[ -n "$rest_url" ]]; then
+          main_cmd+=("--url" "$rest_url")
+        elif [[ -n "$effective_env" ]]; then
+          main_cmd+=("--env" "$effective_env")
+        fi
+        main_cmd+=("${request_abs#"$repo_root"/}")
+
+        command_snippet="$(
+          runner="$rest_runner_abs"
+          if [[ -n "${CODEX_HOME:-}" && "$runner" == "${CODEX_HOME%/}/"* ]]; then
+            runner="\"\$CODEX_HOME/${runner#"${CODEX_HOME%/}/"}\""
+          elif [[ "$runner" == "$repo_root/"* ]]; then
+            runner="$(printf "%q" "${runner#"$repo_root"/}")"
+          else
+            runner="$(printf "%q" "$runner")"
+          fi
+
+          login_args="$(printf "%q " "${login_cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
+          main_args="$(printf "%q " "${main_cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
+          token_expr_q="$(printf "%q" "$token_jq")"
+
+          printf 'ACCESS_TOKEN="$('
+          printf 'REST_TOKEN_NAME= ACCESS_TOKEN= %s %s | jq -r %s' "$runner" "$login_args" "$token_expr_q"
+          printf ')" REST_TOKEN_NAME= %s %s' "$runner" "$main_args"
+        )"
+
+        login_stdout_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.login.json)"
+        login_stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.login.stderr)"
+        rc=0
+
+        if ! REST_TOKEN_NAME="" ACCESS_TOKEN="" "${login_cmd[@]}" >"$login_stdout_tmp" 2>"$login_stderr_tmp"; then
+          rc=$?
+        fi
+
+        if [[ "$rc" != "0" ]]; then
+          status="failed"
+          failed=$((failed + 1))
+          message="rest_flow_login_failed"
+          [[ -s "$login_stderr_tmp" ]] && cat "$login_stderr_tmp" >"$stderr_file"
+        else
+          token="$(
+            jq -r "$token_jq" "$login_stdout_tmp" 2>/dev/null |
+              head -n 1
+          )"
+          token="$(trim "$token")"
+
+          if [[ -z "$token" || "$token" == "null" ]]; then
+            status="failed"
+            failed=$((failed + 1))
+            message="rest_flow_token_extract_failed"
+            {
+              echo "Failed to extract token from login response."
+              echo "Hint: set cases[$i].tokenJq to the token field (e.g. .accessToken)."
+            } >"$stderr_file"
+          else
+            rc=0
+            stdout_file="$run_dir/${safe_id}.response.json"
+            if ! REST_TOKEN_NAME="" ACCESS_TOKEN="$token" "${main_cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+              rc=$?
+            fi
+
+            if [[ "$rc" == "0" ]]; then
+              status="passed"
+              passed=$((passed + 1))
+            else
+              status="failed"
+              failed=$((failed + 1))
+              message="rest_flow_request_failed"
+            fi
+          fi
+        fi
+
+        rm -f "$login_stdout_tmp" "$login_stderr_tmp" 2>/dev/null || true
+      fi
+
     elif [[ "$type" == "graphql" ]]; then
       op="$(jq -r ".cases[$i].op // empty" "$suite_path")"
       op="$(trim "$op")"
