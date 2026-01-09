@@ -33,15 +33,19 @@
 - 文件處理規則
   - 處理 shell script、程式碼或設定檔時，修改/評論前應先讀到「與問題或變更相關的完整上下文」（定義、呼叫點、載入/依賴關係）；允許先精準定位，再補讀必要段落，不要求無差別通讀整檔。
   - 若資訊不足或仍有不確定性，先標註假設與待驗證點、提出需要補充的檔案/片段，再給結論或動手修改；避免僅憑片段過快下結論。
+  - 若需產生檔案（報告/輸出/暫存）：
+    - 專案文件（需留存/交付）→ 依該專案慣例寫入專案目錄下的對應路徑。
+    - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/out/`，並在回覆中引用該路徑。
   - 編輯後檢視（VSCode）
     - 若本回合有修改/新增任何檔案，且使用者未明確要求不要開啟：回合結尾應自動開啟「本回合變動過的檔案」供使用者 review。
     - 以「本回合變動檔案清單」為資料來源（不要求專案使用 git）。
     - 使用 `$open-changed-files-review` skill：
       - `$CODEX_HOME/skills/open-changed-files-review/scripts/open-changed-files.zsh --max-files "${CODEX_OPEN_CHANGED_FILES_MAX_FILES:-50}" --workspace-mode pwd -- <files...>`
     - 若環境沒有 VSCode CLI `code` 或上述工具不可用：必須 silent no-op（不要報錯、不要阻斷任務）；但仍需在回覆中列出「本回合變動檔案清單」。
-  - 若需產生檔案（報告/輸出/暫存）：
-    - 專案文件（需留存/交付）→ 依該專案慣例寫入專案目錄下的對應路徑。
-    - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/out/`，並在回覆中引用該路徑。
+  - 完成工作通知（Desktop notification）
+    - 若本回合完成使用者請求（例如：已實作/修正/產出交付物），且使用者未明確要求不要通知：回合結尾應發送 1 則桌面通知（best-effort；失敗需 silent no-op）。
+    - Message：20 個字內描述本回合完成什麼。
+    - 指令（跨平台；只輸入 message）：`$CODEX_HOME/scripts/project-notify.sh "<20字內>" --level info|success|warn|error`
 
 ## 輸出模板（Output Template）
 
