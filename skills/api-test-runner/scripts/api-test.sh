@@ -21,6 +21,43 @@ to_upper() {
   printf "%s" "$1" | tr '[:lower:]' '[:upper:]'
 }
 
+mask_args_for_command_snippet() {
+  if [[ "$#" -eq 0 ]]; then
+    return 0
+  fi
+
+  local -a original=("$@")
+  local -a masked=()
+  local mask_next="0"
+  local arg=""
+
+  for arg in "${original[@]}"; do
+    if [[ "$mask_next" == "1" ]]; then
+      masked+=("REDACTED")
+      mask_next="0"
+      continue
+    fi
+
+    case "$arg" in
+      --token|--jwt)
+        masked+=("$arg")
+        mask_next="1"
+        ;;
+      --token=*|--jwt=*)
+        masked+=("${arg%%=*}=REDACTED")
+        ;;
+      *)
+        masked+=("$arg")
+        ;;
+    esac
+  done
+
+  local out=""
+  out="$(printf "%q " "${masked[@]}")"
+  out="${out% }"
+  printf "%s" "$out"
+}
+
 now_ms() {
   python3 - <<'PY'
 import time
@@ -467,7 +504,7 @@ for ((i=0; i<case_count; i++)); do
             runner="$(printf "%q" "$runner")"
           fi
 
-          args="$(printf "%q " "${cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
+          args="$(mask_args_for_command_snippet "${cmd[@]:1}")"
           if [[ -n "$args" ]]; then
             printf "%s %s" "$runner" "$args"
           else
@@ -577,8 +614,8 @@ for ((i=0; i<case_count; i++)); do
             runner="$(printf "%q" "$runner")"
           fi
 
-          login_args="$(printf "%q " "${login_cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
-          main_args="$(printf "%q " "${main_cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
+          login_args="$(mask_args_for_command_snippet "${login_cmd[@]:1}")"
+          main_args="$(mask_args_for_command_snippet "${main_cmd[@]:1}")"
           token_expr_q="$(printf "%q" "$token_jq")"
 
           printf 'ACCESS_TOKEN="$('
@@ -721,7 +758,7 @@ for ((i=0; i<case_count; i++)); do
             runner="$(printf "%q" "$runner")"
           fi
 
-          args="$(printf "%q " "${cmd[@]:1}" | sed -E 's/[[:space:]]+$//')"
+          args="$(mask_args_for_command_snippet "${cmd[@]:1}")"
           if [[ -n "$args" ]]; then
             printf "%s %s" "$runner" "$args"
           else
