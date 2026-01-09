@@ -36,13 +36,13 @@ cp -R "$CODEX_HOME/skills/api-test-runner/template/setup" .
 Run a canonical suite:
 
 ```bash
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --out out/api-test-runner/results.json
+$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --out out/api-test-runner/results.json
 ```
 
 Emit JUnit for CI reporters:
 
 ```bash
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --junit out/api-test-runner/junit.xml
+$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --junit out/api-test-runner/junit.xml
 ```
 
 ## Suite Manifests

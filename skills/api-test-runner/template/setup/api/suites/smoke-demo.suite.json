@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "name": "public-smoke",
+  "name": "smoke-demo",
   "defaults": {
     "env": "local",
     "noHistory": true,
@@ -11,13 +11,13 @@
     {
       "id": "rest.httpbin.get",
       "type": "rest",
-      "tags": ["public", "smoke"],
+      "tags": ["public", "demo", "smoke"],
       "request": "setup/rest/requests/httpbin.get.request.json"
     },
     {
       "id": "graphql.countries.country",
       "type": "graphql",
-      "tags": ["public", "smoke"],
+      "tags": ["public", "demo", "smoke"],
       "op": "setup/graphql/operations/country.graphql",
       "vars": "setup/graphql/operations/country.variables.json",
       "expect": {

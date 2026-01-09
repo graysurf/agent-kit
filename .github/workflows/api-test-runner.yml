@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  public-smoke:
+  smoke-demo:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -30,7 +30,7 @@ jobs:
           CODEX_HOME: ${{ github.workspace }}
         run: |
           skills/api-test-runner/scripts/api-test.sh \
-            --suite public-smoke \
+            --suite smoke-demo \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml \
           | jq .

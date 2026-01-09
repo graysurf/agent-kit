@@ -240,12 +240,12 @@ Validation evidence (local runs; artifacts are gitignored under `out/`):
 ```bash
 # Happy path
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
-  --suite public-smoke \
-  --out out/api-test-runner/public-smoke.results.json \
-  --junit out/api-test-runner/public-smoke.junit.xml
+  --suite smoke-demo \
+  --out out/api-test-runner/smoke-demo.results.json \
+  --junit out/api-test-runner/smoke-demo.junit.xml
 
 # Selection example (filters are deterministic; unselected cases become skipped)
-$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite public-smoke --only rest.httpbin.get
+$CODEX_HOME/skills/api-test-runner/scripts/api-test.sh --suite smoke-demo --only rest.httpbin.get
 
 # Failure path (intentional failing expect.jq; exits 2)
 $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
@@ -256,7 +256,7 @@ $CODEX_HOME/skills/api-test-runner/scripts/api-test.sh \
 
 Observed summaries:
 
-- `public-smoke`: `passed=2 failed=0 skipped=0` (runId: `20260108-180931Z`)
+- `smoke-demo`: `passed=2 failed=0 skipped=0` (runId: `20260108-180931Z`)
 - `public-fail`: `passed=1 failed=1 skipped=0` (runId: `20260108-180950Z`, exit `2`)
 - [ ] Step 4: Release / wrap-up
   - Work Items:
