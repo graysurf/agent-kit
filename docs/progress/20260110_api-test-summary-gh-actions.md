@@ -9,6 +9,7 @@ Links:
 - PR: https://github.com/graysurf/codex-kit/pull/15
 - Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440
 
 ## Goal
 
@@ -114,14 +115,14 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - `skills/api-test-runner/scripts/api-test-summary.sh --in out/api-test-runner/results.json --out out/api-test-runner/summary.md --slow 5`
     - [x] Summary is readable and small (failed list + slow Top N; no skipped unless enabled).
     - [x] Failure modes are readable (missing file / invalid JSON).
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Merge PR; archive this progress file via `close-progress-pr`
+    - [x] Merge PR; archive this progress file via `close-progress-pr`
   - Artifacts:
     - `docs/progress/archived/20260110_api-test-summary-gh-actions.md`
   - Exit Criteria:
-    - [ ] Documentation completed and entry points updated.
-    - [ ] Cleanup completed: progress status `DONE`, archived file moved, follow-ups captured.
+    - [x] Documentation completed and entry points updated.
+    - [x] Cleanup completed: progress status `DONE`, archived file moved, follow-ups captured.
 
 ## Modules
 
