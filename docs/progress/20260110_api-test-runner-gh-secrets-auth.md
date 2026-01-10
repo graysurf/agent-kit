@@ -185,10 +185,10 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Reason: Optional follow-ups; core goal is validated in a downstream real project and can be shipped as-is.
   - Work Items:
     - [x] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
-    - [ ] (Optional follow-up) Add a mode to skip auth-required cases when secret is missing. Reason: user chose fail-fast by default.
-    - [ ] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values). Reason: good follow-up, not required for merge.
-    - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics. Reason: current order is case-driven; can be improved if needed.
-    - [ ] Add docs/examples for matrix runs (split suite by `--tag` for parallelism). Reason: follow-up.
+    - [ ] (Optional follow-up) Add a mode to skip auth-required cases when secret is missing. Reason: prefer explicit workflow gating; keep fail-fast default.
+    - [x] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values).
+    - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics. Reason: case order is already deterministic; caching is per-profile per-run.
+    - [x] Add docs/examples for matrix runs (split suite by `--tag` for parallelism).
   - Artifacts:
     - `skills/api-test-runner/scripts/api-test.sh`
     - `skills/api-test-runner/SKILL.md`

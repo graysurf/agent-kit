@@ -132,3 +132,39 @@ If you want to run a committed `tests/` layout instead:
 
 - Remove the “Bootstrap public suite” step
 - Change the run command to use `--suite-file tests/api/suites/<suite>.suite.json`
+
+### Matrix sharding (parallel by tags)
+
+For large suites, split cases into shards by adding shard tags and running the suite in a matrix.
+
+Tagging pattern (example):
+
+- Add a stable tag for the environment (e.g. `staging`)
+- Add a mutually exclusive shard tag for every case (e.g. `shard:0`, `shard:1`)
+
+Workflow sketch:
+
+```yaml
+strategy:
+  fail-fast: false
+  matrix:
+    shard: ["0", "1"]
+
+steps:
+  - name: Run suite shard
+    env:
+      CODEX_HOME: ${{ github.workspace }}
+      API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
+    run: |
+      skills/api-test-runner/scripts/api-test.sh \
+        --suite my-suite \
+        --tag staging \
+        --tag "shard:${{ matrix.shard }}" \
+        --out "out/api-test-runner/results.shard-${{ matrix.shard }}.json" \
+        --junit "out/api-test-runner/junit.shard-${{ matrix.shard }}.xml"
+```
+
+Notes:
+
+- `--tag` uses AND semantics when repeated: a case must include all selected tags to run.
+- Use per-shard output filenames (and per-shard artifacts) to avoid collisions.

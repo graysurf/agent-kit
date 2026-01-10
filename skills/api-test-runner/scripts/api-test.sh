@@ -393,8 +393,10 @@ if [[ -n "$auth_type" ]]; then
 fi
 
 declare -A auth_tokens=()
+declare -A auth_errors=()
 declare -A access_token_rest_config_dir_cache=()
 declare -A access_token_graphql_config_dir_cache=()
+auth_token_value=""
 
 slug_for_cache_dir() {
   python3 - "$1" <<'PY'
@@ -490,33 +492,62 @@ ensure_access_token_graphql_config_dir() {
 auth_render_credentials() {
   local profile="$1"
   local expr="$2"
-  local out=""
+  local provider="$3"
+  local out="" rc
 
-  [[ -n "$auth_secret_json" ]] || return 1
+  [[ -n "$auth_secret_json" ]] || { printf "%s" "auth_secret_missing(provider=${provider},profile=${profile})" >&2; return 1; }
 
+  set +e
   out="$(
     printf "%s" "$auth_secret_json" |
       jq -c --arg profile "$profile" "$expr" 2>/dev/null |
       head -n 1
   )"
+  rc=$?
+  set -e
+
+  if [[ "$rc" != "0" ]]; then
+    printf "%s" "auth_credentials_jq_error(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
   out="$(trim "$out")"
-  [[ -n "$out" ]] || return 1
-  printf "%s" "$out" | jq -e 'type == "object"' >/dev/null 2>&1 || return 1
+  if [[ -z "$out" || "$out" == "null" ]]; then
+    printf "%s" "auth_credentials_missing(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
+  if ! printf "%s" "$out" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    printf "%s" "auth_credentials_invalid(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
   printf "%s" "$out"
 }
 
 auth_extract_token() {
   local response_file="$1"
   local token_expr="$2"
-  local token=""
+  local provider="$3"
+  local profile="$4"
+  local token="" rc
 
+  set +e
   token="$(
     jq -r "$token_expr" "$response_file" 2>/dev/null |
       head -n 1
   )"
-  token="$(trim "$token")"
+  rc=$?
+  set -e
 
+  if [[ "$rc" != "0" ]]; then
+    printf "%s" "auth_token_jq_error(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
+  token="$(trim "$token")"
   if [[ -z "$token" || "$token" == "null" ]]; then
+    printf "%s" "auth_token_missing(provider=${provider},profile=${profile})" >&2
     return 1
   fi
 
@@ -532,7 +563,7 @@ auth_login_rest() {
   template_abs="$(resolve_path "$auth_rest_login_request_template")"
   [[ -f "$template_abs" ]] || return 1
 
-  credentials_json="$(auth_render_credentials "$profile" "$auth_rest_credentials_jq" 2>/dev/null || true)"
+  credentials_json="$(auth_render_credentials "$profile" "$auth_rest_credentials_jq" "rest")" || return 1
   credentials_json="$(trim "$credentials_json")"
   [[ -n "$credentials_json" ]] || return 1
 
@@ -541,7 +572,8 @@ auth_login_rest() {
   stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.rest.stderr.log)"
   rc=0
 
-  if ! jq -c --argjson creds "$credentials_json" '.body = ((.body // {}) + $creds)' "$template_abs" >"$request_file_tmp"; then
+  if ! jq -c --argjson creds "$credentials_json" '.body = ((.body // {}) + $creds)' "$template_abs" >"$request_file_tmp" 2>/dev/null; then
+    printf "%s" "auth_login_template_render_failed(provider=rest,profile=${profile})" >&2
     rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
     return 1
   fi
@@ -574,11 +606,15 @@ auth_login_rest() {
   fi
 
   if [[ "$rc" != "0" ]]; then
+    printf "%s" "auth_login_request_failed(provider=rest,profile=${profile},rc=${rc})" >&2
     rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
     return 1
   fi
 
-  token="$(auth_extract_token "$response_tmp" "$auth_rest_token_jq" 2>/dev/null || true)"
+  token="$(auth_extract_token "$response_tmp" "$auth_rest_token_jq" "rest" "$profile")" || {
+    rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  }
   token="$(trim "$token")"
 
   rm -f "$request_file_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
@@ -599,7 +635,7 @@ auth_login_graphql() {
   vars_template_abs="$(resolve_path "$auth_gql_login_vars_template")"
   [[ -f "$vars_template_abs" ]] || return 1
 
-  credentials_json="$(auth_render_credentials "$profile" "$auth_gql_credentials_jq" 2>/dev/null || true)"
+  credentials_json="$(auth_render_credentials "$profile" "$auth_gql_credentials_jq" "graphql")" || return 1
   credentials_json="$(trim "$credentials_json")"
   [[ -n "$credentials_json" ]] || return 1
 
@@ -608,7 +644,8 @@ auth_login_graphql() {
   stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.gql.stderr.log)"
   rc=0
 
-  if ! jq -c --argjson creds "$credentials_json" '. + $creds' "$vars_template_abs" >"$vars_tmp"; then
+  if ! jq -c --argjson creds "$credentials_json" '. + $creds' "$vars_template_abs" >"$vars_tmp" 2>/dev/null; then
+    printf "%s" "auth_login_template_render_failed(provider=graphql,profile=${profile})" >&2
     rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
     return 1
   fi
@@ -642,11 +679,15 @@ auth_login_graphql() {
   fi
 
   if [[ "$rc" != "0" ]]; then
+    printf "%s" "auth_login_request_failed(provider=graphql,profile=${profile},rc=${rc})" >&2
     rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
     return 1
   fi
 
-  token="$(auth_extract_token "$response_tmp" "$auth_gql_token_jq" 2>/dev/null || true)"
+  token="$(auth_extract_token "$response_tmp" "$auth_gql_token_jq" "graphql" "$profile")" || {
+    rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
+    return 1
+  }
   token="$(trim "$token")"
 
   rm -f "$vars_tmp" "$response_tmp" "$stderr_tmp" 2>/dev/null || true
@@ -657,26 +698,41 @@ auth_login_graphql() {
 
 ensure_auth_token() {
   local profile="$1"
+  auth_token_value=""
 
   [[ -n "$profile" ]] || return 1
   [[ "$auth_enabled" == "1" ]] || return 1
 
   if [[ -n "${auth_tokens[$profile]:-}" ]]; then
-    printf "%s" "${auth_tokens[$profile]}"
+    auth_token_value="${auth_tokens[$profile]}"
     return 0
   fi
 
+  if [[ -n "${auth_errors[$profile]:-}" ]]; then
+    return 1
+  fi
+
+  local err_tmp
+  err_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.auth.error)"
   local token=""
   if [[ "$auth_provider" == "rest" ]]; then
-    token="$(auth_login_rest "$profile" 2>/dev/null || true)"
+    token="$(auth_login_rest "$profile" 2>"$err_tmp" || true)"
   else
-    token="$(auth_login_graphql "$profile" 2>/dev/null || true)"
+    token="$(auth_login_graphql "$profile" 2>"$err_tmp" || true)"
   fi
   token="$(trim "$token")"
-  [[ -n "$token" ]] || return 1
+  local err=""
+  err="$(cat "$err_tmp" 2>/dev/null || true)"
+  err="$(trim "$err")"
+  rm -f "$err_tmp" 2>/dev/null || true
+  if [[ -z "$token" ]]; then
+    auth_errors["$profile"]="${err:-auth_login_failed(provider=${auth_provider},profile=${profile})}"
+    return 1
+  fi
 
   auth_tokens["$profile"]="$token"
-  printf "%s" "$token"
+  auth_token_value="$token"
+  return 0
 }
 
 split_csv() {
@@ -899,19 +955,22 @@ for ((i=0; i<case_count; i++)); do
 
       if [[ "$execute_case" == "1" ]]; then
         auth_profile=""
-        access_token_for_case=""
-        if [[ "$auth_enabled" == "1" && -n "$rest_token" ]]; then
-          auth_profile="$rest_token"
-          access_token_for_case="$(ensure_auth_token "$auth_profile" 2>/dev/null || true)"
-          access_token_for_case="$(trim "$access_token_for_case")"
-          if [[ -z "$access_token_for_case" ]]; then
-            status="failed"
-            message="auth_login_failed(profile=${auth_profile})"
-            failed=$((failed + 1))
-            execute_case="0"
-          fi
-        fi
-      fi
+	        access_token_for_case=""
+	        if [[ "$auth_enabled" == "1" && -n "$rest_token" ]]; then
+	          auth_profile="$rest_token"
+	          if ensure_auth_token "$auth_profile"; then
+	            access_token_for_case="$(trim "$auth_token_value")"
+	          else
+	            access_token_for_case=""
+	          fi
+	          if [[ -z "$access_token_for_case" ]]; then
+	            status="failed"
+	            message="${auth_errors[$auth_profile]:-auth_login_failed(provider=${auth_provider},profile=${auth_profile})}"
+	            failed=$((failed + 1))
+	            execute_case="0"
+	          fi
+	        fi
+	      fi
 
       if [[ "$execute_case" == "1" ]]; then
         stdout_file="$run_dir/${safe_id}.response.json"
@@ -1200,19 +1259,22 @@ for ((i=0; i<case_count; i++)); do
 
       if [[ "$execute_case" == "1" ]]; then
         auth_profile=""
-        access_token_for_case=""
-        if [[ "$auth_enabled" == "1" && -n "$gql_jwt" ]]; then
-          auth_profile="$gql_jwt"
-          access_token_for_case="$(ensure_auth_token "$auth_profile" 2>/dev/null || true)"
-          access_token_for_case="$(trim "$access_token_for_case")"
-          if [[ -z "$access_token_for_case" ]]; then
-            status="failed"
-            message="auth_login_failed(profile=${auth_profile})"
-            failed=$((failed + 1))
-            execute_case="0"
-          fi
-        fi
-      fi
+	        access_token_for_case=""
+	        if [[ "$auth_enabled" == "1" && -n "$gql_jwt" ]]; then
+	          auth_profile="$gql_jwt"
+	          if ensure_auth_token "$auth_profile"; then
+	            access_token_for_case="$(trim "$auth_token_value")"
+	          else
+	            access_token_for_case=""
+	          fi
+	          if [[ -z "$access_token_for_case" ]]; then
+	            status="failed"
+	            message="${auth_errors[$auth_profile]:-auth_login_failed(provider=${auth_provider},profile=${auth_profile})}"
+	            failed=$((failed + 1))
+	            execute_case="0"
+	          fi
+	        fi
+	      fi
 
       if [[ "$execute_case" == "1" ]]; then
         stdout_file="$run_dir/${safe_id}.response.json"

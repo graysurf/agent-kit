@@ -247,6 +247,49 @@ Notes:
 - Keep `out/api-test-runner/results.json` as the primary machine-readable artifact.
 - Only upload per-case response files as artifacts if they are known to be non-sensitive.
 
+### GitHub Actions: matrix sharding by tags
+
+For large suites, you can split a single suite into multiple CI jobs by tagging cases and running the runner in a matrix.
+
+Suite tagging pattern (make shard tags mutually exclusive):
+
+```json
+{
+  "cases": [
+    { "id": "graphql.health", "type": "graphql", "tags": ["staging", "shard:0"], "op": "..." },
+    { "id": "graphql.notifications", "type": "graphql", "tags": ["staging", "shard:1"], "op": "..." }
+  ]
+}
+```
+
+Workflow example:
+
+```yaml
+strategy:
+  fail-fast: false
+  matrix:
+    shard: ["0", "1"]
+
+steps:
+  - name: Run suite shard
+    env:
+      CODEX_HOME: ${{ github.workspace }}
+      API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
+    run: |
+      skills/api-test-runner/scripts/api-test.sh \
+        --suite my-suite \
+        --tag staging \
+        --tag "shard:${{ matrix.shard }}" \
+        --out "out/api-test-runner/results.shard-${{ matrix.shard }}.json" \
+        --junit "out/api-test-runner/junit.shard-${{ matrix.shard }}.xml"
+```
+
+Notes:
+
+- `--tag` is repeatable and uses AND semantics (a case must include all tag filters to run).
+- Make shard tags mutually exclusive to avoid duplicate coverage across jobs.
+- Use per-shard output filenames to avoid artifact collisions.
+
 ## Safety defaults
 
 Write-capable cases are denied by default.
