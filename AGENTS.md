@@ -92,7 +92,7 @@
 
   ## 📚 來源（必要時）
 
-  - 引用檔名、路徑、或明確可追溯的依據；避免「我覺得」。
+  - 引用檔名、路徑、或明確可追溯的依據。
 
   —— [可信度: 中] [推理強度: 推論]
   ```
@@ -108,9 +108,3 @@
 - 工具入口：`$CODEX_TOOLS_PATH`。
 - 載入全部工具：`source $CODEX_TOOLS_PATH/_codex-tools.zsh`。
 - 單一工具載入：`source $CODEX_TOOLS_PATH/<tool>/<tool>.sh`。
-
-## Troubleshooting（tools）
-
-- 非互動式或新 shell 執行
-  - 需在同一 shell 先 `source`，再執行工具；否則重新開 shell 會失效。
-  - 若工具依賴 env 檔，請查看該工具資料夾下的 `.env` 或 README。
