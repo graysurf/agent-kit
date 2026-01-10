@@ -56,25 +56,63 @@ fi
 
 typeset -g _codex_bin_dir="${CODEX_HOME%/}/scripts/commands"
 if [[ ! -d "$_codex_bin_dir" ]]; then
-  _codex_tools_die "missing tools bin dir: ${_codex_bin_dir} (reinstall/update codex-kit)"
+  _codex_tools_note "missing tools bin dir: ${_codex_bin_dir} (creating)"
+  mkdir -p -- "$_codex_bin_dir" || _codex_tools_die "failed to create tools bin dir: ${_codex_bin_dir}"
 fi
 
 if [[ ":${PATH}:" != *":${_codex_bin_dir}:"* ]]; then
   export PATH="${_codex_bin_dir}:${PATH}"
 fi
 
-# Validate required commands/functions are present after loading tools.
-if ! command -v git-tools >/dev/null 2>&1; then
-  _codex_tools_note "hint: expected executable: ${_codex_bin_dir}/git-tools"
-  _codex_tools_note "hint: fix: chmod +x \"${_codex_bin_dir}/git-tools\""
-  _codex_tools_die "required tool missing: git-tools"
-fi
+typeset -g ZDOTDIR="${ZDOTDIR:-$HOME/.config/zsh}"
+export ZDOTDIR
+export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$ZDOTDIR/cache}"
 
-if ! command -v git-scope >/dev/null 2>&1; then
-  _codex_tools_note "hint: expected executable: ${_codex_bin_dir}/git-scope"
-  _codex_tools_note "hint: fix: chmod +x \"${_codex_bin_dir}/git-scope\""
-  _codex_tools_die "required tool missing: git-scope"
-fi
+typeset -g _codex_wrapper_dir="${ZSH_CACHE_DIR%/}/wrappers/bin"
+typeset -g _codex_bundler="${CODEX_HOME%/}/scripts/build/bundle-wrapper.zsh"
+
+_codex_tools_bundle() {
+  emulate -L zsh
+  setopt err_return no_unset
+
+  local name="${1-}"
+  local entry="${2-}"
+  local wrapper="${_codex_wrapper_dir%/}/${name}"
+  local output="${_codex_bin_dir%/}/${name}"
+
+  [[ -n "$name" && -n "$entry" ]] || return 1
+  [[ -x "$output" ]] && return 0
+  [[ -f "$wrapper" ]] || return 1
+
+  if [[ ! -f "$_codex_bundler" ]]; then
+    _codex_tools_die "missing bundler: ${_codex_bundler}"
+  fi
+
+  _codex_tools_note "bundling ${name} from ${wrapper}"
+  zsh -f "$_codex_bundler" --input "$wrapper" --output "$output" --entry "$entry" \
+    || _codex_tools_die "failed to bundle ${name}"
+}
+
+_codex_tools_require() {
+  emulate -L zsh
+  setopt err_return no_unset
+
+  local name="${1-}"
+  local entry="${2-}"
+  local output="${_codex_bin_dir%/}/${name}"
+
+  if ! command -v "$name" >/dev/null 2>&1; then
+    _codex_tools_bundle "$name" "$entry" || {
+      _codex_tools_note "hint: expected executable: ${output}"
+      _codex_tools_note "hint: fix: chmod +x \"${output}\""
+      _codex_tools_die "required tool missing: ${name}"
+    }
+  fi
+}
+
+# Validate required commands/functions are present after loading tools.
+_codex_tools_require "git-tools" "git-tools"
+_codex_tools_require "git-scope" "git-scope"
 
 if ! command -v git >/dev/null 2>&1; then
   _codex_tools_die "required tool missing: git"

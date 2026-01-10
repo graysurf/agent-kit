@@ -1,62 +1,647 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env -S zsh -f
+set -e
 
-die() {
-  echo "git-scope: $*" >&2
-  exit 1
+# Bundled from: ~/.config/zsh/cache/wrappers/bin/git-scope
+: "${ZDOTDIR:=$HOME/.config/zsh}"
+export ZDOTDIR
+export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
+export ZSH_BOOTSTRAP_SCRIPT_DIR="${ZSH_BOOTSTRAP_SCRIPT_DIR:-$ZDOTDIR/bootstrap}"
+export ZSH_SCRIPT_DIR="${ZSH_SCRIPT_DIR:-$ZDOTDIR/scripts}"
+
+# --- BEGIN ~/.config/zsh/bootstrap/00-preload.zsh
+# safe_unalias [-v] <name...>
+# Safely remove one or more aliases without causing errors.
+#
+# This utility function checks whether each given name is an existing alias,
+# and only unaliases it if it exists. This avoids "no such hash table element"
+# errors when running scripts that are sourced multiple times or across environments.
+#
+# It also supports an optional `-v` flag to enable verbose output for debugging.
+#
+# Usage:
+#   safe_unalias foo bar       # Silently unalias 'foo' and 'bar' if they exist
+#   safe_unalias -v foo bar    # Verbosely unalias 'foo' and 'bar'
+#
+# Notes:
+# - This function is meant to be defined early in the shell environment,
+#   so it can be reused safely in all scripts.
+# - It only affects aliases (not functions or commands).
+safe_unalias() {
+  typeset verbose=false
+  typeset first_arg="${1-}"
+
+  if [[ "$first_arg" == "-v" ]]; then
+    verbose=true
+    shift
+  fi
+
+  for name in "$@"; do
+    if alias "$name" &>/dev/null; then
+      $verbose && printf "🔁 Unaliasing %s\n" "$name"
+      unalias "$name"
+    fi
+  done
+
+  return 0
 }
 
-usage() {
-  cat >&2 <<'EOF'
-Usage:
-  git-scope commit <rev> [--no-color]
-
-Notes:
-  - Minimal, repo-local implementation for codex-kit.
-  - Intended to print a readable commit summary for reviews/logs.
-EOF
+# get_clipboard
+# Read clipboard contents and print to stdout.
+# Usage: get_clipboard
+# Notes:
+# - Requires pbpaste (macOS) or xclip/xsel (Linux).
+get_clipboard() {
+  if command -v pbpaste >/dev/null 2>&1; then
+    pbpaste
+  elif command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard -o
+  elif command -v xsel >/dev/null 2>&1; then
+    xsel --clipboard --output
+  else
+    printf "❌ No clipboard tool found (requires pbpaste, xclip, or xsel)\n" >&2
+    return 1
+  fi
 }
 
-if [[ "${1-}" == "-h" || "${1-}" == "--help" ]]; then
-  usage
-  exit 0
+# set_clipboard
+# Read stdin and write it to the system clipboard.
+# Usage: <command> | set_clipboard
+# Notes:
+# - Requires pbcopy (macOS) or xclip/xsel (Linux).
+set_clipboard() {
+  if command -v pbcopy >/dev/null 2>&1; then
+    pbcopy
+  elif command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard -i
+  elif command -v xsel >/dev/null 2>&1; then
+    xsel --clipboard --input
+  else
+    printf "❌ No clipboard tool found (requires pbcopy, xclip, or xsel)\n" >&2
+    return 1
+  fi
+}
+
+# --- END ~/.config/zsh/bootstrap/00-preload.zsh
+
+# --- BEGIN git/git-scope.zsh
+# ────────────────────────────────────────────────────────
+# Aliases and Unalias
+# ────────────────────────────────────────────────────────
+if command -v safe_unalias >/dev/null; then
+  safe_unalias gs gsc gst
 fi
 
-cmd="${1-}"
-rev="${2-}"
+# gs
+# Alias of `git-scope`.
+# Usage: gs <command> [args...]
+alias gs='git-scope'
 
-shift 2 || true
+# gsc
+# Alias of `git-scope commit`.
+# Usage: gsc <commit-ish> [--parent <n>] [-p|--print]
+alias gsc='git-scope commit'
 
-if [[ "$cmd" != "commit" || -z "$rev" ]]; then
-  die "unsupported command (expected: git-scope commit <rev>)"
-fi
+# gst
+# Alias of `git-scope tracked`.
+# Usage: gst [prefix...]
+alias gst='git-scope tracked'
 
-no_color="0"
-while [[ $# -gt 0 ]]; do
-  case "${1-}" in
-    --no-color)
-      no_color="1"
-      shift
-      ;;
-    -h|--help)
-      usage
-      exit 0
+_git_scope_no_color=false
+
+# _git_scope_kind_color <A|M|D|U|->
+# Return ANSI color code for a file change kind.
+# Usage: _git_scope_kind_color <A|M|D|U|->
+_git_scope_kind_color() {
+  if [[ "$_git_scope_no_color" == true ]]; then
+    return 0
+  fi
+
+  case "$1" in
+    A) printf '\033[38;5;66m'  ;;  # Added    → #3d6f6f (Delta plus-style)
+    M) printf '\033[38;5;110m' ;;  # Modified → #add6ff (Delta file-style)
+    D) printf '\033[38;5;95m'  ;;  # Deleted  → #5a3e39 (Delta minus-style)
+    U) printf '\033[38;5;110m' ;;  # Unknown  → fallback Owl Blue (#82aaff)
+    -) printf '\033[0m'        ;;  # Reset
+    *) printf '\033[38;5;110m' ;;  # Fallback
+  esac
+}
+
+# _git_scope_color_reset
+# Print ANSI reset code (no-op when no-color is enabled).
+# Usage: _git_scope_color_reset
+_git_scope_color_reset() {
+  if [[ "$_git_scope_no_color" == true ]]; then
+    return 0
+  fi
+
+  printf '\033[0m'
+}
+
+# _git_scope_render_tree <newline_separated_paths>
+# Render a directory tree from a list of file paths.
+# Usage: _git_scope_render_tree <newline_separated_paths>
+_git_scope_render_tree() {
+  typeset -a file_list=("${(@f)}$1")
+
+  if [[ "${#file_list[@]}" -eq 0 ]]; then
+    printf "⚠️ No files to render as tree\n"
+    return 1
+  fi
+
+  printf "\n📂 Directory tree:\n"
+
+  typeset -a tree_args=(--fromfile)
+  typeset strip_color=false
+  if [[ "$_git_scope_no_color" == true ]]; then
+    strip_color=true
+  else
+    tree_args+=(-C)
+  fi
+
+  if [[ "$strip_color" == true ]]; then
+    printf "%s\n" "${file_list[@]}" | awk -F/ '{
+      path=""
+      for(i=1;i<NF;i++) {
+        path = (path ? path "/" $i : $i)
+        print path
+      }
+      print $0
+    }' | sort -u | command tree "${tree_args[@]}" | sed 's/\x1b\[[0-9;]*m//g'
+  else
+    printf "%s\n" "${file_list[@]}" | awk -F/ '{
+      path=""
+      for(i=1;i<NF;i++) {
+        path = (path ? path "/" $i : $i)
+        print path
+      }
+      print $0
+    }' | sort -u | command tree "${tree_args[@]}"
+  fi
+}
+
+
+# _git_scope_render_with_type <name_status_lines>
+# Render `git diff --name-status`-style lines and show a directory tree.
+# Usage: _git_scope_render_with_type <name_status_lines>
+_git_scope_render_with_type() {
+  typeset input="$1"
+
+  if [[ -z "$input" ]]; then
+    printf "⚠️  No matching files\n"
+    return 1
+  fi
+
+  typeset color_reset="$(_git_scope_color_reset)"
+  typeset -a files=()
+
+  printf "\n📄 Changed files:\n"
+
+  while IFS=$'\t' read -r kind file; do
+    [[ -z "$file" ]] && continue
+    files+=("$file")
+    typeset color="$(_git_scope_kind_color "$kind")"
+    printf "  %b➔ [%s] %s%b\n" "$color" "$kind" "$file" "$color_reset"
+  done <<< "$input"
+
+  _git_scope_render_tree "${(F)files}"
+
+  if [[ "$_git_scope_should_print" == true ]]; then
+    printf "\n📦 Printing file contents:\n"
+    for file in "${files[@]}"; do
+      print_file_content "$file"
+      printf "\n"
+    done
+  fi
+}
+
+
+# _git_scope_collect <mode> [args...]
+# Collect file lists for `git-scope` subcommands.
+# Usage: _git_scope_collect <tracked|staged|unstaged|all|untracked|commit> [args...]
+_git_scope_collect() {
+  typeset mode="$1"
+  (( $# > 0 )) && shift
+
+  typeset -a args=()
+  _git_scope_should_print=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p|--print) _git_scope_should_print=true ;;
+      *) args+=("$1") ;;
+    esac
+    (( $# > 0 )) && shift
+  done
+
+  case "$mode" in
+    staged)
+      git -c core.quotepath=false diff --cached --name-status --diff-filter=ACMRTUXB ;;
+    unstaged)
+      git -c core.quotepath=false diff --name-status --diff-filter=ACMRTUXB ;;
+    all)
+      printf "%s\n%s" \
+        "$(git -c core.quotepath=false diff --cached --name-status --diff-filter=ACMRTUXB)" \
+        "$(git -c core.quotepath=false diff --name-status --diff-filter=ACMRTUXB)" \
+        | grep -v '^$' | sort -u ;;
+    tracked)
+      typeset -a prefixes=("${args[@]}")
+      typeset files all_filtered
+      files=$(git -c core.quotepath=false ls-files)
+      if [[ ${#prefixes[@]} -gt 0 ]]; then
+        for prefix in "${prefixes[@]}"; do
+          clean_prefix="${prefix%/}"
+          if [[ -d "$clean_prefix" ]]; then
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}/")
+          elif [[ -f "$clean_prefix" ]]; then
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep -x "$clean_prefix")
+          else
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}")
+          fi
+        done
+        files="$(printf '%s\n' "$all_filtered" | grep -v '^$' | sort -u)"
+      fi
+      printf '%s\n' "$files" | while IFS= read -r f; do
+        [[ -n "$f" ]] && printf "-\t%s\n" "$f"
+      done ;;
+    untracked)
+      git -c core.quotepath=false ls-files --others --exclude-standard | while IFS= read -r f; do
+        [[ -n "$f" ]] && printf "U\t%s\n" "$f"
+      done ;;
+    commit)
+      typeset commit="${args[1]}"
+      git -c core.quotepath=false show --pretty=format: --name-status "$commit" ;;
+    *)
+      printf "⚠️ Unknown collect mode: %s\n" "$mode" >&2
+      return 1 ;;
+  esac
+}
+
+# print_file_content <path>
+# Print file contents from working tree, or fallback to `HEAD:<path>` when missing locally.
+# Usage: print_file_content <path>
+print_file_content() {
+  typeset file="$1"
+
+  if [[ -z "$file" ]]; then
+    printf "❗ Missing file path\n"
+    return 1
+  fi
+
+  if [[ -f "$file" ]]; then
+    if file --mime "$file" | grep -q 'charset=binary'; then
+      printf "📄 %s (binary file in working tree)\n" "$file"
+      printf "🔹 [Binary file content omitted]\n"
+    else
+      printf "📄 %s (working tree)\n" "$file"
+      printf '```\n'
+      cat -- "$file"
+      printf '\n```\n'
+    fi
+  elif git cat-file -e "HEAD:$file" 2>/dev/null; then
+    typeset tmp
+    tmp="$(mktemp)"
+    git show "HEAD:$file" > "$tmp"
+
+    if file --mime "$tmp" | grep -q 'charset=binary'; then
+      printf "📄 %s (binary file in HEAD)\n" "$file"
+      printf "🔹 [Binary file content omitted]\n"
+    else
+      printf "📄 %s (from HEAD)\n" "$file"
+      printf '```\n'
+      cat -- "$tmp"
+      printf '\n```\n'
+    fi
+
+    rm -f "$tmp"
+  else
+    printf "❗ File not found: %s\n" "$file"
+    return 1
+  fi
+}
+
+# Command handlers
+# _git_scope_tracked: Handler for `git-scope tracked`.
+_git_scope_tracked()   { _git_scope_render_with_type "$(_git_scope_collect tracked "$@")"; }
+# _git_scope_staged: Handler for `git-scope staged`.
+_git_scope_staged()    { _git_scope_render_with_type "$(_git_scope_collect staged "$@")"; }
+# _git_scope_unstaged: Handler for `git-scope unstaged`.
+_git_scope_unstaged()  { _git_scope_render_with_type "$(_git_scope_collect unstaged "$@")"; }
+# _git_scope_all: Handler for `git-scope all`.
+_git_scope_all()       { _git_scope_render_with_type "$(_git_scope_collect all "$@")"; }
+# _git_scope_untracked: Handler for `git-scope untracked`.
+_git_scope_untracked() { _git_scope_render_with_type "$(_git_scope_collect untracked "$@")"; }
+
+# _git_scope_commit - Show detailed information of a git commit
+#
+# Unlike other git-scope commands (e.g., `staged`, `tracked`), which operate
+# on the working directory or index, this command analyzes a historical commit
+# and renders its metadata, commit message, changed files, and optionally
+# prints the file contents if they are retrievable from HEAD or working tree.
+#
+# Features:
+#   • Displays commit hash, author, date, and message with formatting
+#   • Parses both name-status and numstat to show per-file diff counts
+#   • Computes total lines added and deleted across all files
+#   • Renders affected directory structure using `tree --fromfile`
+#   • Supports `-p` to print file contents (text or binary placeholder)
+#
+# Usage:
+#   git-scope commit <commit-ish> [-p]
+#
+# Example:
+#   git-scope commit HEAD~1         # Show summary of an old commit
+#   git-scope commit a1b2c3 -p      # Show and print files changed in a commit
+#
+# Note:
+#   Internally, it isolates display output from file path data, ensuring
+#   clean separation of UI and logic. It uses a temporary file to pass
+#   changed file paths from the rendering function back to the dispatcher.
+#
+# This command is especially useful for code review, audit trails, or
+# inspecting past changes in high detail.
+_git_scope_commit() {
+  emulate -L zsh
+  setopt pipe_fail
+
+  typeset parent_selector=''
+  typeset -a positional=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --parent|-P)
+        if [[ $# -lt 2 ]]; then
+          printf "❗ --parent requires an argument\n"
+          return 1
+        fi
+        parent_selector="$2"
+        shift 2
+        continue
+        ;;
+      --parent=*)
+        parent_selector="${1#*=}"
+        ;;
+      -P*)
+        parent_selector="${1#-P}"
+        ;;
+      *)
+        positional+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  typeset commit="${positional[1]}"
+  if [[ -z "$commit" ]]; then
+    printf "❗ Usage: git-scope commit <commit-hash | HEAD> [--parent <n>]\n"
+    return 1
+  fi
+
+  _git_scope_print_commit_metadata "$commit"
+  _git_scope_print_commit_message "$commit"
+  _git_scope_render_commit_files "$commit" "$parent_selector"
+
+  typeset -a file_list
+  file_list=("${(@f)$(< /tmp/.git-scope-filelist)}")
+
+  if [[ "$_git_scope_should_print" == true ]]; then
+    printf "\n📦 Printing file contents:\n"
+    for file in "${file_list[@]}"; do
+      print_file_content "$file"
+      printf "\n"
+    done
+  fi
+}
+
+# Print commit header info (hash, author, date)
+_git_scope_print_commit_metadata() {
+  typeset commit="$1"
+
+  printf "\n"
+  if [[ "$_git_scope_no_color" == true ]]; then
+    git log -1 --color=never --date=format:'%Y-%m-%d %H:%M:%S %z' \
+      --pretty=format:"🔖 %h %s%n👤 %an <%ae>%n📅 %ad" "$commit"
+  else
+    git log -1 --date=format:'%Y-%m-%d %H:%M:%S %z' \
+      --pretty=format:"🔖 %C(bold #82aaff)%h%C(reset) %C(#d6deeb)%s%C(reset)%n👤 %C(#7fdbca)%an%C(reset) <%C(#d6deeb)%ae%C(reset)>%n📅 %C(#ecc48d)%ad%C(reset)" "$commit"
+  fi
+}
+
+# Pretty print commit message body
+_git_scope_print_commit_message() {
+  typeset commit="$1"
+
+  printf "\n\n📝 Commit Message:\n"
+  git log -1 --pretty=format:%B "$commit" | awk '
+    NR == 1 { print "   "$0; next }
+    length($0) == 0 { print "" ; next } 
+    { print "   "$0 }'
+}
+
+# Render file change list with color and stats
+_git_scope_commit_parents() {
+  emulate -L zsh
+  setopt pipe_fail
+
+  typeset commit="$1"
+  typeset parents_raw=''
+
+  typeset -ga reply=()
+
+  parents_raw=$(git show -s --pretty=%P "$commit") || return 1
+  if [[ -z "$parents_raw" ]]; then
+    reply=()
+    return 0
+  fi
+
+  reply=("${(@s: :)parents_raw}")
+  return 0
+}
+
+# _git_scope_render_commit_files <commit> [parent_selector]
+# Render changed files for a commit (supports merge commits via parent selection).
+# Usage: _git_scope_render_commit_files <commit> [parent_selector]
+# Notes:
+# - Writes the file list to `/tmp/.git-scope-filelist` for optional printing.
+_git_scope_render_commit_files() {
+  emulate -L zsh
+  setopt pipe_fail
+
+  typeset commit="$1"
+  typeset parent_selector="$2"
+  typeset -a file_list=()
+  typeset -a preface_lines=()
+
+  typeset ns_lines='' numstat_lines=''
+  typeset -a parents=()
+  typeset parent_count=0
+  typeset is_merge=false
+
+  _git_scope_commit_parents "$commit"
+  parents=("${reply[@]}")
+  parent_count=${#parents[@]}
+  (( parent_count > 1 )) && is_merge=true
+
+  typeset selected_parent_hash=''
+  typeset selected_parent_short=''
+  typeset selected_index=1
+
+  if [[ "$is_merge" == true ]]; then
+    if [[ -n "$parent_selector" ]]; then
+      if [[ "$parent_selector" == <-> ]]; then
+        selected_index=$parent_selector
+      else
+        preface_lines+=("  ⚠️  Invalid --parent value '${parent_selector}' — falling back to parent #1")
+        selected_index=1
+      fi
+    fi
+
+    if (( selected_index < 1 || selected_index > parent_count )); then
+      preface_lines+=("  ⚠️  Parent index ${selected_index} out of range (1-${parent_count}) — falling back to parent #1")
+      selected_index=1
+    fi
+
+    selected_parent_hash="$parents[$selected_index]"
+    selected_parent_short=$(git rev-parse --short "$selected_parent_hash" 2>/dev/null)
+
+    ns_lines=$(git -c core.quotepath=false diff --name-status "$selected_parent_hash" "$commit")
+    numstat_lines=$(git -c core.quotepath=false diff --numstat "$selected_parent_hash" "$commit")
+
+    if [[ -z "$ns_lines" ]]; then
+      printf "\n📄 Changed files:\n"
+      printf "  ℹ️  Merge commit vs parent #%d (%s) has no file-level changes\n" "$selected_index" "${selected_parent_short:-$selected_parent_hash}"
+      : > /tmp/.git-scope-filelist
+      return
+    fi
+  else
+    ns_lines=$(git show --pretty=format: --name-status "$commit")
+    numstat_lines=$(git show --pretty=format: --numstat "$commit")
+
+    if [[ -z "$ns_lines" || -z "$numstat_lines" ]]; then
+      printf "\n📄 Changed files:\n"
+      printf "  ℹ️  No file-level changes recorded for this commit\n"
+      : > /tmp/.git-scope-filelist
+      return
+    fi
+  fi
+
+  typeset total_add=0 total_del=0
+  typeset color_reset="$(_git_scope_color_reset)"
+
+  printf "\n📄 Changed files:\n"
+
+  for line in "${preface_lines[@]}"; do
+    [[ -n "$line" ]] && printf "%s\n" "$line"
+  done
+
+  if [[ "$is_merge" == true ]]; then
+    printf "  ℹ️  Merge commit with %d parents — showing diff against parent #%d (%s)\n" "$parent_count" "$selected_index" "${selected_parent_short:-$selected_parent_hash}"
+  fi
+
+  while IFS=$'\t' read -r kind file; do
+    [[ -z "$file" ]] && continue
+    file_list+=("$file")
+
+    typeset add="-"
+    typeset del="-"
+    typeset match_line=''
+    match_line=$(printf "%s\n" "$numstat_lines" | awk -v f="$file" -F'\t' '$3 == f { print $1 "\t" $2; exit }')
+
+    if [[ -n "$match_line" ]]; then
+      add=$(cut -f1 <<< "$match_line")
+      del=$(cut -f2 <<< "$match_line")
+      [[ "$add" != "-" ]] && total_add=$((total_add + add))
+      [[ "$del" != "-" ]] && total_del=$((total_del + del))
+    fi
+
+    typeset color="$(_git_scope_kind_color "$kind")"
+    printf "  %b➤ [%s] %s  [+%s / -%s]%b\n" "$color" "$kind" "$file" "$add" "$del" "$color_reset"
+  done <<< "$ns_lines"
+
+  printf "\n  📊 Total: +%d / -%d\n" "$total_add" "$total_del"
+  _git_scope_render_tree "${(F)file_list}"
+
+  printf "%s\n" "${file_list[@]}" > /tmp/.git-scope-filelist
+}
+
+# git-scope: Working tree/commit introspection (dispatcher)
+# Usage: git-scope <command> [args]
+# - Subcommands: tracked, staged, unstaged, all, untracked, commit <id>
+# - Flags: -p|--print prints file contents where applicable (e.g., commit)
+# - Runs inside a Git repo; renders trees, diffs, and summaries
+git-scope() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    printf "⚠️ Not a Git repository. Run this command inside a Git project.\n"
+    return 1
+  fi
+
+  _git_scope_no_color=false
+  if [[ -n "${NO_COLOR-}" ]]; then
+    _git_scope_no_color=true
+  fi
+
+  typeset -a filtered_args=()
+  for arg in "$@"; do
+    if [[ "$arg" == "--no-color" || "$arg" == "no-color" ]]; then
+      _git_scope_no_color=true
+    else
+      filtered_args+=("$arg")
+    fi
+  done
+
+  typeset sub="${filtered_args[1]:-help}"
+  (( ${#filtered_args[@]} > 0 )) && filtered_args=("${filtered_args[@]:1}")
+
+  # Detect -p flag (print file content)
+  _git_scope_should_print=false
+  typeset -a args=()
+  for arg in "${filtered_args[@]}"; do
+    if [[ "$arg" == "-p" || "$arg" == "--print" ]]; then
+      _git_scope_should_print=true
+    else
+      args+=("$arg")
+    fi
+  done
+
+  case "$sub" in
+    tracked)
+      _git_scope_tracked "${args[@]}" ;;
+    staged)
+      _git_scope_staged "${args[@]}" ;;
+    unstaged)
+      _git_scope_unstaged "${args[@]}" ;;
+    all)
+      _git_scope_all "${args[@]}" ;;
+    untracked)
+      _git_scope_untracked "${args[@]}" ;;
+    commit)
+      _git_scope_commit "${args[@]}" ;;
+    help|-h|--help|"")
+      printf "%s\n" "Usage: git-scope <command> [args]"
+      printf "\n"
+      printf "%s\n" "Commands:"
+      printf "  %-16s  %s\n" \
+        tracked        "Show files tracked by Git (prefix filter optional)" \
+        staged         "Show files staged for commit" \
+        unstaged       "Show modified files not yet staged" \
+        all            "Show all changes (staged and unstaged)" \
+        untracked      "Show untracked files"
+      printf "  %-16s  %s\n" "commit <id>" "Show commit details (use -p to print content)"
+      printf "\n"
+      printf "%s\n" "Options:"
+      printf "  %-16s  %s\n" "-p, --print" "Print file contents where applicable (e.g., commit)"
+      printf "  %-16s  %s\n" "--no-color" "Disable ANSI colors (also via NO_COLOR)"
       ;;
     *)
-      die "unknown argument: ${1-}"
-      ;;
+      printf "⚠️ Unknown subcommand: '%s'\n" "$sub"
+      return 1 ;;
   esac
-done
+}
 
-command -v git >/dev/null 2>&1 || die "missing required command: git"
-git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "must run inside a git work tree"
+# --- END git/git-scope.zsh
 
-export GIT_PAGER=cat
-export PAGER=cat
-
-no_color_flag=()
-if [[ "$no_color" == "1" ]]; then
-  no_color_flag+=(--no-color)
+if ! typeset -f git-scope >/dev/null 2>&1; then
+  print -u2 -r -- "❌ missing function: git-scope"
+  exit 1
 fi
 
-git --no-pager show "${no_color_flag[@]}" --no-patch --stat "$rev"
+git-scope "$@"
