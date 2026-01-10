@@ -258,18 +258,19 @@ Observed summaries:
 
 - `smoke-demo`: `passed=2 failed=0 skipped=0` (runId: `20260108-180931Z`)
 - `public-fail`: `passed=1 failed=1 skipped=0` (runId: `20260108-180950Z`, exit `2`)
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Add the new skill to `README.md`.
-    - [ ] After merge + validation, set progress Status to `DONE` and archive under `docs/progress/archived/`.
+    - [x] Add the new skill to `README.md`.
+    - [x] After merge + validation, set progress Status to `DONE` and archive under `docs/progress/archived/`.
   - Artifacts:
     - `README.md`
     - `docs/progress/archived/20260109_ci-api-test-runner.md` (after merge)
   - Exit Criteria:
-    - [ ] Versioning and changes recorded: none required.
-    - [ ] Release actions completed: none required.
-    - [ ] Documentation completed and entry points updated (README / docs index links).
-    - [ ] Cleanup completed (archive progress, update index, mark DONE).
+    - [x] Versioning and changes recorded: none required.
+    - [x] Release actions completed: none required.
+    - [x] Documentation completed and entry points updated (README / docs index links).
+    - [x
+    ] Cleanup completed (archive progress, update index, mark DONE).
 
 ## Modules
 
