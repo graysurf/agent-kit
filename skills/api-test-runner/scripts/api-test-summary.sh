@@ -88,6 +88,7 @@ python3 - "$in_file" "$slow_n" "$show_skipped" "$max_failed" "$max_skipped" >"$s
 import json
 import os
 import sys
+import html
 from typing import Any, Dict, List
 
 in_path = sys.argv[1].strip()
@@ -159,6 +160,26 @@ def sanitize_one_line(value: Any) -> str:
   s = str(value or "").strip()
   return " ".join(s.split())
 
+def md_escape_cell(value: Any) -> str:
+  s = sanitize_one_line(value)
+  return s.replace("|", "\\|")
+
+def md_code(value: Any) -> str:
+  s = md_escape_cell(value)
+  if not s:
+    return ""
+  if "`" not in s:
+    return f"`{s}`"
+  # Fallback for rare backtick-containing values; avoid breaking Markdown tables.
+  return f"<code>{html.escape(s)}</code>"
+
+def md_table(headers: List[str], rows: List[List[str]]) -> None:
+  print("| " + " | ".join(headers) + " |")
+  print("| " + " | ".join(["---"] * len(headers)) + " |")
+  for row in rows:
+    padded = row + [""] * (len(headers) - len(row))
+    print("| " + " | ".join(padded[: len(headers)]) + " |")
+
 def dur_ms(case: Dict[str, Any]) -> int:
   try:
     return int(case.get("durationMs") or 0)
@@ -174,68 +195,103 @@ slow_cases = sorted(executed_cases, key=dur_ms, reverse=True)[:slow_n] if slow_n
 print(f"## API test summary: {suite}")
 print("")
 
-meta = []
+print("### Totals")
+md_table(
+  headers=["total", "passed", "failed", "skipped"],
+  rows=[[str(total), str(passed), str(failed), str(skipped)]],
+)
+
+print("")
+print("### Run info")
+info_rows: List[List[str]] = []
 if run_id:
-  meta.append(f"runId=`{sanitize_one_line(run_id)}`")
-meta.append(f"total={total} passed={passed} failed={failed} skipped={skipped}")
-print(f"- {' '.join(meta)}")
-if started_at or finished_at:
-  print(f"- time: `{sanitize_one_line(started_at)}` → `{sanitize_one_line(finished_at)}`")
+  info_rows.append(["runId", md_code(run_id)])
+if started_at:
+  info_rows.append(["startedAt", md_code(started_at)])
+if finished_at:
+  info_rows.append(["finishedAt", md_code(finished_at)])
 if suite_file:
-  print(f"- suiteFile: `{sanitize_one_line(suite_file)}`")
+  info_rows.append(["suiteFile", md_code(suite_file)])
 if output_dir:
-  print(f"- outputDir: `{sanitize_one_line(output_dir)}`")
+  info_rows.append(["outputDir", md_code(output_dir)])
+if info_rows:
+  md_table(headers=["field", "value"], rows=info_rows)
+else:
+  md_table(headers=["field", "value"], rows=[["(none)", ""]])
 
-def render_case_line(case: Dict[str, Any]) -> str:
-  case_id = sanitize_one_line(case.get("id") or "")
-  case_type = sanitize_one_line(case.get("type") or "")
-  status = sanitize_one_line(case.get("status") or "")
-  d = dur_ms(case)
-  message = sanitize_one_line(case.get("message") or "")
-  stdout_file = sanitize_one_line(case.get("stdoutFile") or "")
-  stderr_file = sanitize_one_line(case.get("stderrFile") or "")
-
-  parts = [f"`{case_id}`", f"({case_type}, {d}ms)"]
-  if status:
-    parts.append(f"status={status}")
-  if message:
-    parts.append(f"message={message}")
-  if stdout_file:
-    parts.append(f"stdout=`{stdout_file}`")
-  if stderr_file:
-    parts.append(f"stderr=`{stderr_file}`")
-  return " - " + " ".join(parts)
+def case_row_full(case: Dict[str, Any]) -> List[str]:
+  return [
+    md_code(case.get("id") or ""),
+    md_escape_cell(case.get("type") or ""),
+    md_escape_cell(case.get("status") or ""),
+    str(dur_ms(case)),
+    md_escape_cell(case.get("message") or ""),
+    md_code(case.get("stdoutFile") or ""),
+    md_code(case.get("stderrFile") or ""),
+  ]
 
 print("")
 print(f"### Failed ({len(failed_cases)})")
 if not failed_cases:
-  print("- none")
+  md_table(headers=["id", "type", "status", "durationMs", "message", "stdout", "stderr"], rows=[["(none)"]])
 else:
   shown = failed_cases[:max_failed] if max_failed > 0 else failed_cases
-  for c in shown:
-    print(render_case_line(c))
+  md_table(
+    headers=["id", "type", "status", "durationMs", "message", "stdout", "stderr"],
+    rows=[case_row_full(c) for c in shown],
+  )
   if max_failed > 0 and len(failed_cases) > max_failed:
-    print(f"- …and {len(failed_cases) - max_failed} more failed cases")
+    print("")
+    print(f"_…and {len(failed_cases) - max_failed} more failed cases_")
 
 print("")
 print(f"### Slowest (Top {slow_n})")
 if not slow_cases:
-  print("- none")
+  md_table(headers=["id", "type", "status", "durationMs", "message", "stdout", "stderr"], rows=[["(none)"]])
 else:
-  for c in slow_cases:
-    print(render_case_line(c))
+  md_table(
+    headers=["id", "type", "status", "durationMs", "message", "stdout", "stderr"],
+    rows=[case_row_full(c) for c in slow_cases],
+  )
 
 if show_skipped:
   print("")
   print(f"### Skipped ({len(skipped_cases)})")
   if not skipped_cases:
-    print("- none")
+    md_table(headers=["id", "type", "message"], rows=[["(none)"]])
   else:
     shown = skipped_cases[:max_skipped] if max_skipped > 0 else skipped_cases
-    for c in shown:
-      print(render_case_line(c))
+    md_table(
+      headers=["id", "type", "message"],
+      rows=[
+        [
+          md_code(c.get("id") or ""),
+          md_escape_cell(c.get("type") or ""),
+          md_escape_cell(c.get("message") or ""),
+        ]
+        for c in shown
+      ],
+    )
     if max_skipped > 0 and len(skipped_cases) > max_skipped:
-      print(f"- …and {len(skipped_cases) - max_skipped} more skipped cases")
+      print("")
+      print(f"_…and {len(skipped_cases) - max_skipped} more skipped cases_")
+
+print("")
+print(f"### Executed cases ({len(executed_cases)})")
+if not executed_cases:
+  md_table(headers=["id", "status", "durationMs"], rows=[["(none)"]])
+else:
+  md_table(
+    headers=["id", "status", "durationMs"],
+    rows=[
+      [
+        md_code(c.get("id") or ""),
+        md_escape_cell(c.get("status") or ""),
+        str(dur_ms(c)),
+      ]
+      for c in executed_cases
+    ],
+  )
 PY
 
 cat "$summary_tmp"
