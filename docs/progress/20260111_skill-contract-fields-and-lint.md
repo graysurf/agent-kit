@@ -14,13 +14,13 @@ Links:
 
 - Standardize every `skills/**/SKILL.md` to include a minimal `## Contract` section with 5 required headings.
 - Add a lightweight lint script to enforce the presence of the 5 headings across all skills.
-- Decide (and optionally implement) script ergonomics + validation: `--dry-run` and a minimal smoke test plan.
+- Decide lint strictness and minimal smoke tests (beyond `shellcheck`), keeping the first iteration as a stability guard (`--check` only; no `--fix`/`--dry-run`).
 
 ## Acceptance Criteria
 
 - Every `skills/**/SKILL.md` contains `## Contract` and the 5 required headings: `Prereqs`, `Inputs`, `Outputs`, `Exit codes`, `Failure modes`.
 - `scripts/validate_skill_contracts.sh` exits `0` when compliant and non-zero when any file is missing required headings.
-- CI runs `shellcheck` and `scripts/validate_skill_contracts.sh`; a decision is recorded on `--dry-run` + smoke tests (and implemented if in-scope).
+- CI runs `shellcheck` and `scripts/validate_skill_contracts.sh`; lint enforces exact heading strings + fixed ordering within `## Contract`, and a minimal smoke test set is defined (no `--fix`/`--dry-run` initially).
 
 ## Scope
 
@@ -59,12 +59,21 @@ Links:
 - Keep the baseline contract format minimal (5 headings) to reduce drift and maintenance cost.
 - Prefer a repo-local lint script over ad-hoc `rg` invocations to keep CI deterministic and self-documenting.
 
+### Decisions
+
+- Lint rule: require `## Contract` and enforce exact heading strings + fixed ordering within that section:
+  - `Prereqs:` → `Inputs:` → `Outputs:` → `Exit codes:` → `Failure modes:`
+- Non-applicable contract fields should be explicitly marked as `N/A` (e.g., docs-only skills or no runnable scripts).
+- Lint is `--check` only in the first iteration (no auto-fix and no `--dry-run`), to stay a stable guardrail (“don’t break”).
+- CI portability: implement the lint without requiring `rg` on GitHub runners (prefer `bash + python3` / `grep`).
+- Minimal smoke tests (beyond `shellcheck`):
+  - Positive: `scripts/validate_skill_contracts.sh` passes against the repo.
+  - Negative: lint fails (non-zero) and prints actionable output when a fixture SKILL doc is missing required headings.
+
 ### Risks / Uncertainties
 
-- Some skills are "docs-only" (no runnable scripts); define a consistent convention (e.g., `Exit codes: N/A`) to avoid confusion.
-- Lint specificity: decide whether to require exact heading strings and ordering, or only presence anywhere in the file.
-- `--dry-run` meaning is unclear unless the script can also auto-fix; decide whether we want `--fix` (and `--dry-run`) or only `--check`.
-- CI portability: avoid depending on tools not present on GitHub runners (prefer `bash + grep/python3` over `rg`, unless installing `rg`).
+- Shell dialect coverage: `shellcheck` does not fully cover `zsh` entrypoints; decide whether to add `zsh -n` for critical `zsh` scripts.
+- False positives/negatives: ensure the lint scans only the `## Contract` section to avoid matching headings in narrative text.
 
 ## Steps (Checklist)
 
@@ -72,15 +81,15 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 
 - [ ] Step 0: Align spec and testing approach
   - Work Items:
-    - [ ] Confirm the canonical minimal format (exact strings): `## Contract` + 5 headings.
-    - [ ] Decide lint strictness (presence vs ordering) and how to handle "docs-only" skills (`Exit codes: N/A`).
-    - [ ] Decide whether to support `--fix` + `--dry-run`; if not, document why and keep `--check` only.
-    - [ ] Decide minimal smoke tests to add (at least: `shellcheck` + 1–2 fake-environment runs).
+    - [x] Confirm the canonical minimal format (exact strings): `## Contract` + 5 headings.
+    - [x] Decide lint strictness + docs-only handling: exact strings + fixed ordering within `## Contract`; use `N/A` for non-applicable fields.
+    - [x] Decide `--fix`/`--dry-run`: keep lint as `--check` only (no auto-fix; no `--dry-run`) as a stability guardrail.
+    - [x] Decide minimal smoke tests beyond `shellcheck`: lint positive pass + negative fixture fail with actionable output.
   - Artifacts:
     - `docs/progress/20260111_skill-contract-fields-and-lint.md` (this file)
-    - Notes (TBD): link to a comment in the implementation PR or a short `docs/` note
+    - Notes: decisions recorded in this progress file
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned: decision recorded in PR discussion or a short note (TBD).
+    - [x] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
     - [ ] I/O contract is defined (paths, exit codes, and failure modes for lint): captured in this progress file.
     - [ ] Risks and mitigations are explicit (including CI portability): captured in this progress file.
     - [ ] Verification commands are defined: `scripts/validate_skill_contracts.sh` and `shellcheck` (details TBD).
@@ -109,7 +118,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [ ] The policy for new skills is documented in `skills/.system/skill-creator/SKILL.md`.
 - [ ] Step 3: Validation and smoke tests
   - Work Items:
-    - [ ] Add a minimal smoke test script (TBD) that runs 1–2 fake-environment checks without secrets.
+    - [ ] Add minimal smoke tests without secrets:
+      - `shellcheck` for supported shell scripts
+      - Lint positive pass and negative fixture fail for `scripts/validate_skill_contracts.sh`
     - [ ] Ensure `shellcheck` covers repo scripts (scope TBD) and passes.
   - Artifacts:
     - CI logs for `shellcheck` + lint
