@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: TBD
+- PR: https://github.com/graysurf/codex-kit/pull/13
 - Docs: `skills/api-test-runner/SKILL.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
