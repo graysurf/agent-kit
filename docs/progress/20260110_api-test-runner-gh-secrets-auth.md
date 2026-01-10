@@ -19,6 +19,7 @@ Links:
 ## Acceptance Criteria
 
 - `skills/api-test-runner/scripts/api-test.sh` supports an optional suite-level `auth` block that enables runtime login using a single JSON secret env var (default: `API_TEST_AUTH_JSON`).
+- Default behavior: if `auth` is configured but the secret env var is missing/empty, the runner fails fast with a clear error (no silent skipping).
 - Multi-profile auth is supported: the runner detects which profiles are needed for the selected cases and logs in once per profile (cached for the run).
 - Both login providers are supported (suite can use either):
   - REST login provider (build a temporary `*.request.json`, call `rest.sh`, extract token via `tokenJq`).
@@ -93,6 +94,7 @@ Example (illustrative; exact fields to be finalized in Step 0):
   "auth": {
     "required": true,
     "secretEnv": "API_TEST_AUTH_JSON",
+    "provider": "rest",
     "rest": {
       "loginRequestTemplate": "setup/rest/requests/login.request.json",
       "credentialsJq": ".profiles[$profile] | { username, password }",
@@ -178,9 +180,8 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [ ] Docs include a copy/paste CI snippet and the recommended secret JSON schema.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add `auth.required` behavior:
-      - If `true` and secret missing -> fail fast with a clear error.
-      - If `false` and secret missing -> skip cases requiring auth profiles with a stable message.
+    - [ ] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
+    - [ ] (Optional follow-up) If needed, add `auth.required=false` to skip auth-required cases when secret is missing.
     - [ ] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values).
     - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics.
     - [ ] Add docs/examples for matrix runs (split suite by `--tag` for parallelism).
