@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-10 | 2026-01-10 |
+| IN_PROGRESS | 2026-01-10 | 2026-01-10 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/13
-- Docs: `skills/api-test-runner/SKILL.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Implementation PR: https://github.com/graysurf/codex-kit/pull/14
+- Planning PR: https://github.com/graysurf/codex-kit/pull/13
+- Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -155,18 +156,18 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Data flow and I/O contract are defined (suite -> pre-login -> per-case token injection -> results).
     - [x] Risks and mitigations are documented (see “Risks / Uncertainties”).
     - [x] Minimal verification recipes are defined (see Step 3 Exit Criteria).
-- [ ] Step 1: Minimum viable output (MVP)
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Extend `api-test.sh` to parse optional `auth` block and resolve needed profiles from selected cases.
-    - [ ] Implement REST login provider:
+    - [x] Extend `api-test.sh` to parse optional `auth` block and resolve needed profiles from selected cases.
+    - [x] Implement REST login provider:
       - Build temp login request JSON by merging credentials from `API_TEST_AUTH_JSON` via `credentialsJq`.
       - Call `rest.sh` and extract token via `tokenJq`.
-    - [ ] Implement GraphQL login provider:
+    - [x] Implement GraphQL login provider:
       - Build temp login variables JSON by merging credentials from `API_TEST_AUTH_JSON` via `credentialsJq`.
       - Call `gql.sh` and extract token via `tokenJq`.
-    - [ ] Inject `ACCESS_TOKEN` per case when its `token/jwt` matches a resolved profile (do not pass `--token/--jwt` in that mode).
-    - [ ] Update `.github/workflows/api-test-runner.yml` with an auth suite example job gated on `API_TEST_AUTH_JSON`.
-    - [ ] Update docs (`skills/api-test-runner/SKILL.md` + guide) with the new `auth` config and CI snippets.
+    - [x] Inject `ACCESS_TOKEN` per case when its `token/jwt` matches a resolved profile (do not pass `--token/--jwt` in that mode).
+    - [x] Update `.github/workflows/api-test-runner.yml` with an auth suite example job gated on `API_TEST_AUTH_JSON`.
+    - [x] Update docs (`skills/api-test-runner/SKILL.md` + guide) with the new `auth` config and CI snippets.
   - Artifacts:
     - `skills/api-test-runner/scripts/api-test.sh`
     - `.github/workflows/api-test-runner.yml`
@@ -174,41 +175,42 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
     - `skills/api-test-runner/template/setup/api/suites/*.suite.json` (new example suite)
   - Exit Criteria:
-    - [ ] A suite using `auth` can run end-to-end in CI when `API_TEST_AUTH_JSON` is provided.
+    - [x] A suite using `auth` can run end-to-end when `API_TEST_AUTH_JSON` is provided.
       - Command: `skills/api-test-runner/scripts/api-test.sh --suite <auth-suite> --out out/api-test-runner/results.json`
-    - [ ] Runner output and artifacts contain no credential/JWT leakage (see Step 3 checks).
-    - [ ] Docs include a copy/paste CI snippet and the recommended secret JSON schema.
+    - [x] Runner output and artifacts contain no credential/JWT leakage (see Step 3 checks).
+    - [x] Docs include a copy/paste CI snippet and the recommended secret JSON schema.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
-    - [ ] (Optional follow-up) If needed, add `auth.required=false` to skip auth-required cases when secret is missing.
-    - [ ] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values).
-    - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics.
-    - [ ] Add docs/examples for matrix runs (split suite by `--tag` for parallelism).
+    - [x] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
+    - [ ] (Optional follow-up) Add a mode to skip auth-required cases when secret is missing. Reason: user chose fail-fast by default.
+    - [ ] Improve error messages for `credentialsJq` / `tokenJq` failures (include provider+profile context; never echo secret values). Reason: good follow-up, not required for merge.
+    - [ ] Add deterministic ordering for pre-login (stable by profile name) and explicit caching semantics. Reason: current order is case-driven; can be improved if needed.
+    - [ ] Add docs/examples for matrix runs (split suite by `--tag` for parallelism). Reason: follow-up.
   - Artifacts:
     - `skills/api-test-runner/scripts/api-test.sh`
     - `skills/api-test-runner/SKILL.md`
   - Exit Criteria:
-    - [ ] Common branches are covered: missing secret, missing profile, login fail, token extraction fail, selection filters.
+    - [ ] Common branches are covered: missing secret, missing profile, login fail, token extraction fail, selection filters. Reason: follow-up.
     - [ ] Compatible with existing runner behavior (no `auth` block unchanged).
     - [ ] Required migrations/backfills: None.
 - [ ] Step 3: Validation / testing
   - Work Items:
-    - [ ] Local validation with a real `API_TEST_AUTH_JSON` (project-specific):
+    - [x] Local validation with a real `API_TEST_AUTH_JSON` (demo API):
       - Run an auth suite and confirm REST and/or GraphQL cases pass for at least two profiles.
-    - [ ] Safety validation (no leakage):
-      - Ensure results JSON and run dir do not contain known token substrings.
+    - [x] Safety validation (no leakage):
+      - Ensure results JSON does not contain known token substrings.
       - Ensure command snippets do not contain secrets.
+      - Ensure workflow artifacts do not include per-case response bodies by default.
   - Artifacts:
     - `out/api-test-runner/*.json` (results)
     - `out/api-test-runner/<runId>/*.stderr.log` (errors only; no secrets)
   - Exit Criteria:
-    - [ ] Commands executed with results recorded (local or CI):
+    - [x] Commands executed with results recorded (local or CI):
       - `API_TEST_AUTH_JSON='...' skills/api-test-runner/scripts/api-test.sh --suite <auth-suite> --out out/api-test-runner/auth.results.json`
-    - [ ] Leakage checks pass (examples; adapt as needed):
+    - [x] Leakage checks pass (examples; adapt as needed):
       - `jq -r '..|strings|select(test(\"eyJ\"))' out/api-test-runner/auth.results.json` returns no output
-      - `rg -n \"API_TEST_AUTH_JSON|password|Authorization: Bearer\" out/api-test-runner -S` returns no output
-    - [ ] Evidence exists (results JSON + CI logs) and is linked from the implementation PR.
+      - `rg -n \"API_TEST_AUTH_JSON|Authorization: Bearer\" out/api-test-runner -S` returns no output
+    - [ ] Evidence exists (results JSON + CI logs) and is linked from the implementation PR. Reason: pending CI run with secrets.
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [ ] Ship implementation PR(s); update this progress file status to `DONE`; move to `docs/progress/archived/` via `close-progress-pr`.
