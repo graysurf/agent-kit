@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-10 | [API test runner: CI auth via GitHub Secrets (JWT login)](20260110_api-test-runner-gh-secrets-auth.md) | TBD |
 
 ## Archived
 
