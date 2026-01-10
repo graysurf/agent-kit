@@ -10,6 +10,7 @@ Links:
 - Planning PR: https://github.com/graysurf/codex-kit/pull/13
 - Docs: [skills/api-test-runner/SKILL.md](../../skills/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20879442172
 
 ## Goal
 
@@ -40,13 +41,14 @@ Links:
 - In-scope:
   - Extend suite schema v1 with optional `auth` configuration (no breaking changes).
   - Implement runtime login + token injection in `skills/api-test-runner/scripts/api-test.sh`.
+  - Minor compatibility fixes in `skills/graphql-api-testing/scripts/gql.sh` required by downstream CI usage.
   - Provide an example suite + workflow snippet that demonstrate multi-profile auth using a single JSON secret.
   - Update docs (`skills/api-test-runner/SKILL.md` and guide) to document:
     - Secret JSON schema (recommended)
     - Suite `auth` configuration (REST / GraphQL provider)
     - CI usage patterns (single job vs matrix/tag selection)
 - Out-of-scope:
-  - Changes to `skills/rest-api-testing/scripts/rest.sh` and `skills/graphql-api-testing/scripts/gql.sh`.
+  - Changes to `skills/rest-api-testing/scripts/rest.sh`.
   - Non-Bearer auth schemes (API keys, cookies, session auth), refresh-token flows, MFA/OTP, or browser-based logins.
   - Persisting tokens across jobs/runs; each CI job logs in independently.
   - Parallel execution, retries/backoff, and per-case timeouts (follow-up work).
@@ -180,6 +182,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Runner output and artifacts contain no credential/JWT leakage (see Step 3 checks).
     - [x] Docs include a copy/paste CI snippet and the recommended secret JSON schema.
 - [ ] Step 2: Expansion / integration
+  - Reason: Optional follow-ups; core goal is validated in a downstream real project and can be shipped as-is.
   - Work Items:
     - [x] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.
     - [ ] (Optional follow-up) Add a mode to skip auth-required cases when secret is missing. Reason: user chose fail-fast by default.
@@ -191,9 +194,9 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/api-test-runner/SKILL.md`
   - Exit Criteria:
     - [ ] Common branches are covered: missing secret, missing profile, login fail, token extraction fail, selection filters. Reason: follow-up.
-    - [ ] Compatible with existing runner behavior (no `auth` block unchanged).
-    - [ ] Required migrations/backfills: None.
-- [ ] Step 3: Validation / testing
+    - [x] Compatible with existing runner behavior (no `auth` block unchanged).
+    - [x] Required migrations/backfills: None.
+- [x] Step 3: Validation / testing
   - Work Items:
     - [x] Local validation with a real `API_TEST_AUTH_JSON` (demo API):
       - Run an auth suite and confirm REST and/or GraphQL cases pass for at least two profiles.
@@ -210,7 +213,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Leakage checks pass (examples; adapt as needed):
       - `jq -r '..|strings|select(test(\"eyJ\"))' out/api-test-runner/auth.results.json` returns no output
       - `rg -n \"API_TEST_AUTH_JSON|Authorization: Bearer\" out/api-test-runner -S` returns no output
-    - [ ] Evidence exists (results JSON + CI logs) and is linked from the implementation PR. Reason: pending CI run with secrets.
+    - [x] Evidence exists (results JSON + CI logs) and is linked from the implementation PR (downstream: Rytass/TunGroup CI run).
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [ ] Ship implementation PR(s); update this progress file status to `DONE`; move to `docs/progress/archived/` via `close-progress-pr`.

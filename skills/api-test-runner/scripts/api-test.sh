@@ -567,7 +567,9 @@ auth_login_rest() {
   fi
   cmd+=("$request_file_tmp")
 
-  if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+  if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+    rc=0
+  else
     rc=$?
   fi
 
@@ -633,7 +635,9 @@ auth_login_graphql() {
   cmd+=("${op_abs#"$repo_root"/}")
   cmd+=("$vars_tmp")
 
-  if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+  if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="" "${cmd[@]}" >"$response_tmp" 2>"$stderr_tmp"; then
+    rc=0
+  else
     rc=$?
   fi
 
@@ -902,7 +906,7 @@ for ((i=0; i<case_count; i++)); do
           access_token_for_case="$(trim "$access_token_for_case")"
           if [[ -z "$access_token_for_case" ]]; then
             status="failed"
-            message="auth_login_failed"
+            message="auth_login_failed(profile=${auth_profile})"
             failed=$((failed + 1))
             execute_case="0"
           fi
@@ -963,11 +967,15 @@ for ((i=0; i<case_count; i++)); do
         )"
 
         if [[ -n "$access_token_for_case" ]]; then
-          if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+          if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=0
+          else
             rc=$?
           fi
         else
-          if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+          if "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=0
+          else
             rc=$?
           fi
         fi
@@ -1086,7 +1094,9 @@ for ((i=0; i<case_count; i++)); do
         login_stderr_tmp="$(mktemp 2>/dev/null || mktemp -t api-test.login.stderr)"
         rc=0
 
-        if ! REST_TOKEN_NAME="" ACCESS_TOKEN="" "${login_cmd[@]}" >"$login_stdout_tmp" 2>"$login_stderr_tmp"; then
+        if REST_TOKEN_NAME="" ACCESS_TOKEN="" "${login_cmd[@]}" >"$login_stdout_tmp" 2>"$login_stderr_tmp"; then
+          rc=0
+        else
           rc=$?
         fi
 
@@ -1113,7 +1123,9 @@ for ((i=0; i<case_count; i++)); do
           else
             rc=0
             stdout_file="$run_dir/${safe_id}.response.json"
-            if ! REST_TOKEN_NAME="" ACCESS_TOKEN="$token" "${main_cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            if REST_TOKEN_NAME="" ACCESS_TOKEN="$token" "${main_cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+              rc=0
+            else
               rc=$?
             fi
 
@@ -1195,7 +1207,7 @@ for ((i=0; i<case_count; i++)); do
           access_token_for_case="$(trim "$access_token_for_case")"
           if [[ -z "$access_token_for_case" ]]; then
             status="failed"
-            message="auth_login_failed"
+            message="auth_login_failed(profile=${auth_profile})"
             failed=$((failed + 1))
             execute_case="0"
           fi
@@ -1259,11 +1271,15 @@ for ((i=0; i<case_count; i++)); do
         )"
 
         if [[ -n "$access_token_for_case" ]]; then
-          if ! REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+          if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$access_token_for_case" "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=0
+          else
             rc=$?
           fi
         else
-          if ! "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+          if "${cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+            rc=0
+          else
             rc=$?
           fi
         fi
