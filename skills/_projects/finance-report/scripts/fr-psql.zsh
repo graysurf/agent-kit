@@ -15,7 +15,7 @@ if [[ -z "${CODEX_HOME:-}" ]]; then
 fi
 
 if ! typeset -f codex_psql_run >/dev/null 2>&1; then
-  source "${CODEX_HOME%/}/scripts/db/_codex-psql.zsh"
+  source "${CODEX_HOME%/}/scripts/db-connect/psql.zsh"
 fi
 
 fr-psql() {

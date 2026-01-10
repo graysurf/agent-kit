@@ -15,7 +15,7 @@ if [[ -z "${CODEX_HOME:-}" ]]; then
 fi
 
 if ! typeset -f codex_mysql_run >/dev/null 2>&1; then
-  source "${CODEX_HOME%/}/scripts/db/_codex-mysql.zsh"
+  source "${CODEX_HOME%/}/scripts/db-connect/mysql.zsh"
 fi
 
 qb-mysql() {

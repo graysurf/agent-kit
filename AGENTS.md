@@ -107,4 +107,4 @@
 
 - 單一權威載入入口（single source of truth）：`source $CODEX_HOME/scripts/codex-tools.sh`。
   - 此 loader 會 hard-fail（含可操作修復指引）以避免「環境變數未設」造成的使用摩擦。
-  - 會把 repo-local tools 加入 `PATH`（`$CODEX_HOME/scripts/bin`），並檢查必要指令存在性（例如 `git-tools` / `git-scope`）。
+  - 會把 repo-local tools 加入 `PATH`（`$CODEX_HOME/scripts/commands`），並檢查必要指令存在性（例如 `git-tools` / `git-scope`）。

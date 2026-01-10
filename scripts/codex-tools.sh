@@ -48,7 +48,13 @@ fi
 
 export CODEX_HOME
 
-typeset -g _codex_bin_dir="${CODEX_HOME%/}/scripts/bin"
+typeset -g _codex_env_file="${CODEX_HOME%/}/scripts/env.zsh"
+if [[ -f "$_codex_env_file" ]]; then
+  # shellcheck disable=SC1090
+  source "$_codex_env_file" || _codex_tools_die "failed to source ${_codex_env_file}"
+fi
+
+typeset -g _codex_bin_dir="${CODEX_HOME%/}/scripts/commands"
 if [[ ! -d "$_codex_bin_dir" ]]; then
   _codex_tools_die "missing tools bin dir: ${_codex_bin_dir} (reinstall/update codex-kit)"
 fi
