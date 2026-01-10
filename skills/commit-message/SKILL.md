@@ -8,7 +8,7 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 ## Setup
 
 - Run inside the target git repo
-- Prefer using the scripts below; they will try to load Codex git helpers automatically
+- Prefer using the scripts below; they load Codex git helpers via `source $CODEX_HOME/scripts/codex-tools.sh` and hard-fail if unavailable
 
 ## Scripts (only entrypoints)
 

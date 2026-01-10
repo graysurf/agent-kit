@@ -12,8 +12,8 @@ version.json
 
 # Env/virtualenv
 .venv/
-tools/**/.env
-tools/**/.env.*
+skills/_projects/**/*.env
+skills/_projects/**/*.env.*
 
 # Logs/output
 *.log

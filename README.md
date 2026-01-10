@@ -10,10 +10,11 @@ are intentionally excluded via `.gitignore`.
 ├── AGENTS.md
 ├── README.md
 ├── config.toml                             # default model and runtime settings
+├── scripts/                                # helpers (incl. codex-tools loader)
 ├── prompts/                                # prompt templates
 ├── skills/                                 # custom skills
-├── templates/                              # shared templates
-└── tools -> ../zsh/.private/tools          # private Zsh tool wrappers
+├── docs/                                   # docs and progress tracking
+└── setup/                                  # request templates / fixtures
 ```
 
 ## 🧰 Prompts
@@ -61,4 +62,5 @@ are intentionally excluded via `.gitignore`.
 ## 📜 Notes
 
 - This repo lives at `~/.config/codex-kit`; `$CODEX_HOME` is a symlink here and is the configured Codex home.
+- Tools loader (single source of truth): `source $CODEX_HOME/scripts/codex-tools.sh`.
 - Desktop notifications: use `skills/desktop-notify/scripts/project-notify.sh` (project title) or `skills/desktop-notify/scripts/desktop-notify.sh` (custom title).

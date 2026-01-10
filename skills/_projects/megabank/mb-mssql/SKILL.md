@@ -1,32 +1,32 @@
 ---
 name: mb-mssql
-description: Run PostgreSQL queries through the mb-mssql wrapper in $CODEX_TOOLS_PATH/project/mb-mssql/mb-mssql.zsh. Use when the user asks to query the MB Postgres database, inspect schemas/tables/columns, or execute SQL via mb-mssql/psql using the MB_PG* environment.
+description: Run SQL Server queries via the repo-local mb-mssql wrapper. Use when the user asks to query the MB database, inspect schemas/tables/columns, or execute SQL via mb-mssql/sqlcmd using the MB_MSSQL_* environment.
 ---
 
 # Mb-mssql
 
 ## Overview
 
-Use mb-mssql to run psql against the MB database using the values in `$CODEX_TOOLS_PATH/project/mb-mssql/.env`. Favor read-only queries unless the user explicitly requests data changes.
+Use mb-mssql to run sqlcmd against the MB database using the values in `$CODEX_HOME/skills/_projects/megabank/mb-mssql.env`. Favor read-only queries unless the user explicitly requests data changes.
 
 ## Quick Start
 
 1) Ensure the function is available.
 
 ```
-source $CODEX_TOOLS_PATH/project/mb-mssql/mb-mssql.zsh
+source $CODEX_HOME/skills/_projects/megabank/scripts/mb-mssql.zsh
 ```
 
 2) Run a query.
 
 ```
-mb-mssql -c "SELECT 1;"
+mb-mssql -Q "SELECT 1;"
 ```
 
 3) Run a file.
 
 ```
-mb-mssql -f /path/to/query.sql
+mb-mssql -i /path/to/query.sql
 ```
 
 ## Verification Checks
@@ -34,16 +34,16 @@ mb-mssql -f /path/to/query.sql
 Run a lightweight query to confirm connectivity and basic output.
 
 ```
-mb-mssql -c "SELECT current_database();"
+mb-mssql -Q "SELECT DB_NAME();"
 ```
 
-If the function is missing, source the script again. If the connection fails, verify that all `MB_PG*` values exist in `$CODEX_TOOLS_PATH/project/mb-mssql/.env`.
+If the function is missing, source the wrapper again. If the connection fails, verify that all `MB_MSSQL_*` values exist in `$CODEX_HOME/skills/_projects/megabank/mb-mssql.env`.
 
 ## Safety Rules
 
-Ask before running `UPDATE`, `DELETE`, `INSERT`, `TRUNCATE`, or schema changes.
-If a column or table name is unknown, inspect schema first with `information_schema` or `\d+`.
-Do not print secrets from `.env` or echo `MB_PGPASSWORD`.
+Ask before running `UPDATE`, `DELETE`, `INSERT`, `MERGE`, `TRUNCATE`, or schema changes.
+If a schema, table, or column name is unknown, inspect `INFORMATION_SCHEMA` first.
+Do not print secrets from `.env` or echo `MB_MSSQL_PASSWORD`.
 
 ## Output and clarification rules
 

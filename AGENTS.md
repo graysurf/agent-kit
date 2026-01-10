@@ -100,11 +100,11 @@
 ## Commit 原則
 
 - 每個 commit 都必須使用 `$commit-message` skill 來完成，不得直接使用 `git commit`。
-- `$commit-message`: `$CODEX_TOOLS_PATH/skills/commit-message/SKILL.md`。
+- `$commit-message`: `$CODEX_HOME/skills/commit-message/SKILL.md`。
 - 完成 commit 後依照 `$commit-message` 的輸出格式回應。
 
 ## 可用指令（全域工具）
 
-- 工具入口：`$CODEX_TOOLS_PATH`。
-- 載入全部工具：`source $CODEX_TOOLS_PATH/_codex-tools.zsh`。
-- 單一工具載入：`source $CODEX_TOOLS_PATH/<tool>/<tool>.sh`。
+- 單一權威載入入口（single source of truth）：`source $CODEX_HOME/scripts/codex-tools.sh`。
+  - 此 loader 會 hard-fail（含可操作修復指引）以避免「環境變數未設」造成的使用摩擦。
+  - 會把 repo-local tools 加入 `PATH`（`$CODEX_HOME/scripts/bin`），並檢查必要指令存在性（例如 `git-tools` / `git-scope`）。

@@ -7,7 +7,7 @@ description: Execute project release workflows by locating and following project
 
 ## Setup
 
-- Load commands with `source $CODEX_TOOLS_PATH/_codex-tools.zsh`
+- Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
 
 ## Workflow
 

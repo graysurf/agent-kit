@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() {
+  echo "git-tools: $*" >&2
+  exit 1
+}
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  git-tools commit context [--stdout] [--no-color]
+
+Notes:
+  - Minimal, repo-local implementation for codex-kit.
+  - Output is intended for LLM context generation (human-readable, stable-ish).
+EOF
+}
+
+if [[ "${1-}" == "-h" || "${1-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+cmd="${1-}"
+sub="${2-}"
+
+shift 2 || true
+
+if [[ "$cmd" != "commit" || "$sub" != "context" ]]; then
+  die "unsupported command (expected: git-tools commit context)"
+fi
+
+no_color="0"
+while [[ $# -gt 0 ]]; do
+  case "${1-}" in
+    --stdout)
+      shift
+      ;;
+    --no-color)
+      no_color="1"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown argument: ${1-}"
+      ;;
+  esac
+done
+
+command -v git >/dev/null 2>&1 || die "missing required command: git"
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "must run inside a git work tree"
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+
+export GIT_PAGER=cat
+export PAGER=cat
+
+no_color_flag=()
+if [[ "$no_color" == "1" ]]; then
+  no_color_flag+=(--no-color)
+fi
+
+echo "repo: ${repo_root:-<unknown>}"
+echo "branch: ${branch:-<unknown>}"
+echo ""
+echo "## Staged status"
+git status --porcelain=v1
+echo ""
+echo "## Staged files (name-status)"
+git diff --cached --name-status "${no_color_flag[@]}"
+echo ""
+echo "## Staged diff (full)"
+git diff --cached "${no_color_flag[@]}"
