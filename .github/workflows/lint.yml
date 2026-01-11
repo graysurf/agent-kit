@@ -26,34 +26,34 @@ jobs:
           set -euo pipefail
 
           files="$(python3 - <<'PY'
-import subprocess
-from pathlib import Path
+          import subprocess
+          from pathlib import Path
 
-tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
-files = []
-for p in tracked:
-  path = Path(p)
-  if path.suffix != ".sh":
-    continue
-  if path.parts and path.parts[0] == "shell_snapshots":
-    continue
-  if not path.is_file():
-    continue
-  try:
-    first = path.read_text("utf-8", errors="ignore").splitlines()[:1]
-  except OSError:
-    continue
-  if not first:
-    continue
-  shebang = first[0]
-  if not shebang.startswith("#!"):
-    continue
-  if "bash" in shebang and "zsh" not in shebang:
-    files.append(p)
+          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          files = []
+          for p in tracked:
+            path = Path(p)
+            if path.suffix != ".sh":
+              continue
+            if path.parts and path.parts[0] == "shell_snapshots":
+              continue
+            if not path.is_file():
+              continue
+            try:
+              first = path.read_text("utf-8", errors="ignore").splitlines()[:1]
+            except OSError:
+              continue
+            if not first:
+              continue
+            shebang = first[0]
+            if not shebang.startswith("#!"):
+              continue
+            if "bash" in shebang and "zsh" not in shebang:
+              files.append(p)
 
-print("\\n".join(files))
-PY
-)"
+          print("\n".join(files))
+          PY
+          )"
 
           if [[ -z "$files" ]]; then
             echo "No bash scripts found for shellcheck."
@@ -72,22 +72,22 @@ PY
 
           tmp="$(mktemp)"
           cat >"$tmp" <<'MD'
-# Fixture Skill
+          # Fixture Skill
 
-## Contract
+          ## Contract
 
-Prereqs:
-- N/A
+          Prereqs:
+          - N/A
 
-Inputs:
-- N/A
+          Inputs:
+          - N/A
 
-Outputs:
-- N/A
+          Outputs:
+          - N/A
 
-Exit codes:
-- N/A
-MD
+          Exit codes:
+          - N/A
+          MD
 
           if scripts/validate_skill_contracts.sh --file "$tmp"; then
             echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
