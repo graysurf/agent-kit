@@ -63,6 +63,7 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
 2. Preflight
    - Ensure working tree is clean: `git status --porcelain=v1` should be empty
    - Ensure checks pass (optional but recommended): `gh pr checks <pr>`
+   - If PR body includes `Open Questions` and/or `Next Steps` and they are not already `- None`, update them to the latest status before merge (resolve questions or confirm with the user, check off completed steps, link follow-ups).
 3. Locate the progress file
    - Prefer parsing the PR body `## Progress` link and extracting `docs/progress/...`
    - If missing, fallback: search by PR URL inside `docs/progress/`:
