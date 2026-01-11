@@ -38,7 +38,7 @@ All tracked skills must include a minimal `## Contract` section (5 required head
 | Skill | Description |
 | --- | --- |
 | chrome-devtools-site-search | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
-| commit-message | Generate Semantic Commit messages from staged changes |
+| semantic-commit | Commit staged changes using Semantic Commit format |
 | create-feature-pr | Create feature branches and open a PR with a standard template |
 | close-feature-pr | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | create-progress-pr | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |

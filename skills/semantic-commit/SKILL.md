@@ -1,9 +1,9 @@
 ---
-name: commit-message
-description: Generate Git commit messages in Semantic Commit format. Use when asked to write commit messages, format Semantic Commits, or summarize changes/diffs into a commit.
+name: semantic-commit
+description: Commit staged changes using Semantic Commit format.
 ---
 
-# Commit Message
+# Semantic Commit
 
 ## Contract
 
@@ -43,8 +43,8 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- Get staged context (stdout): `$CODEX_HOME/skills/commit-message/scripts/staged_context.sh`
-- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/commit-message/scripts/commit_with_message.sh`
+- Get staged context (stdout): `$CODEX_HOME/skills/semantic-commit/scripts/staged_context.sh`
+- Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/semantic-commit/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
 - Do not call other helper commands directly; treat these scripts as the stable interface
 

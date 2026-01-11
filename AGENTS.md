@@ -99,9 +99,9 @@
 
 ## Commit 原則
 
-- 每個 commit 都必須使用 `$commit-message` skill 來完成，不得直接使用 `git commit`。
-- `$commit-message`: `$CODEX_HOME/skills/commit-message/SKILL.md`。
-- 完成 commit 後依照 `$commit-message` 的輸出格式回應。
+- 每個 commit 都必須使用 `$semantic-commit` skill 來完成，不得直接使用 `git commit`。
+- `$semantic-commit`: `$CODEX_HOME/skills/semantic-commit/SKILL.md`。
+- 完成 commit 後依照 `$semantic-commit` 的輸出格式回應。
 
 ## 可用指令（全域工具）
 

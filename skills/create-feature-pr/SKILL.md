@@ -1,6 +1,6 @@
 ---
 name: create-feature-pr
-description: Create a new feature branch, implement feature work, commit with commit-message, and open a PR with gh using standardized templates. Use when the user asks to develop a new feature, start a feature branch, or open a feature PR; also when asked to draft a feature PR based on the latest commit message.
+description: Create a new feature branch, implement feature work, commit with semantic-commit, and open a PR with gh using standardized templates. Use when the user asks to develop a new feature, start a feature branch, or open a feature PR; also when asked to draft a feature PR based on the latest commit message.
 ---
 
 # Create Feature PR
@@ -57,7 +57,7 @@ Failure modes:
 3. Create the branch: `git checkout -b feat/<slug>`.
 4. Implement the feature with minimal scope; avoid unrelated refactors.
 5. Add or update tests when reasonable; run available lint/test/build commands.
-6. Commit using the `commit-message` skill; prefer a single commit unless splitting is justified.
+6. Commit using the `semantic-commit` skill; prefer a single commit unless splitting is justified.
 7. Push the branch and open a PR with `gh pr create` using `references/PR_TEMPLATE.md`.
 
 ## PR rules

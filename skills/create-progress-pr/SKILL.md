@@ -118,7 +118,7 @@ Upstream reference (example):
   - Form: `docs/progress/<yyyymmdd>-<feature_slug>`
   - If a ticket ID like `ABC-123` exists, prefix it (example: `docs/progress/abc-123-<yyyymmdd>-<slug>`).
 - Commit only progress-related docs; do not implement feature code in this skill.
-- Commit message: `docs(progress): add <short title>` (or use the `commit-message` skill).
+- Commit message: `docs(progress): add <short title>` (or use the `semantic-commit` skill).
 - Push and open a PR with `gh` (draft by default unless the user asks otherwise).
 - PR body must include a full GitHub blob URL link to the progress file (PR bodies resolve relative links under `/pull/`):
   - `[docs/progress/<file>.md](https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/<file>.md)`

@@ -18,7 +18,7 @@ Examples:
   - Add thing
   MSG
 
-  commit_with_message.sh --message-file ./commit-message.txt
+  commit_with_message.sh --message-file ./message.txt
 USAGE
 }
 
