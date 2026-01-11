@@ -8,23 +8,28 @@ description: Test REST APIs with repeatable, file-based requests under <project>
 ## Contract
 
 Prereqs:
+
 - `bash` and `curl` available on `PATH` (`jq` recommended for pretty-printing/assertions).
 - `setup/rest/` exists (or bootstrap from template) with requests and optional endpoint/token presets.
 
 Inputs:
+
 - Request file path: `setup/rest/requests/<name>.request.json`.
 - Optional flags/env: `--env`, `--url`, `--token`, `--config-dir`, `--no-history` (plus `REST_URL`, `ACCESS_TOKEN`).
 
 Outputs:
+
 - Response JSON (or raw response) printed to stdout; errors printed to stderr.
 - Optional history file under `setup/rest/.rest_history` (gitignored; disabled via `--no-history`).
 - Optional markdown report via `scripts/rest-report.sh`.
 
 Exit codes:
+
 - `0`: request completed successfully (and assertions, if present, passed)
 - non-zero: invalid inputs/missing files/http error/assertion failure
 
 Failure modes:
+
 - Missing `curl`, invalid request JSON, or missing endpoint configuration (`REST_URL` / endpoints env).
 - Auth missing/invalid (`ACCESS_TOKEN` / token profile) causing 401/403.
 - Network/timeout/connection failures.

@@ -8,26 +8,31 @@ description: Run CI-friendly API test suites (REST + GraphQL) from a single mani
 ## Contract
 
 Prereqs:
+
 - `bash` and `jq` available on `PATH`.
 - REST runner: `skills/rest-api-testing/scripts/rest.sh` (requires `curl`).
 - GraphQL runner: `skills/graphql-api-testing/scripts/gql.sh` (requires `xh`/`http`/`curl`).
 
 Inputs:
+
 - Suite selection: `--suite <name>` or `--suite-file <path>`.
 - Optional filters/flags: `--tag`, `--allow-writes`, `--out`, `--junit`.
 - Optional auth secret env (when configured in suite): `API_TEST_AUTH_JSON` (or custom `secretEnv`).
 
 Outputs:
+
 - JSON results always emitted to stdout.
 - Optional files: `--out <path>` (results JSON) and `--junit <path>` (JUnit XML).
 - Per-run logs/artifacts under `out/api-test-runner/<runId>/` when executed.
 
 Exit codes:
+
 - `0`: all selected cases passed
 - `2`: one or more cases failed
 - `1`: invalid inputs / schema / missing files
 
 Failure modes:
+
 - Missing/invalid suite or case files (JSON schema errors, missing request/op files).
 - Missing dependencies (`jq`, `curl`, or no supported GraphQL HTTP client).
 - Auth missing/invalid (401/403) or write-capable case blocked by safety defaults.

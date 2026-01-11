@@ -8,23 +8,28 @@ description: Run PostgreSQL queries via the repo-local fr-psql wrapper. Use when
 ## Contract
 
 Prereqs:
+
 - `psql` available on `PATH`.
 - Wrapper loaded: `source $CODEX_HOME/skills/_projects/finance-report/scripts/fr-psql.zsh`.
 - `FR_PG*` values configured in `$CODEX_HOME/skills/_projects/finance-report/fr-psql.env`.
 
 Inputs:
+
 - SQL via `fr-psql -c "<sql>"` or `fr-psql -f <file.sql>`.
 - Optional `psql` flags passed through to `psql`.
 
 Outputs:
+
 - Query results printed to stdout.
 - Errors and diagnostics printed to stderr.
 
 Exit codes:
+
 - `0`: success
 - non-zero: connection/auth/query error (from `psql`)
 
 Failure modes:
+
 - Wrapper function not loaded (run the `source .../fr-psql.zsh` step).
 - Missing/invalid `FR_PG*` env values (auth/connection failure).
 - DB unreachable (network/VPN/DNS/firewall).

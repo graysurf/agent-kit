@@ -8,23 +8,28 @@ description: Open files edited by Codex in VSCode after making changes, using th
 ## Contract
 
 Prereqs:
+
 - `zsh` available on `PATH`.
 - Optional: VSCode CLI `code` (missing → script no-ops).
 - `$CODEX_HOME/skills/open-changed-files-review/scripts/open-changed-files.zsh` available.
 
 Inputs:
+
 - File paths touched in the current run (preferred).
 - Optional: `CODEX_OPEN_CHANGED_FILES_MAX_FILES` to cap opened files.
 
 Outputs:
+
 - Opens the requested files in VSCode (best-effort).
 - If VSCode/tool unavailable: silent no-op (still provides a paste-ready command in chat when used manually).
 
 Exit codes:
+
 - `0`: success or no-op
 - non-zero: invalid usage or unexpected runtime failure
 
 Failure modes:
+
 - VSCode CLI `code` not installed or not on `PATH`.
 - Input paths do not exist (script filters to existing files).
 

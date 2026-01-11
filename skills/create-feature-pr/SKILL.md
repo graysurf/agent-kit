@@ -8,22 +8,27 @@ description: Create a new feature branch, implement feature work, commit with co
 ## Contract
 
 Prereqs:
+
 - Run inside the target git repo with a clean working tree (or stash unrelated changes).
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - `$CODEX_HOME` points at the repo root (or tools are otherwise available).
 
 Inputs:
+
 - Feature summary + acceptance criteria (preferred) or inferred from the latest commit subject.
 - Related progress file path under `docs/progress/` to link in the PR body.
 
 Outputs:
+
 - A new branch `feat/<slug>`, one or more commits, and a GitHub PR created via `gh`.
 - PR body populated from `references/PR_TEMPLATE.md` with a full GitHub URL to the progress file.
 
 Exit codes:
+
 - N/A (multi-command workflow; failures surfaced from underlying `git`/`gh` commands)
 
 Failure modes:
+
 - Dirty working tree or wrong base branch.
 - Missing `gh` auth or insufficient permissions to push/create PR.
 - PR body missing required sections or missing/invalid progress link.

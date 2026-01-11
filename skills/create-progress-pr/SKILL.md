@@ -8,23 +8,28 @@ description: Create a traceable progress planning file under docs/progress/ from
 ## Contract
 
 Prereqs:
+
 - Run inside the target git repo with a clean working tree.
 - `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - `python3` available on `PATH` (used by helper scripts).
 
 Inputs:
+
 - Short title, goals, acceptance criteria, scope, and I/O contract details (use `TBD`/`None` where appropriate).
 - Optional: `--use-project-templates` (when project templates exist under `docs/templates/`).
 
 Outputs:
+
 - A new progress file under `docs/progress/<YYYYMMDD>_<feature_slug>.md` and an index update in `docs/progress/README.md` (when present).
 - A GitHub PR created via `gh` (draft by default).
 
 Exit codes:
+
 - `0`: success
 - non-zero: invalid inputs, missing templates, or git/gh command failures
 
 Failure modes:
+
 - Placeholder tokens left unresolved (`[[...]]`) or invalid index table formatting.
 - Cannot create branch/PR (auth/permissions) or templates missing when `--use-project-templates` is set.
 

@@ -8,23 +8,28 @@ description: Merge and close a feature PR with gh after a quick PR hygiene revie
 ## Contract
 
 Prereqs:
+
 - `gh` CLI authenticated with the target repo.
 - `git` available on `PATH`.
 - Working tree clean (`git status --porcelain=v1` is empty).
 
 Inputs:
+
 - PR number (or current-branch PR).
 - Optional: merge readiness decisions (draft → ready; checks pass).
 
 Outputs:
+
 - PR merged (default merge commit) and remote branch deleted.
 - Local checkout switched back to base branch and updated; local feature branch deleted (best-effort).
 
 Exit codes:
+
 - `0`: success
 - non-zero: checks failing, PR not mergeable, auth issues, or git/gh command failures
 
 Failure modes:
+
 - PR is draft (must confirm and mark ready first).
 - Required checks failing or branch not mergeable.
 - Missing `gh` auth or insufficient permissions.

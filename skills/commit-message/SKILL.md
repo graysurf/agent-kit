@@ -8,24 +8,29 @@ description: Generate Git commit messages in Semantic Commit format. Use when as
 ## Contract
 
 Prereqs:
+
 - Run inside a git work tree.
 - `zsh` available on `PATH` (scripts are `zsh -f`).
 - `$CODEX_HOME/scripts/codex-tools.sh` exists (provides `git-tools` and `git-scope`).
 
 Inputs:
+
 - Staged changes (`git add ...`) for `staged_context.sh`.
 - Prepared commit message via stdin (preferred), `--message`, or `--message-file` for `commit_with_message.sh`.
 
 Outputs:
+
 - `staged_context.sh`: prints staged context to stdout (diff + scope tree).
 - `commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
 
 Exit codes:
+
 - `0`: success
 - `2`: no staged changes (for scripts that require staged input)
 - non-zero: invalid usage / missing prerequisites / git failures
 
 Failure modes:
+
 - Not in a git repo or no staged changes.
 - `$CODEX_HOME` unset and loader cannot be resolved.
 - `git commit` fails (hooks, conflicts, or repo state issues).
