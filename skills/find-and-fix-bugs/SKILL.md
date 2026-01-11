@@ -10,7 +10,8 @@ description: Find, triage, and fix bugs with or without user input. Autonomously
 Prereqs:
 
 - Run inside the target git repo.
-- `rg` available for codebase scanning; `git` and `gh` available for branching/PR creation.
+- `rg` available on `PATH` for codebase scanning.
+- `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - `$CODEX_HOME/scripts/codex-tools.sh` available for helper commands (recommended).
 
 Inputs:
@@ -29,7 +30,7 @@ Failure modes:
 
 - Cannot reproduce or insufficient input to confirm impact (record as uncertainty rather than guessing).
 - High-risk changes (auth/billing/migrations) should halt or be skipped per guardrails.
-- Missing tooling (`rg`/`gh`) or insufficient repo permissions.
+- Missing tooling (`rg`/`git`/`gh`) or insufficient repo permissions.
 
 ## Setup
 

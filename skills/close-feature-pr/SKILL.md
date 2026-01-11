@@ -9,8 +9,8 @@ description: Merge and close a feature PR with gh after a quick PR hygiene revie
 
 Prereqs:
 
-- `gh` CLI authenticated with the target repo.
-- `git` available on `PATH`.
+- Run inside the target git repo.
+- `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - Working tree clean (`git status --porcelain=v1` is empty).
 
 Inputs:
@@ -36,8 +36,7 @@ Failure modes:
 
 ## Setup
 
-- Requires `gh` CLI authenticated with the target repo
-- Requires `git`
+- Ensure `gh auth status` succeeds.
 - Load local helper commands (optional): `source $CODEX_HOME/scripts/codex-tools.sh`
 
 ## When to use

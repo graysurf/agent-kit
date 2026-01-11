@@ -9,8 +9,8 @@ description: "Finalize and archive a progress file for a GitHub PR: locate the r
 
 Prereqs:
 
-- `gh` CLI authenticated with the target repo.
 - Run inside the target git repo with a clean working tree.
+- `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
 - Target PR has a `## Progress` link in its body (preferred) or the progress file contains the PR URL.
 
 Inputs:
@@ -37,7 +37,7 @@ Failure modes:
 
 ## Setup
 
-- Requires `gh` CLI authenticated with the target repo
+- Ensure `gh auth status` succeeds.
 - Load local helper commands (optional): `source $CODEX_HOME/scripts/codex-tools.sh`
 
 ## Key rule: Progress links must survive branch deletion

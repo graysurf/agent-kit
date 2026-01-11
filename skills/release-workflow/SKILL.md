@@ -10,7 +10,8 @@ description: Execute project release workflows by locating and following project
 Prereqs:
 
 - Run inside (or have access to) the target repo.
-- `rg` available to locate `RELEASE_GUIDE.md`; `git`/release tooling as required by the guide.
+- `rg` available on `PATH` to locate `RELEASE_GUIDE.md`.
+- `git` available on `PATH` (plus any release tooling required by the guide).
 
 Inputs:
 
