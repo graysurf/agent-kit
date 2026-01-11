@@ -5,6 +5,30 @@ description: Execute project release workflows by locating and following project
 
 # Release Workflow
 
+## Contract
+
+Prereqs:
+
+- Run inside (or have access to) the target repo.
+- `rg` available to locate `RELEASE_GUIDE.md`; `git`/release tooling as required by the guide.
+
+Inputs:
+
+- The user’s requested release action (tag/release/publish) and the target repository path (if unclear).
+
+Outputs:
+
+- Release steps executed exactly per the project’s `RELEASE_GUIDE.md`, plus release notes/link as provided by the guide.
+
+Exit codes:
+
+- N/A (workflow driver; stop and ask on unclear steps)
+
+Failure modes:
+
+- `RELEASE_GUIDE.md` missing or multiple guides found (must ask which to use).
+- A guide step fails or is unclear (must stop and follow recovery instructions or ask).
+
 ## Setup
 
 - Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`

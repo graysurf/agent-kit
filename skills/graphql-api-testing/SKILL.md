@@ -5,6 +5,36 @@ description: Test GraphQL APIs with repeatable, file-based operations and variab
 
 # GraphQL API Testing
 
+## Contract
+
+Prereqs:
+
+- `bash` and `jq` available on `PATH`.
+- HTTP client: `xh` or `http` or `curl`.
+- `setup/graphql/` exists (or bootstrap from template) with operations, vars, and optional endpoint/jwt presets.
+
+Inputs:
+
+- Operation + variables: `setup/graphql/operations/<op>.graphql` and `setup/graphql/operations/<vars>.json`.
+- Optional flags/env: `--env`, `--url`, `--jwt`, `--config-dir`, `--no-history` (plus `GQL_URL`, `ACCESS_TOKEN`).
+
+Outputs:
+
+- Response JSON printed to stdout; errors printed to stderr.
+- Optional history file under `setup/graphql/.gql_history` (gitignored; disabled via `--no-history`).
+- Optional markdown report via `scripts/gql-report.sh`.
+
+Exit codes:
+
+- `0`: request completed successfully
+- non-zero: invalid inputs/missing files/http error/client error
+
+Failure modes:
+
+- Missing supported HTTP client (`xh`/`http`/`curl`).
+- Invalid GraphQL/variables JSON, or missing config files.
+- Auth missing/invalid (JWT) or network/timeout/connection failures.
+
 ## Goal
 
 Make GraphQL API calls reproducible via:

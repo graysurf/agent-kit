@@ -5,6 +5,35 @@ description: Run PostgreSQL queries via the repo-local tun-psql wrapper. Use whe
 
 # Tun-psql
 
+## Contract
+
+Prereqs:
+
+- `psql` available on `PATH`.
+- Wrapper loaded: `source $CODEX_HOME/skills/_projects/tun-group/scripts/tun-psql.zsh`.
+- `TUN_PG*` values configured in `$CODEX_HOME/skills/_projects/tun-group/tun-psql.env`.
+
+Inputs:
+
+- SQL via `tun-psql -c "<sql>"` or `tun-psql -f <file.sql>`.
+- Optional `psql` flags passed through to `psql`.
+
+Outputs:
+
+- Query results printed to stdout.
+- Errors and diagnostics printed to stderr.
+
+Exit codes:
+
+- `0`: success
+- non-zero: connection/auth/query error (from `psql`)
+
+Failure modes:
+
+- Wrapper function not loaded (run the `source .../tun-psql.zsh` step).
+- Missing/invalid `TUN_PG*` env values (auth/connection failure).
+- DB unreachable (network/VPN/DNS/firewall).
+
 ## Overview
 
 Use tun-psql to run psql against the TUN database using the values in `$CODEX_HOME/skills/_projects/tun-group/tun-psql.env`. Favor read-only queries unless the user explicitly requests data changes.

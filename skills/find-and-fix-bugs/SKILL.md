@@ -5,6 +5,32 @@ description: Find, triage, and fix bugs with or without user input. Autonomously
 
 # Find and Fix Bugs
 
+## Contract
+
+Prereqs:
+
+- Run inside the target git repo.
+- `rg` available for codebase scanning; `git` and `gh` available for branching/PR creation.
+- `$CODEX_HOME/scripts/codex-tools.sh` available for helper commands (recommended).
+
+Inputs:
+
+- Optional bug report (repro steps, expected vs actual, environment); otherwise autonomous discovery.
+
+Outputs:
+
+- An issues list (per `references/ISSUES_TEMPLATE.md`), a fix branch, commits, and a GitHub PR.
+
+Exit codes:
+
+- N/A (multi-command workflow; failures surfaced from underlying commands)
+
+Failure modes:
+
+- Cannot reproduce or insufficient input to confirm impact (record as uncertainty rather than guessing).
+- High-risk changes (auth/billing/migrations) should halt or be skipped per guardrails.
+- Missing tooling (`rg`/`gh`) or insufficient repo permissions.
+
 ## Setup
 
 - Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`

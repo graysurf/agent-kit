@@ -1,0 +1,95 @@
+name: Lint
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  shell-and-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Shellcheck (bash scripts)
+        run: |
+          set -euo pipefail
+
+          files="$(python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          tracked = subprocess.check_output(["git", "ls-files"], text=True).splitlines()
+          files = []
+          for p in tracked:
+            path = Path(p)
+            if path.suffix != ".sh":
+              continue
+            if path.parts and path.parts[0] == "shell_snapshots":
+              continue
+            if not path.is_file():
+              continue
+            try:
+              first = path.read_text("utf-8", errors="ignore").splitlines()[:1]
+            except OSError:
+              continue
+            if not first:
+              continue
+            shebang = first[0]
+            if not shebang.startswith("#!"):
+              continue
+            if "bash" in shebang and "zsh" not in shebang:
+              files.append(p)
+
+          print("\n".join(files))
+          PY
+          )"
+
+          if [[ -z "$files" ]]; then
+            echo "No bash scripts found for shellcheck."
+            exit 0
+          fi
+
+          echo "$files" | xargs shellcheck -S error
+
+      - name: Validate skill contract sections
+        run: |
+          scripts/validate_skill_contracts.sh
+
+      - name: Smoke test (negative fixture)
+        run: |
+          set -euo pipefail
+
+          tmp="$(mktemp)"
+          cat >"$tmp" <<'MD'
+          # Fixture Skill
+
+          ## Contract
+
+          Prereqs:
+          - N/A
+
+          Inputs:
+          - N/A
+
+          Outputs:
+          - N/A
+
+          Exit codes:
+          - N/A
+          MD
+
+          if scripts/validate_skill_contracts.sh --file "$tmp"; then
+            echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
+            exit 1
+          fi

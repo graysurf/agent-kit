@@ -5,6 +5,34 @@ description: Send desktop notifications (macOS/Linux) with a project-title wrapp
 
 # Desktop Notify
 
+## Contract
+
+Prereqs:
+
+- `bash` available on `PATH`.
+- Notification backend:
+  - macOS: `terminal-notifier` (optional)
+  - Linux: `notify-send` (optional)
+
+Inputs:
+
+- Message string (required) and `--level info|success|warn|error`.
+- Optional env: `CODEX_DESKTOP_NOTIFY=0` to disable; `PROJECT_PATH` for project title derivation.
+
+Outputs:
+
+- A desktop notification (best-effort); silent no-op when disabled or backend missing.
+
+Exit codes:
+
+- `0`: success or no-op
+- non-zero: invalid usage or unexpected script/runtime failure
+
+Failure modes:
+
+- Backend not installed (script no-ops by default).
+- Notifications disabled via `CODEX_DESKTOP_NOTIFY=0`.
+
 Use this skill when you need to surface a short status update to the user via a desktop notification.
 
 Prefer using the project wrapper (auto title) to avoid repeating title rules:

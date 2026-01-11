@@ -5,6 +5,35 @@ description: Run SQL Server queries via the repo-local mb-mssql wrapper. Use whe
 
 # Mb-mssql
 
+## Contract
+
+Prereqs:
+
+- `sqlcmd` available on `PATH`.
+- Wrapper loaded: `source $CODEX_HOME/skills/_projects/megabank/scripts/mb-mssql.zsh`.
+- `MB_MSSQL_*` values configured in `$CODEX_HOME/skills/_projects/megabank/mb-mssql.env`.
+
+Inputs:
+
+- SQL via `mb-mssql -Q "<sql>"` or `mb-mssql -i <file.sql>`.
+- Optional `sqlcmd` flags passed through to `sqlcmd`.
+
+Outputs:
+
+- Query results printed to stdout.
+- Errors and diagnostics printed to stderr.
+
+Exit codes:
+
+- `0`: success
+- non-zero: connection/auth/query error (from `sqlcmd`)
+
+Failure modes:
+
+- Wrapper function not loaded (run the `source .../mb-mssql.zsh` step).
+- Missing/invalid `MB_MSSQL_*` env values (auth/connection failure).
+- DB unreachable (network/VPN/DNS/firewall).
+
 ## Overview
 
 Use mb-mssql to run sqlcmd against the MB database using the values in `$CODEX_HOME/skills/_projects/megabank/mb-mssql.env`. Favor read-only queries unless the user explicitly requests data changes.
