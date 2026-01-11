@@ -38,4 +38,24 @@ Notes:
 
 ## Validation
 
-- Skill contract lint: `scripts/validate_skill_contracts.sh`
+### Skill contract lint
+
+`scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+
+Requirements (inside `## Contract`, in order):
+
+- `Prereqs:`
+- `Inputs:`
+- `Outputs:`
+- `Exit codes:`
+- `Failure modes:`
+
+Usage:
+
+- Validate all tracked skills: `scripts/validate_skill_contracts.sh`
+- Validate a specific file: `scripts/validate_skill_contracts.sh --file skills/<skill>/SKILL.md`
+
+Exit codes:
+
+- `0`: all validated files are compliant
+- non-zero: validation/usage errors (prints `error:` lines to stderr)

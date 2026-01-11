@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-11 | 2026-01-11 |
+| DONE | 2026-01-11 | 2026-01-11 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/17
 - Planning PR: https://github.com/graysurf/codex-kit/pull/16
 - Docs: None
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -46,12 +46,17 @@ Links:
 
 - Updated `skills/**/SKILL.md` files with a `## Contract` section that includes the 5 required headings
 - `scripts/validate_skill_contracts.sh`
-- CI workflow updates under `.github/workflows/` (names TBD)
+- CI workflow updates under `.github/workflows/lint.yml`
 
 ### Intermediate Artifacts
 
 - CI logs from `shellcheck` and `scripts/validate_skill_contracts.sh`
-- Optional local report file (TBD): `out/skill-contracts/validate.log`
+- Optional local report file: None (not implemented in MVP)
+
+### Lint script contract (`scripts/validate_skill_contracts.sh`)
+
+- Success: exit `0`; no output.
+- Failure: non-zero; prints `error: <path>: ...` to stderr (missing headings / out-of-order / invalid args / file not found).
 
 ## Design / Decisions
 
@@ -81,68 +86,70 @@ Links:
 
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 
-- [ ] Step 0: Align spec and testing approach
+- [x] Step 0: Align spec and testing approach
   - Work Items:
     - [x] Confirm the canonical minimal format (exact strings): `## Contract` + 5 headings.
     - [x] Decide lint strictness + docs-only handling: exact strings + fixed ordering within `## Contract`; use `N/A` for non-applicable fields.
     - [x] Decide `--fix`/`--dry-run`: keep lint as `--check` only (no auto-fix; no `--dry-run`) as a stability guardrail.
     - [x] Decide minimal smoke tests beyond `shellcheck`: lint positive pass + negative fixture fail with actionable output.
   - Artifacts:
-    - `docs/progress/20260111_skill-contract-fields-and-lint.md` (this file)
+    - `docs/progress/archived/20260111_skill-contract-fields-and-lint.md` (this file)
     - Notes: decisions recorded in this progress file
   - Exit Criteria:
     - [x] Requirements, scope, and acceptance criteria are aligned: decisions recorded in this progress file.
-    - [ ] I/O contract is defined (paths, exit codes, and failure modes for lint): captured in this progress file.
-    - [ ] Risks and mitigations are explicit (including CI portability): captured in this progress file.
-    - [ ] Verification commands are defined: `scripts/validate_skill_contracts.sh` and `shellcheck` (details TBD).
-- [ ] Step 1: Add contracts + lint script (MVP)
+    - [x] I/O contract is defined (paths, exit codes, and failure modes for lint): captured in this progress file.
+    - [x] Risks and mitigations are explicit (including CI portability): captured in this progress file.
+    - [x] Verification commands are defined:
+      - `scripts/validate_skill_contracts.sh`
+      - `shellcheck -S error` (CI runs against tracked bash shebang scripts)
+- [x] Step 1: Add contracts + lint script (MVP)
   - Work Items:
-    - [ ] Add a `## Contract` section (with the 5 headings) to every `skills/**/SKILL.md`.
-    - [ ] Implement `scripts/validate_skill_contracts.sh` (list failures deterministically; exit non-zero on any failure).
-    - [ ] Add basic usage docs in `scripts/README.md` (or a new section) for the lint command.
+    - [x] Add a `## Contract` section (with the 5 headings) to every `skills/**/SKILL.md`.
+    - [x] Implement `scripts/validate_skill_contracts.sh` (list failures deterministically; exit non-zero on any failure).
+    - [x] Add basic usage docs in `scripts/README.md` for the lint command.
   - Artifacts:
     - `skills/**/SKILL.md`
     - `scripts/validate_skill_contracts.sh`
     - `scripts/README.md`
   - Exit Criteria:
-    - [ ] `scripts/validate_skill_contracts.sh` passes locally: `scripts/validate_skill_contracts.sh` (command contract TBD).
-    - [ ] Failure output is actionable and stable (prints file + missing headings).
-    - [ ] No placeholder tokens remain in edited docs; contract sections are present in all skill docs.
-- [ ] Step 2: CI integration and policy docs
+    - [x] `scripts/validate_skill_contracts.sh` passes locally: `scripts/validate_skill_contracts.sh`
+    - [x] Failure output is actionable and stable (prints file + missing headings).
+    - [x] No placeholder tokens remain in edited docs; contract sections are present in all skill docs.
+- [x] Step 2: CI integration and policy docs
   - Work Items:
-    - [ ] Add GitHub Actions CI job(s) to run `shellcheck` and `scripts/validate_skill_contracts.sh`.
-    - [ ] Update `skills/.system/skill-creator/SKILL.md` to require the `## Contract` section for new skills.
+    - [x] Add GitHub Actions CI job(s) to run `shellcheck` and `scripts/validate_skill_contracts.sh`.
+    - [x] Update `README.md` to document the `## Contract` requirement for new skills.
   - Artifacts:
-    - `.github/workflows/*.yml` (TBD)
-    - `skills/.system/skill-creator/SKILL.md`
+    - `.github/workflows/lint.yml`
+    - `README.md`
   - Exit Criteria:
-    - [ ] CI runs on PRs and fails on missing contract headings.
-    - [ ] The policy for new skills is documented in `skills/.system/skill-creator/SKILL.md`.
-- [ ] Step 3: Validation and smoke tests
+    - [x] CI runs on PRs and fails on missing contract headings.
+    - [x] The policy for new skills is documented in `README.md`.
+- [x] Step 3: Validation and smoke tests
   - Work Items:
-    - [ ] Add minimal smoke tests without secrets:
+    - [x] Add minimal smoke tests without secrets:
       - `shellcheck` for supported shell scripts
       - Lint positive pass and negative fixture fail for `scripts/validate_skill_contracts.sh`
-    - [ ] Ensure `shellcheck` covers repo scripts (scope TBD) and passes.
+    - [x] Ensure `shellcheck` covers repo scripts and passes (tracked `.sh` with bash shebang; excludes `shell_snapshots/`).
   - Artifacts:
     - CI logs for `shellcheck` + lint
-    - Optional local logs under `out/skill-contracts/` (TBD)
+    - Optional local logs under `out/skill-contracts/`: None (not implemented in MVP)
   - Exit Criteria:
-    - [ ] CI shows passing results for `shellcheck` and contract lint on a representative PR.
-    - [ ] Smoke tests run without secrets and provide clear failures when broken.
-- [ ] Step 4: Wrap-up
+    - [x] CI shows passing results for `shellcheck` and contract lint on a representative PR.
+    - [x] Smoke tests run without secrets and provide clear failures when broken.
+- [x] Step 4: Wrap-up
   - Work Items:
-    - [ ] Update `docs/progress/README.md` and set this progress file status to `DONE` when implementation merges.
+    - [x] Update `docs/progress/README.md` and set this progress file status to `DONE` when implementation merges.
   - Artifacts:
     - `docs/progress/README.md`
     - `docs/progress/archived/20260111_skill-contract-fields-and-lint.md`
   - Exit Criteria:
-    - [ ] Progress file is archived and indexed (per `docs/progress/README.md` rules).
-    - [ ] No temporary flags/scripts remain without documentation.
+    - [x] Progress file is archived and indexed (per `docs/progress/README.md` rules).
+    - [x] No temporary flags/scripts remain without documentation.
 
 ## Modules
 
 - `skills/**/SKILL.md`: Add/maintain `## Contract` sections (5 required headings).
 - `scripts/validate_skill_contracts.sh`: Lint enforcement for required contract headings.
 - `.github/workflows/*.yml`: CI wiring for `shellcheck` + contract lint.
-- `skills/.system/skill-creator/SKILL.md`: Document contract requirement for new skills.
+- `README.md`: Document contract requirement for new skills.
