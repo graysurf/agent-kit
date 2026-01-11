@@ -42,7 +42,7 @@ export PAGER=cat
 load_codex_tools() {
   if [[ -z "${CODEX_HOME:-}" ]]; then
     local script_dir repo_root
-    script_dir="${0:A:h}"
+    script_dir="${${(%):-%x}:A:h}"
     repo_root="$(cd "${script_dir}/../../.." && pwd -P)"
     export CODEX_HOME="$repo_root"
   fi

@@ -35,3 +35,7 @@ Notes:
 - The bundler writes a shebang + minimal env exports into the output file.
 - If the wrapper relies on side effects (PATH, cache dirs, etc.), you may
   need to expand the bundler to inline those sections too.
+
+## Validation
+
+- Skill contract lint: `scripts/validate_skill_contracts.sh`

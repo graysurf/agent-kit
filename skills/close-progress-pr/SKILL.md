@@ -5,6 +5,31 @@ description: "Finalize and archive a progress file for a GitHub PR: locate the r
 
 # Close Progress PR
 
+## Contract
+
+Prereqs:
+- `gh` CLI authenticated with the target repo.
+- Run inside the target git repo with a clean working tree.
+- Target PR has a `## Progress` link in its body (preferred) or the progress file contains the PR URL.
+
+Inputs:
+- PR number (or current-branch PR).
+- Progress file under `docs/progress/` referenced by the PR.
+
+Outputs:
+- Progress file finalized (`Status: DONE`), moved to `docs/progress/archived/`, and indexed in `docs/progress/README.md`.
+- PR merged (default merge commit) and branch deleted.
+- PR body `## Progress` link patched to point to base branch (survives branch deletion).
+
+Exit codes:
+- `0`: success
+- non-zero: missing progress link/file, validation failures, or git/gh command failures
+
+Failure modes:
+- Unchecked checklist items missing `Reason:` (fail-fast).
+- Progress file cannot be located or moved (path mismatch, conflicts).
+- PR merge blocked (draft/checks failing/permissions).
+
 ## Setup
 
 - Requires `gh` CLI authenticated with the target repo

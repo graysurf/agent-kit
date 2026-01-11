@@ -5,6 +5,27 @@ description: Validate website parsing and browser automation feasibility by brow
 
 # Chrome DevTools Site Search
 
+## Contract
+
+Prereqs:
+- `mcp_servers.chrome-devtools` must be available and connectable.
+- User-provided site scope (domain / URL prefix) and a concrete query.
+
+Inputs:
+- Site scope (domain / allow-list / URL prefix).
+- Query terms and constraints; optional open policy (open 1 vs top N).
+
+Outputs:
+- A result summary backed by observed page content (real titles/URLs).
+- Matching pages opened in the MCP-controlled browser session for user review.
+
+Exit codes:
+- N/A (interactive MCP workflow; no repo scripts)
+
+Failure modes:
+- MCP server missing/unavailable/timeouts (must stop and report; no fallback scraping).
+- Site blocks automation (consent wall/login/bot protection) or content not extractable reliably.
+
 ## Purpose (Parsing + Automation Feasibility)
 
 - This skill’s workflow is primarily for testing whether a site can be reliably parsed (content extraction) and whether automated browsing flows are feasible using a real browser controlled by `mcp_servers.chrome-devtools`.

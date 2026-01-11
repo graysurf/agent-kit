@@ -5,6 +5,30 @@ description: Run SQL Server queries via the repo-local tun-mssql wrapper. Use wh
 
 # Tun-mssql
 
+## Contract
+
+Prereqs:
+- `sqlcmd` available on `PATH`.
+- Wrapper loaded: `source $CODEX_HOME/skills/_projects/tun-group/scripts/tun-mssql.zsh`.
+- `TUN_MSSQL_*` values configured in `$CODEX_HOME/skills/_projects/tun-group/tun-mssql.env`.
+
+Inputs:
+- SQL via `tun-mssql -Q "<sql>"` or `tun-mssql -i <file.sql>`.
+- Optional `sqlcmd` flags passed through to `sqlcmd`.
+
+Outputs:
+- Query results printed to stdout.
+- Errors and diagnostics printed to stderr.
+
+Exit codes:
+- `0`: success
+- non-zero: connection/auth/query error (from `sqlcmd`)
+
+Failure modes:
+- Wrapper function not loaded (run the `source .../tun-mssql.zsh` step).
+- Missing/invalid `TUN_MSSQL_*` env values (auth/connection failure).
+- DB unreachable (network/VPN/DNS/firewall).
+
 ## Overview
 
 Use tun-mssql to run sqlcmd against the TUN SQL Server database using the values in `$CODEX_HOME/skills/_projects/tun-group/tun-mssql.env`. Favor read-only queries unless the user explicitly requests data changes.
