@@ -37,6 +37,7 @@ All tracked skills must include a minimal `## Contract` section (5 required head
 
 | Skill | Description |
 | --- | --- |
+| ask-questions-if-underspecified | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
 | chrome-devtools-site-search | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
 | semantic-commit | Commit staged changes using Semantic Commit format |
 | create-feature-pr | Create feature branches and open a PR with a standard template |
