@@ -35,7 +35,7 @@ RULES (must follow)
    - If you can still give a **safe, broadly useful baseline explanation**, do so, but:
      - Label your **Assumptions** explicitly
      - Explain **How to validate/refine** each assumption
-     - End with clarifying questions under “❓ Open Questions”
+     - End with clarifying questions under “Open Questions”
    - If a baseline explanation would be misleading/unsafe, ask clarifying questions and STOP (no options, no recommendation).
    - Ask at most 5 questions.
    - Each question must be specific and decision-oriented (answerable in 1–2 lines).
