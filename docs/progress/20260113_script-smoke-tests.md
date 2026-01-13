@@ -199,6 +199,8 @@ Tracked script entrypoints (via `git ls-files`):
 | `skills/workflows/pr/progress/create-progress-pr/scripts/render_progress_pr.sh` | `bash` | regression (`--help`) | `spec-smoke` | render-only; validate output format |
 | `skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh` | `bash` | functional pytest | `pytest-fixture` | already covered by `tests/test_audit_scripts.py` |
 | `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh` | `bash` | regression (`--help`) | `pytest-fixture` | stub `gh`; fixture progress PR metadata |
+| `skills/workflows/pr/progress/progress-addendum/scripts/audit_progress_addendum.sh` | `bash` | regression (`--help`) | `spec-smoke` | audit `docs/progress/**` for canonical addendum placement |
+| `skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh` | `bash` | regression (`--help`) | `pytest-fixture` | run against fixture progress copies under `out/tests` |
 | `skills/workflows/release/release-workflow/scripts/audit-changelog.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | run `--check` via smoke spec |
 | `skills/workflows/release/release-workflow/scripts/release-audit.sh` | `bash` | regression (`--help`) | `pytest-fixture` | temp repo for tag checks + changelog fixtures |
 | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh` | `bash` | regression (`--help`) | `pytest-fixture` | changelog fixtures, verify extracted notes |
@@ -229,6 +231,6 @@ Planned PRs:
 | #28 | Follow-ups: PR workflow fixtures | `skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh`, `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`, `skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh` | Fixture-based smoke coverage with an opt-in stubbed `gh`. |
 | #29 | Follow-ups: semantic commit fixture | `skills/tools/devex/semantic-commit/scripts/commit_with_message.sh` | Fixture-based smoke coverage in a temp git repo. |
 | #30 | Follow-ups: API testing tool fixtures | `skills/tools/testing/rest-api-testing/scripts/rest.sh`, `.../rest-report.sh`, `skills/tools/testing/graphql-api-testing/scripts/gql.sh`, `.../gql-report.sh`, `.../gql-schema.sh`, `skills/tools/testing/api-test-runner/scripts/api-test.sh` | Add opt-in `curl`/`xh` stubs, fixtures, and smoke specs. |
-| #31 | Follow-ups: create progress file fixture | `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh` | Fixture-based smoke coverage in a temp git repo. |
+| #31 | Follow-ups: progress file helper fixtures | `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`, `skills/workflows/pr/progress/progress-addendum/scripts/*.sh` | Fixture-based smoke coverage in a temp git repo. |
 | #32 | Follow-ups: release workflow fixtures | `skills/workflows/release/release-workflow/scripts/release-notes-from-changelog.sh`, `.../release-audit.sh` | Fixture-based smoke coverage with a stubbed `gh auth status`. |
 | #33 | Follow-ups: bundle wrapper fixture | `scripts/build/bundle-wrapper.zsh` | Fixture-based smoke coverage for bundled sources + embedded exec tools. |
