@@ -94,6 +94,7 @@ Environment:
 Notes:
   - Requires: git, jq, python3
   - Runs from any subdir inside the repo; paths are resolved relative to repo root.
+  - REST requests support multipart file uploads and optional cleanup blocks (see rest.sh schema).
 EOF
 }
 

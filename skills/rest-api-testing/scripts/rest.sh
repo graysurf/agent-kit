@@ -3,6 +3,7 @@ set -euo pipefail
 
 rest_action="call"
 invocation_dir="$(pwd -P 2>/dev/null || pwd)"
+multipart_tmp_files=()
 
 die() {
 	echo "$1" >&2
@@ -252,6 +253,9 @@ on_exit() {
 	set +e
 	set +u
 	[[ -n "${response_body_file:-}" ]] && rm -f "${response_body_file:-}" 2>/dev/null || true
+	if [[ "${#multipart_tmp_files[@]}" -gt 0 ]]; then
+		rm -f "${multipart_tmp_files[@]}" 2>/dev/null || true
+	fi
 	append_rest_history "$exit_code" || true
 }
 
@@ -286,6 +290,15 @@ Request schema (JSON only):
     "query": {},
     "headers": {},
     "body": {},
+    "multipart": [
+      { "name": "file", "filePath": "./sample.png", "contentType": "image/png" }
+    ],
+    "cleanup": {
+      "method": "DELETE",
+      "pathTemplate": "/files/images/{{key}}",
+      "vars": { "key": ".key" },
+      "expectStatus": 204
+    },
     "expect": { "status": 200, "jq": ".ok == true" }
   }
 
@@ -453,6 +466,25 @@ body_json=""
 if [[ "$body_present" == "true" ]]; then
 	body_json="$(jq -c '.body' "$request_file")"
 fi
+
+multipart_present="$(jq -r 'has("multipart")' "$request_file")"
+if [[ "$multipart_present" == "true" && "$body_present" == "true" ]]; then
+	die "Request cannot include both body and multipart."
+fi
+
+mapfile -t multipart_parts < <(
+	jq -c '
+		if has("multipart") and .multipart != null then
+			if (.multipart | type) != "array" then
+				error("multipart must be an array")
+			else
+				.multipart[]
+			end
+		else
+			empty
+		end
+	' "$request_file"
+)
 
 expect_present="$(jq -r 'has("expect")' "$request_file")"
 expect_status=""
@@ -732,8 +764,8 @@ token_name="${token_name_arg:-${token_name_env:-${token_name_file:-default}}}"
 token_name="$(to_lower "$token_name")"
 
 access_token=""
-if [[ "$token_profile_selected" == "false" && -n "${ACCESS_TOKEN:-}" ]]; then
-	access_token="$ACCESS_TOKEN"
+if [[ "$token_profile_selected" == "false" && -n "${ACCESS_TOKEN:-${SERVICE_TOKEN:-}}" ]]; then
+	access_token="${ACCESS_TOKEN:-${SERVICE_TOKEN:-}}"
 else
 	token_key="$(to_env_key "$token_name")"
 	access_token="$(read_env_var_from_files "REST_TOKEN_${token_key}" "$tokens_file" "$tokens_local_file" 2>/dev/null || true)"
@@ -781,6 +813,67 @@ done
 
 if [[ "$body_present" == "true" ]]; then
 	curl_args+=(--data-raw "$body_json")
+elif [[ "$multipart_present" == "true" ]]; then
+	decode_base64_to_file() {
+		local base64_payload="$1"
+		local dest="$2"
+
+		python3 - <<'PY' "$base64_payload" "$dest"
+import base64
+import sys
+
+payload = sys.argv[1]
+dest = sys.argv[2]
+
+with open(dest, "wb") as fh:
+    fh.write(base64.b64decode(payload))
+PY
+	}
+
+	for part in "${multipart_parts[@]}"; do
+		name="$(jq -r '.name // empty' <<<"$part")"
+		name="$(trim "$name")"
+		[[ -n "$name" ]] || die "Multipart part is missing required field: name"
+
+		value="$(jq -r '.value? // empty' <<<"$part")"
+		value="$(trim "$value")"
+		file_path="$(jq -r '.filePath? // empty' <<<"$part")"
+		file_path="$(trim "$file_path")"
+		base64_payload="$(jq -r '.base64? // empty' <<<"$part")"
+		base64_payload="$(trim "$base64_payload")"
+		filename="$(jq -r '.filename? // empty' <<<"$part")"
+		filename="$(trim "$filename")"
+		content_type="$(jq -r '.contentType? // empty' <<<"$part")"
+		content_type="$(trim "$content_type")"
+
+		if [[ -n "$value" ]]; then
+			curl_args+=(-F "${name}=${value}")
+			continue
+		fi
+
+		if [[ -n "$base64_payload" ]]; then
+			tmp_file="$(mktemp 2>/dev/null || mktemp -t rest.multipart.bin)"
+			decode_base64_to_file "$base64_payload" "$tmp_file"
+			multipart_tmp_files+=("$tmp_file")
+			file_path="$tmp_file"
+		fi
+
+		[[ -n "$file_path" ]] || die "Multipart part '$name' must include value, filePath, or base64."
+		[[ -f "$file_path" ]] || die "Multipart part '$name' file not found: $file_path"
+
+		if [[ -n "$filename" || -n "$content_type" ]]; then
+			form_value="${name}=@${file_path}"
+			if [[ -n "$filename" ]]; then
+				form_value="${form_value};filename=${filename}"
+			fi
+			if [[ -n "$content_type" ]]; then
+				form_value="${form_value};type=${content_type}"
+			fi
+			curl_args+=(-F "$form_value")
+		else
+			curl_args+=(-F "${name}=@${file_path}")
+		fi
+	done
 fi
 
 response_body_file="$(mktemp 2>/dev/null || mktemp -t rest.body.json)"
@@ -828,4 +921,50 @@ ok=true
 	if [[ "$ok" != "true" ]]; then
 		maybe_print_failure_body_to_stderr "$response_body_file" 8192 || true
 		exit 1
+	fi
+
+	cleanup_present="$(jq -r 'has("cleanup")' "$request_file")"
+	if [[ "$cleanup_present" == "true" ]]; then
+		cleanup_type="$(jq -r '.cleanup | type' "$request_file")"
+		[[ "$cleanup_type" == "object" ]] || die "cleanup must be an object"
+
+		cleanup_method="$(jq -r '.cleanup.method? // "DELETE"' "$request_file")"
+		cleanup_method="$(trim "$cleanup_method")"
+		cleanup_method="$(to_upper "$cleanup_method")"
+		[[ -n "$cleanup_method" ]] || die "cleanup.method is empty"
+
+		cleanup_template="$(jq -r '.cleanup.pathTemplate? // empty' "$request_file")"
+		cleanup_template="$(trim "$cleanup_template")"
+		[[ -n "$cleanup_template" ]] || die "cleanup.pathTemplate is required"
+
+		cleanup_path="$cleanup_template"
+		while IFS= read -r var_key; do
+			[[ -n "$var_key" ]] || continue
+			var_expr="$(jq -r --arg key "$var_key" '.cleanup.vars[$key]' "$request_file")"
+			var_value="$(jq -r "$var_expr" "$response_body_file" 2>/dev/null | head -n 1)"
+			var_value="$(trim "$var_value")"
+			[[ -n "$var_value" && "$var_value" != "null" ]] || die "cleanup var '$var_key' is empty"
+			cleanup_path="${cleanup_path//\{\{$var_key\}\}/$var_value}"
+		done < <(jq -r '(.cleanup.vars? // {}) | keys[]' "$request_file")
+
+		[[ "$cleanup_path" == /* ]] || die "cleanup.pathTemplate must resolve to an absolute path (starts with /)"
+
+		cleanup_expect_status="$(jq -r '.cleanup.expectStatus? // empty' "$request_file")"
+		cleanup_expect_status="$(trim "$cleanup_expect_status")"
+		if [[ -z "$cleanup_expect_status" ]]; then
+			if [[ "$cleanup_method" == "DELETE" ]]; then
+				cleanup_expect_status="204"
+			else
+				cleanup_expect_status="200"
+			fi
+		fi
+
+		cleanup_url="${rest_url%/}${cleanup_path}"
+		cleanup_curl_args=(-sS -X "$cleanup_method")
+		[[ -n "$access_token" ]] && cleanup_curl_args+=(-H "Authorization: Bearer $access_token")
+		cleanup_status="$(curl "${cleanup_curl_args[@]}" -o /dev/null -w "%{http_code}" "$cleanup_url")" || rc=$?
+		if [[ "$cleanup_status" != "$cleanup_expect_status" ]]; then
+			echo "cleanup failed: expected $cleanup_expect_status but got $cleanup_status ($cleanup_method $cleanup_url)" >&2
+			exit 1
+		fi
 	fi
