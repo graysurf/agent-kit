@@ -4,12 +4,12 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-13 | [Script regression tests (pytest)](20260113_script-regression-tests-pytest.md) | [#20](https://github.com/graysurf/codex-kit/pull/20) |
 
 ## Archived
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-13 | [Script regression tests (pytest)](archived/20260113_script-regression-tests-pytest.md) | [#20](https://github.com/graysurf/codex-kit/pull/20) |
 | 2026-01-11 | [Skill contract fields and lint](archived/20260111_skill-contract-fields-and-lint.md) | [#17](https://github.com/graysurf/codex-kit/pull/17) |
 | 2026-01-10 | [API test runner: CI summary report (GitHub Actions)](archived/20260110_api-test-summary-gh-actions.md) | [#15](https://github.com/graysurf/codex-kit/pull/15) |
 | 2026-01-10 | [API test runner: CI auth via GitHub Secrets (JWT login)](archived/20260110_api-test-runner-gh-secrets-auth.md) | [#14](https://github.com/graysurf/codex-kit/pull/14) |

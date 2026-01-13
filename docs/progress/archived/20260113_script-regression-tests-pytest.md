@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-13 | 2026-01-13 |
+| DONE | 2026-01-13 | 2026-01-13 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/20
 - Planning PR: https://github.com/graysurf/codex-kit/pull/19
-- Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Docs: [docs/testing/script-regression.md](../../testing/script-regression.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -154,14 +154,14 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Exit Criteria:
     - [x] `.venv/bin/python -m pytest` executed successfully; evidence saved under `out/tests/script-regression/`.
     - [x] Known limitations are recorded (default `--help`; deeper coverage via specs): `docs/testing/script-regression.md`.
-- [ ] Step 4: Wrap-up (optional)
+- [x] Step 4: Wrap-up (optional)
   - Work Items:
     - [x] Wire `pytest` into GitHub Actions (`.github/workflows/lint.yml`).
-    - [ ] Update this progress file status and archive when implementation is complete.
+    - [x] Update this progress file status and archive when implementation is complete.
   - Artifacts:
     - None
   - Exit Criteria:
-    - [ ] Follow-up work is tracked and progress docs are consistent (status updated + index updated + archived when DONE).
+    - [x] Follow-up work is tracked and progress docs are consistent (status updated + index updated + archived when DONE).
 
 ## Modules
 
