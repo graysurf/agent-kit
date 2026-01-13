@@ -11,6 +11,11 @@ sessions/
 version.json
 
 # Env/virtualenv
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
 .venv/
 skills/_projects/**/*.env
 skills/_projects/**/*.env.*
