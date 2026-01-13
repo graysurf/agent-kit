@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "path": "/items",
+  "expect": {
+    "status": 200,
+    "jq": "(.items | type) == \"array\" and (.items | length) == 0"
+  }
+}
+

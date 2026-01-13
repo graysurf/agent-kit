@@ -1,0 +1,10 @@
+{
+  "method": "POST",
+  "path": "/items",
+  "body": { "name": "fixture" },
+  "expect": {
+    "status": 201,
+    "jq": "(.id | type) == \"string\" and (.id | length) > 0"
+  }
+}
+

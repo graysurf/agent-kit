@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "name": "api-test-runner-cleanup-fixture",
+  "defaults": {
+    "env": "staging",
+    "noHistory": true,
+    "rest": {
+      "configDir": "tests/fixtures/api-test-runner/cleanup/rest",
+      "url": "http://127.0.0.1:43127"
+    },
+    "graphql": {
+      "configDir": "tests/fixtures/api-test-runner/cleanup/graphql",
+      "url": "http://127.0.0.1:43127/graphql"
+    }
+  },
+  "cases": [
+    {
+      "id": "rest.items.create_with_cleanup",
+      "type": "rest",
+      "tags": ["cleanup", "rest", "write"],
+      "allowWrite": true,
+      "request": "tests/fixtures/api-test-runner/cleanup/rest/requests/items.create.request.json",
+      "cleanup": {
+        "type": "rest",
+        "method": "DELETE",
+        "pathTemplate": "/items/{{id}}",
+        "vars": { "id": ".id" },
+        "expectStatus": 204
+      }
+    },
+    {
+      "id": "rest.items.assert_empty",
+      "type": "rest",
+      "tags": ["cleanup", "rest"],
+      "request": "tests/fixtures/api-test-runner/cleanup/rest/requests/items.list.request.json"
+    },
+    {
+      "id": "graphql.things.create_with_cleanup",
+      "type": "graphql",
+      "tags": ["cleanup", "graphql", "write"],
+      "allowWrite": true,
+      "op": "tests/fixtures/api-test-runner/cleanup/graphql/operations/thing.create.graphql",
+      "vars": "tests/fixtures/api-test-runner/cleanup/graphql/operations/thing.create.variables.json",
+      "expect": {
+        "jq": ".data.createThing.id != null and (.data.createThing.id | type) == \"string\" and (.data.createThing.id | length) > 0"
+      },
+      "cleanup": {
+        "type": "graphql",
+        "op": "tests/fixtures/api-test-runner/cleanup/graphql/operations/thing.delete.graphql",
+        "varsJq": "{ input: { id: .data.createThing.id } }",
+        "expect": { "jq": ".data.deleteThing.success == true" }
+      }
+    },
+    {
+      "id": "rest.state.assert_empty",
+      "type": "rest",
+      "tags": ["cleanup", "rest"],
+      "request": "tests/fixtures/api-test-runner/cleanup/rest/requests/state.request.json"
+    }
+  ]
+}
+

@@ -53,6 +53,63 @@ jobs:
             out/api-test-runner/junit.xml
             out/api-test-runner/summary.md
 
+  cleanup-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run cleanup fixture suite
+        env:
+          CODEX_HOME: ${{ github.workspace }}
+          API_TEST_ALLOW_WRITES: "1"
+          API_TEST_OUTPUT_DIR: out/api-test-runner/cleanup
+        run: |
+          set -euo pipefail
+
+          port=43127
+          mkdir -p out/api-test-runner/cleanup
+
+          python3 -u tests/fixtures/api-test-runner/cleanup/server.py --port "$port" >out/api-test-runner/cleanup/server.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" >/dev/null 2>&1 || true' EXIT
+
+          for i in $(seq 1 50); do
+            if curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
+          curl -fsS "http://127.0.0.1:${port}/health" >/dev/null
+
+          skills/tools/testing/api-test-runner/scripts/api-test.sh \
+            --suite-file tests/fixtures/api-test-runner/cleanup/cleanup.suite.json \
+            --out out/api-test-runner/cleanup/results.json \
+            --junit out/api-test-runner/cleanup/junit.xml
+
+      - name: Summarize results
+        if: always()
+        run: |
+          skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
+            --in out/api-test-runner/cleanup/results.json \
+            --out out/api-test-runner/cleanup/summary.md \
+            --slow 5
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-runner-cleanup-fixture
+          path: |
+            out/api-test-runner/cleanup/
+
   public-auth-demo:
     runs-on: ubuntu-latest
     timeout-minutes: 10

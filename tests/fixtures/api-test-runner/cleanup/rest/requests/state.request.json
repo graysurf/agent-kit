@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "path": "/state",
+  "expect": {
+    "status": 200,
+    "jq": "(.restItems | type) == \"array\" and (.restItems | length) == 0 and (.graphqlThings | type) == \"array\" and (.graphqlThings | length) == 0"
+  }
+}
+

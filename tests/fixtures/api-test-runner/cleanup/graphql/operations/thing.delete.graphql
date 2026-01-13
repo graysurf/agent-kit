@@ -1,0 +1,6 @@
+mutation DeleteThing($input: DeleteThingInput!) {
+  deleteThing(input: $input) {
+    success
+  }
+}
+

@@ -175,6 +175,73 @@ Notes:
 - For REST and GraphQL endpoint selection, prefer `url` for CI determinism (avoids env preset drift).
 - `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not printed in command snippets).
 
+### Case cleanup (optional)
+
+For write cases that create persistent resources (DB rows, uploaded files, etc), attach a `cleanup` block so the runner removes test artifacts after the case runs.
+
+- `cleanup` can be an object (single step) or an array of steps.
+- Each cleanup step must include `type`: `rest` or `graphql`.
+- Cleanup steps run only when writes are allowed: `API_TEST_ALLOW_WRITES=1` (or `--allow-writes`) or when the effective `env` is `local`.
+
+REST cleanup step fields:
+
+- `method` (default: `DELETE`)
+- `pathTemplate` (required; supports `{{var}}`)
+- `vars` (optional): `{ "var": "<jq expr>" }` evaluated against the main response JSON
+- `expectStatus` (or `expect.status`) optional; defaults to `204` for `DELETE`, otherwise `200`
+
+GraphQL cleanup step fields:
+
+- `op` (required)
+- Variables (pick one):
+  - `varsJq`: jq expression producing the variables object (evaluated against the main response JSON)
+  - `varsTemplate` + `vars` (object mapping placeholders): `varsTemplate` is a JSON file that may contain `{{var}}` placeholders
+  - `vars`: a variables JSON file path (static)
+- `allowErrors` / `expect.jq`: same semantics as normal GraphQL cases (when `allowErrors=true`, `expect.jq` is required)
+
+GraphQL create + delete example (cleanup uses the create response):
+
+```json
+{
+  "id": "graphql.admin.createThing",
+  "type": "graphql",
+  "tags": ["write"],
+  "allowWrite": true,
+  "jwt": "admin",
+  "op": "setup/graphql/operations/things.create.graphql",
+  "vars": "setup/graphql/operations/things.create.variables.json",
+  "expect": { "jq": ".data.createThing.thing.id != null" },
+  "cleanup": {
+    "type": "graphql",
+    "op": "setup/graphql/operations/things.delete.graphql",
+    "varsJq": "{ input: { id: .data.createThing.thing.id } }",
+    "expect": { "jq": ".data.deleteThing.success == true" }
+  }
+}
+```
+
+REST cleanup example (delete by key extracted from the response):
+
+```json
+{
+  "id": "rest.files.images.upload",
+  "type": "rest",
+  "tags": ["write"],
+  "allowWrite": true,
+  "token": "admin",
+  "request": "setup/rest/requests/files.images.upload.request.json",
+  "cleanup": {
+    "type": "rest",
+    "method": "DELETE",
+    "pathTemplate": "/files/images/{{key}}",
+    "vars": { "key": ".key" },
+    "expectStatus": 204
+  }
+}
+```
+
+Note: `rest.sh` also supports per-request cleanup blocks; case-level `cleanup` is an alternative that can cover both REST + GraphQL in one suite.
+
 ## CI auth (GitHub Secrets / JWT login)
 
 If your JWT expires, prefer logging in at runtime in CI using a suite-level `auth` block + a single JSON GitHub Secret.

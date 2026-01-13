@@ -1,0 +1,6 @@
+mutation CreateThing($input: CreateThingInput!) {
+  createThing(input: $input) {
+    id
+  }
+}
+

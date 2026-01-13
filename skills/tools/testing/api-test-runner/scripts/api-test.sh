@@ -95,6 +95,7 @@ Notes:
   - Requires: git, jq, python3
   - Runs from any subdir inside the repo; paths are resolved relative to repo root.
   - REST requests support multipart file uploads and optional cleanup blocks (see rest.sh schema).
+  - Suite cases may optionally define .cleanup steps (REST + GraphQL) to remove write-case artifacts.
 EOF
 }
 
@@ -817,6 +818,495 @@ sys.exit(0 if op == "mutation" else 1)
 PY
 }
 
+cleanup_append_log() {
+  local file="$1"
+  shift
+
+  [[ -n "$file" ]] || return 0
+  [[ "$#" -gt 0 ]] || return 0
+  {
+    printf "%s\n" "$@"
+  } >>"$file"
+}
+
+cleanup_extract_value() {
+  local response_file="$1"
+  local expr="$2"
+
+  [[ -n "$response_file" && -f "$response_file" ]] || return 1
+  [[ -n "$expr" ]] || return 1
+
+  local out="" rc
+  set +e
+  out="$(
+    jq -r "$expr" "$response_file" 2>/dev/null |
+      head -n 1
+  )"
+  rc=$?
+  set -e
+
+  [[ "$rc" == "0" ]] || return 1
+  out="$(trim "$out")"
+  [[ -n "$out" && "$out" != "null" ]] || return 1
+  printf "%s" "$out"
+  return 0
+}
+
+cleanup_render_template() {
+  local template="$1"
+  local response_file="$2"
+  local vars_json="$3"
+
+  local out="$template"
+
+  if [[ -z "$vars_json" || "$vars_json" == "null" ]]; then
+    printf "%s" "$out"
+    return 0
+  fi
+
+  if ! printf "%s" "$vars_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    return 1
+  fi
+
+  local var_key expr value
+  while IFS= read -r var_key; do
+    [[ -n "$var_key" ]] || continue
+    expr="$(jq -r --arg key "$var_key" '.[$key] // empty' <<<"$vars_json")"
+    expr="$(trim "$expr")"
+    [[ -n "$expr" ]] || return 1
+
+    value="$(cleanup_extract_value "$response_file" "$expr" 2>/dev/null || true)"
+    value="$(trim "$value")"
+    [[ -n "$value" && "$value" != "null" ]] || return 1
+    out="${out//\{\{$var_key\}\}/$value}"
+  done < <(jq -r 'keys[]' <<<"$vars_json")
+
+  printf "%s" "$out"
+  return 0
+}
+
+cleanup_render_file_template() {
+  local template_file="$1"
+  local response_file="$2"
+  local vars_json="$3"
+  local out_file="$4"
+
+  [[ -n "$template_file" && -f "$template_file" ]] || return 1
+  [[ -n "$out_file" ]] || return 1
+
+  local rendered=""
+  rendered="$(cleanup_render_template "$(cat "$template_file")" "$response_file" "$vars_json" 2>/dev/null || true)"
+  rendered="$(trim "$rendered")"
+  [[ -n "$rendered" ]] || return 1
+
+  printf "%s\n" "$rendered" >"$out_file"
+  jq -e . "$out_file" >/dev/null 2>&1 || return 1
+  return 0
+}
+
+cleanup_run_rest_step() {
+  local step_json="$1"
+  local step_index="$2"
+
+  local method path_template vars_json cleanup_path expect_status expect_jq
+  method="$(jq -r '.method? // "DELETE"' <<<"$step_json")"
+  method="$(to_upper "$(trim "$method")")"
+  [[ -n "$method" ]] || die "Case '$id' cleanup step[$step_index] rest.method is empty"
+
+  path_template="$(jq -r '.pathTemplate? // empty' <<<"$step_json")"
+  path_template="$(trim "$path_template")"
+  [[ -n "$path_template" ]] || die "Case '$id' cleanup step[$step_index] rest.pathTemplate is required"
+
+  vars_json="$(jq -c '.vars? // {}' <<<"$step_json")"
+  cleanup_path="$(cleanup_render_template "$path_template" "$stdout_file" "$vars_json" 2>/dev/null || true)"
+  cleanup_path="$(trim "$cleanup_path")"
+  [[ -n "$cleanup_path" ]] || {
+    cleanup_append_log "$stderr_file" "cleanup(rest) render failed: step[$step_index] pathTemplate=$path_template"
+    return 1
+  }
+  [[ "$cleanup_path" == /* ]] || die "Case '$id' cleanup step[$step_index] rest.pathTemplate must resolve to an absolute path (starts with /): $cleanup_path"
+
+  expect_status="$(jq -r '.expect.status? // .expectStatus? // empty' <<<"$step_json")"
+  expect_status="$(trim "$expect_status")"
+  if [[ -z "$expect_status" ]]; then
+    if [[ "$method" == "DELETE" ]]; then
+      expect_status="204"
+    else
+      expect_status="200"
+    fi
+  fi
+  [[ "$expect_status" =~ ^[0-9]+$ ]] || die "Case '$id' cleanup step[$step_index] rest.expectStatus must be an integer: $expect_status"
+
+  expect_jq="$(jq -r '.expect.jq? // .expectJq? // empty' <<<"$step_json")"
+  expect_jq="$(trim "$expect_jq")"
+
+  local cleanup_config_dir cleanup_url cleanup_env cleanup_no_history cleanup_token cleanup_access_token
+  cleanup_config_dir="$(jq -r '.configDir? // empty' <<<"$step_json")"
+  cleanup_config_dir="$(trim "$cleanup_config_dir")"
+  if [[ -z "$cleanup_config_dir" ]]; then
+    cleanup_config_dir="${rest_config_dir:-$default_rest_config_dir}"
+  fi
+
+  cleanup_url="$(jq -r '.url? // empty' <<<"$step_json")"
+  cleanup_url="$(trim "$cleanup_url")"
+  if [[ -z "$cleanup_url" ]]; then
+    cleanup_url="${rest_url:-$default_rest_url}"
+    if [[ -z "$cleanup_url" && -n "$env_rest_url" ]]; then
+      cleanup_url="$env_rest_url"
+    fi
+  fi
+
+  cleanup_env="$(jq -r '.env? // empty' <<<"$step_json")"
+  cleanup_env="$(trim "$cleanup_env")"
+  cleanup_env="${cleanup_env:-$effective_env}"
+
+  cleanup_no_history="$(jq -r '.noHistory? // empty' <<<"$step_json")"
+  cleanup_no_history="$(to_lower "$(trim "$cleanup_no_history")")"
+  if [[ -z "$cleanup_no_history" ]]; then
+    cleanup_no_history="$effective_no_history"
+  fi
+
+  cleanup_token="$(jq -r '.token? // empty' <<<"$step_json")"
+  cleanup_token="$(trim "$cleanup_token")"
+  if [[ -z "$cleanup_token" ]]; then
+    cleanup_token="${rest_token:-${gql_jwt:-$default_rest_token}}"
+  fi
+
+  cleanup_access_token="$access_token_for_case"
+  cleanup_access_token="$(trim "$cleanup_access_token")"
+  if [[ "$auth_enabled" == "1" && -n "$cleanup_token" ]]; then
+    if ensure_auth_token "$cleanup_token"; then
+      cleanup_access_token="$(trim "$auth_token_value")"
+    else
+      if [[ -z "$cleanup_access_token" ]]; then
+        cleanup_append_log "$stderr_file" "cleanup(rest) auth failed: step[$step_index] profile=$cleanup_token"
+        cleanup_append_log "$stderr_file" "${auth_errors[$cleanup_token]:-auth_login_failed(provider=${auth_provider},profile=${cleanup_token})}"
+        return 1
+      fi
+    fi
+  fi
+
+  local effective_cleanup_config_dir
+  effective_cleanup_config_dir="$cleanup_config_dir"
+  if [[ -n "$cleanup_access_token" ]]; then
+    effective_cleanup_config_dir="$(ensure_access_token_rest_config_dir "$cleanup_config_dir")"
+  fi
+
+  local cleanup_request_file cleanup_stdout_file cleanup_stderr_file
+  cleanup_request_file="$run_dir/${safe_id}.cleanup.${step_index}.request.json"
+  cleanup_stdout_file="$run_dir/${safe_id}.cleanup.${step_index}.response.json"
+  cleanup_stderr_file="$run_dir/${safe_id}.cleanup.${step_index}.stderr.log"
+
+  jq -c -n \
+    --arg method "$method" \
+    --arg path "$cleanup_path" \
+    --argjson status "$expect_status" \
+    --arg jqexpr "$expect_jq" \
+    '
+    {
+      method: $method,
+      path: $path,
+      expect: ({ status: $status } + (if ($jqexpr | length) > 0 then { jq: $jqexpr } else {} end))
+    }
+  ' >"$cleanup_request_file"
+
+  local -a cmd
+  cmd=("$rest_runner_abs" "--config-dir" "$effective_cleanup_config_dir")
+  if [[ "$cleanup_no_history" == "true" ]]; then
+    cmd+=("--no-history")
+  fi
+  if [[ -n "$cleanup_url" ]]; then
+    cmd+=("--url" "$cleanup_url")
+  elif [[ -n "$cleanup_env" ]]; then
+    cmd+=("--env" "$cleanup_env")
+  fi
+  if [[ -n "$cleanup_token" && -z "$cleanup_access_token" ]]; then
+    cmd+=("--token" "$cleanup_token")
+  fi
+  cmd+=("${cleanup_request_file#"$repo_root"/}")
+
+  local rc=0
+  if [[ -n "$cleanup_access_token" ]]; then
+    if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$cleanup_access_token" "${cmd[@]}" >"$cleanup_stdout_file" 2>"$cleanup_stderr_file"; then
+      rc=0
+    else
+      rc=$?
+    fi
+  else
+    if "${cmd[@]}" >"$cleanup_stdout_file" 2>"$cleanup_stderr_file"; then
+      rc=0
+    else
+      rc=$?
+    fi
+  fi
+
+  if [[ "$rc" != "0" ]]; then
+    cleanup_append_log "$stderr_file" "cleanup(rest) failed: step[$step_index] rc=$rc $method $cleanup_path"
+    if [[ -s "$cleanup_stderr_file" ]]; then
+      cat "$cleanup_stderr_file" >>"$stderr_file" 2>/dev/null || true
+    fi
+    return 1
+  fi
+
+  return 0
+}
+
+cleanup_run_graphql_step() {
+  local step_json="$1"
+  local step_index="$2"
+
+  local op op_abs
+  op="$(jq -r '.op? // empty' <<<"$step_json")"
+  op="$(trim "$op")"
+  [[ -n "$op" ]] || die "Case '$id' cleanup step[$step_index] graphql.op is required"
+  op_abs="$(resolve_path "$op")"
+  [[ -f "$op_abs" ]] || die "Case '$id' cleanup step[$step_index] graphql.op not found: $op"
+
+  local cleanup_config_dir cleanup_jwt cleanup_url cleanup_env cleanup_no_history
+  cleanup_config_dir="$(jq -r '.configDir? // empty' <<<"$step_json")"
+  cleanup_config_dir="$(trim "$cleanup_config_dir")"
+  if [[ -z "$cleanup_config_dir" ]]; then
+    cleanup_config_dir="${gql_config_dir:-$default_graphql_config_dir}"
+  fi
+
+  cleanup_jwt="$(jq -r '.jwt? // empty' <<<"$step_json")"
+  cleanup_jwt="$(trim "$cleanup_jwt")"
+  if [[ -z "$cleanup_jwt" ]]; then
+    cleanup_jwt="${gql_jwt:-${rest_token:-$default_graphql_jwt}}"
+  fi
+
+  cleanup_url="$(jq -r '.url? // empty' <<<"$step_json")"
+  cleanup_url="$(trim "$cleanup_url")"
+  if [[ -z "$cleanup_url" ]]; then
+    cleanup_url="${gql_url:-$default_graphql_url}"
+    if [[ -z "$cleanup_url" && -n "$env_gql_url" ]]; then
+      cleanup_url="$env_gql_url"
+    fi
+  fi
+
+  cleanup_env="$(jq -r '.env? // empty' <<<"$step_json")"
+  cleanup_env="$(trim "$cleanup_env")"
+  cleanup_env="${cleanup_env:-$effective_env}"
+
+  cleanup_no_history="$(jq -r '.noHistory? // empty' <<<"$step_json")"
+  cleanup_no_history="$(to_lower "$(trim "$cleanup_no_history")")"
+  if [[ -z "$cleanup_no_history" ]]; then
+    cleanup_no_history="$effective_no_history"
+  fi
+
+  local allow_errors expect_jq
+  allow_errors="$(jq -r '.allowErrors? // false' <<<"$step_json")"
+  allow_errors="$(to_lower "$(trim "$allow_errors")")"
+  if [[ "$allow_errors" != "true" && "$allow_errors" != "false" ]]; then
+    die "Case '$id' cleanup step[$step_index] graphql.allowErrors must be boolean"
+  fi
+
+  expect_jq="$(jq -r '.expect.jq? // empty' <<<"$step_json")"
+  expect_jq="$(trim "$expect_jq")"
+  if [[ "$allow_errors" == "true" && -z "$expect_jq" ]]; then
+    die "Case '$id' cleanup step[$step_index] graphql allowErrors=true must set expect.jq"
+  fi
+
+  local cleanup_access_token
+  cleanup_access_token="$access_token_for_case"
+  cleanup_access_token="$(trim "$cleanup_access_token")"
+  if [[ "$auth_enabled" == "1" && -n "$cleanup_jwt" ]]; then
+    if ensure_auth_token "$cleanup_jwt"; then
+      cleanup_access_token="$(trim "$auth_token_value")"
+    else
+      if [[ -z "$cleanup_access_token" ]]; then
+        cleanup_append_log "$stderr_file" "cleanup(graphql) auth failed: step[$step_index] profile=$cleanup_jwt"
+        cleanup_append_log "$stderr_file" "${auth_errors[$cleanup_jwt]:-auth_login_failed(provider=${auth_provider},profile=${cleanup_jwt})}"
+        return 1
+      fi
+    fi
+  fi
+
+  local effective_cleanup_config_dir
+  effective_cleanup_config_dir="$cleanup_config_dir"
+  if [[ -n "$cleanup_access_token" ]]; then
+    effective_cleanup_config_dir="$(ensure_access_token_graphql_config_dir "$cleanup_config_dir")"
+  fi
+
+  local vars_jq vars_template vars_abs
+  vars_jq="$(jq -r '.varsJq? // empty' <<<"$step_json")"
+  vars_jq="$(trim "$vars_jq")"
+  vars_template="$(jq -r '.varsTemplate? // empty' <<<"$step_json")"
+  vars_template="$(trim "$vars_template")"
+  vars_abs=""
+
+  local vars_tmp
+  vars_tmp="$run_dir/${safe_id}.cleanup.${step_index}.vars.json"
+
+  if [[ -n "$vars_jq" ]]; then
+    local rc=0
+    set +e
+    jq -c "$vars_jq" "$stdout_file" >"$vars_tmp" 2>/dev/null
+    rc=$?
+    set -e
+    if [[ "$rc" != "0" ]] || ! jq -e 'type == "object"' "$vars_tmp" >/dev/null 2>&1; then
+      cleanup_append_log "$stderr_file" "cleanup(graphql) varsJq failed: step[$step_index] varsJq=$vars_jq"
+      return 1
+    fi
+    vars_abs="$vars_tmp"
+  elif [[ -n "$vars_template" ]]; then
+    local vars_template_abs vars_type vars_json
+    vars_template_abs="$(resolve_path "$vars_template")"
+    [[ -f "$vars_template_abs" ]] || die "Case '$id' cleanup step[$step_index] graphql.varsTemplate not found: $vars_template"
+    vars_type="$(jq -r 'if has("vars") then (.vars | type) else "" end' <<<"$step_json")"
+    if [[ -n "$vars_type" && "$vars_type" != "object" ]]; then
+      die "Case '$id' cleanup step[$step_index] graphql.vars must be an object when varsTemplate is set"
+    fi
+    vars_json="$(jq -c '.vars? // {}' <<<"$step_json")"
+    if ! cleanup_render_file_template "$vars_template_abs" "$stdout_file" "$vars_json" "$vars_tmp"; then
+      cleanup_append_log "$stderr_file" "cleanup(graphql) varsTemplate render failed: step[$step_index] template=$vars_template"
+      return 1
+    fi
+    vars_abs="$vars_tmp"
+  else
+    local vars_present vars_type vars_file_raw
+    vars_present="$(jq -r 'has("vars")' <<<"$step_json")"
+    if [[ "$vars_present" == "true" ]]; then
+      vars_type="$(jq -r '.vars | type' <<<"$step_json")"
+      if [[ "$vars_type" == "string" ]]; then
+        vars_file_raw="$(jq -r '.vars' <<<"$step_json")"
+        vars_file_raw="$(trim "$vars_file_raw")"
+        [[ -n "$vars_file_raw" ]] || die "Case '$id' cleanup step[$step_index] graphql.vars is empty"
+        vars_abs="$(resolve_path "$vars_file_raw")"
+        [[ -f "$vars_abs" ]] || die "Case '$id' cleanup step[$step_index] graphql.vars not found: $vars_file_raw"
+      elif [[ "$vars_type" != "null" && -n "$vars_type" ]]; then
+        die "Case '$id' cleanup step[$step_index] graphql.vars must be a file path string when varsTemplate/varsJq are not set"
+      fi
+    fi
+  fi
+
+  local cleanup_stdout_file cleanup_stderr_file
+  cleanup_stdout_file="$run_dir/${safe_id}.cleanup.${step_index}.response.json"
+  cleanup_stderr_file="$run_dir/${safe_id}.cleanup.${step_index}.stderr.log"
+
+  local -a cmd
+  cmd=("$gql_runner_abs" "--config-dir" "$effective_cleanup_config_dir")
+  if [[ "$cleanup_no_history" == "true" ]]; then
+    cmd+=("--no-history")
+  fi
+  if [[ -n "$cleanup_url" ]]; then
+    cmd+=("--url" "$cleanup_url")
+  elif [[ -n "$cleanup_env" ]]; then
+    cmd+=("--env" "$cleanup_env")
+  fi
+  if [[ -n "$cleanup_jwt" && -z "$cleanup_access_token" ]]; then
+    cmd+=("--jwt" "$cleanup_jwt")
+  fi
+  cmd+=("${op_abs#"$repo_root"/}")
+  if [[ -n "$vars_abs" ]]; then
+    cmd+=("${vars_abs#"$repo_root"/}")
+  fi
+
+  local rc=0
+  if [[ -n "$cleanup_access_token" ]]; then
+    if REST_TOKEN_NAME="" GQL_JWT_NAME="" ACCESS_TOKEN="$cleanup_access_token" "${cmd[@]}" >"$cleanup_stdout_file" 2>"$cleanup_stderr_file"; then
+      rc=0
+    else
+      rc=$?
+    fi
+  else
+    if "${cmd[@]}" >"$cleanup_stdout_file" 2>"$cleanup_stderr_file"; then
+      rc=0
+    else
+      rc=$?
+    fi
+  fi
+
+  if [[ "$rc" != "0" ]]; then
+    cleanup_append_log "$stderr_file" "cleanup(graphql) runner failed: step[$step_index] rc=$rc op=$op"
+    if [[ -s "$cleanup_stderr_file" ]]; then
+      cat "$cleanup_stderr_file" >>"$stderr_file" 2>/dev/null || true
+    fi
+    return 1
+  fi
+
+  if ! jq -e '(.errors? | length // 0) == 0' "$cleanup_stdout_file" >/dev/null 2>&1; then
+    if [[ "$allow_errors" != "true" ]]; then
+      cleanup_append_log "$stderr_file" "cleanup(graphql) errors present: step[$step_index] op=$op"
+      return 1
+    fi
+  fi
+
+  if [[ -n "$expect_jq" ]]; then
+    if ! jq -e "$expect_jq" "$cleanup_stdout_file" >/dev/null 2>&1; then
+      cleanup_append_log "$stderr_file" "cleanup(graphql) expect.jq failed: step[$step_index] $expect_jq"
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+run_case_cleanup() {
+  local case_index="$1"
+
+  local cleanup_type
+  cleanup_type="$(jq -r "(.cases[$case_index].cleanup? // null) | type" "$suite_path" 2>/dev/null || true)"
+  cleanup_type="$(trim "$cleanup_type")"
+  if [[ -z "$cleanup_type" || "$cleanup_type" == "null" ]]; then
+    return 0
+  fi
+
+  if [[ "$allow_writes" != "1" && "$(to_lower "$effective_env")" != "local" ]]; then
+    cleanup_append_log "$stderr_file" "cleanup skipped (writes disabled): enable with API_TEST_ALLOW_WRITES=1 (or --allow-writes)"
+    return 0
+  fi
+
+  if [[ -z "$stdout_file" || ! -f "$stdout_file" ]]; then
+    cleanup_append_log "$stderr_file" "cleanup failed: missing main response file"
+    return 1
+  fi
+
+  local cleanup_step_count=0
+  if [[ "$cleanup_type" == "object" ]]; then
+    cleanup_step_count=1
+  elif [[ "$cleanup_type" == "array" ]]; then
+    cleanup_step_count="$(jq -r ".cases[$case_index].cleanup | length" "$suite_path")"
+  else
+    die "Case '$id' cleanup must be an object or array (got: $cleanup_type)"
+  fi
+
+  local any_failed=0
+  local j step_json step_type rc
+  for ((j=0; j<cleanup_step_count; j++)); do
+    if [[ "$cleanup_type" == "array" ]]; then
+      step_json="$(jq -c ".cases[$case_index].cleanup[$j]" "$suite_path")"
+    else
+      step_json="$(jq -c ".cases[$case_index].cleanup" "$suite_path")"
+    fi
+
+    step_type="$(jq -r '.type? // empty' <<<"$step_json")"
+    step_type="$(to_lower "$(trim "$step_type")")"
+    [[ -n "$step_type" ]] || die "Case '$id' cleanup step[$j] is missing type"
+    if [[ "$step_type" == "gql" ]]; then
+      step_type="graphql"
+    fi
+
+    rc=0
+    if [[ "$step_type" == "rest" ]]; then
+      cleanup_run_rest_step "$step_json" "$j"
+      rc=$?
+    elif [[ "$step_type" == "graphql" ]]; then
+      cleanup_run_graphql_step "$step_json" "$j"
+      rc=$?
+    else
+      die "Case '$id' cleanup step[$j] has invalid type (expected: rest|graphql): $step_type"
+    fi
+
+    if [[ "$rc" != "0" ]]; then
+      any_failed=1
+    fi
+  done
+
+  [[ "$any_failed" == "0" ]] || return 1
+  return 0
+}
+
 case_matches_tags() {
   local tags_json="$1"
   if [[ "${#tag_filters[@]}" -eq 0 ]]; then
@@ -913,6 +1403,13 @@ for ((i=0; i<case_count; i++)); do
     rc=0
 
     safe_id="$(sanitize_id "$id")"
+    rest_config_dir=""
+    rest_token=""
+    rest_url=""
+    gql_config_dir=""
+    gql_jwt=""
+    gql_url=""
+    access_token_for_case=""
 
     if [[ "$type" == "rest" ]]; then
       request="$(jq -r ".cases[$i].request // empty" "$suite_path")"
@@ -1172,19 +1669,20 @@ for ((i=0; i<case_count; i++)); do
           )"
           token="$(trim "$token")"
 
-          if [[ -z "$token" || "$token" == "null" ]]; then
-            status="failed"
-            failed=$((failed + 1))
-            message="rest_flow_token_extract_failed"
+	          if [[ -z "$token" || "$token" == "null" ]]; then
+	            status="failed"
+	            failed=$((failed + 1))
+	            message="rest_flow_token_extract_failed"
             {
               echo "Failed to extract token from login response."
               echo "Hint: set cases[$i].tokenJq to the token field (e.g. .accessToken)."
             } >"$stderr_file"
-          else
-            rc=0
-            stdout_file="$run_dir/${safe_id}.response.json"
-            if REST_TOKEN_NAME="" ACCESS_TOKEN="$token" "${main_cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
-              rc=0
+	          else
+	            access_token_for_case="$token"
+	            rc=0
+	            stdout_file="$run_dir/${safe_id}.response.json"
+	            if REST_TOKEN_NAME="" ACCESS_TOKEN="$token" "${main_cmd[@]}" >"$stdout_file" 2>"$stderr_file"; then
+	              rc=0
             else
               rc=$?
             fi
@@ -1410,13 +1908,30 @@ for ((i=0; i<case_count; i++)); do
         fi
       fi
 
-    else
-      die "Unknown case type '$type' for case '$id'"
-    fi
+	    else
+	      die "Unknown case type '$type' for case '$id'"
+	    fi
 
-    end_ms="$(now_ms)"
-    duration_ms=$((end_ms - start_ms))
-  fi
+	    if [[ "$execute_case" == "1" ]]; then
+	      cleanup_rc=0
+	      set +e
+	      run_case_cleanup "$i"
+	      cleanup_rc=$?
+	      set -e
+
+	      if [[ "$cleanup_rc" != "0" ]]; then
+	        if [[ "$status" == "passed" ]]; then
+	          status="failed"
+	          message="cleanup_failed"
+	          passed=$((passed - 1))
+	          failed=$((failed + 1))
+	        fi
+	      fi
+	    fi
+
+	    end_ms="$(now_ms)"
+	    duration_ms=$((end_ms - start_ms))
+	  fi
 
   stdout_rel=""
   stderr_rel=""
