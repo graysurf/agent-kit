@@ -4,6 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
+| 2026-01-13 | [Script regression tests (pytest)](20260113_script-regression-tests-pytest.md) | TBD |
 
 ## Archived
 
