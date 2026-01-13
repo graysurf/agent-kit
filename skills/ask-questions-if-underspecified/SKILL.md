@@ -71,14 +71,14 @@ Use a compact, scannable structure. Example:
 ```text
 Need to know
 1) Scope?
-   1.1) **Minimal change**
-   1.2) Refactor while touching the area
-   1.3) Not sure - use default
+   a) **Minimal change**
+   b) Refactor while touching the area
+   c) Not sure - use default
 2) Compatibility target?
-   2.1) **Current project defaults**
-   2.2) Also support older versions: <specify>
-   2.3) Not sure - use default
-Reply with: defaults (or 1.1 2.1)
+   a) **Current project defaults**
+   b) Also support older versions: <specify>
+   c) Not sure - use default
+Reply with: defaults (or 1a 2a)
 ```
 
 ## If asked to proceed without answers
