@@ -38,7 +38,7 @@ Links:
 - Script entrypoints: tracked files under `scripts/**` and `skills/**/scripts/**`.
 - Existing regression specs: `tests/script_specs/**/*.json`.
 - New smoke inputs (planned):
-  - `tests/script_smoke_specs/**/*.json` (spec-driven smoke cases).
+  - Extend `tests/script_specs/**/*.json` schema to support smoke cases (in addition to regression `--help`).
   - `tests/fixtures/**` (fixture repos/files used by pytest-driven smoke cases).
   - `tests/stubs/bin/**` (stub commands for hermetic execution).
 
@@ -61,11 +61,17 @@ Links:
 - Add a separate smoke layer for "does it actually work" paths using deterministic fixtures and stubs (avoid touching the real repo state).
 - Prefer spec-driven smoke when a script can be exercised safely in-place; fall back to pytest fixtures when setup/teardown is required (e.g. temporary git repos, mutable working trees).
 
+### Selected Defaults
+
+- Smoke specs live in `tests/script_specs/**` (schema extended for smoke cases), rather than a new `tests/script_smoke_specs/**` tree.
+- Any git-mutating scripts run only inside isolated temporary git repos (pytest fixtures); never in the real repo working tree.
+
 ### Risks / Uncertainties
 
 - Runtime + maintenance cost: 42 scripts today, likely more over time; adding smoke coverage everywhere can bloat CI. Mitigation: tiering + timeouts + explicit allowlist progression.
 - Flakiness from environment coupling (PATH tools, OS differences, network). Mitigation: hermetic env (`tests/stubs/bin`, `HOME/XDG_*` redirection) + fixture repos + "dry-run" modes.
 - Some scripts may be inherently interactive or destructive (git history mutation, database connections). Mitigation: run those only in isolated temporary repos or keep them `help-only` with a documented reason.
+- CI contract for smoke: run full smoke on every PR vs scheduled/manual. Mitigation: start with an allowlist, then expand once runtime is measured.
 
 ## Steps (Checklist)
 
@@ -86,11 +92,11 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - [ ] Step 1: Minimum viable smoke suite
   - Work Items:
     - [ ] Add a new pytest marker for smoke (e.g. `script_smoke`) and a harness that can run "smoke cases".
-    - [ ] Define the first smoke spec schema (or directory convention) and implement loading logic.
+    - [ ] Extend the existing `tests/script_specs/**` JSON schema to support smoke cases (and implement loading logic).
     - [ ] Add initial fixtures/stubs and smoke coverage for a small starter set (5–8 scripts).
   - Artifacts:
     - `tests/test_script_smoke.py` (planned)
-    - `tests/script_smoke_specs/**` (planned)
+    - `tests/script_specs/**` (extended with smoke cases; planned)
     - `tests/fixtures/**` (planned)
     - `docs/testing/script-smoke.md` (planned)
   - Exit Criteria:
@@ -103,7 +109,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [ ] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
     - [ ] Add negative tests for "placeholder left behind" failure modes where relevant.
   - Artifacts:
-    - `tests/script_smoke_specs/**` (expanded)
+    - `tests/script_specs/**` (smoke cases expanded)
     - `tests/fixtures/**` (expanded)
     - `tests/stubs/bin/**` (expanded)
   - Exit Criteria:
