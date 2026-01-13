@@ -708,7 +708,7 @@ def render_progress_section():
 def render_implementation_section():
   return [
     "## Implementation",
-    f"- [PR #{impl_num}: {impl_title}]({impl_url})",
+    f"- #{impl_num}",
     "",
   ]
 

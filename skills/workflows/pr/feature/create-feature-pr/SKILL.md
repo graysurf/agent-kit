@@ -67,6 +67,9 @@ Failure modes:
 - Progress (optional):
   - If a progress file exists, include a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
   - If no progress file, write `None` under `## Progress`.
+- Planning PR (optional):
+  - If this feature work follows a planning PR, add `## Planning PR` and reference it as `- #<number>` (no extra text/URL).
+  - If no planning PR, write `None` under `## Planning PR`.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `scripts/render_feature_pr.sh --pr` to generate the PR template quickly.

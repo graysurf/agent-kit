@@ -68,7 +68,7 @@ Recommended pattern for feature PR bodies:
 
 - Keep `## Progress` as-is (link to the progress file).
 - Add `## Planning PR`:
-  - `- PR #<number>: <title> (<url>)`
+  - `- #<number>`
 
 ## Workflow
 

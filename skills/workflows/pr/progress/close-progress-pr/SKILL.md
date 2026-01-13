@@ -93,7 +93,7 @@ If the progress file includes a `Links -> Planning PR` entry, ensure that planni
    - Extract planning PR from the progress file `Links -> Planning PR`
    - Ensure the planning PR body contains:
      - `## Implementation`
-       - `- [PR #<feature_pr_number>: <feature_pr_title>](<feature_pr_url>)`
+       - `- #<feature_pr_number>`
 
 ## Optional helper script
 
