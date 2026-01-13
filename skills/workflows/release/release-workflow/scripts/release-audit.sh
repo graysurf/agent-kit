@@ -82,7 +82,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   die "not a git repository: $repo"
 fi
 
-if [[ "$version" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]]; then
+if [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   say_ok "version format: $version"
 else
   if (( strict )); then
