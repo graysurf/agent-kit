@@ -93,3 +93,46 @@ jobs:
             echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
             exit 1
           fi
+
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install zsh (for script shebangs)
+        run: |
+          if ! command -v zsh >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y zsh
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install pytest deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Pytest
+        env:
+          CODEX_HOME: ${{ github.workspace }}
+        run: |
+          scripts/test.sh
+
+      - name: Upload script regression artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-artifacts
+          if-no-files-found: warn
+          path: |
+            out/tests/script-regression/summary.json
+            out/tests/script-regression/logs

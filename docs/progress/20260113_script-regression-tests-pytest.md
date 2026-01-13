@@ -13,13 +13,13 @@ Links:
 
 ## Goal
 
-- Add a hermetic, local-only regression test suite (`pytest`) for all repo scripts (including skill scripts and audit scripts).
+- Add a hermetic regression test suite (`pytest`) for all repo scripts (including skill scripts and audit scripts), runnable locally and in CI.
 - Ensure every script is exercised at least once in a safe mode (default: `--help`) with deterministic stubs and no network access.
 - Make script behavior verifiable with reproducible evidence under `out/` (logs + summary), and document how to extend coverage.
 
 ## Acceptance Criteria
 
-- `python3 -m pytest` passes locally (no GitHub Actions required for this workstream).
+- `scripts/test.sh` (or `python -m pytest`) passes locally and in GitHub Actions.
 - Test discovery covers 100% of tracked script entrypoints under `scripts/`, `scripts/commands/`, and `skills/**/scripts/`.
 - Each discovered script has an executable test invocation (default: `--help`; or an explicit per-script spec) and runs in a hermetic sandbox:
   - `HOME` and `XDG_*` point to temp dirs under `out/tests/script-regression/`
@@ -32,11 +32,11 @@ Links:
   - Add a Python test harness under `tests/` using `pytest` (stdlib + pytest only).
   - Add a script discovery + execution layer that runs each script with a safe invocation and a timeout.
   - Add repo-local stubs used by the harness (e.g., `tests/stubs/bin/*`) to make execution hermetic and non-destructive.
+  - Wire `pytest` into GitHub Actions so PRs and pushes run `scripts/test.sh`.
   - Add lightweight validations for non-code assets:
     - `prompts/*.md` YAML front matter is parseable and includes required keys (exact key set TBD).
     - `skills/**/SKILL.md` contract lint remains enforced (via `scripts/validate_skill_contracts.sh` and/or direct parsing).
 - Out-of-scope:
-  - Wiring `pytest` into GitHub Actions (explicitly local-only for now).
   - End-to-end integration tests that require real external services, credentials, or network access.
   - Large refactors of scripts unrelated to testability (only minimal changes to support safe invocations, when needed).
 
@@ -83,7 +83,7 @@ Links:
 
 ### Decisions
 
-- Test runner: `pytest` (Python), local-only (no CI wiring in this workstream).
+- Test runner: `pytest` (Python), runs locally and in GitHub Actions.
 - Coverage rule: every discovered script must have an executable test invocation (default `--help`, or explicit spec).
 - Scripts that require secrets/interactive input: graceful-fail is considered pass when the failure is expected and non-destructive (record expected error patterns in specs).
 - Per-script spec format + location: `tests/script_specs/<script_relpath>.json`.
@@ -156,7 +156,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Known limitations are recorded (default `--help`; deeper coverage via specs): `docs/testing/script-regression.md`.
 - [ ] Step 4: Wrap-up (optional)
   - Work Items:
-    - [ ] Decide whether to add a follow-up PR to wire tests into CI (out-of-scope for this workstream).
+    - [x] Wire `pytest` into GitHub Actions (`.github/workflows/lint.yml`).
     - [ ] Update this progress file status and archive when implementation is complete.
   - Artifacts:
     - None
