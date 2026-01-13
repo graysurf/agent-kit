@@ -1,12 +1,36 @@
 #!/usr/bin/env -S zsh -f
 set -e
 
-# Bundled from: ~/.config/zsh/cache/wrappers/bin/git-tools
+# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.8fnvct8R5N
 : "${ZDOTDIR:=$HOME/.config/zsh}"
 export ZDOTDIR
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
 export ZSH_BOOTSTRAP_SCRIPT_DIR="${ZSH_BOOTSTRAP_SCRIPT_DIR:-$ZDOTDIR/bootstrap}"
 export ZSH_SCRIPT_DIR="${ZSH_SCRIPT_DIR:-$ZDOTDIR/scripts}"
+
+# --- BEGIN _internal/wrappers.bundle-prelude.zsh
+# Wrapper runtime prelude for bundled cached CLI wrappers.
+#
+# This file is intended to be *inlined* into generated wrapper binaries under:
+#   $ZSH_CACHE_DIR/wrappers/bin/*
+#
+# It should remain safe to execute (no top-level `return`), and it should not
+# depend on any other files at runtime.
+
+# bundle-wrapper.zsh emits `set -e`; disable it to match the previous wrapper behavior.
+set +e
+
+typeset wrapper_bin="${0:A:h}"
+[[ -d "$wrapper_bin" ]] && export PATH="$wrapper_bin:$PATH"
+
+typeset wrapper_cache_dir="${wrapper_bin:h:h}"
+export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$wrapper_cache_dir}"
+export ZSH_COMPDUMP="${ZSH_COMPDUMP:-$ZSH_CACHE_DIR/.zcompdump}"
+
+[[ -d "$ZSH_CACHE_DIR" ]] || mkdir -p -- "$ZSH_CACHE_DIR"
+
+
+# --- END _internal/wrappers.bundle-prelude.zsh
 
 # --- BEGIN ~/.config/zsh/bootstrap/00-preload.zsh
 # safe_unalias [-v] <name...>
@@ -1258,9 +1282,10 @@ git-commit-to-stash() {
 
 # git-commit-context [--stdout|--both] [--no-color]
 # Generate a Markdown commit context for the current staged changes.
-# Usage: git-commit-context [--stdout|--both] [--no-color]
+# Usage: git-commit-context [--stdout|--both] [--no-color] [--include <path/glob>]
 # Notes:
 # - Includes: scope tree (`git-scope staged`), staged diff, and per-file staged contents (index version).
+# - Lockfile contents are hidden by default; use --include to show selected files.
 # - Default copies to clipboard via `set_clipboard`; use `--stdout` to print only.
 # - `--no-color` also applies when `NO_COLOR` is set.
 git-commit-context () {
@@ -1270,7 +1295,14 @@ git-commit-context () {
   typeset tmpfile='' diff='' scope='' contents='' mode='clipboard'
   typeset no_color=false
   typeset arg=''
+  typeset include_arg=''
+  typeset -a include_patterns=()
   typeset -a extra_args=()
+
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    print -u2 -r -- "❌ Not a git repository."
+    return 1
+  fi
 
   while [[ $# -gt 0 ]]; do
     arg="${1-}"
@@ -1284,11 +1316,24 @@ git-commit-context () {
       --no-color|no-color)
         no_color=true
         ;;
+      --include)
+        shift
+        include_arg="${1-}"
+        if [[ -z "$include_arg" ]]; then
+          print -u2 -r -- "❌ Missing value for --include"
+          return 2
+        fi
+        include_patterns+=("$include_arg")
+        ;;
+      --include=*)
+        include_patterns+=("${arg#*=}")
+        ;;
       --help|-h)
-        print -r -- "Usage: git-commit-context [--stdout|--both] [--no-color]"
+        print -r -- "Usage: git-commit-context [--stdout|--both] [--no-color] [--include <path/glob>]"
         print -r -- "  --stdout   Print commit context to stdout only"
         print -r -- "  --both     Print to stdout and copy to clipboard"
         print -r -- "  --no-color Disable ANSI colors (also via NO_COLOR)"
+        print -r -- "  --include  Show full content for selected paths (repeatable)"
         return 0
         ;;
       *)
@@ -1320,6 +1365,11 @@ git-commit-context () {
   contents="$(
     git -c core.quotepath=false diff --cached --name-status -z | while IFS= read -r -d '' fstatus; do
       typeset file='' newfile=''
+      typeset display_path='' content_path='' numstat='' added='' deleted=''
+      typeset include_content=false
+      typeset lockfile=false
+      typeset binary_file=false
+      typeset blob_ref='' blob_size='' blob_type=''
 
       if [[ -z "$fstatus" ]]; then
         continue
@@ -1343,7 +1393,67 @@ git-commit-context () {
         content_path="$newfile"
       fi
 
+      for include_pattern in "${include_patterns[@]}"; do
+        if [[ -n "$include_pattern" && "$content_path" == ${~include_pattern} ]]; then
+          include_content=true
+          break
+        fi
+      done
+
+      case "${content_path:t}" in
+        yarn.lock|package-lock.json|pnpm-lock.yaml|bun.lockb|bun.lock|npm-shrinkwrap.json)
+          lockfile=true
+          ;;
+        *)
+          ;;
+      esac
+
       printf "### %s (%s)\n\n" "$display_path" "$fstatus"
+
+      if [[ "$fstatus" == "D" ]]; then
+        blob_ref="HEAD:$file"
+      else
+        blob_ref=":$content_path"
+      fi
+
+      numstat="$(git diff --cached --numstat -- "$content_path" 2>/dev/null | head -n 1)"
+      if [[ -n "$numstat" ]]; then
+        IFS=$' \t' read -r added deleted _ <<< "$numstat"
+        if [[ "$added" == "-" || "$deleted" == "-" ]]; then
+          binary_file=true
+        fi
+      fi
+
+      if [[ "$binary_file" == false && -n "$blob_ref" && -x "$(command -v file)" ]]; then
+        if git cat-file -e "$blob_ref" 2>/dev/null; then
+          blob_type="$(git cat-file -p "$blob_ref" 2>/dev/null | head -c 8192 | file -b --mime - 2>/dev/null)"
+          if [[ "$blob_type" == *"charset=binary"* ]]; then
+            binary_file=true
+          fi
+        fi
+      fi
+
+      if [[ "$binary_file" == true ]]; then
+        blob_size="$(git cat-file -s "$blob_ref" 2>/dev/null)"
+        printf "[Binary file content hidden]\n\n"
+        if [[ -n "$blob_size" ]]; then
+          printf "Size: %s bytes\n" "$blob_size"
+        fi
+        if [[ -n "$blob_type" ]]; then
+          printf "Type: %s\n" "$blob_type"
+        fi
+        printf "\n"
+        continue
+      fi
+
+      if [[ "$lockfile" == true && "$include_content" != true ]]; then
+        printf "[Lockfile content hidden]\n\n"
+        if [[ -n "$added" && -n "$deleted" && "$added" != "-" && "$deleted" != "-" ]]; then
+          printf "Summary: +%s -%s\n" "$added" "$deleted"
+        fi
+        printf "Tip: use --include %s to show full content\n\n" "$content_path"
+        continue
+      fi
 
       if [[ "$fstatus" == "D" ]]; then
         if git cat-file -e "HEAD:$file" 2>/dev/null; then
@@ -1523,11 +1633,19 @@ _git_scope_render_with_type() {
 
   printf "\n📄 Changed files:\n"
 
-  while IFS=$'\t' read -r kind file; do
-    [[ -z "$file" ]] && continue
-    files+=("$file")
+  while IFS=$'\t' read -r kind src dest; do
+    [[ -z "$src" ]] && continue
+
+    typeset display_path="$src"
+    typeset file_path="$src"
+    if [[ ( "$kind" == R* || "$kind" == C* ) && -n "$dest" ]]; then
+      display_path="${src} -> ${dest}"
+      file_path="$dest"
+    fi
+
+    files+=("$file_path")
     typeset color="$(_git_scope_kind_color "$kind")"
-    printf "  %b➔ [%s] %s%b\n" "$color" "$kind" "$file" "$color_reset"
+    printf "  %b➔ [%s] %s%b\n" "$color" "$kind" "$display_path" "$color_reset"
   done <<< "$input"
 
   _git_scope_render_tree "${(F)files}"
@@ -1799,6 +1917,7 @@ _git_scope_render_commit_files() {
   typeset -a preface_lines=()
 
   typeset ns_lines='' numstat_lines=''
+  typeset -A numstat_by_path=()
   typeset -a parents=()
   typeset parent_count=0
   typeset is_merge=false
@@ -1864,24 +1983,60 @@ _git_scope_render_commit_files() {
     printf "  ℹ️  Merge commit with %d parents — showing diff against parent #%d (%s)\n" "$parent_count" "$selected_index" "${selected_parent_short:-$selected_parent_hash}"
   fi
 
-  while IFS=$'\t' read -r kind file; do
-    [[ -z "$file" ]] && continue
-    file_list+=("$file")
+  while IFS=$'\t' read -r add del raw_path; do
+    [[ -z "$raw_path" ]] && continue
+
+    typeset canonical_path="$raw_path"
+    if [[ "$raw_path" == *"=>"* ]]; then
+      if [[ "$raw_path" == *"{"* && "$raw_path" == *"}"* ]]; then
+        typeset prefix="${raw_path%%\{*}"
+        typeset after_open="${raw_path#*\{}"
+        typeset inside="${after_open%%\}*}"
+        typeset suffix="${after_open#*\}}"
+
+        typeset new_part="${inside##*=> }"
+        if [[ "$new_part" == "$inside" ]]; then
+          new_part="${inside##*=>}"
+          new_part="${new_part## }"
+        fi
+
+        canonical_path="${prefix}${new_part}${suffix}"
+      else
+        canonical_path="${raw_path##*=> }"
+        if [[ "$canonical_path" == "$raw_path" ]]; then
+          canonical_path="${raw_path##*=>}"
+          canonical_path="${canonical_path## }"
+        fi
+      fi
+    fi
+
+    numstat_by_path["$canonical_path"]="${add}"$'\t'"${del}"
+  done <<< "$numstat_lines"
+
+  while IFS=$'\t' read -r kind src dest; do
+    [[ -z "$src" ]] && continue
+
+    typeset display_path="$src"
+    typeset file_path="$src"
+    if [[ ( "$kind" == R* || "$kind" == C* ) && -n "$dest" ]]; then
+      display_path="${src} -> ${dest}"
+      file_path="$dest"
+    fi
+
+    file_list+=("$file_path")
 
     typeset add="-"
     typeset del="-"
-    typeset match_line=''
-    match_line=$(printf "%s\n" "$numstat_lines" | awk -v f="$file" -F'\t' '$3 == f { print $1 "\t" $2; exit }')
-
-    if [[ -n "$match_line" ]]; then
-      add=$(cut -f1 <<< "$match_line")
-      del=$(cut -f2 <<< "$match_line")
+    typeset stats="${numstat_by_path["$file_path"]-}"
+    if [[ -n "$stats" ]]; then
+      add="${stats%%$'\t'*}"
+      del="${stats#*$'\t'}"
       [[ "$add" != "-" ]] && total_add=$((total_add + add))
       [[ "$del" != "-" ]] && total_del=$((total_del + del))
     fi
 
     typeset color="$(_git_scope_kind_color "$kind")"
-    printf "  %b➤ [%s] %s  [+%s / -%s]%b\n" "$color" "$kind" "$file" "$add" "$del" "$color_reset"
+    printf "  %b➤ [%s] %s  [+%s / -%s]%b\n" "$color" "$kind" "$display_path" "$add" "$del" "$color_reset"
   done <<< "$ns_lines"
 
   printf "\n  📊 Total: +%d / -%d\n" "$total_add" "$total_del"
