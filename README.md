@@ -43,6 +43,7 @@ All tracked skills must include a minimal `## Contract` section (5 required head
 | [create-feature-pr](./skills/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | [close-feature-pr](./skills/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | [create-progress-pr](./skills/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
+| [handoff-progress-pr](./skills/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
 | [close-progress-pr](./skills/close-progress-pr/) | Finalize/archive a progress file for a PR, then merge and patch Progress links to base branch |
 | [find-and-fix-bugs](./skills/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | [open-changed-files-review](./skills/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
