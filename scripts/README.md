@@ -30,8 +30,8 @@ zsh -f scripts/build/bundle-wrapper.zsh \
 
 Notes:
 
-- Only simple `source` lines and the `typeset -a sources=(...)` pattern
-  are supported.
+- Only simple `source` lines and the `typeset -a sources=(...)` / `typeset -a exec_sources=(...)`
+  patterns are supported.
 - The bundler writes a shebang + minimal env exports into the output file.
 - If the wrapper relies on side effects (PATH, cache dirs, etc.), you may
   need to expand the bundler to inline those sections too.
