@@ -15,6 +15,11 @@ version.json
 skills/_projects/**/*.env
 skills/_projects/**/*.env.*
 
+# Python / pytest
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Logs/output
 *.log
 log/

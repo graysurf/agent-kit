@@ -2,11 +2,12 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-13 | 2026-01-13 |
+| IN PROGRESS | 2026-01-13 | 2026-01-13 |
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/19
+- PR: TBD
+- Planning PR: https://github.com/graysurf/codex-kit/pull/19
 - Docs: TBD
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
 
