@@ -16,12 +16,12 @@ Prereqs:
 Inputs:
 
 - Feature summary + acceptance criteria (preferred) or inferred from the latest commit subject.
-- Related progress file path under `docs/progress/` to link in the PR body.
+- Optional: related progress file path under `docs/progress/` to link in the PR body.
 
 Outputs:
 
 - A new branch `feat/<slug>`, one or more commits, and a GitHub PR created via `gh`.
-- PR body populated from `references/PR_TEMPLATE.md` with a full GitHub URL to the progress file.
+- PR body populated from `references/PR_TEMPLATE.md` (include a full GitHub URL to the progress file when provided).
 
 Exit codes:
 
@@ -31,7 +31,7 @@ Failure modes:
 
 - Dirty working tree or wrong base branch.
 - Missing `gh` auth or insufficient permissions to push/create PR.
-- PR body missing required sections or missing/invalid progress link.
+- PR body missing required sections; if using a progress file, missing/invalid progress link.
 
 ## Setup
 
@@ -64,8 +64,9 @@ Failure modes:
 
 - Title: capitalize the first word; reflect the feature outcome; do not reuse the commit subject verbatim.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
-- Progress: include a link to the related progress file under `docs/progress/` (and update to `docs/progress/archived/` when DONE).
-  - Use a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
+- Progress (optional):
+  - If a progress file exists, include a full GitHub URL (e.g. `https://github.com/<owner>/<repo>/blob/<branch>/docs/progress/...`) because PR bodies resolve relative links under `/pull/`.
+  - If no progress file, write `None` under `## Progress`.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `scripts/render_feature_pr.sh --pr` to generate the PR template quickly.
