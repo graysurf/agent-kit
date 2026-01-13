@@ -10,7 +10,7 @@ Options:
   --in <path>         Input results JSON file (default: stdin)
   --out <path>        Write Markdown summary to a file (optional)
   --slow <n>          Show slowest N executed cases (default: 5)
-  --show-skipped      Include skipped cases list (default: off)
+  --hide-skipped      Do not show skipped cases list (default: on)
   --max-failed <n>    Max failed cases to print (default: 50)
   --max-skipped <n>   Max skipped cases to print (default: 50)
   --no-github-summary Do not write to $GITHUB_STEP_SUMMARY
@@ -25,7 +25,7 @@ EOF
 in_file=""
 out_file=""
 slow_n="5"
-show_skipped="0"
+show_skipped="1"
 max_failed="50"
 max_skipped="50"
 write_github_summary="1"
@@ -47,8 +47,8 @@ while [[ $# -gt 0 ]]; do
       [[ -n "$slow_n" ]] || { echo "error: --slow requires a number" >&2; usage; exit 1; }
       shift 2
       ;;
-    --show-skipped)
-      show_skipped="1"
+    --hide-skipped)
+      show_skipped="0"
       shift
       ;;
     --max-failed)
@@ -108,6 +108,13 @@ slow_n = safe_int(slow_n_raw, 5)
 show_skipped = show_skipped_raw == "1"
 max_failed = safe_int(max_failed_raw, 50)
 max_skipped = safe_int(max_skipped_raw, 50)
+
+SKIP_HINTS: Dict[str, str] = {
+  "write_cases_disabled": "Enable writes with API_TEST_ALLOW_WRITES=1 (or --allow-writes) to run allowWrite cases.",
+  "not_selected": "Case not selected (check --only filter).",
+  "skipped_by_id": "Case skipped by id (check --skip filter).",
+  "tag_mismatch": "Case tags did not match selected --tag filters.",
+}
 
 def read_input() -> str:
   if in_path:
@@ -260,6 +267,29 @@ if show_skipped:
   if not skipped_cases:
     md_table(headers=["id", "type", "message"], rows=[["(none)"]])
   else:
+    reasons: Dict[str, int] = {}
+    for c in skipped_cases:
+      reason = sanitize_one_line(c.get("message") or "")
+      reason = reason or "(none)"
+      reasons[reason] = reasons.get(reason, 0) + 1
+
+    md_table(
+      headers=["reason", "count", "hint"],
+      rows=[
+        [
+          md_code(reason),
+          str(count),
+          md_escape_cell(SKIP_HINTS.get(reason, "")),
+        ]
+        for reason, count in sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0]))
+      ],
+    )
+
+    print("")
+    if max_skipped > 0:
+      print(f"#### Cases (max {max_skipped})")
+    else:
+      print("#### Cases (all)")
     shown = skipped_cases[:max_skipped] if max_skipped > 0 else skipped_cases
     md_table(
       headers=["id", "type", "message"],

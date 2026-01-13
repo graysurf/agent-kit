@@ -86,12 +86,12 @@ $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
   --slow 5
 ```
 
-Include skipped cases (optional):
+Hide skipped cases (optional):
 
 ```bash
 $CODEX_HOME/skills/tools/testing/api-test-runner/scripts/api-test-summary.sh \
   --in out/api-test-runner/results.json \
-  --show-skipped
+  --hide-skipped
 ```
 
 ## Suite Manifests
