@@ -1245,6 +1245,17 @@ for ((i=0; i<case_count; i++)); do
         die "GraphQL case '$id' with allowErrors=true must set expect.jq"
       fi
 
+      # Defensive: if a case is explicitly marked allowWrite=true, treat it as write-capable and
+      # skip it unless writes are enabled (even if mutation detection fails).
+      if [[ "$allow_write_case" == "true" ]]; then
+        if [[ "$allow_writes" != "1" && "$(to_lower "$effective_env")" != "local" ]]; then
+          status="skipped"
+          message="write_cases_disabled"
+          skipped=$((skipped + 1))
+          execute_case="0"
+        fi
+      fi
+
       is_mutation_rc=1
       set +e
       graphql_op_is_mutation "$op_abs"
