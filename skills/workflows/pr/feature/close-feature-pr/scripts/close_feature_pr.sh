@@ -86,11 +86,23 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
   exit 1
 fi
 
-pr_url="$(gh pr view "$pr_number" --json url -q .url)"
-base_branch="$(gh pr view "$pr_number" --json baseRefName -q .baseRefName)"
-head_branch="$(gh pr view "$pr_number" --json headRefName -q .headRefName)"
-repo_full="$(gh pr view "$pr_number" --json baseRepository -q .baseRepository.nameWithOwner)"
-pr_state="$(gh pr view "$pr_number" --json state -q .state)"
+pr_meta="$(gh pr view "$pr_number" --json url,baseRefName,headRefName,state -q '[.url, .baseRefName, .headRefName, .state] | @tsv')"
+IFS=$'\t' read -r pr_url base_branch head_branch pr_state <<<"$pr_meta"
+
+repo_full="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+u = urlparse(sys.argv[1])
+parts = [p for p in u.path.split("/") if p]
+
+# Expected: /<owner>/<repo>/pull/<number>
+if len(parts) < 4 or parts[2] != "pull":
+  raise SystemExit(1)
+
+print(f"{parts[0]}/{parts[1]}")
+PY
+)"
 
 if [[ -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
   echo "error: failed to resolve PR metadata via gh" >&2
