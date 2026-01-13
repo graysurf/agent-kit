@@ -81,32 +81,37 @@ def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
     mutated.write_text(original.read_text("utf-8"), "utf-8")
 
     lines = mutated.read_text("utf-8").splitlines()
-    out: list[str] = []
-    in_progress_table = False
-    seen_sep = False
-    mutated_row = False
+    try:
+        in_progress_idx = next(i for i, line in enumerate(lines) if line.strip() == "## In progress")
+        archived_idx = next(i for i, line in enumerate(lines) if line.strip() == "## Archived")
+    except StopIteration as exc:
+        raise AssertionError("docs/progress/README.md missing required headings") from exc
 
-    for line in lines:
-        if line.strip() == "## In progress":
-            in_progress_table = True
-            out.append(line)
-            continue
-        if in_progress_table and line.startswith("| ---"):
-            seen_sep = True
-            out.append(line)
-            continue
-        if in_progress_table and seen_sep and not mutated_row and line.startswith("|"):
-            parts = [p.strip() for p in line.strip().strip("|").split("|")]
-            if len(parts) == 3:
-                parts[2] = "NOT_A_LINK"
-                out.append(f"| {parts[0]} | {parts[1]} | {parts[2]} |")
-                mutated_row = True
-                continue
-        if line.strip() == "## Archived":
-            in_progress_table = False
-        out.append(line)
+    in_sep = None
+    for i in range(in_progress_idx, archived_idx):
+        if lines[i].startswith("| ---"):
+            in_sep = i
+            break
 
-    mutated.write_text("\n".join(out).rstrip() + "\n", "utf-8")
+    assert in_sep is not None, "docs/progress/README.md missing In progress table separator"
+
+    mutated_row_idx = None
+    for i in range(in_sep + 1, archived_idx):
+        if not lines[i].startswith("|") or lines[i].startswith("| ---"):
+            continue
+        parts = [p.strip() for p in lines[i].strip().strip("|").split("|")]
+        if len(parts) == 3:
+            mutated_row_idx = i
+            break
+
+    if mutated_row_idx is None:
+        lines.insert(in_sep + 1, "| 2099-01-01 | Fixture | NOT_A_LINK |")
+    else:
+        parts = [p.strip() for p in lines[mutated_row_idx].strip().strip("|").split("|")]
+        parts[2] = "NOT_A_LINK"
+        lines[mutated_row_idx] = f"| {parts[0]} | {parts[1]} | {parts[2]} |"
+
+    mutated.write_text("\n".join(lines).rstrip() + "\n", "utf-8")
 
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
     result = run(["bash", str(script), "--file", str(mutated)], cwd=repo)
