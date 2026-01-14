@@ -52,9 +52,6 @@ Artifacts are written under `out/tests/` (gitignored):
 | --- | --- | --- |
 | [actionable-advice](./prompts/actionable-advice.md) | Answer a question with clarifying questions, multiple options, and a single recommendation | `/prompts:actionable-advice <question>` |
 | [actionable-knowledge](./prompts/actionable-knowledge.md) | Answer a learning/knowledge question with multiple explanation paths and a single recommended path | `/prompts:actionable-knowledge <question>` |
-| [openspec-apply](./prompts/openspec-apply.md) | Implement an approved OpenSpec change | `/prompts:openspec-apply <id>` |
-| [openspec-archive](./prompts/openspec-archive.md) | Archive an OpenSpec change and update specs | `/prompts:openspec-archive <id>` |
-| [openspec-proposal](./prompts/openspec-proposal.md) | Scaffold a new OpenSpec change | `/prompts:openspec-proposal <request>` |
 
 ## 🛠️ Skills
 
