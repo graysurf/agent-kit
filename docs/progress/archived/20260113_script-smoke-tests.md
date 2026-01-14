@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-13 | 2026-01-14 |
+| DONE | 2026-01-13 | 2026-01-14 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/22
 - Planning PR: https://github.com/graysurf/codex-kit/pull/21
-- Docs: [docs/testing/script-regression.md](../testing/script-regression.md)
-- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../templates/PROGRESS_GLOSSARY.md)
+- Docs: [docs/testing/script-regression.md](../../testing/script-regression.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Goal
 
@@ -107,31 +107,43 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] At least one happy path runs end-to-end: `scripts/test.sh -m script_smoke` (pass).
     - [x] Primary outputs are verifiable: `out/tests/script-smoke/summary.json` + per-script logs.
     - [x] Usage docs skeleton exists: `docs/testing/script-smoke.md` includes TL;DR + spec format.
-- [ ] Step 2: Expand smoke coverage across scripts
+- [x] Step 2: Expand smoke coverage across scripts
   - Work Items:
     - [x] Split Step 2 into multiple implementation PRs; scopes recorded in "Step 2 PR Plan".
-    - [ ] Add smoke coverage for remaining scripts, guided by the inventory table (spec-smoke first; defer pytest fixtures).
-    - [ ] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
-    - [ ] Add negative tests for "placeholder left behind" failure modes where relevant.
+    - [x] Add smoke coverage for remaining scripts, guided by the inventory table (spec-smoke first; defer pytest fixtures).
+    - [x] Extend `tests/stubs/bin` to cover required external tools (e.g. `psql`, `mysql`, `sqlcmd`).
+    - [x] Add negative tests for "placeholder left behind" failure modes where relevant.
   - Artifacts:
     - `tests/script_specs/**` (smoke cases expanded)
     - `tests/fixtures/**` (expanded)
     - `tests/stubs/bin/**` (expanded)
   - Exit Criteria:
-    - [ ] Common branches are covered per script: missing args, invalid env, dry-run, error codes (as applicable).
-    - [ ] Compatible with existing conventions: no dataflow breakage in CI or local workflows.
-    - [ ] Documentation exists for smoke authoring: spec schema + fixture conventions + stub guidelines.
-- [ ] Step 3: CI validation and evidence
+    - [x] Common branches are covered per script: missing args, invalid env, dry-run, error codes (as applicable).
+    - [x] Compatible with existing conventions: no dataflow breakage in CI or local workflows.
+    - [x] Documentation exists for smoke authoring: spec schema + fixture conventions + stub guidelines.
+  - Evidence:
+    - Step 2 PRs #23-#34 merged (see "Step 2 PR Plan" + PR history).
+    - Local `scripts/test.sh -m script_smoke` runs recorded in PR Testing sections.
+- [x] Step 3: CI validation and evidence
   - Work Items:
-    - [ ] Ensure CI runs smoke tests by default and fails on regressions.
-    - [ ] Track runtime and tune timeouts/spec selection to keep CI fast and stable.
+    - [x] Ensure CI runs smoke tests by default and fails on regressions.
+    - [x] Track runtime and tune timeouts/spec selection to keep CI fast and stable.
   - Artifacts:
     - CI logs (GitHub Actions)
     - `out/tests/script-smoke/**` evidence (local)
   - Exit Criteria:
-    - [ ] Validation commands executed with results recorded: `scripts/test.sh` (pass) + CI run (pass).
-    - [ ] Representative samples include failure + rerun after fix: at least one negative test per high-risk script family.
-    - [ ] Traceable evidence exists: smoke summary + logs + CI links.
+    - [x] Validation commands executed with results recorded: `scripts/test.sh` (pass) + CI run (pass).
+    - [x] Representative samples include failure + rerun after fix: at least one negative test per high-risk script family.
+    - [x] Traceable evidence exists: smoke summary + logs + CI links.
+  - Evidence:
+    - 2026-01-14T07:48:17+08:00 local: `scripts/test.sh` (97 passed in 4.41s) on `feat/script-smoke-tests` @ `1e38e21d`.
+    - Local artifacts: `out/tests/script-regression/summary.json`, `out/tests/script-regression/logs`, `out/tests/script-smoke/summary.json`, `out/tests/script-smoke/logs`.
+    - 2026-01-13T23:39:40Z CI: GitHub Actions `Lint` workflow_dispatch success (run `20976621777`, sha `1e38e21d`): https://github.com/graysurf/codex-kit/actions/runs/20976621777
+    - Negative samples (failure → fix) recorded under `out/tests/step3-evidence/`:
+      - `rest.sh`: curl blocked → stubbed curl success
+      - `gql.sh`: xh blocked → stubbed xh success
+      - `psql.zsh`: missing env → env set + stubbed psql success
+      - `gh`: blocked → stubbed gh success
 - [ ] Step 4: Release / wrap-up (optional)
   - Work Items:
     - [ ] Decide whether this warrants a version bump (likely `None` unless scripts/UX change).
