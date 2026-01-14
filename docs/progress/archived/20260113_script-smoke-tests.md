@@ -156,7 +156,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Cleanup completed: move this progress file to archived and mark DONE.
   - Evidence:
     - Versioning decision recorded in this Step 4 (`v1.0.2`).
-    - Planned release link: https://github.com/graysurf/codex-kit/releases/tag/v1.0.2
+    - Release link: https://github.com/graysurf/codex-kit/releases/tag/v1.0.2
     - Docs present: `docs/testing/script-smoke.md`, `docs/testing/script-regression.md`.
     - Progress archived: `docs/progress/archived/20260113_script-smoke-tests.md`; index updated in `docs/progress/README.md`.
 
