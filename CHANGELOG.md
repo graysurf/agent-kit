@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.3 - 2026-01-15
+
+### Added
+- Functional script coverage reporting for smoke tests.
+- Auto-strikethrough test cases for `close-progress-pr`.
+- `open-changed-files-review` code-path override option.
+
+### Changed
+- Release workflow moved into automation and now requires changelog audit before fallback.
+- PR workflows reduce redundant `gh` metadata lookups.
+- `close-progress-pr` now auto-wraps deferred checklist items.
+- Docs: commit workflow, automation commit guidance, and find-and-fix-bugs classification updates.
+- Prompts: remove obsolete openspec prompt files.
+- `.gitignore`: ignore `tmp/` directory.
+
+### Fixed
+- `git-tools`: clean up commit context temp file.
+- Progress flow now caches PR body lookups.
+- Git helper scripts load the progress bar lazily.
+
 ## v1.0.2 - 2026-01-14
 
 ### Added
