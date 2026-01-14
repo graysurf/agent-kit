@@ -2,15 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
-## v1.0.3 - 2026-01-15
+## v1.1.0 - 2026-01-15
 
 ### Added
+- Top-level `commands/` directory exposing reusable primitives (`git-scope`, `git-tools`, `project-resolve`).
 - Functional script coverage reporting for smoke tests.
 - Auto-strikethrough test cases for `close-progress-pr`.
 - `open-changed-files-review` code-path override option.
 
 ### Changed
-- Release workflow moved into automation and now requires changelog audit before fallback.
+- Command wrappers are now shipped via `commands/` (instead of a `scripts/` loader).
+- Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$CODEX_HOME/commands`.
+- Release workflow moved into automation, resolves guides/templates deterministically, and audits the changelog pre-publish.
 - PR workflows reduce redundant `gh` metadata lookups.
 - `close-progress-pr` now auto-wraps deferred checklist items.
 - Docs: commit workflow, automation commit guidance, and find-and-fix-bugs classification updates.
@@ -19,6 +22,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - `git-tools`: clean up commit context temp file.
+- `chrome-devtools-mcp`: use `CODEX_HOME` for default paths and expand tilde paths.
+- `graphql-api-testing`: quote `CODEX_HOME` during script path rewrites.
+- Shell scripts: address minor shellcheck warnings.
 - Progress flow now caches PR body lookups.
 - Git helper scripts load the progress bar lazily.
 
