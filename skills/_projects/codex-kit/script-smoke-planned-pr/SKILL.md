@@ -96,7 +96,7 @@ Non-goals:
 
 ## Commits
 
-- Use the `semantic-commit` skill for every commit; do not call `git commit` directly.
+- Use `semantic-commit-autostage` for every commit; do not call `git commit` directly.
 
 ## When uncertain (must ask)
 

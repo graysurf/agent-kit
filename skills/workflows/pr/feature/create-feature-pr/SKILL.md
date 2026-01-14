@@ -57,7 +57,7 @@ Failure modes:
 3. Create the branch: `git checkout -b feat/<slug>`.
 4. Implement the feature with minimal scope; avoid unrelated refactors.
 5. Add or update tests when reasonable; run available lint/test/build commands.
-6. Commit using the `semantic-commit` skill; prefer a single commit unless splitting is justified.
+6. Commit using `semantic-commit-autostage` by default; use `semantic-commit` only when the user has explicitly staged a reviewed subset.
 7. Push the branch and open a PR with `gh pr create` using `references/PR_TEMPLATE.md`.
 
 ## PR rules

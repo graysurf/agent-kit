@@ -89,8 +89,10 @@
 
 ## Commit 原則
 
-- 所有 commit 一律使用 `$semantic-commit`（規格：`$CODEX_HOME/skills/tools/devex/semantic-commit/SKILL.md`）；禁止直接執行 `git commit`。
-- 由其他 skill 觸發 commit 時：免用戶二次確認；完成後回覆需符合 `$semantic-commit` 的輸出格式。
+- 所有 commit 一律使用 `semantic-commit`
+  - `$semantic-commit`: review-first，user staged。
+  - `$semantic-commit-autostage`: automation: （allow `git add`)。
+- 禁止直接執行 `git commit`。
 
 ## 可用指令（全域工具）
 

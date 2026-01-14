@@ -109,7 +109,7 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## Commit
 
-- Use the `semantic-commit` skill to generate a Semantic Commit message.
+- Use `semantic-commit-autostage` for end-to-end automation (it stages changes); use `semantic-commit` only when the user has explicitly staged a reviewed subset.
 - Prefer a single commit unless there is a clear reason to split.
 
 ## PR

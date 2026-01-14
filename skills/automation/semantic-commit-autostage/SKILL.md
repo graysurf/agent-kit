@@ -1,9 +1,9 @@
 ---
-name: semantic-commit
-description: Commit staged changes using Semantic Commit format.
+name: semantic-commit-autostage
+description: Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where Codex owns the full change set and the user should not manually stage files.
 ---
 
-# Semantic Commit
+# Semantic Commit (Autostage)
 
 ## Contract
 
@@ -16,25 +16,28 @@ Prereqs:
 
 Inputs:
 
-- Staged changes (`git add ...`) for `staged_context.sh`.
+- Unstaged changes in the working tree (this skill will stage them via `git add`).
 - Prepared commit message via stdin (preferred), `--message`, or `--message-file` for `commit_with_message.sh`.
 
 Outputs:
 
-- `staged_context.sh`: prints staged context to stdout (diff + scope tree).
-- `commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
+- Staged changes via `git add` (this skill autostages).
+- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`: prints staged context to stdout.
+- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
 
 Exit codes:
 
 - `0`: success
-- `2`: no staged changes (for scripts that require staged input)
+- `2`: no changes to stage/commit
 - non-zero: invalid usage / missing prerequisites / git failures
 
 Failure modes:
 
-- Not in a git repo or no staged changes.
-- `$CODEX_HOME` unset and loader cannot be resolved.
+- Not in a git repo.
+- Dirty starting state includes unrelated changes; autostage may include unintended files (start from a clean tree).
+- `git add` fails (pathspec errors, permissions).
 - `git commit` fails (hooks, conflicts, or repo state issues).
+- `$CODEX_HOME` unset and loader cannot be resolved.
 
 ## Setup
 
@@ -43,19 +46,19 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
+- Autostage (all changes): `git add -A`
+- Autostage (tracked-only): `git add -u`
 - Get staged context (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`
 - Commit with a prepared message, then print a commit summary (stdout): `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`
   - Prefer piping the full multi-line message via stdin
-- Do not call other helper commands directly; treat these scripts as the stable interface
 
 ## Workflow
 
 Rules:
 
-- **Never** run `git add` on your own; **do not** stage files the user has not explicitly staged
-- For end-to-end automation flows that must stage changes without user intervention, use `semantic-commit-autostage` instead
-- Use staged changes only; do not infer from unstaged/untracked files
-- If `staged_context.sh` fails, report its error output and do not proceed to committing
+- This skill **may** run `git add` (autostage). Use only when the user asked for end-to-end automation and will not stage files manually.
+- For review-first flows where the user stages a subset, use `semantic-commit` instead.
+- Prefer starting from a clean working tree to avoid staging unrelated local changes.
 
 ## Follow Semantic Commit format
 
@@ -83,25 +86,10 @@ Rules:
 
 ## Commit execution
 
-- Generate the full commit message from `staged_context.sh` output
-- Commit by piping the full message into `commit_with_message.sh` (it preserves formatting)
+- Generate the full commit message from semantic-commit `staged_context.sh` output
+- Commit by piping the full message into semantic-commit `commit_with_message.sh` (it preserves formatting)
 - Capture the exit status in `rc` or `exit_code` (do not use `status`)
 - If the commit fails, report the error and do not claim success
-
-## Input completeness
-
-- Full-file reads are not required for commit message generation
-- Base the message on staged context only
-- Only read full files if the diff/context is insufficient to describe the change accurately
-
-## Example
-
-```md
-refactor(members): simplify otp purpose validation logic in requestOtp
-
-- Merged duplicated member existence checks into a single query
-- Reordered conditional logic for better readability
-```
 
 ## Output and clarification rules
 
