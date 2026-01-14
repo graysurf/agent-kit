@@ -180,7 +180,6 @@ Tracked script entrypoints (via `git ls-files`):
 | --- | --- | --- | --- | --- |
 | `scripts/build/bundle-wrapper.zsh` | `zsh -f` | regression (`--help`) | `pytest-fixture` | likely needs temp FS + wrapper inputs |
 | `scripts/chrome-devtools-mcp.sh` | `bash` | regression (spec: dry-run) | `spec-smoke` | keep `CHROME_DEVTOOLS_DRY_RUN=true` |
-| `scripts/codex-tools.sh` | `zsh -f` | regression (`--help`) | `help-only` | loader/library; smoke may not add value |
 | `commands/git-scope` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate output format |
 | `commands/git-tools` | `zsh -f` | regression (`--help`) | `spec-smoke` | can stub `git` and validate router output |
 | `scripts/db-connect/mssql.zsh` | `zsh -f` | regression (`--help`) | `spec-smoke` | stub `sqlcmd` to validate argv/env wiring |

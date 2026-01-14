@@ -9,8 +9,9 @@ commands/         Standalone command entrypoints used by skills and docs.
 scripts/
 ├── build/          Tooling to generate bundled commands.
 ├── db-connect/     DB connection helpers (psql/mysql/mssql wrappers).
-├── codex-tools.sh  Optional convenience loader (not required by skills).
-└── env.zsh         Environment defaults shared by repo scripts.
+├── env.zsh         Environment defaults shared by repo scripts.
+├── test.sh         Dev test runner (repo-only).
+└── validate_skill_contracts.sh  Lints `skills/**/SKILL.md` contracts.
 ```
 
 ## Bundling wrappers
