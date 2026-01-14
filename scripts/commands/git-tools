@@ -1,7 +1,7 @@
 #!/usr/bin/env -S zsh -f
 set -e
 
-# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.8fnvct8R5N
+# Bundled from: /var/folders/3d/s2d3jvyn0g758lsd_2t79h1w0000gn/T/tmp.ijYUUsYNda
 : "${ZDOTDIR:=$HOME/.config/zsh}"
 export ZDOTDIR
 export ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-$ZDOTDIR/config}"
@@ -104,6 +104,72 @@ set_clipboard() {
     return 1
   fi
 }
+
+typeset -gr _ZSH_BOOTSTRAP_PRELOAD_PATH="${(%):-%N}"
+
+# progress_bar::load
+# Load the progress bar implementation (scripts/progress-bar.zsh) on demand.
+# Usage: progress_bar::load
+# Notes:
+# - This is a bootstrap-time shim so cached CLI wrappers (which bundle 00-preload.zsh) can use it.
+# - Returns non-zero when the module file is missing/unreadable.
+progress_bar::load() {
+  emulate -L zsh
+
+  if (( ${+functions[_progress_bar::build_bar]} )); then
+    typeset -g _ZSH_PROGRESS_BAR_LOADED=1
+    return 0
+  fi
+
+  typeset zdotdir="${ZDOTDIR-}"
+  if [[ -z "$zdotdir" ]]; then
+    typeset preload_path="${_ZSH_BOOTSTRAP_PRELOAD_PATH-}"
+    if [[ -n "$preload_path" ]]; then
+      preload_path="${preload_path:A}"
+      zdotdir="${preload_path:h:h}"
+    fi
+  fi
+  [[ -n "$zdotdir" ]] || zdotdir="$HOME/.config/zsh"
+
+  typeset script_dir="${ZSH_SCRIPT_DIR:-$zdotdir/scripts}"
+  typeset target="$script_dir/progress-bar.zsh"
+
+  [[ -r "$target" ]] || return 1
+  source "$target" || return 1
+
+  (( ${+functions[_progress_bar::build_bar]} )) && return 0
+  return 1
+}
+
+# progress_bar::init
+# Bootstrap shim for progress_bar::init (determinate progress bar).
+# Usage: progress_bar::init <id> --prefix <text> --total <n> [--width <n>] [--head-len <n>] [--fd <n>] [--enabled|--disabled]
+progress_bar::init() { progress_bar::load || return $?; progress_bar::init "$@"; }
+
+# progress_bar::update
+# Bootstrap shim for progress_bar::update (determinate progress bar).
+# Usage: progress_bar::update <id> <current> [--suffix <text>] [--force]
+progress_bar::update() { progress_bar::load || return $?; progress_bar::update "$@"; }
+
+# progress_bar::finish
+# Bootstrap shim for progress_bar::finish (determinate progress bar).
+# Usage: progress_bar::finish <id> [--suffix <text>]
+progress_bar::finish() { progress_bar::load || return $?; progress_bar::finish "$@"; }
+
+# progress_bar::init_indeterminate
+# Bootstrap shim for progress_bar::init_indeterminate (indeterminate progress bar).
+# Usage: progress_bar::init_indeterminate <id> --prefix <text> [--width <n>] [--head-len <n>] [--fd <n>] [--enabled|--disabled]
+progress_bar::init_indeterminate() { progress_bar::load || return $?; progress_bar::init_indeterminate "$@"; }
+
+# progress_bar::tick
+# Bootstrap shim for progress_bar::tick (advance indeterminate progress bar).
+# Usage: progress_bar::tick <id> [--suffix <text>] [--force]
+progress_bar::tick() { progress_bar::load || return $?; progress_bar::tick "$@"; }
+
+# progress_bar::stop
+# Bootstrap shim for progress_bar::stop (clear indeterminate progress bar line).
+# Usage: progress_bar::stop <id>
+progress_bar::stop() { progress_bar::load || return $?; progress_bar::stop "$@"; }
 
 # --- END ~/.config/zsh/bootstrap/00-preload.zsh
 
@@ -1290,7 +1356,7 @@ git-commit-to-stash() {
 # - `--no-color` also applies when `NO_COLOR` is set.
 git-commit-context () {
   emulate -L zsh
-  setopt pipe_fail local_traps
+  setopt pipe_fail
 
   typeset tmpfile='' diff='' scope='' contents='' mode='clipboard'
   typeset no_color=false
@@ -1343,7 +1409,7 @@ git-commit-context () {
     shift
   done
 
-  diff="$(git diff --cached --no-color)"
+  diff="$(git -c core.quotepath=false diff --cached --no-color)"
 
   if (( ${#extra_args[@]} > 0 )); then
     print -u2 -r -- "⚠️  Ignoring unknown arguments: ${extra_args[*]}"
@@ -1361,7 +1427,6 @@ git-commit-context () {
   scope="$(git-scope "${scope_args[@]}" | sed 's/\x1b\[[0-9;]*m//g')"
 
   tmpfile="$(mktemp -t commit-context.md.XXXXXX)"
-  trap '[[ -n "${tmpfile-}" ]] && rm -f "${tmpfile-}" >/dev/null 2>&1' EXIT
 
   contents="$(
     git -c core.quotepath=false diff --cached --name-status -z | while IFS= read -r -d '' fstatus; do
@@ -1417,7 +1482,7 @@ git-commit-context () {
         blob_ref=":$content_path"
       fi
 
-      numstat="$(git diff --cached --numstat -- "$content_path" 2>/dev/null | head -n 1)"
+      numstat="$(git -c core.quotepath=false diff --cached --numstat -- "$content_path" 2>/dev/null | head -n 1)"
       if [[ -n "$numstat" ]]; then
         IFS=$' \t' read -r added deleted _ <<< "$numstat"
         if [[ "$added" == "-" || "$deleted" == "-" ]]; then
@@ -1545,6 +1610,7 @@ alias gsc='git-scope commit'
 alias gst='git-scope tracked'
 
 _git_scope_no_color=false
+typeset -ga _git_scope_commit_file_list=()
 
 # _git_scope_kind_color <A|M|D|U|->
 # Return ANSI color code for a file change kind.
@@ -1800,7 +1866,7 @@ _git_scope_untracked() { _git_scope_render_with_type "$(_git_scope_collect untra
 #
 # Note:
 #   Internally, it isolates display output from file path data, ensuring
-#   clean separation of UI and logic. It uses a temporary file to pass
+#   clean separation of UI and logic. It uses a shared in-memory list to pass
 #   changed file paths from the rendering function back to the dispatcher.
 #
 # This command is especially useful for code review, audit trails, or
@@ -1847,7 +1913,7 @@ _git_scope_commit() {
   _git_scope_render_commit_files "$commit" "$parent_selector"
 
   typeset -a file_list
-  file_list=("${(@f)$(< /tmp/.git-scope-filelist)}")
+  file_list=("${_git_scope_commit_file_list[@]}")
 
   if [[ "$_git_scope_should_print" == true ]]; then
     printf "\n📦 Printing file contents:\n"
@@ -1907,7 +1973,7 @@ _git_scope_commit_parents() {
 # Render changed files for a commit (supports merge commits via parent selection).
 # Usage: _git_scope_render_commit_files <commit> [parent_selector]
 # Notes:
-# - Writes the file list to `/tmp/.git-scope-filelist` for optional printing.
+# - Writes the file list to `_git_scope_commit_file_list` for optional printing.
 _git_scope_render_commit_files() {
   emulate -L zsh
   setopt pipe_fail
@@ -1922,6 +1988,8 @@ _git_scope_render_commit_files() {
   typeset -a parents=()
   typeset parent_count=0
   typeset is_merge=false
+
+  _git_scope_commit_file_list=()
 
   _git_scope_commit_parents "$commit"
   parents=("${reply[@]}")
@@ -1956,7 +2024,7 @@ _git_scope_render_commit_files() {
     if [[ -z "$ns_lines" ]]; then
       printf "\n📄 Changed files:\n"
       printf "  ℹ️  Merge commit vs parent #%d (%s) has no file-level changes\n" "$selected_index" "${selected_parent_short:-$selected_parent_hash}"
-      : > /tmp/.git-scope-filelist
+      _git_scope_commit_file_list=()
       return
     fi
   else
@@ -1966,7 +2034,7 @@ _git_scope_render_commit_files() {
     if [[ -z "$ns_lines" || -z "$numstat_lines" ]]; then
       printf "\n📄 Changed files:\n"
       printf "  ℹ️  No file-level changes recorded for this commit\n"
-      : > /tmp/.git-scope-filelist
+      _git_scope_commit_file_list=()
       return
     fi
   fi
@@ -2043,7 +2111,7 @@ _git_scope_render_commit_files() {
   printf "\n  📊 Total: +%d / -%d\n" "$total_add" "$total_del"
   _git_scope_render_tree "${(F)file_list}"
 
-  printf "%s\n" "${file_list[@]}" > /tmp/.git-scope-filelist
+  _git_scope_commit_file_list=("${file_list[@]}")
 }
 
 # git-scope: Working tree/commit introspection (dispatcher)
