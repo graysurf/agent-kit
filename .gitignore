@@ -29,6 +29,7 @@ __pycache__/
 *.log
 log/
 out/
+tmp/
 
 # Generated system skills
 skills/.system/
