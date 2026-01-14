@@ -9,6 +9,7 @@ Usage:
 What it does:
   - Resolves the progress file path (prefer parsing PR body "## Progress"; fallback to scanning docs/progress by PR URL)
   - Fail-fast if any unchecked checklist item in "## Steps (Checklist)" lacks a Reason (excluding Step 4 “Release / wrap-up”)
+  - Auto-wraps unchecked checklist item text in Step 0–3 with Markdown strikethrough: `- [ ] ~~like this~~`
   - Sets progress Status to DONE and updates the Updated date
   - Sets the progress "Links -> PR" to the PR URL
   - Moves the progress file to docs/progress/archived/
@@ -240,7 +241,7 @@ for i in range(start, len(lines)):
     break
 
 checkbox_re = re.compile(r"^(\s*)-\s*\[(?P<mark>[ xX])\]\s+.+$")
-step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*Step\s+(?P<num>\d+):")
+step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
 missing = []
 in_code_block = False
 current_step = None
@@ -303,6 +304,72 @@ path, today, pr_url, archived_path = sys.argv[1], sys.argv[2], sys.argv[3], sys.
 
 with open(path, "r", encoding="utf-8") as f:
   lines = f.readlines()
+
+def normalize_checklist_strikethrough(lines) -> None:
+  start = None
+  for i, line in enumerate(lines):
+    if line.strip() == "## Steps (Checklist)":
+      start = i + 1
+      break
+  if start is None:
+    raise SystemExit(f"error: cannot find '## Steps (Checklist)' in {path}")
+
+  end = len(lines)
+  for i in range(start, len(lines)):
+    if lines[i].startswith("## "):
+      end = i
+      break
+
+  checkbox_re = re.compile(r"^(?P<indent>\s*)-\s*\[(?P<mark>[ xX])\]\s+(?P<text>.+?)\s*$")
+  step_re = re.compile(r"^\s*-\s*\[[ xX]\]\s*(?:~~\s*)?Step\s+(?P<num>\d+):")
+
+  in_code_block = False
+  current_step = None
+  exempt_step_min = 4
+
+  for i in range(start, end):
+    raw = lines[i].rstrip("\n")
+
+    if raw.strip().startswith("```"):
+      in_code_block = not in_code_block
+      continue
+    if in_code_block:
+      continue
+
+    m_step = step_re.match(raw)
+    if m_step:
+      try:
+        current_step = int(m_step.group("num"))
+      except ValueError:
+        current_step = None
+
+    m = checkbox_re.match(raw)
+    if not m or m.group("mark") != " ":
+      continue
+
+    if current_step is not None and current_step >= exempt_step_min:
+      continue
+
+    text = m.group("text")
+    text_leading_ws = text[: len(text) - len(text.lstrip())]
+    text_stripped = text.lstrip()
+
+    if text_stripped.startswith("~~"):
+      if "~~" not in text_stripped[2:]:
+        raise SystemExit(
+          f"error: unchecked checklist item has opening '~~' but no closing '~~': {path}:{i+1}: {raw}"
+        )
+      continue
+
+    if "~~" in text:
+      raise SystemExit(
+        "error: unchecked checklist item contains '~~' but is not in the form '- [ ] ~~...~~': "
+        f"{path}:{i+1}: {raw}"
+      )
+
+    lines[i] = f"{m.group('indent')}- [ ] {text_leading_ws}~~{text_stripped}~~\n"
+
+normalize_checklist_strikethrough(lines)
 
 patched_status = False
 patched_pr = False
