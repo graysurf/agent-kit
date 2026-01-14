@@ -144,16 +144,20 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - `gql.sh`: xh blocked → stubbed xh success
       - `psql.zsh`: missing env → env set + stubbed psql success
       - `gh`: blocked → stubbed gh success
-- [ ] Step 4: Release / wrap-up (optional)
+- [x] Step 4: Release / wrap-up (optional)
   - Work Items:
-    - [ ] Decide whether this warrants a version bump (likely `None` unless scripts/UX change).
+    - [x] Decide whether this warrants a version bump (decision: `None`).
   - Artifacts:
     - `CHANGELOG.md` entry (optional)
   - Exit Criteria:
-    - [ ] Versioning and changes recorded: `None` or `vX.Y.Z` + changelog entry.
-    - [ ] Release actions completed: `None` (internal test tooling) unless versioned.
-    - [ ] Documentation completed: `docs/testing/script-smoke.md` and updates to `docs/testing/script-regression.md` as needed.
-    - [ ] Cleanup completed: move this progress file to archived and mark DONE.
+    - [x] Versioning and changes recorded: `None`.
+    - [x] Release actions completed: `None` (internal test tooling; no tag/release cut).
+    - [x] Documentation completed: `docs/testing/script-smoke.md` and updates to `docs/testing/script-regression.md` as needed.
+    - [x] Cleanup completed: move this progress file to archived and mark DONE.
+  - Evidence:
+    - Versioning decision recorded in this Step 4 (`None`); no release actions required.
+    - Docs present: `docs/testing/script-smoke.md`, `docs/testing/script-regression.md`.
+    - Progress archived: `docs/progress/archived/20260113_script-smoke-tests.md`; index updated in `docs/progress/README.md`.
 
 ## Modules
 
