@@ -247,6 +247,12 @@ def write_script_coverage_reports(
     smoke_defined_in_repo = smoke_defined & discovered_set
     smoke_defined_orphan = sorted(smoke_defined - discovered_set)
 
+    missing_smoke_spec = sorted(discovered_set - smoke_defined_in_repo)
+    missing_smoke_spec_set = set(missing_smoke_spec)
+    missing_smoke_set = set(missing_smoke)
+    missing_smoke_spec_without_smoke_runs = sorted(missing_smoke_spec_set & missing_smoke_set)
+    missing_smoke_spec_with_smoke_runs = sorted(missing_smoke_spec_set - set(missing_smoke_spec_without_smoke_runs))
+
     discovered_skills = {s for s in discovered_set if s.startswith("skills/") and "/scripts/" in s}
     discovered_repo_scripts = {s for s in discovered_set if s.startswith("scripts/")}
 
@@ -296,7 +302,9 @@ def write_script_coverage_reports(
             "smoke_failed": smoke_failed,
         },
         "smoke_spec_gaps": {
-            "missing_smoke_spec_for_discovered": sorted(discovered_set - smoke_defined_in_repo),
+            "missing_smoke_spec_for_discovered": missing_smoke_spec,
+            "missing_smoke_spec_without_smoke_runs": missing_smoke_spec_without_smoke_runs,
+            "missing_smoke_spec_with_smoke_runs": missing_smoke_spec_with_smoke_runs,
             "orphan_smoke_specs": smoke_defined_orphan,
         },
         "breakdown": {
@@ -389,19 +397,33 @@ def write_script_coverage_reports(
             for script in smoke_failed:
                 lines.append(f"  - `{script}`")
 
-    missing_smoke_spec = sorted(discovered_set - smoke_defined_in_repo)
     if missing_smoke_spec:
         limit = 50
         lines.append("")
         lines.append("## Missing smoke specs")
         lines.append("")
-        lines.append(
-            f"_Scripts without a `smoke` section in `tests/script_specs/` (count: {len(missing_smoke_spec)})._"
-        )
-        for script in missing_smoke_spec[:limit]:
-            lines.append(f"- `{script}`")
-        if len(missing_smoke_spec) > limit:
-            lines.append(f"- _... and {len(missing_smoke_spec) - limit} more (see `summary.json`)._")
+
+        if missing_smoke_spec_without_smoke_runs:
+            lines.append(
+                f"_Scripts without a `smoke` section AND without smoke execution in this run (count: {len(missing_smoke_spec_without_smoke_runs)})._"
+            )
+            for script in missing_smoke_spec_without_smoke_runs[:limit]:
+                lines.append(f"- `{script}`")
+            if len(missing_smoke_spec_without_smoke_runs) > limit:
+                lines.append(
+                    f"- _... and {len(missing_smoke_spec_without_smoke_runs) - limit} more (see `summary.json`)._"
+                )
+        if missing_smoke_spec_with_smoke_runs:
+            lines.append("")
+            lines.append(
+                f"_Scripts without a `smoke` section but already exercised by fixture smoke tests (count: {len(missing_smoke_spec_with_smoke_runs)})._"
+            )
+            for script in missing_smoke_spec_with_smoke_runs[:limit]:
+                lines.append(f"- `{script}`")
+            if len(missing_smoke_spec_with_smoke_runs) > limit:
+                lines.append(
+                    f"- _... and {len(missing_smoke_spec_with_smoke_runs) - limit} more (see `summary.json`)._"
+                )
 
     if smoke_defined_orphan:
         lines.append("")
