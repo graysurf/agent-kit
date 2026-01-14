@@ -1,6 +1,6 @@
 ---
 name: release-workflow
-description: Execute project release workflows by locating and following project-specific RELEASE_GUIDE.md in the repository root or docs/. Includes fallback CHANGELOG templates and helper scripts for changelog-driven GitHub releases.
+description: Execute project release workflows by following a repo-provided release guide when present; otherwise use a changelog-driven fallback flow with helper scripts.
 ---
 
 # Release Workflow
@@ -10,7 +10,7 @@ description: Execute project release workflows by locating and following project
 Prereqs:
 
 - Run inside (or have access to) the target repo.
-- `rg` available on `PATH` to locate `RELEASE_GUIDE.md`.
+- `bash` + `zsh` available on `PATH` to run helper scripts.
 - `git` available on `PATH` (plus any release tooling required by the guide).
 
 Inputs:
@@ -19,11 +19,7 @@ Inputs:
 
 Outputs:
 
-- Release steps executed exactly per the project’s `RELEASE_GUIDE.md`, plus release notes/link as provided by the guide.
-- When the project has no guide:
-  - First validate `CHANGELOG.md` against this skill’s default template expectations (template: `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`) via the audit script.
-  - If the audit passes, proceed with the fallback flow automatically.
-  - If the audit fails, stop, report the current state, and ask the user how to proceed.
+- Resolve a release guide + template deterministically, then execute the guide steps exactly (no inference).
 
 Exit codes:
 
@@ -31,83 +27,53 @@ Exit codes:
 
 Failure modes:
 
-- Multiple `RELEASE_GUIDE.md` found (must ask which to use).
+- Multiple repo guides found (must ask which to use).
 - A guide step fails or is unclear (must stop and follow recovery instructions or ask).
-- No `RELEASE_GUIDE.md` and `CHANGELOG.md` does not pass the default-template audit (must stop and ask how to proceed).
+- Default guide steps fail (must stop and ask how to proceed).
 
 ## Setup
 
 - Load commands with `source $CODEX_HOME/scripts/codex-tools.sh`
 
-## Project-first rule (important)
-
-- If the target repo provides any of the following, always prefer them over codex-kit defaults:
-  - `RELEASE_GUIDE.md`
-  - `docs/templates/RELEASE_TEMPLATE.md` (or an equivalent template path documented by the repo)
-  - repo-local release scripts / Makefile / CI tasks
-- Only use the templates/scripts in this skill as a fallback when the repo has no release guide and `CHANGELOG.md` passes the default-template audit; otherwise stop and ask the user how to proceed.
-
 ## Workflow
 
 1. Identify the target repository root; ask if the repo path is unclear.
-2. Locate `RELEASE_GUIDE.md` in the repo root or `docs/`:
-   - Prefer `rg --files -g 'RELEASE_GUIDE.md'` from the repo root.
-   - If multiple guides are found, ask which one to follow.
-3. Read the entire guide before running any commands; do not infer missing steps.
-4. Execute steps in order, using the exact commands and tooling specified (scripts, Makefile, CI tasks, etc.).
-5. Follow the release guide exactly; if anything is unclear, stop and ask rather than making assumptions.
-6. If a step fails, stop and either follow the guide's recovery instructions or ask for user direction.
-7. If no `RELEASE_GUIDE.md` exists:
-   - First validate `CHANGELOG.md` against this skill’s default template expectations (template: `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`):
-     - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check --no-skip-template`
-   - If the audit passes, proceed with the fallback flow below.
-   - If the audit fails, stop, report the audit output + relevant repo state (branch, clean/dirty tree), and ask the user how to proceed with the release.
+2. Resolve the guide + template (project-first; default fallback):
+   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
+   - If it exits `3`, stop and ask which guide to use.
+3. Read the resolved guide file fully before running any commands.
+4. Execute the guide steps in order, using the exact commands and tooling specified.
+5. If anything is unclear or a step fails, stop and ask rather than making assumptions.
 
 ## Output and clarification rules
 
 - If a release is published, the response must include, in order:
   1. Release content
   2. Release link
-- If blocked (no guide + audit fails), the response must include:
-  1. Audit output summary
+- If blocked (e.g. an audit/check step fails), the response must include:
+  1. Failure summary (including audit output when applicable)
   2. A direct question asking how to proceed
 
-## Fallback flow (when no RELEASE_GUIDE.md exists)
+## Fallback flow (when no guide exists)
 
-This fallback matches a common "CHANGELOG.md → GitHub Releases" workflow. Use it when the repo has no `RELEASE_GUIDE.md` and `CHANGELOG.md` passes the default-template audit (template: `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`).
+The default fallback guide lives at:
 
-1. Prereqs
-   - Clean working tree: `git status -sb`
-   - On the target branch (default: `main`)
-   - GitHub CLI is authenticated: `gh auth status`
-2. Decide the version and date
-   - Version: `vX.Y.Z`
-   - Date: `YYYY-MM-DD` (e.g. `date +%Y-%m-%d`)
-3. Update `CHANGELOG.md`
-   - Add a new entry at the top using the repo’s template (preferred), or `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`
-   - Keep section order; remove empty sections
-   - Run `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check --no-skip-template`
-     - If it fails, stop and ask the user how to proceed (do not publish a release with a non-conforming changelog).
-4. (Only when code changed) run the repo’s lint/test/build checks and record results
-5. Commit the changelog
-6. Create the GitHub release notes from the changelog section and publish the release with `gh release create`
-7. Verify the release with `gh release view`
-
-## Templates (fallback)
-
-- `template/RELEASE_TEMPLATE.md`: Changelog entry / GitHub release notes template (copy into the project’s `CHANGELOG.md`).
-- Path: `$CODEX_HOME/skills/automation/release-workflow/template/RELEASE_TEMPLATE.md`
+- `$CODEX_HOME/skills/automation/release-workflow/RELEASE_GUIDE.md`
 
 ## Helper scripts (fallback)
 
 These scripts are designed to run inside a target repo that uses `CHANGELOG.md` headings like `## vX.Y.Z - YYYY-MM-DD`.
 
+- Locate a project release guide deterministically:
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3`
+- Resolve the guide + template deterministically (preferred entrypoint):
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
 - Scaffold a new entry from a template:
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
-  - Uses repo-local `docs/templates/RELEASE_TEMPLATE.md` when present; otherwise falls back to this skill template.
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$CODEX_HOME/out/release-entry-v1.3.2.md"`
+  - Selects the repo template when present; otherwise falls back to the bundled template.
 - Audit basic prereqs + changelog format:
   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
-- Audit changelog formatting + placeholder cleanup (use `--no-skip-template` to enforce default-template expectations):
-  - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check --no-skip-template`
+- Audit changelog formatting + placeholder cleanup:
+  - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 - Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$CODEX_HOME/out/release-notes-v1.3.2.md"`

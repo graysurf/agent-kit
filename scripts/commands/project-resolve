@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() {
+  echo "project-resolve: $1" >&2
+  exit 2
+}
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  project-resolve [--repo <path>] [--type file|dir] [--prefer <path> ...]
+                 [--search-name <name>] [--max-depth <n>] [--fallback <path>]
+                 [--format path|json|env] [--prefix <str>]
+
+Purpose:
+  Resolve a project path deterministically (project-first with optional fallback).
+
+Resolution:
+  1) First existing path from --prefer (relative to --repo unless absolute)
+  2) If still missing and --search-name is set: find under --repo up to --max-depth
+     - 0 matches: continue
+     - 1 match: use it
+     - >1 matches: exit 3 and print matches to stderr
+  3) If still missing and --fallback is set: use --fallback (must exist)
+  4) Otherwise: exit 1 (not found)
+
+Exit:
+  0: resolved
+  1: not found (no fallback)
+  2: usage error
+  3: multiple matches found
+
+Formats:
+  - path: prints the resolved path
+  - json: prints {"repo": "...", "path": "...", "source": "repo|fallback", "match": "prefer|search|fallback"}
+  - env: prints shell-escaped vars (<prefix>REPO, <prefix>PATH, <prefix>SOURCE, <prefix>MATCH)
+EOF
+}
+
+repo="${PROJECT_PATH:-.}"
+kind="file"
+format="path"
+prefix="RESOLVE_"
+max_depth="3"
+search_name=""
+fallback=""
+prefer_paths=()
+
+while [[ $# -gt 0 ]]; do
+  case "${1:-}" in
+    --repo)
+      repo="${2:-}"
+      shift 2
+      ;;
+    --type)
+      kind="${2:-}"
+      shift 2
+      ;;
+    --prefer)
+      prefer_paths+=("${2:-}")
+      shift 2
+      ;;
+    --search-name)
+      search_name="${2:-}"
+      shift 2
+      ;;
+    --max-depth)
+      max_depth="${2:-}"
+      shift 2
+      ;;
+    --fallback)
+      fallback="${2:-}"
+      shift 2
+      ;;
+    --format)
+      format="${2:-}"
+      shift 2
+      ;;
+    --prefix)
+      prefix="${2:-}"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown argument: ${1:-}"
+      ;;
+  esac
+done
+
+[[ -n "$repo" ]] || repo="."
+[[ -d "$repo" ]] || die "repo not found: $repo"
+repo_abs="$(cd "$repo" && pwd -P)"
+
+case "$kind" in
+  file|dir) ;;
+  *) die "invalid --type (expected file|dir): $kind" ;;
+esac
+
+case "$format" in
+  path|json|env) ;;
+  *) die "invalid --format (expected path|json|env): $format" ;;
+esac
+
+if ! [[ "$max_depth" =~ ^[0-9]+$ ]]; then
+  die "invalid --max-depth (expected integer): $max_depth"
+fi
+
+exists() {
+  local path="$1"
+  if [[ "$kind" == "dir" ]]; then
+    [[ -d "$path" ]]
+  else
+    [[ -f "$path" ]]
+  fi
+}
+
+to_abs() {
+  local path="$1"
+  if [[ "$path" == /* ]]; then
+    printf "%s\n" "$path"
+  else
+    local rel="${path#./}"
+    printf "%s\n" "${repo_abs%/}/${rel}"
+  fi
+}
+
+resolved=""
+source="repo"
+match=""
+
+for p in "${prefer_paths[@]}"; do
+  [[ -n "$p" ]] || continue
+  candidate="$(to_abs "$p")"
+  if exists "$candidate"; then
+    resolved="$candidate"
+    match="prefer"
+    break
+  fi
+done
+
+if [[ -z "$resolved" && -n "$search_name" ]]; then
+  find_type="f"
+  [[ "$kind" == "dir" ]] && find_type="d"
+
+  mapfile -t matches < <(
+    find "$repo_abs" -maxdepth "$max_depth" -type "$find_type" -name "$search_name" 2>/dev/null | sort
+  )
+
+  if [[ ${#matches[@]} -gt 1 ]]; then
+    printf "project-resolve: multiple matches found:\n" >&2
+    printf "%s\n" "${matches[@]}" >&2
+    exit 3
+  fi
+
+  if [[ ${#matches[@]} -eq 1 ]]; then
+    resolved="${matches[0]}"
+    match="search"
+  fi
+fi
+
+if [[ -z "$resolved" ]]; then
+  if [[ -n "$fallback" ]]; then
+    candidate="$(to_abs "$fallback")"
+    exists "$candidate" || die "fallback does not exist: $candidate"
+    resolved="$candidate"
+    source="fallback"
+    match="fallback"
+  else
+    exit 1
+  fi
+fi
+
+escape_json() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf "%s" "$s"
+}
+
+case "$format" in
+  path)
+    printf "%s\n" "$resolved"
+    ;;
+  json)
+    printf '{'
+    printf '"repo":"%s",' "$(escape_json "$repo_abs")"
+    printf '"path":"%s",' "$(escape_json "$resolved")"
+    printf '"source":"%s",' "$(escape_json "$source")"
+    printf '"match":"%s"' "$(escape_json "$match")"
+    printf '}\n'
+    ;;
+  env)
+    printf "%sREPO=%q\n" "$prefix" "$repo_abs"
+    printf "%sPATH=%q\n" "$prefix" "$resolved"
+    printf "%sSOURCE=%q\n" "$prefix" "$source"
+    printf "%sMATCH=%q\n" "$prefix" "$match"
+    ;;
+esac
