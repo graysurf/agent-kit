@@ -99,9 +99,8 @@
 
 ## Commit 原則
 
-- 每個 commit 都必須使用 `$semantic-commit` skill 來完成，不得直接使用 `git commit`。
-- `$semantic-commit`: `$CODEX_HOME/skills/tools/devex/semantic-commit/SKILL.md`。
-- 完成 commit 後依照 `$semantic-commit` 的輸出格式回應。
+- 所有 commit 一律使用 `$semantic-commit`（規格：`$CODEX_HOME/skills/tools/devex/semantic-commit/SKILL.md`）；禁止直接執行 `git commit`。
+- 由其他 skill 觸發 commit 時：免用戶二次確認；完成後回覆需符合 `$semantic-commit` 的輸出格式。
 
 ## 可用指令（全域工具）
 
