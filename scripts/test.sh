@@ -40,4 +40,20 @@ if ! "$python" -c "import pytest" >/dev/null 2>&1; then
 fi
 
 export CODEX_HOME="${CODEX_HOME:-$repo_root}"
-exec "$python" -m pytest "$@"
+set +e
+"$python" -m pytest "$@"
+status=$?
+set -e
+
+coverage_md="${CODEX_HOME}/out/tests/script-coverage/summary.md"
+coverage_json="${CODEX_HOME}/out/tests/script-coverage/summary.json"
+if [[ -f "$coverage_md" ]]; then
+  echo ""
+  echo "script coverage (functional):"
+  echo "  - $coverage_md"
+  if [[ -f "$coverage_json" ]]; then
+    echo "  - $coverage_json"
+  fi
+fi
+
+exit "$status"

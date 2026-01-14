@@ -127,6 +127,23 @@ jobs:
         run: |
           scripts/test.sh
 
+      - name: Script coverage summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            exit 0
+          fi
+
+          if [[ -f out/tests/script-coverage/summary.md ]]; then
+            cat out/tests/script-coverage/summary.md >>"$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Script coverage (functional)" >>"$GITHUB_STEP_SUMMARY"
+            echo "" >>"$GITHUB_STEP_SUMMARY"
+            echo "_No script coverage report found at out/tests/script-coverage/summary.md._" >>"$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload script regression artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -138,4 +155,6 @@ jobs:
             out/tests/script-regression/logs
             out/tests/script-smoke/summary.json
             out/tests/script-smoke/logs
+            out/tests/script-coverage/summary.json
+            out/tests/script-coverage/summary.md
             out/tests/script-smoke/api-test-summary

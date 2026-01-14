@@ -1,30 +1,24 @@
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 import pytest
 
-from .conftest import default_env, repo_root
-
-
-def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        cmd,
-        cwd=str(cwd),
-        env=default_env(cwd),
-        text=True,
-        capture_output=True,
-        timeout=10,
-    )
+from .conftest import SCRIPT_SMOKE_RUN_RESULTS, repo_root
+from .test_script_smoke import run_smoke_script
 
 
 def test_validate_skill_contracts_passes_for_repo():
     repo = repo_root()
-    result = run(["bash", str(repo / "scripts" / "validate_skill_contracts.sh")], cwd=repo)
-    assert result.returncode == 0, result.stderr
-    assert result.stdout == ""
-    assert result.stderr == ""
+    script = "scripts/validate_skill_contracts.sh"
+    spec = {
+        "args": [],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
+    }
+    result = run_smoke_script(script, "audit-skill-contracts-pass", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
 
 
 def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
@@ -57,21 +51,28 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
     )
 
     repo = repo_root()
-    result = run(
-        ["bash", str(repo / "scripts" / "validate_skill_contracts.sh"), "--file", str(fixture)],
-        cwd=repo,
-    )
-    assert result.returncode != 0
-    assert "Failure modes" in result.stderr
+    script = "scripts/validate_skill_contracts.sh"
+    spec = {
+        "args": ["--file", str(fixture)],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [1], "stderr_regex": r"Failure modes"},
+    }
+    result = run_smoke_script(script, "audit-skill-contracts-fail", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
 
 
 def test_validate_progress_index_passes_for_repo():
     repo = repo_root()
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
-    result = run(["bash", str(script)], cwd=repo)
-    assert result.returncode == 0, result.stderr
-    assert result.stdout == ""
-    assert result.stderr == ""
+    spec = {
+        "args": [],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [0], "stdout_regex": r"\A\Z", "stderr_regex": r"\A\Z"},
+    }
+    result = run_smoke_script(script.relative_to(repo).as_posix(), "audit-progress-index-pass", spec, repo, cwd=repo)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
 
 
 def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
@@ -114,6 +115,17 @@ def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
     mutated.write_text("\n".join(lines).rstrip() + "\n", "utf-8")
 
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
-    result = run(["bash", str(script), "--file", str(mutated)], cwd=repo)
-    assert result.returncode != 0
-    assert "invalid PR cell" in result.stderr
+    spec = {
+        "args": ["--file", str(mutated)],
+        "timeout_sec": 10,
+        "expect": {"exit_codes": [1], "stderr_regex": r"invalid PR cell"},
+    }
+    result = run_smoke_script(
+        script.relative_to(repo).as_posix(),
+        "audit-progress-index-fail",
+        spec,
+        repo,
+        cwd=repo,
+    )
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
