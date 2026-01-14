@@ -80,15 +80,6 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-if [[ -z "$pr_number" ]]; then
-  pr_number="$(gh pr view --json number -q .number 2>/dev/null || true)"
-fi
-
-if [[ -z "$pr_number" ]]; then
-  echo "error: PR number is required (use --pr <number> or run on a branch with an open PR)" >&2
-  exit 1
-fi
-
 pr_body=""
 pr_body_loaded="0"
 
@@ -105,8 +96,29 @@ write_pr_body_to_file() {
   printf '%s' "$pr_body" >"$dest"
 }
 
-pr_meta="$(gh pr view "$pr_number" --json url,baseRefName,headRefName,state -q '[.url, .baseRefName, .headRefName, .state] | @tsv')"
-IFS=$'\t' read -r pr_url base_branch head_branch pr_state <<<"$pr_meta"
+pr_view_args=()
+if [[ -n "$pr_number" ]]; then
+  pr_view_args=("$pr_number")
+fi
+
+pr_meta="$(gh pr view "${pr_view_args[@]}" --json url,baseRefName,headRefName,state,isDraft -q '[.url, .baseRefName, .headRefName, .state, .isDraft] | @tsv')"
+IFS=$'\t' read -r pr_url base_branch head_branch pr_state pr_is_draft <<<"$pr_meta"
+
+if [[ -z "$pr_number" ]]; then
+  pr_number="$(python3 - "$pr_url" <<'PY'
+from urllib.parse import urlparse
+import sys
+
+parts = [p for p in urlparse(sys.argv[1]).path.split("/") if p]
+
+# Expected: /<owner>/<repo>/pull/<number>
+if len(parts) < 4 or parts[2] != "pull":
+  raise SystemExit(1)
+
+print(parts[3])
+PY
+)"
+fi
 
 repo_full="$(python3 - "$pr_url" <<'PY'
 from urllib.parse import urlparse
@@ -123,7 +135,7 @@ print(f"{parts[0]}/{parts[1]}")
 PY
 )"
 
-if [[ -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
+if [[ -z "$pr_number" || -z "$repo_full" || -z "$base_branch" || -z "$head_branch" || -z "$pr_url" || -z "$pr_state" ]]; then
   echo "error: failed to resolve PR metadata via gh" >&2
   exit 1
 fi
@@ -202,8 +214,7 @@ if [[ "$patch_only" == "0" ]]; then
     gh pr checks "$pr_number"
   fi
 
-  is_draft="$(gh pr view "$pr_number" --json isDraft -q .isDraft)"
-  if [[ "$is_draft" == "true" ]]; then
+  if [[ "$pr_is_draft" == "true" ]]; then
     gh pr ready "$pr_number"
   fi
 
