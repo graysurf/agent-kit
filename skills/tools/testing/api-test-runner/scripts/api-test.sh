@@ -1640,7 +1640,7 @@ for ((i=0; i<case_count; i++)); do
           main_args="$(mask_args_for_command_snippet "${main_cmd[@]:1}")"
           token_expr_q="$(printf "%q" "$token_jq")"
 
-          printf 'ACCESS_TOKEN="$('
+          printf "ACCESS_TOKEN=\"\$("
           printf 'REST_TOKEN_NAME= ACCESS_TOKEN= %s %s | jq -r %s' "$runner" "$login_args" "$token_expr_q"
           printf ')" REST_TOKEN_NAME= %s %s' "$runner" "$main_args"
         )"
