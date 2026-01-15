@@ -89,6 +89,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | --- | --- | --- |
 | DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
+| Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
 | Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
 
 ### Project-specific

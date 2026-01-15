@@ -1,0 +1,12 @@
+# Generated / local state
+out/
+tmp/
+sessions/
+.venv/
+
+# Cache
+__pycache__/
+.pytest_cache/
+
+# Generated snapshots (tracked, but noisy for scanning)
+shell_snapshots/

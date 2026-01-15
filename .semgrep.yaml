@@ -1,0 +1,118 @@
+rules:
+  - id: codex-kit.comment.todo
+    languages: [generic]
+    message: TODO marker (unfinished work or missing edge cases).
+    severity: INFO
+    pattern-regex: "\\bTODO\\b"
+    paths:
+      include:
+        - "*.py"
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.comment.fixme
+    languages: [generic]
+    message: FIXME marker (known-bad behavior).
+    severity: WARNING
+    pattern-regex: "\\bFIXME\\b"
+    paths:
+      include:
+        - "*.py"
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.comment.bug
+    languages: [generic]
+    message: BUG marker (explicit bug note).
+    severity: WARNING
+    pattern-regex: "\\bBUG\\b"
+    paths:
+      include:
+        - "*.py"
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.comment.hack
+    languages: [generic]
+    message: HACK marker (workaround or suspicious code).
+    severity: WARNING
+    pattern-regex: "\\bHACK\\b"
+    paths:
+      include:
+        - "*.py"
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.comment.xxx
+    languages: [generic]
+    message: XXX marker (placeholder or code smell).
+    severity: INFO
+    pattern-regex: "\\bXXX\\b"
+    paths:
+      include:
+        - "*.py"
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.shell.typeset-empty-string-double-quotes
+    languages: [generic]
+    message: Prefer ='' over ="" in typeset/local lines.
+    severity: INFO
+    pattern-regex: '^[ \t]*(?:typeset|local)\b.*=""'
+    paths:
+      include:
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.shell.eval
+    languages: [generic]
+    message: "Avoid eval in shell scripts; prefer arrays or explicit parsing."
+    severity: WARNING
+    pattern-regex: "^[ \\t]*eval\\b"
+    paths:
+      include:
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.shell.curl-pipe-shell
+    languages: [generic]
+    message: Avoid piping curl/wget output to a shell (supply-chain risk).
+    severity: ERROR
+    pattern-regex: "^[ \\t]*(?:curl|wget)\\b[^|]*\\|[ \\t]*(?:sh|bash|zsh)\\b"
+    paths:
+      include:
+        - "*.sh"
+        - "*.zsh"
+
+  - id: codex-kit.python.subprocess-shell-true
+    languages: [python]
+    message: Avoid shell=True in subprocess calls; prefer an argv list without a shell.
+    severity: ERROR
+    pattern-either:
+      - pattern: subprocess.$F(..., shell=True, ...)
+      - pattern: subprocess.$F(..., shell=True)
+      - pattern: subprocess.$F(shell=True, ...)
+      - pattern: subprocess.$F(shell=True)
+    paths:
+      include:
+        - "*.py"
+
+  - id: codex-kit.python.os-system
+    languages: [python]
+    message: Avoid os.system; prefer subprocess with an argv list.
+    severity: WARNING
+    pattern: os.system(...)
+    paths:
+      include:
+        - "*.py"
+
+  - id: codex-kit.python.eval-exec
+    languages: [python]
+    message: Avoid eval/exec; prefer safer parsing or explicit code paths.
+    severity: WARNING
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+    paths:
+      include:
+        - "*.py"
