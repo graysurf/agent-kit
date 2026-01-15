@@ -1,6 +1,6 @@
-# REST API Test Output Template
+# REST API Test Report Contract
 
-Use this template for the `rest-api-testing` skill.
+Use this contract for the `rest-api-testing` skill.
 
 ## Output rules
 

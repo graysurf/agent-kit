@@ -29,7 +29,7 @@ Links:
   - Refuse to write a report when the response has no meaningful `.data` content unless `--allow-empty` (or `GQL_ALLOW_EMPTY`) is set.
 - Bootstrap template exists under `skills/tools/testing/graphql-api-testing/template/setup/graphql` and includes:
   - `endpoints.env`, `jwts.env`, `.gitignore`, and a sample `operations/login.graphql` + variables files.
-- Skill docs exist and reference `docs/templates/GRAPHQL_API_TEST_OUTPUT_TEMPLATE.md` for reporting.
+- Skill docs exist and reference `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md` for reporting.
 
 ## Scope
 
@@ -113,11 +113,11 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
   - Work Items:
     - [x] Implement `gql-report.sh` to generate reproducible Markdown reports with redaction.
     - [x] Add project-local guide template for teams that want repo docs under `docs/`.
-    - [x] Add output template under `docs/templates/GRAPHQL_API_TEST_OUTPUT_TEMPLATE.md`.
+    - [x] Add report contract under `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`.
   - Artifacts:
     - `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`
     - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`
-    - `docs/templates/GRAPHQL_API_TEST_OUTPUT_TEMPLATE.md`
+    - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`
   - Exit Criteria:
     - [x] `bash -n skills/tools/testing/graphql-api-testing/scripts/gql-report.sh` passes.
     - [x] `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh --help` prints usage.
@@ -160,5 +160,5 @@ Note: Any unchecked checkbox in this section must include a Reason (inline `Reas
 - `skills/tools/testing/graphql-api-testing/scripts/gql.sh`: Single entrypoint to run GraphQL operations with env/JWT presets and auto-login fallback.
 - `skills/tools/testing/graphql-api-testing/scripts/gql-report.sh`: Report generator (runs or replays requests, redacts secrets, blocks empty reports).
 - `skills/tools/testing/graphql-api-testing/template/setup/graphql`: Bootstrap template for per-project `setup/graphql/`.
-- `docs/templates/GRAPHQL_API_TEST_OUTPUT_TEMPLATE.md`: Standard output contract for manual API test reports.
+- `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual API test reports.
 - `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`: Project-local guide template to copy into a repo.

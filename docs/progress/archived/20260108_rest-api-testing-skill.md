@@ -56,7 +56,7 @@ Links:
   - Redact common secret fields in request/response by default; allow opting out with `--no-redact`.
 - Bootstrap template exists under `skills/tools/testing/rest-api-testing/template/setup/rest` and includes:
   - `endpoints.env`, `tokens.env`, `.gitignore`, and at least one sample `requests/*.request.json`.
-- Skill docs exist under `skills/tools/testing/rest-api-testing/SKILL.md` and reference `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md` for reporting.
+- Skill docs exist under `skills/tools/testing/rest-api-testing/SKILL.md` and reference `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md` for reporting.
 
 ## Scope
 
@@ -124,11 +124,11 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Finalize naming + layout (`skills/tools/testing/rest-api-testing`, `setup/rest/`, env var prefixes, history file name).
     - [x] Lock the `*.request.json` schema (method/path/query/headers/body/expect).
     - [x] Add at least one canonical `*.request.json` example (used for docs and CI verification).
-    - [x] Decide report output contract (template under `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`).
+    - [x] Decide report output contract (`skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`).
     - [x] Define how to run E2E in CI (documented; exit code is the contract when `expect` is present).
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
-    - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
+    - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
     - `skills/tools/testing/rest-api-testing/SKILL.md`
     - `skills/tools/testing/rest-api-testing/references/REST_API_TESTING_GUIDE.md`
     - `skills/tools/testing/rest-api-testing/template/setup/rest/requests/health.request.json`
@@ -151,7 +151,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`
     - `skills/tools/testing/rest-api-testing/template/setup/rest/*`
     - `skills/tools/testing/rest-api-testing/SKILL.md`
-    - `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
+    - `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
   - Exit Criteria:
     - [x] At least one happy path runs end-to-end (CLI/script/API): Verified via local stub server (`out/rest-api-testing/smoke-*`).
     - [x] Primary outputs are verifiable (files/reports/history): Verified `setup/rest/.rest_history` + a generated report (`out/rest-api-testing/smoke-*`).
@@ -201,4 +201,4 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
 - `skills/tools/testing/rest-api-testing/scripts/rest-report.sh`: Report generator (runs or replays requests, redacts secrets by default).
 - `skills/tools/testing/rest-api-testing/scripts/rest-history.sh`: History reader / replay helper.
 - `skills/tools/testing/rest-api-testing/template/setup/rest`: Bootstrap template for per-project `setup/rest/`.
-- `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`: Standard output contract for manual REST API test reports.
+- `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`: Standard output contract for manual REST API test reports.

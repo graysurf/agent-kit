@@ -1,6 +1,6 @@
-# GraphQL API Test Output Template
+# GraphQL API Test Report Contract
 
-Use this template for the `graphql-api-testing` skill.
+Use this contract for the `graphql-api-testing` skill.
 
 ## Output rules
 

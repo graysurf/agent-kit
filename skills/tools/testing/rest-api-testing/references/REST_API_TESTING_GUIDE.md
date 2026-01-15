@@ -148,9 +148,9 @@ $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
   --run
 ```
 
-Report output contract template (recommended):
+Report output contract (recommended):
 
-- `docs/templates/REST_API_TEST_OUTPUT_TEMPLATE.md`
+- `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
 
 7) CI / E2E usage (recommended pattern)
 

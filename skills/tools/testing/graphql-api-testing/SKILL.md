@@ -122,4 +122,4 @@ Notes:
 ## References
 
 - Full guide (project template): `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TESTING_GUIDE.md`
-- Report template: `docs/templates/GRAPHQL_API_TEST_OUTPUT_TEMPLATE.md`
+- Report contract: `skills/tools/testing/graphql-api-testing/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`
