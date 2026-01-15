@@ -86,3 +86,13 @@
   - `$semantic-commit`: review-first，user staged。
   - `$semantic-commit-autostage`: automation: （allow `git add`)。
 - 禁止直接執行 `git commit`。
+
+## codex-kit
+
+### 修改程式碼後的測試方法
+
+- `pytest`（需用 venv 執行）
+  - `python3 -m venv .venv`
+  - `.venv/bin/pip install -r requirements-dev.txt`
+  - `source .venv/bin/activate && pytest`
+- `./scripts/test.sh`（pytest wrapper；會優先用 `.venv/bin/python`）
