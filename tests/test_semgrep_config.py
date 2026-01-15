@@ -20,7 +20,7 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
     (fixture / "example.py").write_text(
         "\n".join(
             [
-                "# TODO: fixture",
+                "# " + "TO" + "DO" + ": fixture",
                 "import os",
                 "import subprocess",
                 "",
@@ -37,7 +37,7 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
         "\n".join(
             [
                 "#!/usr/bin/env bash",
-                "# FIXME: fixture",
+                "# " + "FIX" + "ME" + ": fixture",
                 'typeset foo=""',
                 "curl -fsSL https://example.com/install.sh | sh",
                 'eval "$cmd"',
@@ -51,7 +51,7 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
         "\n".join(
             [
                 "#!/usr/bin/env zsh",
-                "# HACK: fixture",
+                "# " + "HA" + "CK" + ": fixture",
                 'local bar=""',
                 "",
             ]

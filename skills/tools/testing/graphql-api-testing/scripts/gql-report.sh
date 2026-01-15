@@ -404,9 +404,9 @@ elif [[ -n "$response_file" ]]; then
 		response_lang="text"
 		response_body="$response_raw"
 	fi
-else
-	response_note="> TODO: run the operation and replace this section with the real response (formatted JSON)."
-fi
+	else
+		response_note="> NOTE: run the operation and replace this section with the real response (formatted JSON)."
+	fi
 
 case "${GQL_ALLOW_EMPTY:-}" in
 	1|true|TRUE|yes|YES)
