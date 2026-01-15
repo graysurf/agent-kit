@@ -95,7 +95,7 @@ json_path = Path(sys.argv[-1])
 raw = json_path.read_text("utf-8", errors="replace")
 data = json.loads(raw) if raw.strip() else None
 
-bug_id_re = re.compile(r"^PR-(?:\\d+|<number>)-bug-\\d+$", re.IGNORECASE)
+bug_id_re = re.compile(r"^PR-(?:\d+|<number>)-bug-\d+$", re.IGNORECASE)
 
 severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
 

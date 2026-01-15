@@ -1,0 +1,24 @@
+{
+  "smoke": [
+    {
+      "name": "mark-fixed",
+      "args": ["--pr", "123", "--mark-fixed", "PR-123-bug-001"],
+      "timeout_sec": 10,
+      "env": {
+        "CODEX_GH_STUB_MODE": "1",
+        "CODEX_GH_STUB_BODY_FILE": "tests/fixtures/bug-pr/body.md",
+        "CODEX_GH_STUB_PR_NUMBER": "123",
+        "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/123",
+        "CODEX_GH_STUB_HEAD_REF": "feat/bug-123",
+        "CODEX_GH_STUB_BASE_REF": "main",
+        "CODEX_GH_STUB_TITLE": "Fixture bug PR",
+        "CODEX_GH_STUB_LABELS": "bug",
+        "CODEX_GH_STUB_UPDATED_AT": "2026-01-01T00:00:00Z"
+      },
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"overall_status\"\\s*:\\s*\"fixed\".*\"patched_bug_ids\"\\s*:\\s*\\[\"PR-123-bug-001\"\\]"
+      }
+    }
+  ]
+}

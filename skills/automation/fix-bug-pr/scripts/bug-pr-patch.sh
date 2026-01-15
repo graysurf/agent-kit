@@ -96,7 +96,7 @@ for item in updates_raw:
 original = body_path.read_text("utf-8", errors="replace")
 lines = original.splitlines()
 
-bug_id_re = re.compile(r"^PR-(?:\\d+|<number>)-bug-\\d+$", re.IGNORECASE)
+bug_id_re = re.compile(r"^PR-(?:\d+|<number>)-bug-\d+$", re.IGNORECASE)
 
 start = None
 for i, line in enumerate(lines):

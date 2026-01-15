@@ -29,6 +29,16 @@ render_pr_url() {
   printf "%s" "${CODEX_GH_STUB_PR_URL:-https://github.com/example/repo/pull/${pr_number}}"
 }
 
+json_escape() {
+  local s="${1:-}"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  printf "%s" "$s"
+}
+
 if [[ "${1-}" == "pr" && "${2-}" == "view" ]]; then
   shift 2
 
@@ -106,6 +116,45 @@ if [[ "${1-}" == "pr" && "${2-}" == "view" ]]; then
       state="${CODEX_GH_STUB_STATE:-OPEN}"
       is_draft="${CODEX_GH_STUB_IS_DRAFT:-false}"
       printf "%s\t%s\t%s\t%s\t%s\t%s\n" "$pr_url" "$title" "$base_ref" "$head_ref" "$state" "$is_draft"
+      exit 0
+      ;;
+    number,title,url,body,headRefName,baseRefName,labels,updatedAt)
+      pr_url="$(render_pr_url "$pr_number")"
+      title="${CODEX_GH_STUB_TITLE:-Fixture PR}"
+      base_ref="${CODEX_GH_STUB_BASE_REF:-main}"
+      head_ref="${CODEX_GH_STUB_HEAD_REF:-feat/stub}"
+      updated_at="${CODEX_GH_STUB_UPDATED_AT:-2026-01-01T00:00:00Z}"
+      body=""
+      if [[ -n "${CODEX_GH_STUB_BODY_FILE:-}" ]]; then
+        body="$(cat "${CODEX_GH_STUB_BODY_FILE}")"
+      else
+        body="${CODEX_GH_STUB_BODY:-}"
+      fi
+      labels_env="${CODEX_GH_STUB_LABELS:-}"
+      labels_json="[]"
+      if [[ -n "$labels_env" ]]; then
+        IFS=',' read -r -a labels_arr <<<"$labels_env"
+        labels_json="["
+        for label in "${labels_arr[@]}"; do
+          labels_json+="{\"name\":\"$(json_escape "$label")\"},"
+        done
+        labels_json="${labels_json%,}]"
+      fi
+      if [[ "$pr_number" =~ ^[0-9]+$ ]]; then
+        number_json="$pr_number"
+      else
+        number_json="\"$(json_escape "$pr_number")\""
+      fi
+      printf '{'
+      printf '"number":%s,' "$number_json"
+      printf '"title":"%s",' "$(json_escape "$title")"
+      printf '"url":"%s",' "$(json_escape "$pr_url")"
+      printf '"body":"%s",' "$(json_escape "$body")"
+      printf '"headRefName":"%s",' "$(json_escape "$head_ref")"
+      printf '"baseRefName":"%s",' "$(json_escape "$base_ref")"
+      printf '"labels":%s,' "$labels_json"
+      printf '"updatedAt":"%s"' "$(json_escape "$updated_at")"
+      printf '}\n'
       exit 0
       ;;
     *)
