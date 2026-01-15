@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.2.0 - 2026-01-16
+
+### Added
+- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `scripts/semgrep-scan.sh` with curated defaults.
+- `semgrep-find-and-fix` automation skill, including local config and PR/report templates.
+- Repo verification tooling: `scripts/check.sh` and `scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
+- Shell style fixers: `scripts/fix-shell-style.zsh`, `scripts/fix-typeset-empty-string-quotes.zsh`, `scripts/fix-zsh-typeset-initializers.zsh`.
+- `commands/api-report-from-cmd` helper and API test report templates/metadata (REST + GraphQL).
+
+### Changed
+- CI: lint workflow now validates skill contracts and runs stricter Python type checks.
+- Repo checks: rename `verify.sh` to `check.sh` and split checks into modular flags.
+- GraphQL/REST helpers: improve report formatting, quoting, and metadata.
+
+### Fixed
+- Workflows: remove `eval` usage and parse `project-resolve` JSON safely during releases.
+- Semgrep: sanitize test fixtures for stable scans.
+- `api-test-runner`: fix quoting for `ACCESS_TOKEN` in the docs snippet.
+
 ## v1.1.0 - 2026-01-15
 
 ### Added
