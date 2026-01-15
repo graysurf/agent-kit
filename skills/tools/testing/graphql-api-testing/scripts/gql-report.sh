@@ -261,7 +261,8 @@ redact_jq='
   redact
 '
 
-has_meaningful_data_jq='
+has_meaningful_data_jq="$(
+	cat <<'JQ'
   def is_meta_key($k):
     ($k | tostring | ascii_downcase) as $s
     | ($s == "__typename"
@@ -303,8 +304,8 @@ has_meaningful_data_jq='
   (.data? // empty)
   | [ meaningful_scalar ]
   | length > 0
-'
-
+JQ
+)"
 format_json_file() {
 	local file="$1"
 	if [[ "$redact" == "true" ]]; then
@@ -445,12 +446,12 @@ if [[ "$include_command" == "true" ]]; then
 		config_arg="$(maybe_relpath "$config_arg" "$project_root")"
 	fi
 
-	command_snippet="$(
-		{
-			printf '%s \\\n' '"$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh"'
-			[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
-			if [[ -n "$explicit_url" ]]; then
-				if [[ "$include_command_url" == "true" ]]; then
+		command_snippet="$(
+			{
+				printf '%s \\\n' "\"\$CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql.sh\""
+				[[ -n "$config_arg" ]] && printf '  --config-dir %q \\\n' "$config_arg"
+				if [[ -n "$explicit_url" ]]; then
+					if [[ "$include_command_url" == "true" ]]; then
 					printf '  --url %q \\\n' "$explicit_url"
 				else
 					printf '  --url %q \\\n' "<omitted>"
@@ -471,26 +472,26 @@ fi
 
 	{
 		printf "# API Test Report (%s)\n\n" "$report_date"
-		printf "## Test Case: %s\n\n" "$case_name"
-		if [[ -n "$command_snippet" ]]; then
-			printf "## Command\n\n"
-			printf '```bash\n%s\n```\n\n' "$command_snippet"
-		fi
-		printf "Generated at: %s\n\n" "$generated_at"
+			printf "## Test Case: %s\n\n" "$case_name"
+			if [[ -n "$command_snippet" ]]; then
+				printf "## Command\n\n"
+				printf "\`\`\`bash\n%s\n\`\`\`\n\n" "$command_snippet"
+			fi
+			printf "Generated at: %s\n\n" "$generated_at"
 
 		printf "%s\n\n" "$endpoint_note"
 		printf "%s\n\n" "$result_note"
 
-		printf "### GraphQL Operation\n\n"
-		printf '```graphql\n%s\n```\n\n' "$operation_content"
+			printf "### GraphQL Operation\n\n"
+			printf "\`\`\`graphql\n%s\n\`\`\`\n\n" "$operation_content"
 
-		printf "### GraphQL Operation (Variables)\n\n"
-		[[ -n "$variables_note" ]] && printf "%s\n\n" "$variables_note"
-		printf '```json\n%s\n```\n\n' "$variables_json"
+			printf "### GraphQL Operation (Variables)\n\n"
+			[[ -n "$variables_note" ]] && printf "%s\n\n" "$variables_note"
+			printf "\`\`\`json\n%s\n\`\`\`\n\n" "$variables_json"
 
-		printf "### Response\n\n"
-		[[ -n "$response_note" ]] && printf "%s\n\n" "$response_note"
-		printf '```%s\n%s\n```\n' "$response_lang" "$response_body"
-	} >"$out_file"
+			printf "### Response\n\n"
+			[[ -n "$response_note" ]] && printf "%s\n\n" "$response_note"
+			printf "\`\`\`%s\n%s\n\`\`\`\n" "$response_lang" "$response_body"
+		} >"$out_file"
 
 printf "%s\n" "$out_file"

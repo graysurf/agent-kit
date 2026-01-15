@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 from shutil import which
+from typing import Any, cast
 
 from .conftest import repo_root
 
@@ -82,11 +83,20 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
     )
     assert completed.returncode == 0, f"semgrep scan failed:\n{completed.stderr}"
 
-    payload = json.loads(completed.stdout)
-    results = payload.get("results", [])
-    assert isinstance(results, list), "unexpected semgrep JSON: missing results list"
+    payload_raw: Any = json.loads(completed.stdout)
+    assert isinstance(payload_raw, dict), "unexpected semgrep JSON: expected an object payload"
+    payload = cast(dict[str, Any], payload_raw)
 
-    rule_ids = {r.get("check_id") for r in results if isinstance(r, dict)}
+    results_raw = cast(list[Any], payload.get("results", []))
+    assert isinstance(results_raw, list), "unexpected semgrep JSON: missing results list"
+
+    rule_ids: set[str] = set()
+    for result in results_raw:
+        if not isinstance(result, dict):
+            continue
+        check_id = cast(dict[str, Any], result).get("check_id")
+        if isinstance(check_id, str):
+            rule_ids.add(check_id)
 
     expected = {
         "codex-kit.comment.todo",
@@ -99,5 +109,5 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
         "codex-kit.python.os-system",
         "codex-kit.python.eval-exec",
     }
-    missing = expected - {x for x in rule_ids if isinstance(x, str)}
+    missing = expected - rule_ids
     assert not missing, f"expected Semgrep rules not triggered: {sorted(missing)}"
