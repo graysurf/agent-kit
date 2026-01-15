@@ -81,6 +81,16 @@ $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
   --run
 ```
 
+Generate a report from a copied `rest.sh` command snippet (no manual rewriting):
+
+```bash
+$CODEX_HOME/commands/api-report-from-cmd '<paste a rest.sh command snippet>'
+```
+
+If your repo bootstrapped `setup/rest/` from the template, you can also use:
+
+- `setup/rest/api-report-from-cmd.sh '<paste a rest.sh command snippet>'`
+
 ## Flow (decision tree)
 
 - If `setup/rest/prompt.md` exists → read it first for project-specific context.

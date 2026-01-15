@@ -70,6 +70,16 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
   --run
 ```
 
+Generate a report from a copied `gql.sh` command snippet (no manual rewriting):
+
+```bash
+$CODEX_HOME/commands/api-report-from-cmd '<paste a gql.sh command snippet>'
+```
+
+If your repo bootstrapped `setup/graphql/` from the template, you can also use:
+
+- `setup/graphql/api-report-from-cmd.sh '<paste a gql.sh command snippet>'`
+
 Replay the last run (history):
 
 ```bash

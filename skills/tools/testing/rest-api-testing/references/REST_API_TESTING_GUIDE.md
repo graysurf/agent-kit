@@ -47,6 +47,10 @@ mkdir -p setup
 cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/template/setup/rest" setup/
 ```
 
+The template includes a helper to turn a copied `rest.sh` history command into a report:
+
+- `setup/rest/api-report-from-cmd.sh` (requires `python3` or `python`)
+
 ## Request file schema (JSON only)
 
 Each request lives at:
@@ -150,7 +154,13 @@ $CODEX_HOME/skills/tools/testing/rest-api-testing/scripts/rest-report.sh \
 
 Report output contract (recommended):
 
-- `skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
+- `$CODEX_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
+
+If you already have a `rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
+
+```bash
+setup/rest/api-report-from-cmd.sh '<paste a rest.sh command snippet>'
+```
 
 7) CI / E2E usage (recommended pattern)
 

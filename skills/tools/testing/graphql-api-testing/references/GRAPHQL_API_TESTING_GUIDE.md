@@ -66,6 +66,10 @@ mkdir -p setup
 cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/template/setup/graphql" setup/
 ```
 
+The template includes a helper to turn a copied `gql.sh` history command into a report:
+
+- `setup/graphql/api-report-from-cmd.sh` (requires `python3` or `python`)
+
 Then fill local-only files (do not commit):
 
 ```bash
@@ -245,6 +249,12 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/scripts/gql-report.sh \
 ```
 
 If you intentionally expect an empty/no-data result (or want a draft without running yet), pass `--allow-empty`.
+
+If you already have a `gql.sh` command snippet (e.g. from `setup/graphql/.gql_history`), you can generate the report without manually rewriting it:
+
+```bash
+setup/graphql/api-report-from-cmd.sh '<paste a gql.sh command snippet>'
+```
 
 By default, `gql-report.sh` includes a copy/pasteable `gql.sh` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND=0`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL=0`.
 
