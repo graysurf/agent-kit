@@ -103,26 +103,27 @@
 
 ### 測試規範
 
-#### Part 1：Commit 前必跑（必須）
+#### Commit 前執行（必須）
 
-- 執行：`scripts/verify.sh`
-- 前置（只需做一次／更新後重跑）：`python3 -m venv .venv` + `.venv/bin/pip install -r requirements-dev.txt`
-- 前置（系統工具）：`shellcheck`、`zsh`（macOS: `brew install shellcheck`；Ubuntu: `sudo apt-get install -y shellcheck zsh`）
-- `scripts/verify.sh` 做什麼：
+- 執行：`scripts/check.sh`
+- `scripts/check.sh` 會做以下測試：
   - 先跑 `scripts/lint.sh`（shell + python）
     - Shell：依 shebang 分流執行 `shellcheck`（bash）+ `bash -n` + `zsh -n`
     - Python：`ruff check tests` + `mypy --config-file mypy.ini tests` + tracked `.py` 語法編譯檢查
   - 再跑 `scripts/test.sh`（pytest；會優先用 `.venv/bin/python`）
 
-#### Part 2：工具與設定（按需使用）
+#### 工具與設定（按需使用）
 
+- 前置
+  - python
+    - `python3 -m venv .venv`
+    - `.venv/bin/pip install -r requirements-dev.txt`
+  - 系統工具
+    - `shellcheck`、`zsh`（macOS: `brew install shellcheck`；Ubuntu: `sudo apt-get install -y shellcheck zsh`）
 - 快速入口
   - `scripts/lint.sh`（預設跑 shell + python）
-  - `scripts/verify.sh --no-tests`（只跑 lint；快速迭代用）
-  - `scripts/verify.sh -- -m script_smoke`（把參數轉交給 pytest）
-- Python venv（建議）
-  - `python3 -m venv .venv`
-  - `.venv/bin/pip install -r requirements-dev.txt`
+  - `scripts/check.sh --no-tests`（只跑 lint；快速迭代用）
+  - `scripts/check.sh -- -m script_smoke`（把參數轉交給 pytest）
 - `pytest`
   - 建議用 wrapper：`scripts/test.sh`（可直接轉交 pytest args）
   - 常用：`scripts/test.sh -m script_smoke`、`scripts/test.sh -m script_regression`
