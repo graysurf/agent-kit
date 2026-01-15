@@ -108,6 +108,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 - Curated open-source configs (Semgrep Registry): `scripts/semgrep-scan.sh`
   - `recommended`: `p/ci`, `p/python`, `p/github-actions`
   - `security`: adds `p/security-audit`, `p/secrets`, `p/supply-chain`, `p/command-injection`
+  - `shell`: `p/supply-chain`, `p/command-injection`, `p/secrets` (restricted to `*.sh`, `*.zsh`, `/commands/**`)
 
 ## 🪪 License
 
