@@ -64,3 +64,11 @@ Exit codes:
 
 - `0`: all validated files are compliant
 - non-zero: validation/usage errors (prints `error:` lines to stderr)
+
+## Semgrep
+
+Use `semgrep-scan.sh` to run `.semgrep.yaml` plus curated Semgrep Registry packs.
+
+Examples:
+
+- Shell scripts only: `scripts/semgrep-scan.sh --profile shell`
