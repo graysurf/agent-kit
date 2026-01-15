@@ -6,7 +6,7 @@ usage() {
 Usage:
   scripts/check.sh [--no-tests] [--] [pytest args...]
 
-Runs repo-local lint checks (shell + python), then runs the pytest suite.
+Runs repo-local lint checks (shell + python), validates skill contracts, then runs the pytest suite.
 
 Setup:
   .venv/bin/pip install -r requirements-dev.txt
@@ -48,6 +48,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repo_root"
 
 lint_rc=0
+contract_rc=0
 test_rc=0
 
 set +e
@@ -57,6 +58,16 @@ set -e
 
 if [[ "$lint_rc" -ne 0 ]]; then
   echo "error: lint failed (exit=$lint_rc)" >&2
+fi
+
+echo "lint: validate skill contracts" >&2
+set +e
+scripts/validate_skill_contracts.sh
+contract_rc=$?
+set -e
+
+if [[ "$contract_rc" -ne 0 ]]; then
+  echo "error: validate_skill_contracts failed (exit=$contract_rc)" >&2
 fi
 
 if [[ "$run_tests" -eq 1 ]]; then
@@ -70,7 +81,6 @@ if [[ "$run_tests" -eq 1 ]]; then
   fi
 fi
 
-if [[ "$lint_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
+if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
   exit 1
 fi
-

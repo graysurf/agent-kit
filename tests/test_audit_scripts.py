@@ -9,7 +9,7 @@ from .test_script_smoke import run_smoke_script
 ScriptSpec = dict[str, Any]
 
 
-def test_validate_skill_contracts_passes_for_repo():
+def test_validate_skill_contracts_passes_for_repo() -> None:
     repo = repo_root()
     script = "scripts/validate_skill_contracts.sh"
     spec: ScriptSpec = {
@@ -22,7 +22,7 @@ def test_validate_skill_contracts_passes_for_repo():
     assert result.status == "pass", result
 
 
-def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
+def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path) -> None:
     fixture = tmp_path / "bad-skill.md"
     fixture.write_text(
         "\n".join(
@@ -63,7 +63,7 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path):
     assert result.status == "pass", result
 
 
-def test_validate_progress_index_passes_for_repo():
+def test_validate_progress_index_passes_for_repo() -> None:
     repo = repo_root()
     script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
     spec: ScriptSpec = {
@@ -76,7 +76,7 @@ def test_validate_progress_index_passes_for_repo():
     assert result.status == "pass", result
 
 
-def test_fix_shell_style_passes_for_repo():
+def test_fix_shell_style_passes_for_repo() -> None:
     repo = repo_root()
     script = "scripts/fix-shell-style.zsh"
     spec: ScriptSpec = {
@@ -89,7 +89,7 @@ def test_fix_shell_style_passes_for_repo():
     assert result.status == "pass", result
 
 
-def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path):
+def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path) -> None:
     repo = repo_root()
     original = repo / "docs" / "progress" / "README.md"
     mutated = tmp_path / "progress-readme.md"
