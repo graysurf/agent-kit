@@ -105,15 +105,6 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
 | Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following RELEASE_GUIDE.md |
 
-## Semgrep
-
-- Local rules: `.semgrep.yaml`
-- Curated open-source configs (Semgrep Registry): `scripts/semgrep-scan.sh`
-  - `recommended`: `p/ci`, `p/python`, `p/github-actions`
-  - `security`: adds `p/security-audit`, `p/secrets`, `p/supply-chain`, `p/command-injection`
-  - `shell`: `p/supply-chain`, `p/command-injection`, `p/secrets` (restricted to `*.sh`, `*.zsh`, `/commands/**`)
-  - `scripting` (default): `p/python`, `p/supply-chain`, `p/command-injection`, `p/secrets` (restricted to `*.py`, `*.sh`, `*.zsh`, `/commands/**`)
-
 ## 🪪 License
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
