@@ -1,144 +1,140 @@
 # AGENTS.md
 
-## 目的與範圍（Purpose / Scope）
+## Purpose & scope
 
-- 本檔為 **Codex CLI 的全域預設行為規範**：用於定義 Agent／Assistant 的回應方式、品質標準與最低限度的工具入口約定。
-- 適用範圍：當 Codex CLI 在目前工作目錄找不到更具體的規範文件時，將採用本檔作為預設規則。
-- 覆蓋規則：若目前工作目錄（或更近的子目錄）存在專案／資料夾專用的 `AGENTS.md`（或同等規範文件），**以較近者優先**；否則回退到本檔。
-- 專案特定的規格、工作流、可用命令/腳本、以及 repo 結構與索引，應以 **當前專案** 的 `README` / `docs` / `CONTRIBUTING` / `prompts` / `skills` 等文件為準（如存在）。
+- This file defines the global default behavior for Codex CLI: response style, quality bar, and the minimum set of tool-entry conventions.
+- Scope: when Codex CLI can't find a more specific policy file in the current working directory, it falls back to this file.
+- Override rule: if the current directory (or a closer subdirectory) contains a project/folder-specific `AGENTS.md` (or equivalent), the closest one wins; otherwise fall back to this file.
+- Project-specific specs, workflows, available commands/scripts, and repo structure/index should follow the current project's `README`, `docs`, `CONTRIBUTING`, `prompts`, `skills`, etc. (when present).
 
-## 快速導航
+## Quick navigation
 
-- 想知道「這次專案怎麼做、怎麼跑、怎麼測」：看 **當前專案** 的 `README` / `docs` / `CONTRIBUTING`。
-- 想知道「有哪些既有工作流/模板可用」：優先看 **當前專案** 的 `prompts/`、`skills/` 或同等資料夾（若存在）。
-- 本檔只負責「全域回應規範」與「全域工具入口最小約定」，避免與專案文件重複或衝突。
+- How do I run/build/test this project? -> read the current project's `README`, `docs`, and `CONTRIBUTING`.
+- What workflows/templates already exist? -> check the current project's `prompts/`, `skills/`, or equivalent directories (when present).
+- This file only covers global response behavior and minimal tool-entry conventions; avoid duplicating or conflicting with project docs.
 
-## 基本規範
+## Core guidelines
 
-- 語言使用規範
-  - 使用英文思考與檢索；**回應預設採用繁體中文**（除非使用者明確要求其他語言）。
-  - 遇到需精準表達的專業術語或名詞時，保留原文或以英文呈現。
-  
-- 語義與邏輯一致性
-  - 回應在單回合與跨回合須保持語義、邏輯、術語與數據一致；不得出現語義鬆動、邏輯漂移、概念滑移。
-  - 若需更正，須明確標註變更點（例如：更正原因、變更前後差異）。
+- Semantic and logical consistency
+  - Keep meaning, terminology, and numbers consistent within a turn and across turns; avoid drift.
+  - If you need to correct something, explicitly call out what changed and why (e.g., cause and before/after).
 
-- 高語義密度
-  - 在不犧牲準確與可讀性的前提下，最大化單位字數的有效資訊量；避免贅詞、重述與情緒性填充。
-  - 優先結構化呈現（條列、表格、定量）。
+- High signal density
+  - Maximize useful information per token without sacrificing accuracy or readability; avoid filler and repetition.
+  - Prefer structured output (bullets, tables, quantified statements).
 
-- 推理模式
-  - 啟用高階推演預設加速模式，模型需主動展開高密度推理；當推理幅度過大時提醒可收斂。
+- Reasoning mode
+  - Default to an accelerated, high-level reasoning mode; if the reasoning space gets too large, flag it and propose narrowing.
 
-- 文件處理規則
-  - 處理 shell script、程式碼或設定檔時，修改/評論前應先讀到「與問題或變更相關的完整上下文」（定義、呼叫點、載入/依賴關係）；允許先精準定位，再補讀必要段落，不要求無差別通讀整檔。
-  - 若資訊不足或仍有不確定性，先標註假設與待驗證點、提出需要補充的檔案/片段，再給結論或動手修改；避免僅憑片段過快下結論。
-  - 若需產生檔案（報告/輸出/暫存）：
-    - 專案文件（需留存/交付）→ 依該專案慣例寫入專案目錄下的對應路徑。
-    - debug／測試用且原本應寫入 `/tmp` 的暫存產物（如 `lighthouse-performance.json`）→ 改寫入 `$CODEX_HOME/out/`，並在回覆中引用該路徑。
+- Working with files
+  - For shell scripts, code, and config: before editing/commenting, read the full context relevant to the change (definitions, call sites, loading/dependencies). It's fine to jump directly to the target area first, then backfill surrounding context as needed.
+  - If information is missing or uncertain: state assumptions and what needs verification, ask for the minimum additional files/snippets, then proceed. Avoid overconfident conclusions from partial context.
+  - When generating artifacts (reports/outputs/temp files):
+    - Project deliverables -> write them into the project directory following that project's conventions.
+    - Debug/test artifacts that would normally go to `/tmp` (e.g. `lighthouse-performance.json`) -> write to `$CODEX_HOME/out/` instead, and reference that path in the reply.
 
-- 完成工作通知（Desktop notification）
-  - 若本回合完成使用者請求（例如：已實作/修正/產出交付物），且使用者未明確要求不要通知：回合結尾應發送 1 則桌面通知（best-effort；失敗需 silent no-op）。
-  - Message：20 個字內描述本回合完成什麼。
-  - 指令（跨平台；只輸入 message）：`$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "Up to 20 words <**In English**>" --level info|success|warn|error`
+- Completion notification (desktop)
+  - If you finish the user's request in a turn (e.g. implemented/fixed/delivered something), and the user didn't explicitly opt out: send one desktop notification at the end of the turn (best-effort; silent no-op on failure).
+  - Message: describe what was done in <= 20 words.
+  - Command (cross-platform; pass only the message): `$CODEX_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh "Up to 20 words <**In English**>" --level info|success|warn|error`
 
-## 輸出模板（Output Template）
+## Response template
 
-> 目的：讓輸出「可掃讀、可驗證、可回溯」，並一致地揭露不確定性。
+> Goal: make outputs scannable, verifiable, and traceable, while consistently surfacing uncertainty.
 
-### 全域輸出規則
+### Global response rules
 
-- Skill 優先規則
-  - 若啟用的 skill（例如 `skills/*/SKILL.md`）有定義輸出規範／必填格式（含 code block 要求等），需優先遵守。
-  - 若 skill 輸出規範與本模板衝突，以 skill 為準；未衝突者沿用本模板。
+- Skill-first
+  - If an enabled skill (e.g. `skills/*/SKILL.md`) defines output requirements or a mandatory format (including code-block requirements), follow it.
+  - If a skill conflicts with this template, the skill wins. Otherwise, keep using this template.
 
-- 回應格式規則
-  - 所有回應結尾必須標示可信度與推理層級，格式為：
-    - `—— [可信度: 高｜中｜低] [推理強度: 事實｜推論｜假設｜生成]`
+- Response footer
+  - Every reply must end with confidence and reasoning level using this exact format:
+    - `—— [Confidence: High|Medium|Low] [Reasoning: Fact|Inference|Assumption|Generated]`
 
-- 模板:
+- Template
 
   ```md
-  ## 🔎 概覽
+  ## Overview
 
-  - 用 2–5 行說清楚：問題、結論、假設（若有）、接下來會做什麼（若有）。
+  - In 2-5 lines: state the problem, the conclusion, assumptions (if any), and what you'll do next (if anything).
 
-  ## 🛠️ 步驟 / 建議
+  ## Steps / Recommendations
 
-  1. 可執行的步驟（必要時提供指令、檢查點、預期輸出）。
-  2. 如有分支條件，明確列出「如果 A → 做 X；如果 B → 做 Y」。
+  1. Actionable steps (include commands, checkpoints, and expected output when useful).
+  2. If there are branches: If A -> do X; if B -> do Y.
 
-  ## ⚠️ 風險 / 不確定性（必要時）
+  ## Risks / Uncertainty (when needed)
 
-  - 哪些點是推論／假設、哪些資訊缺口會影響結論。
-  - 建議的驗證方法（例如：查哪個檔、跑哪個指令、看哪個 log）。
+  - What is inferred vs assumed, and what missing info could change the conclusion.
+  - How to validate (which file to check, which command to run, which log to read).
 
-  ## 📚 來源（必要時）
+  ## Sources (when needed)
 
-  - 引用檔名、路徑、或明確可追溯的依據。
+  - Cite filenames/paths or other traceable references.
 
-  —— [可信度: 中] [推理強度: 推論]
+  —— [Confidence: Medium] [Reasoning: Inference]
   ```
 
-## Commit 原則
+## Commit policy
 
-- 所有 commit 一律使用 `semantic-commit`
-  - `$semantic-commit`: review-first，user staged。
-  - `$semantic-commit-autostage`: automation: （allow `git add`)。
-- 禁止直接執行 `git commit`。
+- All commits must use `semantic-commit`
+  - `$semantic-commit`: review-first, user-staged.
+  - `$semantic-commit-autostage`: automation flow (allows `git add`).
+- Do not run `git commit` directly.
 
 ## codex-kit
 
-### 開發規範（Shell / zsh）
+### Development (Shell / zsh)
 
-- `stdout`/`stderr`：本 repo 腳本以非互動（non-interactive）使用為主；`stdout` 盡量只輸出「會被其他工具/LLM 解析」的內容，其他資訊（debug/progress/warn）一律走 `stderr`（zsh: `print -u2 -r -- ...`；bash: `echo ... >&2`）。
-- 避免意外輸出（zsh `typeset`/`local`）：避免在 loop 內重複執行「不帶初值」的宣告（例如 `typeset key file`）。在 `unsetopt typeset_silent`（含預設）時，可能把既有值印到 `stdout`（如 `key=''`），造成雜訊。
-  - 作法 A：宣告移到 loop 外只做一次（建議）→ `typeset key='' file=''`；loop 內只做賦值（`key=...`）。
-  - 作法 B：需要 loop 內宣告時 → 一律帶初值（`typeset key='' file=''`）。
-- 字串引號規則（zsh；bash 同理）
-  - Literal（不需要 `$var`/`$(cmd)` 展開）→ 單引號：`typeset homebrew_path=''`
-  - 需要展開 → 雙引號並保持引用：`typeset repo_root="$PWD"`、`print -r -- "$msg"`
-  - 需要跳脫序列（例如 `\n`）→ 用 `$'...'`
-- 自動修正（只處理空字串）：`scripts/fix-typeset-empty-string-quotes.zsh --check|--write` 會把 `typeset/local ...=""` 統一為 `''`。
+- `stdout`/`stderr`: These scripts are designed for non-interactive use. Keep `stdout` for machine/LLM-parsable output only; send everything else (debug/progress/warn) to `stderr` (zsh: `print -u2 -r -- ...`; bash: `echo ... >&2`).
+- Avoid accidental output (zsh `typeset`/`local`): don't repeatedly declare variables without initial values inside loops (e.g. `typeset key file`). With `unsetopt typeset_silent` (including the default), zsh may print existing values to `stdout` (e.g. `key=''`), creating noise.
+  - Option A (preferred): declare once outside the loop -> `typeset key='' file=''`; inside the loop, only assign (`key=...`).
+  - Option B: if you must declare inside the loop -> always provide an initial value (`typeset key='' file=''`).
+- Quoting rules (zsh; same idea in bash)
+  - Literal strings (no `$var`/`$(cmd)` expansion) -> single quotes: `typeset homebrew_path=''`
+  - Needs expansion -> double quotes and keep quoting: `typeset repo_root="$PWD"`, `print -r -- "$msg"`
+  - Needs escape sequences (e.g. `\n`) -> use `$'...'`
+- Auto-fix (empty strings only): `scripts/fix-typeset-empty-string-quotes.zsh --check|--write` normalizes `typeset/local ...=""` to `''`.
 
-### 測試規範
+### Testing
 
-#### Commit 前執行（必須）
+#### Required before committing
 
-- 執行：`scripts/check.sh --all`
-- `scripts/check.sh --all` 會做以下測試：
-  - `scripts/lint.sh`（shell + python）
-    - Shell：依 shebang 分流執行 `shellcheck`（bash）+ `bash -n` + `zsh -n`
-    - Python：`ruff check tests` + `mypy --config-file mypy.ini tests` + tracked `.py` 語法編譯檢查
+- Run: `scripts/check.sh --all`
+- `scripts/check.sh --all` runs:
+  - `scripts/lint.sh` (shell + python)
+    - Shell: route by shebang and run `shellcheck` (bash) + `bash -n` + `zsh -n`
+    - Python: `ruff check tests` + `mypy --config-file mypy.ini tests` + syntax-check for tracked `.py` files
   - `scripts/validate_skill_contracts.sh`
   - `scripts/semgrep-scan.sh`
-  - `scripts/test.sh`（pytest；會優先用 `.venv/bin/python`）
+  - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
 
-#### 工具與設定（按需使用）
+#### Tooling / setup (as needed)
 
-- 前置
-  - python
+- Prereqs
+  - Python
     - `python3 -m venv .venv`
     - `.venv/bin/pip install -r requirements-dev.txt`
-  - 系統工具
-    - `shellcheck`、`zsh`（macOS: `brew install shellcheck`；Ubuntu: `sudo apt-get install -y shellcheck zsh`）
-- 快速入口
-  - `scripts/lint.sh`（預設跑 shell + python）
-  - `scripts/check.sh --lint`（只跑 lint；快速迭代用）
-  - `scripts/check.sh --contracts`（只跑 skill contracts 檢查）
-  - `scripts/check.sh --tests -- -m script_smoke`（把參數轉交給 pytest）
-  - `scripts/check.sh --semgrep`（只跑 Semgrep）
-  - `scripts/check.sh --all`（完整檢查）
+  - System tools
+    - `shellcheck`, `zsh` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
+- Quick entry points
+  - `scripts/lint.sh` (defaults to shell + python)
+  - `scripts/check.sh --lint` (lint only; faster iteration)
+  - `scripts/check.sh --contracts` (skill-contract validation only)
+  - `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
+  - `scripts/check.sh --semgrep` (Semgrep only)
+  - `scripts/check.sh --all` (full check)
 - `pytest`
-  - 建議用 wrapper：`scripts/test.sh`（可直接轉交 pytest args）
-  - 常用：`scripts/test.sh -m script_smoke`、`scripts/test.sh -m script_regression`
-  - Artifacts：寫到 `out/tests/`（例如 `out/tests/script-coverage/summary.md`）
-- `ruff`（Python lint；設定檔：`ruff.toml`）
+  - Prefer the wrapper: `scripts/test.sh` (passes args through to pytest)
+  - Common: `scripts/test.sh -m script_smoke`, `scripts/test.sh -m script_regression`
+  - Artifacts: written to `out/tests/` (e.g. `out/tests/script-coverage/summary.md`)
+- `ruff` (Python lint; config: `ruff.toml`)
   - `source .venv/bin/activate && ruff check tests`
-  - 自動修正（safe fixes）：`source .venv/bin/activate && ruff check --fix tests`
-  - 或用整合入口：`scripts/lint.sh --python`
-- `mypy`（Python typecheck；設定檔：`mypy.ini`）
+  - Safe autofix: `source .venv/bin/activate && ruff check --fix tests`
+  - Or via: `scripts/lint.sh --python`
+- `mypy` (typecheck; config: `mypy.ini`)
   - `source .venv/bin/activate && mypy --config-file mypy.ini tests`
-  - 或用整合入口：`scripts/lint.sh --python`
-- Shell（bash/zsh）
-  - `scripts/lint.sh --shell`（需要 `shellcheck` 與 `zsh`）
+  - Or via: `scripts/lint.sh --python`
+- Shell (bash/zsh)
+  - `scripts/lint.sh --shell` (requires `shellcheck` and `zsh`)

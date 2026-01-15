@@ -10,6 +10,7 @@ are intentionally excluded via `.gitignore`.
 ├── .github/    # CI workflows (GitHub Actions)
 ├── prompts/    # prompt presets
 ├── skills/     # skills (tools/, workflows/, automation/, _projects/, .system/)
+├── commands/   # CLI wrappers
 ├── scripts/    # loader + helper scripts
 ├── docs/       # docs, templates, progress logs
 ├── tests/      # pytest regression/smoke tests
