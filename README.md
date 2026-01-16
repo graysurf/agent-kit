@@ -31,32 +31,6 @@ Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools 
 export PROJECT_PATH="$PWD"
 ```
 
-## ✅ Tests
-
-Run the repo pytest suite:
-
-```bash
-scripts/test.sh
-```
-
-Run lint + contracts + semgrep + tests (recommended before committing):
-
-```bash
-scripts/check.sh --all
-```
-
-Run lint only:
-
-```bash
-scripts/lint.sh
-```
-
-Artifacts are written under `out/tests/` (gitignored):
-
-- `out/tests/script-regression/summary.json`: per-script `--help` regression harness results
-- `out/tests/script-smoke/summary.json`: deeper smoke-case results (from `tests/script_specs/**.json`)
-- `out/tests/script-coverage/summary.md`: functional coverage report (what ran + smoke spec coverage)
-
 ## 🧰 Prompts
 
 ### Common
