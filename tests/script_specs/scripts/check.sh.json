@@ -1,0 +1,12 @@
+{
+  "smoke": [
+    {
+      "name": "contracts",
+      "args": ["--contracts"],
+      "timeout_sec": 30,
+      "expect": {
+        "exit_codes": [0]
+      }
+    }
+  ]
+}

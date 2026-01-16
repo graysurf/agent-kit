@@ -1,0 +1,13 @@
+{
+  "smoke": [
+    {
+      "name": "local-small-target",
+      "args": ["--profile", "local", "--target", "scripts/semgrep-scan.sh"],
+      "timeout_sec": 60,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "out/semgrep/semgrep-.*\\.json"
+      }
+    }
+  ]
+}
