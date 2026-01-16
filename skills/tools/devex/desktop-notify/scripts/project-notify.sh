@@ -29,8 +29,8 @@ Behavior:
 
 Environment:
   PROJECT_PATH                  Used to derive the title (preferred)
-  CODEX_DESKTOP_NOTIFY=0        Disable notifications (default: enabled)
-  CODEX_DESKTOP_NOTIFY_HINTS=1  Print install hints when backend missing (default: disabled)
+  CODEX_DESKTOP_NOTIFY_ENABLED=false       Disable notifications (default: enabled)
+  CODEX_DESKTOP_NOTIFY_HINTS_ENABLED=true  Print install hints when backend missing (default: disabled)
 EOF
 }
 
