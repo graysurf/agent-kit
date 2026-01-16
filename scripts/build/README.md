@@ -39,6 +39,7 @@ scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 
 - If `--input` already looks like bundled output (has `# Bundled from:` and `# --- BEGIN ...` markers), the script copies it to `--output` and rewrites the first `# Bundled from:` line.
 - Output always starts with a shebang + minimal env exports, then the inlined sources.
+- When copying an already-bundled script, `--entry` is ignored (and can be omitted).
 
 ## Examples
 
@@ -49,6 +50,18 @@ zsh -f scripts/build/bundle-wrapper.zsh \
   --input "$HOME/.config/zsh/cache/wrappers/bin/git-tools" \
   --output commands/git-tools \
   --entry git-tools
+```
+
+### Re-bundle an already-bundled command (copy mode)
+
+```zsh
+zsh -f scripts/build/bundle-wrapper.zsh \
+  --input "$HOME/.codex/commands/project-resolve" \
+  --output commands/project-resolve
+
+zsh -f scripts/build/bundle-wrapper.zsh \
+  --input "$HOME/.codex/commands/api-report-from-cmd" \
+  --output commands/api-report-from-cmd
 ```
 
 ### Bundle a minimal wrapper (sources + embedded tool)

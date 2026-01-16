@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Bundled from: ~/.codex/commands/api-report-from-cmd
+# --- BEGIN commands/api-report-from-cmd
+
 if [[ -z "${CODEX_HOME:-}" ]]; then
   repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
   export CODEX_HOME="$repo_root"
@@ -326,3 +329,5 @@ if [[ "$dry_run" == "1" ]]; then
 fi
 
 exec "${report_cmd[@]}"
+
+# --- END commands/api-report-from-cmd

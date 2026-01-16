@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Bundled from: ~/.codex/commands/project-resolve
+# --- BEGIN commands/project-resolve
+
 die() {
   echo "project-resolve: $1" >&2
   exit 2
@@ -203,3 +206,5 @@ case "$format" in
     printf "%sMATCH=%q\n" "$prefix" "$match"
     ;;
 esac
+
+# --- END commands/project-resolve
