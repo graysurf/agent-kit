@@ -99,8 +99,8 @@ Options:
   --out <path>             Write JSON results to a file (stdout always emits JSON)
   --junit <path>           Write JUnit XML to a file (optional)
   --allow-writes           Allow write-capable cases (still requires allowWrite: true in the case)
-  --only <id1,id2,...>      Run only the listed case IDs
-  --skip <id1,id2,...>      Skip the listed case IDs
+  --only <id1,id2,...>     Run only the listed case IDs
+  --skip <id1,id2,...>     Skip the listed case IDs
   --tag <tag>              Run only cases that include this tag (repeatable)
   --fail-fast              Stop after the first failed case
   --continue               Continue after failures (default)
@@ -108,11 +108,11 @@ Options:
 
 Environment:
   API_TEST_ALLOW_WRITES_ENABLED=true  Same as --allow-writes
-  API_TEST_OUTPUT_DIR      Base output dir (default: <repo>/out/api-test-runner)
-  API_TEST_AUTH_JSON       JSON credentials for suite auth (when .auth is configured; override via .auth.secretEnv)
-  API_TEST_REST_URL        Default REST URL when suite/case omits url
-  API_TEST_GQL_URL         Default GraphQL URL when suite/case omits url
-  API_TEST_SUITES_DIR      Override suites dir for --suite (e.g. tests/api/suites)
+  API_TEST_OUTPUT_DIR                 Base output dir (default: <repo>/out/api-test-runner)
+  API_TEST_AUTH_JSON                  JSON credentials for suite auth (when .auth is configured; override via .auth.secretEnv)
+  API_TEST_REST_URL                   Default REST URL when suite/case omits url
+  API_TEST_GQL_URL                    Default GraphQL URL when suite/case omits url
+  API_TEST_SUITES_DIR                 Override suites dir for --suite (e.g. tests/api/suites)
 
 Notes:
   - Requires: git, jq, python3

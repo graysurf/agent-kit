@@ -315,24 +315,25 @@ Usage:
   gql.sh [--env <name> | --url <url>] [--jwt <name>] <operation.graphql> [variables.json]
 
 Options:
-  -e, --env <name>       Use endpoint preset from endpoints.env (e.g. local/staging/dev)
-  -u, --url <url>        Use an explicit GraphQL endpoint URL
+  -e, --env <name>        Use endpoint preset from endpoints.env (e.g. local/staging/dev)
+  -u, --url <url>         Use an explicit GraphQL endpoint URL
       --jwt <name>        Select JWT profile name (default: from GQL_JWT_NAME; otherwise none)
-      --config-dir <dir> GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
+      --config-dir <dir>  GraphQL setup dir (searches upward for endpoints.env/jwts.env; default: operation dir or ./setup/graphql)
       --list-envs         Print available env names from endpoints.env, then exit
       --list-jwts         Print available JWT profile names from jwts(.local).env, then exit
       --no-history        Disable writing to .gql_history for this run
 
 Environment variables:
-  GQL_URL        Explicit GraphQL endpoint URL (overridden by --env/--url)
-  ACCESS_TOKEN   If set (and no JWT profile is selected), sends Authorization: Bearer <token>
-  GQL_JWT_NAME   JWT profile name (same as --jwt)
-  GQL_VARS_MIN_LIMIT        If variables JSON contains numeric `limit` fields (including nested pagination inputs), bump them to at least N (default: 5; 0 disables)
+  GQL_URL                            Explicit GraphQL endpoint URL (overridden by --env/--url)
+  ACCESS_TOKEN                       If set (and no JWT profile is selected), sends Authorization: Bearer <token>
+  GQL_JWT_NAME                       JWT profile name (same as --jwt)
+  GQL_VARS_MIN_LIMIT                 If variables JSON contains numeric `limit` fields (including nested pagination inputs), 
+                                     bump them to at least N (default: 5; 0 disables)
   GQL_HISTORY_ENABLED=false          Disable local command history (default: enabled)
-  GQL_HISTORY_FILE         Override history file path (default: <setup_dir>/.gql_history)
+  GQL_HISTORY_FILE                   Override history file path (default: <setup_dir>/.gql_history)
   GQL_HISTORY_LOG_URL_ENABLED=false  Omit URL in history entries (default: included)
-  GQL_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
-  GQL_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
+  GQL_HISTORY_MAX_MB                 Rotate when file exceeds size in MB (default: 10; 0 disables)
+  GQL_HISTORY_ROTATE_COUNT           Number of rotated files to keep (default: 5)
 
 Notes:
   - Project presets live under: setup/graphql/endpoints.env (+ optional endpoints.local.env overrides).
