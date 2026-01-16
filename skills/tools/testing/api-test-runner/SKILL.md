@@ -112,6 +112,8 @@ Notes:
 - GraphQL cases point at `*.graphql` + variables `*.json` (same inputs used by `gql.sh`).
 - Suite manifest location is independent from REST/GraphQL `configDir` (those can live under `tests/rest`, `tests/graphql`, etc).
 - GraphQL write safety: if an operation file contains a `mutation` definition, the runner treats it as write-capable and requires `allowWrite=true` on the case.
+- GraphQL default validation: when `allowErrors=false` and `expect.jq` is omitted, the runner requires `.data` to be a non-null object.
+- Auth safety: `.auth.*.credentialsJq` must yield exactly one object (multiple matches fail fast).
 
 ### Suite schema v1
 

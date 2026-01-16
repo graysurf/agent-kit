@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "name": "api-test-runner-graphql-data-null-fixture",
+  "defaults": {
+    "noHistory": true,
+    "graphql": {
+      "configDir": "tests/fixtures/graphql",
+      "url": "https://example.test/graphql"
+    }
+  },
+  "cases": [
+    {
+      "id": "graphql.data_null_no_errors",
+      "type": "graphql",
+      "op": "tests/fixtures/graphql/ping.graphql"
+    }
+  ]
+}
+

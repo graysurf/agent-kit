@@ -496,15 +496,14 @@ auth_render_credentials() {
   local profile="$1"
   local expr="$2"
   local provider="$3"
-  local out='' rc
+  local out='' rc arr_json count
 
   [[ -n "$auth_secret_json" ]] || { printf "%s" "auth_secret_missing(provider=${provider},profile=${profile})" >&2; return 1; }
 
   set +e
-  out="$(
+  arr_json="$(
     printf "%s" "$auth_secret_json" |
-      jq -c --arg profile "$profile" "$expr" 2>/dev/null |
-      head -n 1
+      jq -c --arg profile "$profile" "[ ( $expr ) ]" 2>/dev/null
   )"
   rc=$?
   set -e
@@ -514,6 +513,24 @@ auth_render_credentials() {
     return 1
   fi
 
+  count="$(jq -r 'length' <<<"$arr_json" 2>/dev/null || true)"
+  count="$(trim "$count")"
+  if [[ -z "$count" || ! "$count" =~ ^[0-9]+$ ]]; then
+    printf "%s" "auth_credentials_jq_error(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
+  if [[ "$count" == "0" ]]; then
+    printf "%s" "auth_credentials_missing(provider=${provider},profile=${profile})" >&2
+    return 1
+  fi
+
+  if [[ "$count" != "1" ]]; then
+    printf "%s" "auth_credentials_ambiguous(provider=${provider},profile=${profile},count=${count})" >&2
+    return 1
+  fi
+
+  out="$(jq -c '.[0]' <<<"$arr_json" 2>/dev/null || true)"
   out="$(trim "$out")"
   if [[ -z "$out" || "$out" == "null" ]]; then
     printf "%s" "auth_credentials_missing(provider=${provider},profile=${profile})" >&2
@@ -1876,6 +1893,7 @@ for ((i=0; i<case_count; i++)); do
         fi
 
         default_no_errors="NOT_EVALUATED"
+        default_has_data="NOT_EVALUATED"
         jq_assert="NOT_EVALUATED"
 
         if [[ "$rc" == "0" ]]; then
@@ -1883,6 +1901,14 @@ for ((i=0; i<case_count; i++)); do
             default_no_errors="passed"
           else
             default_no_errors="failed"
+          fi
+
+          if [[ "$gql_allow_errors" != "true" && -z "$expect_jq" ]]; then
+            if jq -e '(.data? != null) and ((.data | type) == "object")' "$stdout_file" >/dev/null 2>&1; then
+              default_has_data="passed"
+            else
+              default_has_data="failed"
+            fi
           fi
 
           if [[ -n "$expect_jq" ]]; then
@@ -1894,8 +1920,10 @@ for ((i=0; i<case_count; i++)); do
           fi
         fi
 
-        assertions_obj="$(jq -c -n --arg dne "$default_no_errors" --arg jqstate "$jq_assert" '
-          { defaultNoErrors: $dne } + (if $jqstate == "NOT_EVALUATED" then {} else { jq: $jqstate } end)
+        assertions_obj="$(jq -c -n --arg dne "$default_no_errors" --arg ddata "$default_has_data" --arg jqstate "$jq_assert" '
+          { defaultNoErrors: $dne }
+          + (if $ddata == "NOT_EVALUATED" then {} else { defaultHasData: $ddata } end)
+          + (if $jqstate == "NOT_EVALUATED" then {} else { jq: $jqstate } end)
         ')"
 
         if [[ "$rc" != "0" ]]; then
@@ -1907,6 +1935,10 @@ for ((i=0; i<case_count; i++)); do
             status="failed"
             failed=$((failed + 1))
             message="graphql_errors_present"
+          elif [[ "$default_has_data" == "failed" ]]; then
+            status="failed"
+            failed=$((failed + 1))
+            message="graphql_data_missing_or_null"
           elif [[ "$jq_assert" == "failed" ]]; then
             status="failed"
             failed=$((failed + 1))
