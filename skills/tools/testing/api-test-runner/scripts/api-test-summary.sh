@@ -10,7 +10,7 @@ Options:
   --in <path>         Input results JSON file (default: stdin)
   --out <path>        Write Markdown summary to a file (optional)
   --slow <n>          Show slowest N executed cases (default: 5)
-  --hide-skipped      Do not show skipped cases list (default: on)
+  --hide-skipped      Do not show skipped cases list (default: off)
   --max-failed <n>    Max failed cases to print (default: 50)
   --max-skipped <n>   Max skipped cases to print (default: 50)
   --no-github-summary Do not write to $GITHUB_STEP_SUMMARY
