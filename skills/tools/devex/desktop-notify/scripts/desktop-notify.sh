@@ -28,8 +28,8 @@ Behavior:
   - Missing backend: no-op (optional one-line install hint to stderr)
 
 Environment:
-  CODEX_DESKTOP_NOTIFY=0   Disable notifications (default: enabled)
-  CODEX_DESKTOP_NOTIFY_HINTS=1  Print install hints when backend missing (default: disabled)
+  CODEX_DESKTOP_NOTIFY_ENABLED=false       Disable notifications (default: enabled)
+  CODEX_DESKTOP_NOTIFY_HINTS_ENABLED=true  Print install hints when backend missing (default: disabled)
 
 Install hints:
   - macOS: brew install terminal-notifier
@@ -38,26 +38,35 @@ Install hints:
 EOF
 }
 
-is_disabled_by_env() {
-  local v
-  v="$(to_lower "$(trim "${CODEX_DESKTOP_NOTIFY:-1}")")"
-  case "$v" in
-    0|false|no|off)
-      return 0
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "desktop-notify: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
       ;;
   esac
-  return 1
 }
 
-are_hints_enabled() {
-  local v
-  v="$(to_lower "$(trim "${CODEX_DESKTOP_NOTIFY_HINTS:-0}")")"
-  case "$v" in
-    1|true|yes|on)
-      return 0
-      ;;
-  esac
-  return 1
+notifications_enabled() {
+  bool_from_env "${CODEX_DESKTOP_NOTIFY_ENABLED:-}" "CODEX_DESKTOP_NOTIFY_ENABLED" "true"
+}
+
+hints_enabled() {
+  bool_from_env "${CODEX_DESKTOP_NOTIFY_HINTS_ENABLED:-}" "CODEX_DESKTOP_NOTIFY_HINTS_ENABLED" "false"
 }
 
 title=""
@@ -102,7 +111,7 @@ case "$level" in
     ;;
 esac
 
-if is_disabled_by_env; then
+if ! notifications_enabled; then
   exit 0
 fi
 
@@ -116,7 +125,7 @@ if [[ "$os" == "Darwin" ]]; then
     exit 0
   fi
 
-  if are_hints_enabled; then
+  if hints_enabled; then
     echo "desktop-notify: terminal-notifier not found (install: brew install terminal-notifier)" >&2
   fi
   exit 0
@@ -140,7 +149,7 @@ if [[ "$os" == "Linux" ]]; then
     exit 0
   fi
 
-  if are_hints_enabled; then
+  if hints_enabled; then
     echo "desktop-notify: notify-send not found (install: libnotify; e.g. apt-get install libnotify-bin)" >&2
   fi
   exit 0

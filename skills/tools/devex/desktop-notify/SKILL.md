@@ -17,7 +17,7 @@ Prereqs:
 Inputs:
 
 - Message string (required) and `--level info|success|warn|error`.
-- Optional env: `CODEX_DESKTOP_NOTIFY=0` to disable; `PROJECT_PATH` for project title derivation.
+- Optional env: `CODEX_DESKTOP_NOTIFY_ENABLED=false` to disable; `PROJECT_PATH` for project title derivation.
 
 Outputs:
 
@@ -31,7 +31,7 @@ Exit codes:
 Failure modes:
 
 - Backend not installed (script no-ops by default).
-- Notifications disabled via `CODEX_DESKTOP_NOTIFY=0`.
+- Notifications disabled via `CODEX_DESKTOP_NOTIFY_ENABLED=false`.
 
 Use this skill when you need to surface a short status update to the user via a desktop notification.
 
@@ -58,8 +58,8 @@ $CODEX_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
 
 ## Environment
 
-- `CODEX_DESKTOP_NOTIFY=0`: disable notifications (default: enabled)
-- `CODEX_DESKTOP_NOTIFY_HINTS=1`: print a one-line install hint when backend is missing (default: disabled)
+- `CODEX_DESKTOP_NOTIFY_ENABLED=false`: disable notifications (default: enabled)
+- `CODEX_DESKTOP_NOTIFY_HINTS_ENABLED=true`: print a one-line install hint when backend is missing (default: disabled)
 - `PROJECT_PATH`: used by `skills/tools/devex/desktop-notify/scripts/project-notify.sh` to derive the project title (fallback: git root, then `$PWD`)
 
 ## Install hints
