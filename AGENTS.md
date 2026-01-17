@@ -9,7 +9,7 @@
 
 ## Quick navigation
 
-- How do I run/build/test this project? -> read the current project's `DEVELOPMENT`, `README`, `docs/`, and .
+- How do I run/build/test this project? -> read the current project's `DEVELOPMENT`, `README`, `docs/`.
 - What workflows/templates already exist? -> check the current project's `prompts/`, `skills/`, or equivalent directories (when present).
 - Which CLI tools should I use across projects? -> read `$CODEX_HOME/CLI_TOOLS.md` (when present).
 - This file only covers global response behavior and minimal tool-entry conventions; avoid duplicating or conflicting with project docs.
@@ -20,6 +20,25 @@
 - Default preference examples: `rg` over `grep -R`, `fd` over `find`, `jq`/`yq` over regex parsing of JSON/YAML.
 - If a project defines a more specific toolchain/workflow, follow the project docs.
 - If `$CODEX_HOME/CLI_TOOLS.md` is missing, use best-effort defaults and prefer project-specific docs when available.
+
+## Technical info lookup workflow
+
+- Default order (fast -> deep):
+  1. Context7: quick, source-linked doc excerpts (best when official docs are already indexed and stable).
+  2. Official web docs: read the upstream “source of truth” (release notes/specs/PEPs/RFCs) when Context7 is incomplete or you need full context.
+  3. GitHub via `gh`: when docs lag behind or you need the latest changes; inspect files, tags, releases, and PRs.
+  4. Local clone (ask first): when you need full-text search, cross-file analysis, `git log/blame`, or to run/build/test code. Ask the user for explicit consent before cloning, unless they already requested it.
+
+- Decision heuristics:
+  - Need a quick, traceable excerpt -> (1)
+  - Need full narrative context (tables/changelogs/spec text) -> (2)
+  - Need “latest on main” or unreleased behavior -> (3) or (4)
+  - Need to validate by running code/tests -> (4)
+
+- `gh` quick starts (examples):
+  - Open repo in browser: `gh repo view OWNER/REPO --web`
+  - View a raw file: `gh api -H "Accept: application/vnd.github.raw" /repos/OWNER/REPO/contents/PATH?ref=BRANCH_OR_TAG`
+  - Shallow clone for analysis: `gh repo clone OWNER/REPO -- --depth 1`
 
 ## Core guidelines
 

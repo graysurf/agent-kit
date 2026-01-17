@@ -3,6 +3,18 @@
 This document is a cross-project reference for CLI tools commonly available in the Codex runtime and recommended usage patterns for development, testing, and documentation work.
 Principle: prefer purpose-built tools that are fast, repo-aware, and emit structured output; avoid ad-hoc pipelines that are slow or fragile.
 
+## Categories
+
+- Search: code/config/docs discovery (`rg`, `fd`, `fzf`, `tree`)
+- Docs: reading files + Markdown/diffs (`bat`, `glow`, `delta`)
+- VCS: version control + PR workflows (`git`, `gh`, `gitui`)
+- API: HTTP/API + structured data (`xh`/`httpie`, `jq`, `yq`)
+- Test: test iteration + feedback loops (`watchexec`, `ruff`)
+- Toolchain: runtimes + CLI installation (`node`, `pnpm`, `pipx`, `direnv`)
+- Media: image processing (`imagemagick`, `vips`)
+- Ops: logs + system triage (`lnav`, `btop`, `ncdu`)
+- Defaults: recommended default picks
+
 ---
 
 ## Search and discovery (code / config / docs)
