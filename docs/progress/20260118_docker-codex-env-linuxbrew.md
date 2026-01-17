@@ -26,7 +26,7 @@ Links:
 - `docker build` succeeds on macOS (Docker Desktop) for the primary target architecture.
 - In the container, `zsh -lic 'echo ok'` succeeds (no startup errors) and the required tool executables are on `PATH`.
 - All required tools from `/Users/terry/.config/zsh/config/tools.list` are installed via Linuxbrew (or documented apt fallback/removal), and a smoke command verifies them.
-- Optional tools from `/Users/terry/.config/zsh/config/tools.optional.list` are installable via an explicit toggle (build arg or separate build target).
+- Optional tools from `/Users/terry/.config/zsh/config/tools.optional.list` are installed by default (or documented apt fallback/removal), with an explicit opt-out for faster builds if needed.
 - Two environments can run concurrently and do not share mutable state (verify via distinct named volumes for `HOME` and `CODEX_HOME`).
 - Codex CLI is runnable in-container (`codex --version`), with auth/state stored outside the image (volume or env-based).
 
@@ -82,14 +82,20 @@ Links:
 - Use the existing `zsh-kit` tool lists as the single source of truth for what gets installed via brew.
 - Keep secrets out of the image; isolate state per environment via named volumes to enable multiple concurrent, “safe” environments.
 
+### Decisions
+
+- Optional tools are installed by default (required + optional lists), with an explicit opt-out if build time becomes a bottleneck.
+- Install priority order (per tool): Linuxbrew > OS package manager (apt) > release binary download.
+- Source repos (`zsh-kit`, `codex-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
+
 ### Risks / Uncertainties
 
 - Linuxbrew availability/compatibility on `linux/arm64` (bottles missing → slow source builds or failures).
   - Mitigation: maintain explicit apt fallbacks/removals and (optionally) support `linux/amd64` builds as a secondary path.
 - CLI name differences vs macOS (e.g., `coreutils` “g*” prefixed commands on macOS vs Linux defaults).
   - Mitigation: add compatibility shims where needed, or document command-name deltas explicitly.
-- Codex CLI install method on Linux (brew vs direct download vs npm) and update cadence.
-  - Mitigation: decide the canonical install source, pin a version by default, and document upgrade steps.
+- Codex CLI and agent tooling availability on Linux (some are macOS casks) and update cadence.
+  - Mitigation: follow the install priority order (brew > apt > release binary), record exact chosen sources/versions, and document upgrade steps.
 - Volume layout and mounting strategy (clone-in-image vs bind-mount local repos) affects reproducibility vs convenience.
   - Mitigation: support two run modes (self-contained image defaults + optional bind mounts for local iteration).
 
@@ -102,19 +108,18 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
   - Work Items:
     - [ ] Confirm target runtime: Docker Desktop on macOS (Linux containers), primary host arch and any secondary arch requirements.
     - [ ] Decide repository layout for Docker assets (recommend `docker/codex-env/`): file paths, naming, and entrypoints.
-    - [ ] Confirm tool-install policy:
+    - [x] Confirm tool-install policy:
       - Required install set = `/Users/terry/.config/zsh/config/tools.list`
       - Optional install set = `/Users/terry/.config/zsh/config/tools.optional.list`
-      - Decide default behavior (required-only vs required+optional “default” section vs full optional incl. heavy).
-    - [ ] Decide how to source `zsh-kit` and `codex-kit` inside the container:
-      - Option 1: clone during image build (self-contained, pinned revision)
-      - Option 2: bind-mount local repos (fast iteration; less reproducible)
+      - Default behavior: install required + optional (opt-out only).
+    - [x] Decide how to source `zsh-kit` and `codex-kit` inside the container:
+      - Clone during image build (self-contained, pinned revision/ref).
+    - [x] Decide install fallback order (per tool): Linuxbrew > apt > release binary.
     - [ ] Decide `CODEX_HOME` strategy:
       - Path inside container (e.g. `/home/dev/.codex`)
       - One named volume per environment vs shared volume (trade-off: isolation vs reuse of auth)
-    - [ ] Decide Codex CLI install mechanism for Linux (TBD until validated):
-      - Download official release binary for `linux-amd64`/`linux-arm64` and install to `/usr/local/bin/codex`, OR
-      - Install via package manager (if an official, reliable path exists)
+    - [ ] Validate and record the Linux install method for key tools that may not exist on Linuxbrew (follow the fallback order):
+      - `codex`, `opencode`, `gemini`/`gemini-cli`, `code`/VS Code
     - [ ] Define security baseline for runtime:
       - non-root default user
       - `no-new-privileges`
@@ -135,8 +140,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Add `docker/codex-env/Dockerfile` (Ubuntu base + apt bootstrap).
     - [ ] Create a non-root user (e.g. `dev`) and ensure the default shell is `zsh`.
     - [ ] Install Linuxbrew (non-root) and ensure brew is on `PATH` for login shells.
-    - [ ] Install required CLI tools from `tools.list` via Linuxbrew.
-      - Preferred: reuse `zsh-kit` installer logic (clone `zsh-kit`, run its installer for required-only mode).
+    - [ ] Install required + optional CLI tools from `tools.list` and `tools.optional.list` by default.
+      - Preferred: reuse `zsh-kit` installer logic (clone `zsh-kit`, run its installer in a non-interactive mode).
+      - Ensure Docker build does not hang on confirmation prompts (add a non-interactive path if needed).
     - [ ] Add minimal runtime wiring:
       - `WORKDIR` default (e.g. `/work`)
       - container starts into `zsh -l` (or a small entrypoint that execs it)
@@ -153,14 +159,14 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
   - Exit Criteria:
     - [ ] Image builds: `docker build -f docker/codex-env/Dockerfile -t codex-env:linuxbrew .`
     - [ ] Interactive shell works: `docker run --rm -it codex-env:linuxbrew zsh -l`
-    - [ ] Required tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version'`
+    - [ ] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version'`
     - [ ] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
     - [ ] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add explicit support for optional tools from `tools.optional.list`:
-      - Build arg `INSTALL_OPTIONAL_TOOLS=1` OR separate Docker target/tag.
-      - Optional split: “default” vs “heavy/debug-only” group (if desired).
+    - [ ] Add explicit opt-out for optional tools (default is required + optional):
+      - Build arg `INSTALL_OPTIONAL_TOOLS=0` (or equivalent) OR separate minimal Docker target/tag.
+      - Optional: split `tools.optional.list` into “default” vs “heavy/debug-only” groups at install time (if build time becomes a bottleneck).
     - [ ] Define/implement a fallback policy for missing Linuxbrew formulas:
       - Maintain an explicit `apt` fallback list, OR
       - Maintain an explicit “removed on Linux” list with documented deviations.
@@ -173,7 +179,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docker/codex-env/apt-fallback.txt` (or equivalent mapping file)
     - Optional: `docker/codex-env/shims/` (only if needed)
   - Exit Criteria:
-    - [ ] Optional install path works and is documented (commands + expected results).
+    - [ ] Optional opt-out path works and is documented (commands + expected results).
     - [ ] Missing-formula handling is explicit and reproducible (no “mystery failures” during build).
     - [ ] Multi-env workflow is documented and proven with two concurrent compose projects.
 - [ ] Step 3: Validation / testing
