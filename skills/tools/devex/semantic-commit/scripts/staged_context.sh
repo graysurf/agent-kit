@@ -8,7 +8,7 @@ Usage: staged_context.sh
 Print staged change context for commit message generation.
 
 Prefers:
-  git-tools commit context-json --stdout --bundle
+  git-commit-context-json --stdout --bundle
 USAGE
 }
 
@@ -54,14 +54,13 @@ resolve_codex_command() {
   print -r -- "$candidate"
 }
 
-git_tools="$(resolve_codex_command git-tools 2>/dev/null || true)"
-if [[ -z "$git_tools" ]]; then
-  echo "warning: git-tools not found; printing fallback staged diff only" >&2
-  command git diff --staged --no-color
-  exit 0
+git_commit_context_json="$(resolve_codex_command git-commit-context-json 2>/dev/null || true)"
+if [[ -n "$git_commit_context_json" ]]; then
+  if "$git_commit_context_json" --stdout --bundle; then
+    exit 0
+  fi
+  echo "warning: git-commit-context-json failed; falling back" >&2
 fi
 
-if ! "$git_tools" commit context-json --stdout --bundle; then
-  echo "warning: git-tools commit context-json failed; printing fallback staged diff only" >&2
-  command git diff --staged --no-color
-fi
+echo "warning: printing fallback staged diff only" >&2
+command git diff --staged --no-color

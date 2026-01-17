@@ -43,13 +43,13 @@ scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 
 ## Examples
 
-### Bundle `git-tools` into this repo’s `commands/`
+### Bundle `git-commit-context-json` into this repo’s `commands/`
 
 ```zsh
 zsh -f scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.config/zsh/cache/wrappers/bin/git-tools" \
-  --output commands/git-tools \
-  --entry git-tools
+  --input "$HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json" \
+  --output commands/git-commit-context-json \
+  --entry git-commit-context-json
 ```
 
 ### Re-bundle an already-bundled command (copy mode)

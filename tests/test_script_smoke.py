@@ -261,7 +261,7 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
 
 
 @pytest.mark.script_smoke
-def test_script_smoke_fixture_git_tools_commit_context_json_cleans_tmp(tmp_path: Path):
+def test_script_smoke_fixture_git_commit_context_json_cleans_tmp(tmp_path: Path):
     work_tree = tmp_path / "repo"
     work_tree.mkdir(parents=True, exist_ok=True)
 
@@ -284,9 +284,9 @@ def test_script_smoke_fixture_git_tools_commit_context_json_cleans_tmp(tmp_path:
     tmpdir.mkdir(parents=True, exist_ok=True)
 
     repo = repo_root()
-    script = "commands/git-tools"
+    script = "commands/git-commit-context-json"
     spec: dict[str, Any] = {
-        "args": ["commit", "context-json", "--stdout", "--bundle"],
+        "args": ["--stdout", "--bundle"],
         "timeout_sec": 10,
         "env": {"TMPDIR": str(tmpdir)},
         "expect": {
@@ -295,7 +295,7 @@ def test_script_smoke_fixture_git_tools_commit_context_json_cleans_tmp(tmp_path:
         },
     }
 
-    result = run_smoke_script(script, "git-tools-commit-context-cleanup", spec, repo, cwd=work_tree)
+    result = run_smoke_script(script, "git-commit-context-json-cleanup", spec, repo, cwd=work_tree)
     SCRIPT_SMOKE_RUN_RESULTS.append(result)
 
     assert result.status == "pass", (
@@ -307,4 +307,4 @@ def test_script_smoke_fixture_git_tools_commit_context_json_cleans_tmp(tmp_path:
     )
 
     leftovers = sorted(p.name for p in tmpdir.iterdir())
-    assert not leftovers, f"unexpected TMPDIR leftovers from git-tools commit context-json: {leftovers}"
+    assert not leftovers, f"unexpected TMPDIR leftovers from git-commit-context-json: {leftovers}"

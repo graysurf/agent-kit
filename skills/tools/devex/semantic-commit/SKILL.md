@@ -12,7 +12,8 @@ Prereqs:
 - Run inside a git work tree.
 - `git` available on `PATH`.
 - `zsh` available on `PATH` (scripts are `zsh -f`).
-- `git-tools` and `git-scope` available (via `CODEX_COMMANDS_PATH` or `$CODEX_HOME/commands`).
+- `git-commit-context-json` available (via `CODEX_COMMANDS_PATH` or `$CODEX_HOME/commands`).
+- `git-scope` available for commit summary output (optional; fallback is `git show --stat`).
 
 Inputs:
 
@@ -21,7 +22,7 @@ Inputs:
 
 Outputs:
 
-- `staged_context.sh`: prints staged context to stdout (diff + scope tree).
+- `staged_context.sh`: prints staged context bundle to stdout (JSON + patch).
 - `commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
 
 Exit codes:
@@ -33,7 +34,7 @@ Exit codes:
 Failure modes:
 
 - Not in a git repo or no staged changes.
-- `git-tools` / `git-scope` not found.
+- `git-commit-context-json` not found (falls back to raw `git diff`).
 - `git commit` fails (hooks, conflicts, or repo state issues).
 
 ## Setup

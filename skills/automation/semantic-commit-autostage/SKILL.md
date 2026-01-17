@@ -12,7 +12,8 @@ Prereqs:
 - Run inside a git work tree.
 - `git` available on `PATH`.
 - `zsh` available on `PATH` (scripts are `zsh -f`).
-- `git-tools` and `git-scope` available (via `CODEX_COMMANDS_PATH` or `$CODEX_HOME/commands`).
+- `git-commit-context-json` available (via `CODEX_COMMANDS_PATH` or `$CODEX_HOME/commands`).
+- `git-scope` available for commit summary output (optional; fallback is `git show --stat`).
 
 Inputs:
 
@@ -22,7 +23,7 @@ Inputs:
 Outputs:
 
 - Staged changes via `git add` (this skill autostages).
-- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`: prints staged context to stdout.
+- `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/staged_context.sh`: prints staged context bundle to stdout (JSON + patch).
 - `$CODEX_HOME/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh`: creates a git commit and prints a commit summary to stdout.
 
 Exit codes:
@@ -37,7 +38,7 @@ Failure modes:
 - Dirty starting state includes unrelated changes; autostage may include unintended files (start from a clean tree).
 - `git add` fails (pathspec errors, permissions).
 - `git commit` fails (hooks, conflicts, or repo state issues).
-- `git-tools` / `git-scope` not found.
+- `git-commit-context-json` not found (falls back to raw `git diff`).
 
 ## Setup
 

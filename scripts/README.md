@@ -27,13 +27,13 @@ Use `build/bundle-wrapper.zsh` to inline a wrapper (and its `source` files)
 into a single executable script. This is helpful when you want a portable,
 repo-local command without external dependencies on wrapper paths.
 
-Example (git-tools):
+Example (git-commit-context-json):
 
 ```zsh
 zsh -f scripts/build/bundle-wrapper.zsh \
-  --input $HOME/.config/zsh/cache/wrappers/bin/git-tools \
-  --output commands/git-tools \
-  --entry git-tools
+  --input $HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json \
+  --output commands/git-commit-context-json \
+  --entry git-commit-context-json
 ```
 
 Notes:
