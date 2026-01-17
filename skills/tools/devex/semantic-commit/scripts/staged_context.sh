@@ -8,7 +8,7 @@ Usage: staged_context.sh
 Print staged change context for commit message generation.
 
 Prefers:
-  git-tools commit context --stdout --no-color
+  git-tools commit context-json --stdout --bundle
 USAGE
 }
 
@@ -61,7 +61,7 @@ if [[ -z "$git_tools" ]]; then
   exit 0
 fi
 
-if ! "$git_tools" commit context --stdout --no-color; then
-  echo "warning: git-tools commit context failed; printing fallback staged diff only" >&2
+if ! "$git_tools" commit context-json --stdout --bundle; then
+  echo "warning: git-tools commit context-json failed; printing fallback staged diff only" >&2
   command git diff --staged --no-color
 fi

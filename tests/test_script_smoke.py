@@ -244,7 +244,7 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
         "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
         "expect": {
             "exit_codes": [0],
-            "stdout_regex": r"(?s)# Commit Context.*hello\.txt",
+            "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
         },
     }
 
@@ -261,7 +261,7 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
 
 
 @pytest.mark.script_smoke
-def test_script_smoke_fixture_git_tools_commit_context_cleans_tmp(tmp_path: Path):
+def test_script_smoke_fixture_git_tools_commit_context_json_cleans_tmp(tmp_path: Path):
     work_tree = tmp_path / "repo"
     work_tree.mkdir(parents=True, exist_ok=True)
 
@@ -286,12 +286,12 @@ def test_script_smoke_fixture_git_tools_commit_context_cleans_tmp(tmp_path: Path
     repo = repo_root()
     script = "commands/git-tools"
     spec: dict[str, Any] = {
-        "args": ["commit", "context", "--stdout", "--no-color"],
+        "args": ["commit", "context-json", "--stdout", "--bundle"],
         "timeout_sec": 10,
         "env": {"TMPDIR": str(tmpdir)},
         "expect": {
             "exit_codes": [0],
-            "stdout_regex": r"(?s)# Commit Context.*hello\.txt",
+            "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
         },
     }
 
@@ -307,4 +307,4 @@ def test_script_smoke_fixture_git_tools_commit_context_cleans_tmp(tmp_path: Path
     )
 
     leftovers = sorted(p.name for p in tmpdir.iterdir())
-    assert not leftovers, f"unexpected TMPDIR leftovers from git-tools commit context: {leftovers}"
+    assert not leftovers, f"unexpected TMPDIR leftovers from git-tools commit context-json: {leftovers}"
