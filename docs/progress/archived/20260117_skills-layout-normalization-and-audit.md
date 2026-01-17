@@ -128,15 +128,15 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Validation commands executed successfully:
       - `scripts/lint.sh`
       - `scripts/test.sh`
-- [ ] Step 4: PR / wrap-up
+- [x] Step 4: PR / wrap-up
   - Work Items:
-    - [ ] Open PR and get review.
-    - [ ] After merge: run `close-progress-pr` to archive this progress file (optional but preferred).
+    - [x] Open PR and get review.
+    - [x] After merge: run `close-progress-pr` to archive this progress file (optional but preferred).
   - Artifacts:
-    - PR: TBD
+    - PR: https://github.com/graysurf/codex-kit/pull/56
   - Exit Criteria:
-    - [ ] PR is merged and CI is green.
-    - [ ] Progress file is archived under `docs/progress/archived/` and index is updated.
+    - [x] PR is merged and CI is green.
+    - [x] Progress file is archived under `docs/progress/archived/` and index is updated.
 
 ## Modules
 
