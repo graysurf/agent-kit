@@ -11,7 +11,15 @@
 
 - How do I run/build/test this project? -> read the current project's `DEVELOPMENT`, `README`, `docs/`, and .
 - What workflows/templates already exist? -> check the current project's `prompts/`, `skills/`, or equivalent directories (when present).
+- Which CLI tools should I use across projects? -> read `$CODEX_HOME/CLI_TOOLS.md` (when present).
 - This file only covers global response behavior and minimal tool-entry conventions; avoid duplicating or conflicting with project docs.
+
+## Global tooling (cross-project)
+
+- `$CODEX_HOME/CLI_TOOLS.md` is the cross-project reference for which CLI tools to use for development, testing, and docs work (when the file exists in the current context).
+- Default preference examples: `rg` over `grep -R`, `fd` over `find`, `jq`/`yq` over regex parsing of JSON/YAML.
+- If a project defines a more specific toolchain/workflow, follow the project docs.
+- If `$CODEX_HOME/CLI_TOOLS.md` is missing, use best-effort defaults and prefer project-specific docs when available.
 
 ## Core guidelines
 
