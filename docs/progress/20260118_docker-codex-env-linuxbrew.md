@@ -6,8 +6,9 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/58
-- Docs: https://github.com/graysurf/codex-kit/blob/feat/docker-codex-env/docker/codex-env/README.md
+- PR (planning): https://github.com/graysurf/codex-kit/pull/58
+- PR (implementation): https://github.com/graysurf/codex-kit/pull/59
+- Docs (implementation): https://github.com/graysurf/codex-kit/blob/feat/docker-codex-env/docker/codex-env/README.md
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
 ## Addendum
@@ -51,6 +52,12 @@ Links:
 - Tool lists:
   - `/Users/terry/.config/zsh/config/tools.list`
   - `/Users/terry/.config/zsh/config/tools.optional.list`
+  - `/Users/terry/.config/zsh/config/tools.macos.list` (if present)
+  - `/Users/terry/.config/zsh/config/tools.optional.macos.list` (if present)
+  - `/Users/terry/.config/zsh/config/tools.linux.list` (if present)
+  - `/Users/terry/.config/zsh/config/tools.optional.linux.list` (if present)
+  - `/Users/terry/.config/zsh/config/tools.linux.apt.list` (if present; Linux only)
+  - `/Users/terry/.config/zsh/config/tools.optional.linux.apt.list` (if present; Linux only)
 - Source repos (public):
   - `https://github.com/graysurf/zsh-kit.git`
   - `https://github.com/graysurf/codex-kit.git`
@@ -87,6 +94,7 @@ Links:
 - Optional tools are installed by default (required + optional lists), with an explicit opt-out if build time becomes a bottleneck.
 - Install priority order (per tool): Linuxbrew > OS package manager (apt) > release binary download.
 - Source repos (`zsh-kit`, `codex-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
+- Split `zsh-kit` tool lists by OS (macOS/Linux) and add Linux apt-only lists for tools that cannot be installed via Linuxbrew (e.g. VS Code `code`, `mitmproxy`).
 
 ### Tool install audit (Ubuntu 24.04)
 
@@ -102,6 +110,10 @@ Findings:
   - Fallback: install `code` via Microsoft apt repo (works; but pulls a large dependency set).
 - `mitmproxy`: Homebrew provides a macOS-only cask (installs a Mach-O binary that cannot run on Linux).
   - Fallback: Ubuntu `apt` package `mitmproxy` works (version `8.1.1` in `24.04`).
+- DB CLIs:
+  - `psql`: use Homebrew `libpq` (keg-only; add `opt/libpq/bin` to `PATH`).
+  - `mysql`: use Homebrew `mysql-client` (keg-only; add `opt/mysql-client/bin` to `PATH`).
+  - `sqlcmd`: use Homebrew `sqlcmd` (Homebrew core; `microsoft/mssql-release/mssql-tools18` is not required and hit a `linux/arm64` install error via `msodbcsql18` during testing).
 
 ### Risks / Uncertainties
 
@@ -113,6 +125,8 @@ Findings:
   - Mitigation: follow the install priority order (brew > apt > release binary), record exact chosen sources/versions, and document upgrade steps.
 - Volume layout and mounting strategy (clone-in-image vs bind-mount local repos) affects reproducibility vs convenience.
   - Mitigation: support two run modes (self-contained image defaults + optional bind mounts for local iteration).
+- Read-only bind mounts of `zsh-kit` can break plugin cloning/auto-update (plugins live under `ZDOTDIR` by default).
+  - Mitigation: prefer clone-in-image; or mount only `config/` read-only; or override `ZSH_PLUGINS_DIR` to a writable volume/path.
 
 ## Steps (Checklist)
 
@@ -124,8 +138,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Confirm target runtime: Docker Desktop on macOS (Linux containers), primary host arch and any secondary arch requirements.
     - [ ] Decide repository layout for Docker assets (recommend `docker/codex-env/`): file paths, naming, and entrypoints.
     - [x] Confirm tool-install policy:
-      - Required install set = `/Users/terry/.config/zsh/config/tools.list`
-      - Optional install set = `/Users/terry/.config/zsh/config/tools.optional.list`
+      - Required install set (brew) = `/Users/terry/.config/zsh/config/tools.list` (+ OS-specific required lists if present)
+      - Optional install set (brew) = `/Users/terry/.config/zsh/config/tools.optional.list` (+ OS-specific optional lists if present)
+      - Linux apt-only additions (optional) = `tools.linux.apt.list` / `tools.optional.linux.apt.list` (if present)
       - Default behavior: install required + optional (opt-out only).
     - [x] Decide how to source `zsh-kit` and `codex-kit` inside the container:
       - Clone during image build (self-contained, pinned revision/ref).
@@ -138,6 +153,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - `opencode`: Linuxbrew formula works on `linux/arm64`.
       - `gemini-cli`: Linuxbrew formula works on `linux/arm64` (installs `gemini`).
       - `code`/VS Code: Linuxbrew cask is macOS-only; fallback to Microsoft apt repo.
+      - `psql`: Homebrew `libpq` works on `linux/arm64` (keg-only).
+      - `mysql`: Homebrew `mysql-client` works on `linux/arm64` (keg-only).
+      - `sqlcmd`: Homebrew `sqlcmd` works on `linux/arm64`.
     - [ ] Define security baseline for runtime:
       - non-root default user
       - `no-new-privileges`
