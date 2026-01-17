@@ -4,7 +4,7 @@
 
 | Date | Feature | PR |
 | --- | --- | --- |
-| 2026-01-17 | [Skills layout normalization and audit](20260117_skills-layout-normalization-and-audit.md) | TBD |
+| 2026-01-17 | [Skills layout normalization and audit](20260117_skills-layout-normalization-and-audit.md) | [#56](https://github.com/graysurf/codex-kit/pull/56) |
 
 ## Archived
 
