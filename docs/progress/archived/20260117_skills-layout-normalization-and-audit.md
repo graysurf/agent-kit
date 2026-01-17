@@ -2,13 +2,13 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-17 | 2026-01-17 |
+| DONE | 2026-01-17 | 2026-01-17 |
 
 Links:
 
 - PR: https://github.com/graysurf/codex-kit/pull/56
-- Docs: `README.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- Docs: [README.md](../../../README.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
