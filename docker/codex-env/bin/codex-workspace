@@ -14,7 +14,7 @@ usage() {
 codex-workspace: start isolated Codex workspaces from a git repo input.
 
 Usage:
-  codex-workspace up <repo> [--name <name>] [--image <image>] [--no-pull]
+  codex-workspace up [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
                     [--config-dir <host-path>]
                     [--private-dir <host-path>]
@@ -39,6 +39,8 @@ Defaults:
 
 Notes:
   - Repo is cloned into a Docker named volume mounted at /work (no host workspace bind mount).
+  - Use `--no-clone` to create a workspace without cloning a repo into /work.
+    When `--no-clone` is set, `<repo>` is optional but `--name` is required if no repo is provided.
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
   - For persistent in-container git auth, use `--persist-gh-token --setup-git` (tokens become container env).
   - `codex-use` integration requires mounting the secrets dir and running with zsh login shell.
@@ -196,14 +198,14 @@ setup_git_auth() {
 }
 
 workspace_up() {
-  local repo_input="$1"
-  shift
-
+  local repo_input=""
   local image="$DEFAULT_IMAGE"
   local ws_name=""
   local pull="1"
   local repo_ref=""
   local repo_dir=""
+  local no_clone="0"
+  local host_override=""
   local config_dir="$DEFAULT_CONFIG_DIR"
   local private_dir="$DEFAULT_PRIVATE_DIR"
   local use_secrets="1"
@@ -220,6 +222,10 @@ workspace_up() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --no-clone)
+        no_clone="1"; shift ;;
+      --host)
+        host_override="${2:-}"; shift 2 ;;
       --name)
         ws_name="${2:-}"; shift 2 ;;
       --image)
@@ -252,21 +258,57 @@ workspace_up() {
         start_tunnel="1"; tunnel_detach="1"; shift ;;
       -h|--help)
         usage; exit 0 ;;
+      --)
+        shift
+        while [[ $# -gt 0 ]]; do
+          if [[ -z "$repo_input" ]]; then
+            repo_input="$1"
+            shift
+          else
+            die "unexpected arg: $1"
+          fi
+        done
+        ;;
       *)
-        die "unknown flag: $1" ;;
+        if [[ "$1" == -* ]]; then
+          die "unknown flag: $1"
+        fi
+        if [[ -z "$repo_input" ]]; then
+          repo_input="$1"
+          shift
+        else
+          die "unexpected arg: $1"
+        fi
+        ;;
     esac
   done
 
-  local host owner repo
-  read -r host owner repo < <(parse_repo "$repo_input")
+  if [[ "$no_clone" != "1" && -z "$repo_input" ]]; then
+    die "usage: codex-workspace up <repo> [flags]"
+  fi
 
-  local owner_repo="${owner}/${repo}"
-  local clone_url="https://${host}/${owner}/${repo}.git"
+  local host owner repo owner_repo clone_url
+  host=""
+  owner=""
+  repo=""
+  owner_repo=""
+  clone_url=""
+  if [[ -n "$repo_input" ]]; then
+    read -r host owner repo < <(parse_repo "$repo_input")
+    owner_repo="${owner}/${repo}"
+    clone_url="https://${host}/${owner}/${repo}.git"
+  else
+    host="${host_override:-$DEFAULT_GITHUB_HOST}"
+  fi
   local ts
   ts="$(timestamp)"
 
   if [[ -z "$ws_name" ]]; then
-    ws_name="$(slugify "${owner}-${repo}-${ts}")"
+    if [[ -n "$owner_repo" ]]; then
+      ws_name="$(slugify "${owner}-${repo}-${ts}")"
+    else
+      die "--no-clone requires --name when no repo is provided"
+    fi
   else
     ws_name="$(slugify "$ws_name")"
   fi
@@ -308,20 +350,22 @@ workspace_up() {
     ensure_container_running "$container"
   else
     local created="1"
-    local run_args=(
-      -d
-      --name "$container"
-      --label "codex-kit.workspace=1"
-      --label "codex-kit.repo=$owner_repo"
-      --label "codex-kit.created-at=$ts"
-      -e "HOME=/home/codex"
-      -e "CODEX_HOME=/home/codex/.codex"
-      -e "CODEX_AUTH_FILE=/home/codex/.codex/auth.json"
+	    local run_args=(
+	      -d
+	      --name "$container"
+	      --label "codex-kit.workspace=1"
+	      --label "codex-kit.created-at=$ts"
+	      -e "HOME=/home/codex"
+	      -e "CODEX_HOME=/home/codex/.codex"
+	      -e "CODEX_AUTH_FILE=/home/codex/.codex/auth.json"
       -v "${vol_work}:/work"
       -v "${vol_home}:/home/codex"
       -v "${vol_codex}:/home/codex/.codex"
-      -w /work
-    )
+	      -w /work
+	    )
+	    if [[ -n "$owner_repo" ]]; then
+	      run_args+=( --label "codex-kit.repo=$owner_repo" )
+	    fi
 
     if [[ -n "$config_dir" ]]; then
       run_args+=( -v "${config_dir}:/home/codex/.config:ro" )
@@ -369,30 +413,37 @@ workspace_up() {
   fi
 
   if [[ -z "$repo_dir" ]]; then
-    repo_dir="/work/${owner}/${repo}"
+    if [[ -n "$owner_repo" ]]; then
+      repo_dir="/work/${owner}/${repo}"
+    else
+      repo_dir="/work"
+    fi
   fi
 
-  if docker exec "$container" test -d "${repo_dir%/}/.git"; then
-    echo "repo already present: $repo_dir"
+  if [[ "$no_clone" == "1" ]]; then
+    :
   else
-    echo "+ clone $owner_repo -> $repo_dir"
-    docker exec "$container" mkdir -p "$(dirname "$repo_dir")"
+    if docker exec "$container" test -d "${repo_dir%/}/.git"; then
+      echo "repo already present: $repo_dir"
+    else
+      echo "+ clone $owner_repo -> $repo_dir"
+      docker exec "$container" mkdir -p "$(dirname "$repo_dir")"
 
-    local token_env=()
-    [[ -n "$gh_token" ]] && token_env+=( -e "GH_TOKEN=$gh_token" )
-    [[ -n "$github_token" ]] && token_env+=( -e "GITHUB_TOKEN=$github_token" )
+      local token_env=()
+      [[ -n "$gh_token" ]] && token_env+=( -e "GH_TOKEN=$gh_token" )
+      [[ -n "$github_token" ]] && token_env+=( -e "GITHUB_TOKEN=$github_token" )
 
-    if ! docker exec "${token_env[@]}" "$container" bash -lc '
-      set -euo pipefail
-      repo_url="$1"
-      dest="$2"
-      ref="${3-}"
+      if ! docker exec "${token_env[@]}" "$container" bash -lc '
+        set -euo pipefail
+        repo_url="$1"
+        dest="$2"
+        ref="${3-}"
 
-      mkdir -p "$(dirname "$dest")"
+        mkdir -p "$(dirname "$dest")"
 
-      if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
-        askpass="/tmp/codex-workspace-git-askpass"
-        cat >"$askpass" <<EOF
+        if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
+          askpass="/tmp/codex-workspace-git-askpass"
+          cat >"$askpass" <<EOF
 #!/usr/bin/env bash
 case "\${1-}" in
   *Username*) echo "x-access-token" ;;
@@ -400,26 +451,29 @@ case "\${1-}" in
   *) echo "" ;;
 esac
 EOF
-        chmod 700 "$askpass"
-        GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$askpass" git clone "$repo_url" "$dest"
-        rm -f "$askpass"
-      else
-        GIT_TERMINAL_PROMPT=0 git clone "$repo_url" "$dest"
-      fi
+          chmod 700 "$askpass"
+          GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$askpass" git clone "$repo_url" "$dest"
+          rm -f "$askpass"
+        else
+          GIT_TERMINAL_PROMPT=0 git clone "$repo_url" "$dest"
+        fi
 
-      if [[ -n "$ref" ]]; then
-        git -C "$dest" checkout "$ref"
+        if [[ -n "$ref" ]]; then
+          git -C "$dest" checkout "$ref"
+        fi
+      ' -- "$clone_url" "$repo_dir" "$repo_ref"; then
+        if [[ -z "$gh_token" && -z "$github_token" ]]; then
+          die "git clone failed; if this repo is private, export GH_TOKEN or GITHUB_TOKEN on the host"
+        fi
+        die "git clone failed; verify GH_TOKEN/GITHUB_TOKEN scopes and repo access"
       fi
-    ' -- "$clone_url" "$repo_dir" "$repo_ref"; then
-      if [[ -z "$gh_token" && -z "$github_token" ]]; then
-        die "git clone failed; if this repo is private, export GH_TOKEN or GITHUB_TOKEN on the host"
-      fi
-      die "git clone failed; verify GH_TOKEN/GITHUB_TOKEN scopes and repo access"
     fi
   fi
 
   if [[ "$setup_git" == "1" ]]; then
-    if setup_git_auth "$container" "$host"; then
+    local setup_host="${host_override:-$host}"
+    [[ -n "$setup_host" ]] || setup_host="$DEFAULT_GITHUB_HOST"
+    if setup_git_auth "$container" "$setup_host"; then
       :
     else
       warn "failed to configure git auth; git may prompt for credentials"
@@ -431,13 +485,19 @@ EOF
     docker exec "$container" zsh -lic "codex-use ${codex_profile}" >/dev/null
   fi
 
-  echo
-  echo "git remote -v:"
-  docker exec "$container" git -C "$repo_dir" remote -v
+  if [[ "$no_clone" != "1" ]]; then
+    echo
+    echo "git remote -v:"
+    docker exec "$container" git -C "$repo_dir" remote -v
+  fi
 
   echo
   echo "workspace:  $container"
-  echo "repo:       $owner_repo"
+  if [[ -n "$owner_repo" ]]; then
+    echo "repo:       $owner_repo"
+  else
+    echo "repo:       (none)"
+  fi
   echo "path:       $repo_dir"
   echo
   echo "Next:"
@@ -580,27 +640,27 @@ main() {
   need_cmd docker
 
   local cmd="${1:-}"
+  shift || true
   case "$cmd" in
     up)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace up <repo> [flags]"
-      workspace_up "$2" "${@:3}" ;;
+      workspace_up "$@" ;;
     shell)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace shell <name>"
-      workspace_shell "$2" ;;
+      [[ $# -ge 1 ]] || die "usage: codex-workspace shell <name>"
+      workspace_shell "$1" ;;
     tunnel)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace tunnel <name> [--detach]"
-      workspace_tunnel "$2" "${@:3}" ;;
+      [[ $# -ge 1 ]] || die "usage: codex-workspace tunnel <name> [--detach]"
+      workspace_tunnel "$1" "${@:2}" ;;
     ls)
       workspace_ls ;;
     start)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace start <name>"
-      workspace_start "$2" ;;
+      [[ $# -ge 1 ]] || die "usage: codex-workspace start <name>"
+      workspace_start "$1" ;;
     stop)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace stop <name>"
-      workspace_stop "$2" ;;
+      [[ $# -ge 1 ]] || die "usage: codex-workspace stop <name>"
+      workspace_stop "$1" ;;
     rm)
-      [[ $# -ge 2 ]] || die "usage: codex-workspace rm <name> [--volumes]"
-      workspace_rm "$2" "${@:3}" ;;
+      [[ $# -ge 1 ]] || die "usage: codex-workspace rm <name> [--volumes]"
+      workspace_rm "$1" "${@:2}" ;;
     -h|--help|help|"")
       usage ;;
     *)
