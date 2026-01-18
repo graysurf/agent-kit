@@ -216,6 +216,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Evidence: `out/docker/verify/20260118_084317/versions.txt`
     - [x] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
+  - Reason: Remaining validation items are tracked in Step 3; optional submodules/caching work is deferred.
   - Work Items:
     - [x] Add explicit opt-out for optional tools (default is required + optional):
       - Build arg `INSTALL_OPTIONAL_TOOLS=0` (or equivalent) OR separate minimal Docker target/tag.
@@ -323,6 +324,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Reason: Defer until baseline build times are captured.
   - Artifacts:
     - `docker/codex-env/README.md` updates (document knobs, fallback policy, and known deltas vs macOS)
+    - `docker/codex-env/WORKSPACE_QUICKSTART.md` (Dev Containers + Remote Tunnels quick start)
     - `docker/codex-env/bin/codex-workspace` (workspace launcher)
     - `docker/codex-env/apt-fallback.txt` (or equivalent mapping file)
     - `docker/codex-env/docker-compose.local.yml` (optional local bind-mount override)
@@ -342,16 +344,21 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
       - `codex-workspace tunnel <name> --detach` starts a VS Code tunnel for that workspace (first-run login flow documented).
         - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
-- [ ] Step 3: Validation / testing
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.
-    - [ ] Validate `codex-kit` checks inside the container (at minimum lint):
+    - [ ] ~~Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.~~
+      - Reason: Not needed for current usage; smoke one-liners + evidence already exist.
+    - [x] Validate `codex-kit` checks inside the container (at minimum lint):
       - `scripts/check.sh --lint`
-    - [ ] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
-    - [ ] Validate runtime posture matches decisions (no extra hardening; read-write mounts by default).
-    - [ ] Validate the workspace launcher flow end-to-end on a clean host:
-      - [ ] Pull-only path (no local build): `docker pull graysurf/codex-env:linuxbrew`.
-        - Reason: `docker pull` currently fails locally (`pull access denied`); requires image to be published public under `graysurf/` or host to `docker login`.
+      - Evidence: `out/docker/verify/20260118_121526_check_lint/check-lint.log`
+    - [x] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
+      - Evidence: `out/docker/verify/20260118_084317/smoke.log`
+      - Evidence: `out/docker/verify/20260118_084317/versions.txt`
+    - [x] Validate runtime posture matches decisions (no extra hardening; read-write mounts by default).
+      - Evidence: `docker-compose.yml`
+    - [x] Validate the workspace launcher flow end-to-end on a clean host:
+      - [x] Pull-only path (no local build): `docker pull graysurf/codex-env:linuxbrew`.
+        - Evidence: `out/docker/verify/20260118_120610_pull_only/pull.log`
       - [x] Create workspace from SSH-style input: `codex-workspace up git@github.com:graysurf/codex-kit.git`.
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
       - [x] Confirm repo is in-container only:
@@ -360,31 +367,37 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
       - [x] Start VS Code tunnel: `codex-workspace tunnel <name> --detach`.
         - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
-      - [ ] Attach from macOS VS Code to the tunnel.
-        - Reason: Manual step (requires interactive device-code login in VS Code UI).
-      - [ ] Validate GH token behavior:
-        - With `GH_TOKEN` set → clone succeeds.
-        - Without token → fails with actionable error (or SSH fallback works if implemented).
-        - Reason: Pending; needs a private repo (or a controlled permission test) to validate token-required behavior.
-      - [ ] Validate concurrent workspaces:
+      - [x] Attach from macOS VS Code to the tunnel.
+        - Evidence: `out/docker/verify/20260118_120500_vscode_tunnel_attach/tunnel-attach.md`
+      - [ ] ~~Validate GH token behavior:~~
+        - ~~With `GH_TOKEN` set → clone succeeds.~~
+        - ~~Without token → fails with actionable error (or SSH fallback works if implemented).~~
+        - Reason: Not needed for current usage; requires a private repo or controlled permission test.
+      - [x] Validate concurrent workspaces:
         - Two different repos or two instances of same repo can run concurrently with isolated `HOME`/`CODEX_HOME` and `/work`.
-        - Reason: Pending; not executed yet.
+        - Evidence: `out/docker/verify/20260118_120341_workspace_concurrency/concurrent-workspaces.log`
       - [x] Record evidence under `out/docker/verify/` and link it here.
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
         - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
+        - Evidence: `out/docker/verify/20260118_120500_vscode_tunnel_attach/tunnel-attach.md`
+        - Evidence: `out/docker/verify/20260118_120610_pull_only/pull.log`
+        - Evidence: `out/docker/verify/20260118_120341_workspace_concurrency/concurrent-workspaces.log`
   - Artifacts:
     - `out/docker/verify/<timestamp>/smoke.log`
     - `out/docker/verify/<timestamp>/versions.txt`
     - `out/docker/verify/<timestamp>/check-lint.log`
     - `out/docker/verify/<timestamp>/workspace-launcher.log`
   - Exit Criteria:
-    - [ ] Smoke and lint commands executed with results recorded under `out/docker/verify/`.
-    - [ ] Two concurrent environments verified:
+    - [x] Smoke and lint commands executed with results recorded under `out/docker/verify/`.
+      - Evidence: `out/docker/verify/20260118_084317/smoke.log`
+      - Evidence: `out/docker/verify/20260118_121526_check_lint/check-lint.log`
+    - [x] Two concurrent environments verified:
       - `docker compose -f docker-compose.yml -p env-a up`
       - `docker compose -f docker-compose.yml -p env-b up`
       - state isolation validated via distinct volumes.
-    - [ ] Evidence exists and is linked from docs (file paths under `out/`).
-    - [ ] Workspace launcher evidence exists and is linked from this progress doc (file paths under `out/`).
+      - Evidence: `out/docker/verify/20260118_084317/multi-env.log`
+    - [x] Evidence exists and is linked from docs (file paths under `out/`).
+    - [x] Workspace launcher evidence exists and is linked from this progress doc (file paths under `out/`).
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [x] Update `README.md` entrypoints (link to Docker environment docs).
