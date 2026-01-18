@@ -192,7 +192,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
       - Command: `skills/tools/testing/api-test-runner/scripts/api-test.sh --suite <auth-suite> --out out/api-test-runner/results.json`
     - [x] Runner output and artifacts contain no credential/JWT leakage (see Step 3 checks).
     - [x] Docs include a copy/paste CI snippet and the recommended secret JSON schema.
-- [ ] Step 2: Expansion / integration
+- [x] Step 2: Expansion / integration
   - Reason: Optional follow-ups; core goal is validated in a downstream real project and can be shipped as-is.
   - Work Items:
     - [x] Implement the decided default: `auth` configured + secret missing -> fail fast with a clear error.

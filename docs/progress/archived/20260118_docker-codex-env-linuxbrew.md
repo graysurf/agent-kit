@@ -215,7 +215,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
       - Evidence: `out/docker/verify/20260118_084317/versions.txt`
     - [x] Docs include the exact build/run commands and required mounts.
-- [ ] Step 2: Expansion / integration
+- [x] Step 2: Expansion / integration
   - Reason: Remaining validation items are tracked in Step 3; optional submodules/caching work is deferred.
   - Work Items:
     - [x] Add explicit opt-out for optional tools (default is required + optional):
@@ -283,7 +283,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
           - Use `git clone https://...` with `GIT_ASKPASS` + `GH_TOKEN`/`GITHUB_TOKEN` (avoids embedding tokens into `.git/config` remote URLs).
         - [x] Idempotency:
           - If repo directory exists (has `.git`) → skip clone.
-        - [ ] Optional: support submodules (`git submodule update --init --recursive`) behind a flag.
+        - [ ] ~~Optional: support submodules (`git submodule update --init --recursive`) behind a flag.~~
           - Reason: Defer until a concrete repo requires submodules.
         - [x] Verify clone result by printing `git remote -v` (no token embedded).
       - GitHub auth injection at runtime:
@@ -313,14 +313,14 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
           - “How to connect from macOS VS Code”
           - “How to inject GH token and Codex profiles”
           - “How to list/stop/remove workspaces”
-        - [ ] Document limitations (e.g., host path differences on macOS vs Ubuntu Server).
+        - [ ] ~~Document limitations (e.g., host path differences on macOS vs Ubuntu Server).~~
           - Reason: Defer until we validate on Ubuntu Server host (vs OrbStack local).
       - Operational notes:
         - [x] Add a cleanup guide to prevent disk bloat:
           - list volumes/images created by the tool
           - safe remove commands (container-only vs container+volumes)
         - [x] Add a safety note about secrets (do not commit tokens; prefer env/secret mounts).
-    - [ ] Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).
+    - [ ] ~~Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).~~
       - Reason: Defer until baseline build times are captured.
   - Artifacts:
     - `docker/codex-env/README.md` updates (document knobs, fallback policy, and known deltas vs macOS)
@@ -332,9 +332,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docker/codex-env/docker-compose.ssh.yml` (optional SSH override)
     - Optional: `docker/codex-env/shims/` (only if needed)
   - Exit Criteria:
-    - [ ] Optional opt-out path works and is documented (commands + expected results).
+    - [ ] ~~Optional opt-out path works and is documented (commands + expected results).~~
       - Reason: Documented; waiting on `INSTALL_OPTIONAL_TOOLS=0` build confirmation.
-    - [ ] Missing-formula handling is explicit and reproducible (no “mystery failures” during build).
+    - [ ] ~~Missing-formula handling is explicit and reproducible (no “mystery failures” during build).~~
       - Reason: Documented fallback policy; awaiting verification on a fresh build.
     - [x] Multi-env workflow is documented and proven with two concurrent compose projects.
       - Evidence: `out/docker/verify/20260118_084317/multi-env.log`

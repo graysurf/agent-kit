@@ -218,12 +218,12 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] At least one happy path runs end-to-end (suite runner): `api-test.sh --suite <suite>`.
     - [x] Primary outputs are verifiable (results JSON and optional saved responses) under `out/api-test-runner/`.
     - [x] Usage docs skeleton exists (TL;DR + suite schema + CI example): `skills/tools/testing/api-test-runner/SKILL.md`.
-- [ ] Step 2: Expansion / integration
+- [x] Step 2: Expansion / integration
   - Reason: Timeouts/retries/parallel are deferred to a follow-up PR; this PR focuses on the core suite runner and JSON/JUnit contracts.
   - Work Items:
     - [x] Add selection and control flags: `--only`, `--tag`, `--skip`, `--fail-fast`, `--continue`.
     - [x] Add deterministic ordering guarantees and clearer error reporting for invalid suite schemas.
-    - [ ] Add timeouts (and optional retries as a gated follow-up if needed).
+    - [ ] ~~Add timeouts (and optional retries as a gated follow-up if needed).~~
       - Reason: Deferred to a follow-up PR (timeouts/retries/parallel and richer reporting).
     - [x] Add CI example snippets (GitHub Actions / generic shell) for both REST and GraphQL suites.
   - Artifacts:
