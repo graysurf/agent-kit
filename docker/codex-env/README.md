@@ -27,11 +27,60 @@ docker build -f Dockerfile -t codex-env:linuxbrew \
   .
 ```
 
+Build without optional tools (required only):
+
+```sh
+docker build -f Dockerfile -t codex-env:linuxbrew \
+  --build-arg INSTALL_OPTIONAL_TOOLS=0 \
+  .
+```
+
+Skip VS Code install (even when optional tools are enabled):
+
+```sh
+docker build -f Dockerfile -t codex-env:linuxbrew \
+  --build-arg INSTALL_VSCODE=0 \
+  .
+```
+
 Notes:
 - Tools are installed from `zsh-kit/config/tools*.list` files (OS-specific files are picked based on `uname`).
 - `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
 - On first container start, the entrypoint seeds `$CODEX_HOME` from the pinned `/opt/codex-kit` checkout if the volume is empty.
+
+## Fallback policy
+
+Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in `zsh-kit` config:
+
+- `tools.linux.apt.list` (required)
+- `tools.optional.linux.apt.list` (optional)
+
+If a brew install fails on Linux, add a matching apt entry or explicitly remove the tool from the brew list.
+
+## Publish to Docker Hub
+
+Prereqs:
+- `docker login` already completed.
+- Local image exists: `codex-env:linuxbrew`.
+
+Tag and push:
+
+```sh
+DOCKERHUB_USER=your-dockerhub-username
+
+docker tag codex-env:linuxbrew "${DOCKERHUB_USER}/codex-env:linuxbrew"
+docker tag codex-env:linuxbrew "${DOCKERHUB_USER}/codex-env:latest"
+
+docker push "${DOCKERHUB_USER}/codex-env:linuxbrew"
+docker push "${DOCKERHUB_USER}/codex-env:latest"
+```
+
+Verify pull:
+
+```sh
+docker pull "${DOCKERHUB_USER}/codex-env:linuxbrew"
+```
 
 ## Compose (recommended)
 
@@ -50,6 +99,17 @@ Run two isolated environments (each gets its own named volumes):
 ```sh
 docker compose -p env-a up --build
 docker compose -p env-b up --build
+```
+
+## Local bind-mount mode (zsh-kit / codex-kit)
+
+Use the override file to mount local checkouts read-only:
+
+```sh
+ZSH_KIT_DIR=/path/to/zsh-kit \
+CODEX_KIT_DIR=/path/to/codex-kit \
+WORKSPACE_DIR=/path/to/workspace \
+docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.local.yml up --build
 ```
 
 ## VS Code tunnel (macOS client)

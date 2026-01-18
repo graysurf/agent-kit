@@ -215,24 +215,30 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Add explicit opt-out for optional tools (default is required + optional):
+    - [x] Add explicit opt-out for optional tools (default is required + optional):
       - Build arg `INSTALL_OPTIONAL_TOOLS=0` (or equivalent) OR separate minimal Docker target/tag.
       - Optional: split `tools.optional.list` into “default” vs “heavy/debug-only” groups at install time (if build time becomes a bottleneck).
-    - [ ] Define/implement a fallback policy for missing Linuxbrew formulas:
+    - [x] Define/implement a fallback policy for missing Linuxbrew formulas:
       - Maintain an explicit `apt` fallback list, OR
       - Maintain an explicit “removed on Linux” list with documented deviations.
     - [ ] Add compatibility shims when required (only when proven necessary by smoke tests):
       - Example: provide `gdate`/`gseq` aliases or symlinks if scripts assume macOS GNU coreutils naming.
-    - [ ] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
+      - Reason: Only add if smoke tests show missing GNU coreutils aliases.
+    - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
     - [ ] Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).
+      - Reason: Defer until baseline build times are captured.
   - Artifacts:
     - `docker/codex-env/README.md` updates (document knobs, fallback policy, and known deltas vs macOS)
     - `docker/codex-env/apt-fallback.txt` (or equivalent mapping file)
+    - `docker/codex-env/docker-compose.local.yml` (optional local bind-mount override)
     - Optional: `docker/codex-env/shims/` (only if needed)
   - Exit Criteria:
     - [ ] Optional opt-out path works and is documented (commands + expected results).
+      - Reason: Documented; waiting on `INSTALL_OPTIONAL_TOOLS=0` build confirmation.
     - [ ] Missing-formula handling is explicit and reproducible (no “mystery failures” during build).
+      - Reason: Documented fallback policy; awaiting verification on a fresh build.
     - [ ] Multi-env workflow is documented and proven with two concurrent compose projects.
+      - Reason: Documented; waiting on explicit two-project run evidence.
 - [ ] Step 3: Validation / testing
   - Work Items:
     - [ ] Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.
