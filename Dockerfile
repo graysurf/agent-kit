@@ -62,6 +62,7 @@ ENV ZDOTDIR="/opt/zsh-kit"
 ENV ZSH_FEATURES="codex,opencode"
 ENV HOME="/home/codex"
 ENV CODEX_HOME="/home/codex/.codex"
+ENV CODEX_AUTH_FILE="/home/codex/.codex/auth.json"
 
 COPY docker/codex-env/ /opt/codex-env/
 

@@ -13,6 +13,7 @@ services:
     environment:
       HOME: /home/codex
       CODEX_HOME: /home/codex/.codex
+      CODEX_AUTH_FILE: /home/codex/.codex/auth.json
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work

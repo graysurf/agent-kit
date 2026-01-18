@@ -294,6 +294,7 @@ workspace_up() {
       --label "codex-kit.created-at=$ts"
       -e "HOME=/home/codex"
       -e "CODEX_HOME=/home/codex/.codex"
+      -e "CODEX_AUTH_FILE=/home/codex/.codex/auth.json"
       -v "${vol_work}:/work"
       -v "${vol_home}:/home/codex"
       -v "${vol_codex}:/home/codex/.codex"
