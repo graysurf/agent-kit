@@ -86,6 +86,37 @@ Verify pull:
 docker pull "${DOCKERHUB_USER}/codex-env:linuxbrew"
 ```
 
+## Publish to GitHub Container Registry (GHCR)
+
+Prereqs:
+- `docker login ghcr.io` already completed (PAT with `write:packages`, or publish via GitHub Actions).
+- Local image exists: `codex-env:linuxbrew`.
+
+Tag and push:
+
+```sh
+GHCR_OWNER=your-github-username-or-org
+GH_TOKEN=your_pat_with_write_packages
+
+echo "$GH_TOKEN" | docker login ghcr.io -u "$GHCR_OWNER" --password-stdin
+
+docker tag codex-env:linuxbrew "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
+docker tag codex-env:linuxbrew "ghcr.io/${GHCR_OWNER}/codex-env:latest"
+
+docker push "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
+docker push "ghcr.io/${GHCR_OWNER}/codex-env:latest"
+```
+
+Verify pull:
+
+```sh
+docker pull "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
+```
+
+Notes:
+- The root `Dockerfile` sets OCI labels (including `org.opencontainers.image.source`) so the GHCR package can link back to this repo.
+- CI publish: run the GitHub Actions workflow `Publish codex-env image` (publishes to `ghcr.io/<owner>/codex-env`).
+
 ## Workspace launcher (isolated, no host workspace)
 
 `docker-compose.yml` defaults to bind-mounting a host workspace into `/work` (convenient for local iteration).
@@ -96,10 +127,12 @@ Pull the prebuilt image (skip if you already built locally):
 
 ```sh
 docker pull graysurf/codex-env:linuxbrew
+# or:
+docker pull ghcr.io/graysurf/codex-env:linuxbrew
 ```
 
 If you see `pull access denied`, the image may not be public under that namespace yet. Options:
-- Run `docker login` and retry.
+- Run `docker login` (Docker Hub) or `docker login ghcr.io` (GHCR) and retry.
 - Or use your own tag: `./docker/codex-env/bin/codex-workspace up <repo> --image DOCKERHUB_USER/codex-env:linuxbrew`
 
 Start a new workspace from a repo input (supports `git@github.com:...` and normalizes to HTTPS clone):

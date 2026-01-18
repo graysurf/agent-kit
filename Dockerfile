@@ -11,6 +11,26 @@ ARG INSTALL_TOOLS="1"
 ARG INSTALL_OPTIONAL_TOOLS="1"
 ARG INSTALL_VSCODE="1"
 
+ARG IMAGE_TITLE="codex-env"
+ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + codex-kit)"
+ARG IMAGE_SOURCE="https://github.com/graysurf/codex-kit"
+ARG IMAGE_URL="https://github.com/graysurf/codex-kit"
+ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/codex-kit/tree/main/docker/codex-env"
+ARG IMAGE_LICENSES="MIT"
+ARG IMAGE_VERSION=""
+ARG IMAGE_REVISION=""
+ARG IMAGE_CREATED=""
+
+LABEL org.opencontainers.image.title=$IMAGE_TITLE \
+      org.opencontainers.image.description=$IMAGE_DESCRIPTION \
+      org.opencontainers.image.source=$IMAGE_SOURCE \
+      org.opencontainers.image.url=$IMAGE_URL \
+      org.opencontainers.image.documentation=$IMAGE_DOCUMENTATION \
+      org.opencontainers.image.licenses=$IMAGE_LICENSES \
+      org.opencontainers.image.version=$IMAGE_VERSION \
+      org.opencontainers.image.revision=$IMAGE_REVISION \
+      org.opencontainers.image.created=$IMAGE_CREATED
+
 ENV LANG="C.UTF-8"
 ENV LC_ALL="C.UTF-8"
 
