@@ -2,14 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-18 | 2026-01-18 |
+| DONE | 2026-01-18 | 2026-01-18 |
 
 Links:
 
-- PR (planning): https://github.com/graysurf/codex-kit/pull/58
-- PR (implementation): https://github.com/graysurf/codex-kit/pull/59
-- Docs (implementation): https://github.com/graysurf/codex-kit/blob/feat/docker-codex-env/docker/codex-env/README.md
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- PR: https://github.com/graysurf/codex-kit/pull/59
+- Planning PR: https://github.com/graysurf/codex-kit/pull/58
+- Docs: [docker/codex-env/README.md](../../../docker/codex-env/README.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
@@ -398,17 +398,18 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Evidence: `out/docker/verify/20260118_084317/multi-env.log`
     - [x] Evidence exists and is linked from docs (file paths under `out/`).
     - [x] Workspace launcher evidence exists and is linked from this progress doc (file paths under `out/`).
-- [ ] Step 4: Release / wrap-up
+- [x] Step 4: Release / wrap-up
   - Work Items:
     - [x] Update `README.md` entrypoints (link to Docker environment docs).
     - [x] Optional: add a small `CHANGELOG.md` entry (if this is treated as a user-facing feature).
-    - [ ] Mark progress file status to `DONE` when implementation PR(s) are complete.
+    - [x] Set Status to `DONE`, archive progress file, and update index (close-progress-pr).
   - Artifacts:
     - `README.md` link(s)
     - Optional: `CHANGELOG.md` entry
+    - Archived progress file under `docs/progress/archived/`
   - Exit Criteria:
-    - [ ] Documentation completed and entry points updated (README / docs index links).
-    - [ ] Cleanup completed (close issues, remove temporary flags/files, set status to DONE).
+    - [x] Documentation completed and entry points updated (README / docs index links).
+    - [x] Cleanup completed (set Status to `DONE`; move to `archived/`; update index; patch PR Progress link).
 
 ## Modules
 
