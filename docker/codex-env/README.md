@@ -72,6 +72,7 @@ CI publish (auto):
 - GitHub Actions workflow: `Publish codex-env image (Docker Hub)` (runs on `main`).
 - Requires repo secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 - Publishes: `graysurf/codex-env:{linuxbrew,latest,sha-<short>}`.
+- Multi-arch: `linux/amd64` + `linux/arm64`.
 
 Tag and push:
 
@@ -121,6 +122,7 @@ docker pull "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
 Notes:
 - The root `Dockerfile` sets OCI labels (including `org.opencontainers.image.source`) so the GHCR package can link back to this repo.
 - CI publish: run the GitHub Actions workflow `Publish codex-env image` (publishes to `ghcr.io/<owner>/codex-env`).
+- Multi-arch: CI publishes `linux/amd64` + `linux/arm64` so Apple Silicon hosts can pull without `--platform`.
 
 ## Workspace launcher (isolated, no host workspace)
 
