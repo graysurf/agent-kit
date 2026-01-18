@@ -1,6 +1,6 @@
 # Docker Codex env (Ubuntu 24.04)
 
-This folder defines a Linux container development environment intended to mirror the macOS `zsh-kit` + `codex-kit` workflow as closely as practical, targeting headless Ubuntu Server hosts.
+This folder defines a Linux container development environment intended to mirror the [zsh-kit](https://github.com/graysurf/zsh-kit) and [codex-kit](https://github.com/graysurf/codex-kit) workflow as closely as practical, targeting headless Ubuntu Server hosts.
 
 ## Build
 
