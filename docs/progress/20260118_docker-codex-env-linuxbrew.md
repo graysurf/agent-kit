@@ -181,8 +181,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Data flow and I/O contract are defined: container inputs/outputs/volumes/build args documented here.
     - [x] Risks and mitigation plan are defined: captured above, with explicit “what to do when brew fails” policy.
     - [x] Minimal reproducible verification commands are defined: see Step 1/3 exit criteria.
-- [ ] Step 1: Minimum viable output (MVP)
-  - Reason: Pending interactive shell + smoke verification outputs from container.
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
     - [x] Add `Dockerfile` at repo root (Ubuntu base + apt bootstrap).
     - [x] Use root user by default; optionally add a non-root user (`dev`) if needed later.
@@ -197,8 +196,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - bind mount workspace(s)
       - named volume(s) for `HOME` and `CODEX_HOME`
       - no extra hardening flags (per Step 0 decision)
-    - [ ] Install Codex CLI in the container (exact mechanism TBD in Step 0) and validate it starts.
-      - Reason: Pending `codex --version` output.
+    - [x] Install Codex CLI in the container (exact mechanism TBD in Step 0) and validate it starts.
     - [x] Create a minimal `docker/codex-env/README.md` with TL;DR commands.
   - Artifacts:
     - `Dockerfile`
@@ -206,12 +204,12 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docker/codex-env/README.md`
   - Exit Criteria:
     - [x] Image builds: `docker build -f Dockerfile -t codex-env:linuxbrew .`
-    - [ ] Interactive shell works: `docker run --rm -it codex-env:linuxbrew zsh -l`
-      - Reason: Pending explicit interactive shell output.
-    - [ ] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version && codex --version && opencode --version && gemini --version && psql --version && mysql --version && sqlcmd --help'`
-      - Reason: Pending smoke command output.
-    - [ ] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
-      - Reason: Pending `codex --version` output.
+    - [x] Interactive shell works: `docker run --rm -it codex-env:linuxbrew zsh -l`
+      - Evidence: `out/docker/verify/20260118_084317/interactive.log`
+    - [x] Tools on PATH (example smoke): `zsh -lic 'rg --version && fd --version && fzf --version && gh --version && jq --version && codex --version && opencode --version && gemini --version && psql --version && mysql --version && sqlcmd --help'`
+      - Evidence: `out/docker/verify/20260118_084317/smoke.log`
+    - [x] `codex --version` works in-container (auth may still be TBD if using per-env volumes).
+      - Evidence: `out/docker/verify/20260118_084317/versions.txt`
     - [x] Docs include the exact build/run commands and required mounts.
 - [ ] Step 2: Expansion / integration
   - Work Items:
@@ -221,9 +219,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Define/implement a fallback policy for missing Linuxbrew formulas:
       - Maintain an explicit `apt` fallback list, OR
       - Maintain an explicit “removed on Linux” list with documented deviations.
-    - [ ] Add compatibility shims when required (only when proven necessary by smoke tests):
+    - [x] Add compatibility shims when required (only when proven necessary by smoke tests):
       - Example: provide `gdate`/`gseq` aliases or symlinks if scripts assume macOS GNU coreutils naming.
-      - Reason: Only add if smoke tests show missing GNU coreutils aliases.
+      - Decision: Document-only (no shims). See `docker/codex-env/README.md`.
     - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
     - [ ] Improve build speed via BuildKit caching for brew downloads/builds (optional, but recommended).
       - Reason: Defer until baseline build times are captured.
@@ -237,8 +235,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Reason: Documented; waiting on `INSTALL_OPTIONAL_TOOLS=0` build confirmation.
     - [ ] Missing-formula handling is explicit and reproducible (no “mystery failures” during build).
       - Reason: Documented fallback policy; awaiting verification on a fresh build.
-    - [ ] Multi-env workflow is documented and proven with two concurrent compose projects.
-      - Reason: Documented; waiting on explicit two-project run evidence.
+    - [x] Multi-env workflow is documented and proven with two concurrent compose projects.
+      - Evidence: `out/docker/verify/20260118_084317/multi-env.log`
 - [ ] Step 3: Validation / testing
   - Work Items:
     - [ ] Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.
@@ -259,8 +257,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [ ] Evidence exists and is linked from docs (file paths under `out/`).
 - [ ] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Update `README.md` entrypoints (link to Docker environment docs).
-    - [ ] Optional: add a small `CHANGELOG.md` entry (if this is treated as a user-facing feature).
+    - [x] Update `README.md` entrypoints (link to Docker environment docs).
+    - [x] Optional: add a small `CHANGELOG.md` entry (if this is treated as a user-facing feature).
     - [ ] Mark progress file status to `DONE` when implementation PR(s) are complete.
   - Artifacts:
     - `README.md` link(s)

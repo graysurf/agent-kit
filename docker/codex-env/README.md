@@ -58,6 +58,10 @@ Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in `z
 
 If a brew install fails on Linux, add a matching apt entry or explicitly remove the tool from the brew list.
 
+## Known deltas vs macOS
+
+- No `g*` GNU coreutils shims are provided; use the Linux default command names.
+
 ## Publish to Docker Hub
 
 Prereqs:
