@@ -2,6 +2,8 @@ name: Publish codex-env image
 
 on:
   workflow_dispatch:
+  push:
+    branches: [docker]
 
 permissions:
   contents: read

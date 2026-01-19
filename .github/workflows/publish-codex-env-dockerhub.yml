@@ -3,7 +3,7 @@ name: Publish codex-env image (Docker Hub)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [docker]
 
 permissions:
   contents: read
