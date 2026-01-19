@@ -13,19 +13,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-push:
+  precheck:
     if: ${{ github.repository == 'graysurf/codex-kit' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      DOCKERHUB_IMAGE: graysurf/codex-env
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+      created: ${{ steps.meta.outputs.created }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
 
     steps:
-      - name: Skip (missing Docker Hub secrets)
-        if: ${{ env.DOCKERHUB_USERNAME == '' || env.DOCKERHUB_TOKEN == '' }}
+      - name: Check Docker Hub secrets
+        id: check
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
+          set -euo pipefail
+
+          if [[ -n "${DOCKERHUB_USERNAME}" && -n "${DOCKERHUB_TOKEN}" ]]; then
+            echo "publish=1" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "publish=0" >>"$GITHUB_OUTPUT"
+          echo "Skipping Docker Hub publish: missing DOCKERHUB_USERNAME and/or DOCKERHUB_TOKEN."
+
           if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
             {
               echo "## Docker Hub publish: codex-env"
@@ -34,53 +46,117 @@ jobs:
               echo ""
             } >>"$GITHUB_STEP_SUMMARY"
           fi
-          echo "Skipping Docker Hub publish: missing DOCKERHUB_USERNAME and/or DOCKERHUB_TOKEN."
-
-      - name: Checkout
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
-        uses: actions/checkout@v4
 
       - name: Set build metadata
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
         id: meta
         run: |
           set -euo pipefail
           echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$GITHUB_OUTPUT"
           echo "short_sha=${GITHUB_SHA::7}" >>"$GITHUB_OUTPUT"
 
+  build-and-push:
+    needs: precheck
+    if: ${{ needs.precheck.outputs.publish == '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      DOCKERHUB_IMAGE: graysurf/codex-env
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
         uses: docker/setup-buildx-action@v3
 
-      - name: Set up QEMU
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
       - name: Login to Docker Hub
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+      - name: Build and push (single-arch)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.DOCKERHUB_IMAGE }}:linuxbrew
-            ${{ env.DOCKERHUB_IMAGE }}:latest
-            ${{ env.DOCKERHUB_IMAGE }}:sha-${{ steps.meta.outputs.short_sha }}
+            ${{ env.DOCKERHUB_IMAGE }}:sha-${{ needs.precheck.outputs.short_sha }}-amd64
           build-args: |
             CODEX_KIT_REF=${{ github.sha }}
             IMAGE_VERSION=${{ github.ref_name }}
             IMAGE_REVISION=${{ github.sha }}
-            IMAGE_CREATED=${{ steps.meta.outputs.created }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            IMAGE_CREATED=${{ needs.precheck.outputs.created }}
+          cache-from: type=gha,scope=codex-env-amd64
+          cache-to: type=gha,mode=max,scope=codex-env-amd64
+
+  build-and-push-arm64:
+    needs: precheck
+    if: ${{ needs.precheck.outputs.publish == '1' }}
+    runs-on: ${{ vars.ARM64_RUNNER || 'ubuntu-24.04-arm64' }}
+    timeout-minutes: 360
+    env:
+      DOCKERHUB_IMAGE: graysurf/codex-env
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push (single-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_IMAGE }}:sha-${{ needs.precheck.outputs.short_sha }}-arm64
+          build-args: |
+            CODEX_KIT_REF=${{ github.sha }}
+            IMAGE_VERSION=${{ github.ref_name }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_CREATED=${{ needs.precheck.outputs.created }}
+          cache-from: type=gha,scope=codex-env-arm64
+          cache-to: type=gha,mode=max,scope=codex-env-arm64
+
+  publish-manifest:
+    needs: [precheck, build-and-push, build-and-push-arm64]
+    if: ${{ needs.precheck.outputs.publish == '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOCKERHUB_IMAGE: graysurf/codex-env
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create multi-arch manifest
+        run: |
+          set -euo pipefail
+          image="${DOCKERHUB_IMAGE}"
+          sha_tag="sha-${{ needs.precheck.outputs.short_sha }}"
+
+          docker buildx imagetools create \
+            -t "${image}:linuxbrew" \
+            -t "${image}:latest" \
+            -t "${image}:${sha_tag}" \
+            "${image}:${sha_tag}-amd64" \
+            "${image}:${sha_tag}-arm64"
