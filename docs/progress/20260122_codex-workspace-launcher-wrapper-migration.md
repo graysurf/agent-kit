@@ -2,7 +2,7 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| DRAFT | 2026-01-22 | 2026-01-22 |
+| IN PROGRESS | 2026-01-22 | 2026-01-22 |
 
 Links:
 
@@ -83,7 +83,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
 
 - [ ] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Move migration doc to `docs/runbooks/` and ensure it reflects the approved contract decisions.
+    - [x] Move migration doc to `docs/runbooks/` and ensure it reflects the approved contract decisions.
     - [ ] Create and merge a progress planning PR (docs-only) to track this work.
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
@@ -95,19 +95,21 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [ ] A minimal verification plan exists (smoke commands in Step 3).
 - [ ] Step 1: Minimum viable launcher contract (codex-kit)
   - Work Items:
-    - [ ] Add `--version` and capabilities.
-    - [ ] Implement `create/up --output json` with stdout JSON / stderr logs.
-    - [ ] Implement secrets opt-in (`--secrets-dir` required; no default).
-    - [ ] Implement tunnel name policy + JSON output (requires `--detach`).
-    - [ ] Implement `rm` default volumes removal with `--keep-volumes`.
+    - [x] Add `--version` and capabilities (`capabilities`, `--supports`).
+    - [x] Implement `create/up --output json` with stdout JSON / stderr logs.
+    - [x] Implement secrets opt-in (`--secrets-dir` required; no default).
+    - [x] Implement tunnel name policy + JSON output (requires `--detach`).
+    - [x] Implement `rm` default volumes removal with `--keep-volumes`.
   - Artifacts:
     - `docker/codex-env/bin/codex-workspace`
     - `docker/codex-env/README.md`
     - `docker/codex-env/WORKSPACE_QUICKSTART.md`
+    - `tests/test_codex_workspace_launcher_smoke.py`
+    - `tests/stubs/bin/docker`
   - Exit Criteria:
-    - [ ] At least one happy path runs end-to-end (create + optional clone): `codex-workspace create --output json OWNER/REPO`.
-    - [ ] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
-    - [ ] Usage docs updated with new defaults and flags.
+    - [ ] ~~At least one happy path runs end-to-end (create + optional clone): `codex-workspace create --output json OWNER/REPO`.~~ Reason: current requirement is smoke-only (no real Docker); cover contract via stubbed tests; run manually when Docker is available.
+    - [x] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
+    - [x] Usage docs updated with new defaults and flags (runbook + launcher usage text).
 - [ ] Step 2: Wrapper integration (zsh-kit)
   - Work Items:
     - [ ] Switch wrapper `create` orchestration to consume launcher JSON output.
@@ -120,13 +122,13 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [ ] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
 - [ ] Step 3: Validation / smoke tests
   - Work Items:
-    - [ ] Run launcher smoke commands locally.
+    - [x] Add launcher smoke tests (stub docker; no real container).
     - [ ] Run wrapper smoke commands locally.
   - Artifacts:
     - CI results for implementation PRs
     - Local command logs (copy/paste or saved logs if needed)
   - Exit Criteria:
-    - [ ] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
+    - [x] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
     - [ ] Wrapper: `create` works end-to-end using JSON output; lifecycle commands call-through.
     - [ ] Evidence recorded (PR Testing sections + any necessary logs).
 - [ ] Step 4: Release / wrap-up

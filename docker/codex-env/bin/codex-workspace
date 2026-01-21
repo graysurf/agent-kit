@@ -3,6 +3,8 @@ set -euo pipefail
 
 CODEX_WORKSPACE_VERSION="0.1.0"
 CODEX_WORKSPACE_CAPABILITIES=(
+  "capabilities-command"
+  "supports-flag"
   "version"
   "create-alias"
   "output-json"
@@ -25,6 +27,8 @@ codex-workspace: start isolated Codex workspaces from a git repo input.
 
 Usage:
   codex-workspace --version
+  codex-workspace capabilities
+  codex-workspace --supports <capability>
   codex-workspace up|create [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
                     [--persist-gh-token] [--setup-git]
@@ -102,6 +106,24 @@ json_string_array() {
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+supports_capability() {
+  local needle="${1:-}"
+  local cap=""
+  for cap in "${CODEX_WORKSPACE_CAPABILITIES[@]}"; do
+    if [[ "$cap" == "$needle" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+emit_capabilities_json() {
+  printf '{'
+  printf '"version":"%s",' "$(json_escape "$CODEX_WORKSPACE_VERSION")"
+  printf '"capabilities":%s' "$(json_string_array "${CODEX_WORKSPACE_CAPABILITIES[@]}")"
+  printf '}\n'
 }
 
 normalize_secrets_mount() {
@@ -867,6 +889,17 @@ main() {
     --version)
       echo "$CODEX_WORKSPACE_VERSION"
       return 0
+      ;;
+    capabilities)
+      emit_capabilities_json
+      return 0
+      ;;
+    --supports)
+      [[ $# -ge 1 ]] || die "usage: codex-workspace --supports <capability>"
+      if supports_capability "$1"; then
+        return 0
+      fi
+      return 1
       ;;
     -h|--help|help|"")
       usage
