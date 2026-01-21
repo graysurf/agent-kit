@@ -70,7 +70,7 @@ zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
 tmp="$(mktemp -d)"
 mkdir -p "$tmp/zdotdir/scripts/lib" "$tmp/zdotdir/tools"
 
-cat >"$tmp/zdotdir/$CODEX_HOME/scripts/lib/hello.zsh" <<'EOF'
+cat >"$tmp/zdotdir/scripts/lib/hello.zsh" <<'EOF'
 hello_main() {
   print -r -- "hello-main"
   echo-tool "arg1"
