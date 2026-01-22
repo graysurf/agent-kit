@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.2 - 2026-01-22
+
+### Added
+- `codex-workspace`: launcher contract for capability discovery + JSON output; wrapper migration docs.
+- `codex-workspace`: `--no-clone` option for bringing up an existing workspace without cloning.
+- `codex-env`: GitHub Actions workflows for GHCR/Docker Hub publishing, including multi-arch (arm64) support and OCI labels.
+- Lint: pyright typechecking in the Python lint workflow.
+- `script_smoke`: spec coverage for `audit-skill-layout.sh`.
+
+### Changed
+- `codex-env`: use `tini` as init; add `rsync`/linuxbrew directory; disable weather/quote on boot; and improve mount override flows.
+- CI: set `CODEX_HOME` globally, optimize multi-arch builds, and refresh runner labels.
+- Docs: canonicalize script references to `$CODEX_HOME` and use `$HOME/` in path examples.
+- `find-and-fix-bugs`: add problem + reproduction sections to the skill and PR template.
+- Workspace auth: remove token env vars from the container for safer Git authentication.
+
+### Fixed
+- `api-report`: expand tilde paths and guard stdin response clashes.
+- `git-scope`: handle `mktemp` fallback on macOS.
+- `codex-workspace`: handle long container names when computing hostnames.
+- Progress templates: repair the progress template symlink.
+- Docs and tooling: fix duplicated `codex_home` references and clarify desktop notification word limit guidance.
+
 ## v1.3.1 - 2026-01-18
 
 ### Added
