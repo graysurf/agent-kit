@@ -74,3 +74,39 @@ def test_api_report_from_cmd_rejects_stdin_response_stdin() -> None:
 
     assert completed.returncode == 2
     assert "cannot be used with --response -" in completed.stderr
+
+
+def test_api_report_from_cmd_resolves_out_response_relative_to_project_root() -> None:
+    repo = repo_root()
+    env = default_env(repo)
+    home = Path(env["HOME"])
+
+    project = home / "sample-project"
+    config_dir = project / "setup" / "graphql"
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    _run(["git", "init"], cwd=project, env=env)
+
+    gql_script = repo / "skills" / "tools" / "testing" / "graphql-api-testing" / "scripts" / "gql.sh"
+    snippet = (
+        f"{gql_script} --config-dir $HOME/sample-project/setup/graphql --env local "
+        "setup/graphql/operations/test.graphql"
+    )
+
+    cmd = [
+        str(repo / "commands" / "api-report-from-cmd"),
+        "--dry-run",
+        "--response",
+        "out/response.json",
+        "--out",
+        "out/report.md",
+        "--stdin",
+    ]
+    completed = _run(cmd, cwd=repo, env=env, stdin=snippet)
+
+    args = shlex.split(completed.stdout.strip())
+    response_idx = args.index("--response")
+    out_idx = args.index("--out")
+
+    assert args[response_idx + 1] == str(project / "out" / "response.json")
+    assert args[out_idx + 1] == str(project / "out" / "report.md")

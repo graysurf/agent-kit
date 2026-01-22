@@ -254,6 +254,13 @@ resolve_in_project() {
   printf "%s" "$path"
 }
 
+if [[ -n "$out_arg" ]]; then
+  out_arg="$(resolve_in_project "$out_arg")"
+fi
+if [[ -n "$response_arg" && "$response_arg" != "-" ]]; then
+  response_arg="$(resolve_in_project "$response_arg")"
+fi
+
 derive_case() {
   local base="$1"
   shift || true
