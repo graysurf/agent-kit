@@ -47,6 +47,9 @@ if [[ -n "$log_dir" ]]; then
 fi
 
 container_exists() {
+  if [[ -n "$log_dir" ]] && [[ -f "${log_dir%/}/container.exists" ]]; then
+    return 0
+  fi
   bool_from_env "${CODEX_DOCKER_STUB_CONTAINER_EXISTS:-}" "CODEX_DOCKER_STUB_CONTAINER_EXISTS" "true"
 }
 
@@ -138,6 +141,9 @@ case "$cmd" in
     exit 0
     ;;
   run|start|stop|rm)
+    if [[ "$cmd" == "run" && -n "$log_dir" ]]; then
+      : >"${log_dir%/}/container.exists" 2>/dev/null || true
+    fi
     exit 0
     ;;
   volume)

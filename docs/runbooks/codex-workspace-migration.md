@@ -1,6 +1,6 @@
 # Codex Workspace: launcher/wrapper migration
 
-Status: In progress  
+Status: In progress (launcher + wrapper contract landed; pending real Docker smoke + wrap-up)  
 Last updated: 2026-01-22
 
 This doc is a migration plan to reduce drift between:
@@ -46,7 +46,8 @@ Notable current defaults (subject to change):
 
 Acts as an orchestrator around the launcher and adds “Dev Containers” conveniences:
 
-- `codex-workspace create ...`: selects GitHub auth mode (keyring vs env), then calls launcher `up`
+- `codex-workspace create ...`: selects GitHub auth mode (keyring vs env), then calls launcher `create --output json`
+- Lifecycle commands (`ls`, `start`, `stop`, `rm`) are thin call-throughs to the launcher.
 - Post-create extras (typical): refresh `/opt/*` repos, snapshot `~/.config`, seed `~/.private`, clone extra repos
 - Additional host-side helpers (separate files): `auth`, `exec`, `rsync`, `reset`, `rm`, `tunnel`, `ls`
 - Auto-downloads the launcher when missing (from `raw.githubusercontent.com/.../codex-kit/...`)
@@ -103,10 +104,15 @@ Keep host-opinionated and Dev Containers-specific behavior in the wrapper:
 
 Wrappers should not parse ad-hoc human output. The launcher should expose:
 
-- A **version** or **capability** signal (e.g. `--version` or `--supports <feature>`).
-- A **machine-readable output mode** for create/up (e.g. `--output json`), including:
-  - `container`, `repo_dir`, `repo` (if any), `image`, `created_at`, `secrets_mount`, `git_auth_mode`
-- A consistent tunnel naming behavior (sanitize + <= 20 chars) with override support.
+- A **version / capability** signal:
+  - `codex-workspace --version` (string)
+  - `codex-workspace capabilities` (stdout JSON)
+  - `codex-workspace --supports <capability>` (exit 0/1)
+- A **machine-readable output mode** for create/up:
+  - `codex-workspace up|create ... --output json` where stdout is pure JSON and all human logs go to stderr.
+  - Current JSON schema (v1): `version`, `capabilities`, `command`, `workspace`, `created`, `repo`, `path`, `image`, `secrets{enabled,dir,mount,codex_profile}`.
+- A consistent tunnel naming behavior (sanitize + `<= 20` chars) with override support.
+  - `codex-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` (plus metadata).
 
 ## Feature map (what moves / what stays)
 
@@ -147,42 +153,46 @@ Status legend:
 - [x] Remove launcher secrets host-path defaults; require explicit `--secrets-dir` for any secrets mount.
   - [x] Keep `--secrets-mount` default at `/home/codex/codex_secrets` and allow override
   - [x] When secrets are mounted, set `CODEX_SECRET_DIR=<mount>` inside the container
-- [ ] Validate `--codex-profile` behavior under the new secrets defaults (and keep failure modes clear).
-- [ ] Confirm/adjust git auth behavior (`--persist-gh-token`, `--setup-git`) and document expectations for wrappers.
-- [ ] Ensure `ls` is canonical and stable (filter by label first; fallback prefix scan only when needed).
+- [x] Validate `--codex-profile` behavior under the new secrets defaults (and keep failure modes clear).
+- [x] Confirm/adjust git auth behavior (`--persist-gh-token`, `--setup-git`) and document expectations for wrappers.
+- [x] Ensure `ls` is canonical and stable (filter by label first; fallback prefix scan only when needed).
 - [x] Ensure `start` / `stop` semantics are canonical and stable (wrapper must call-through).
 - [x] Align `tunnel` behavior with wrapper:
   - [x] accept `--name <tunnel_name>` (sanitized)
   - [x] enforce `<= 20` chars (VS Code requirement)
   - [x] improve default name derivation (strip prefix + timestamp, add hash when truncating)
 - [x] Implement and document `rm` semantics: default removes volumes; `--keep-volumes` keeps volumes (optionally keep `--volumes` as an alias).
-- [ ] Update docs in this repo:
-  - [ ] `docker/codex-env/README.md` (defaults, examples, migration note)
-  - [ ] `docker/codex-env/WORKSPACE_QUICKSTART.md`
+- [x] Update docs in this repo:
+  - [x] `docker/codex-env/README.md` (defaults, examples, migration note)
+  - [x] `docker/codex-env/WORKSPACE_QUICKSTART.md`
 
 ### zsh wrapper: orchestration and dedupe
 
-- [ ] Prefer **local codex-kit checkout** as the default launcher path; auto-download only when missing.
-- [ ] Stop parsing human output; switch to launcher `--output json` once available.
-- [ ] Make wrapper `ls`/`start`/`stop`/`rm` thin call-throughs to launcher (no duplicate implementation).
+- [x] Prefer **local codex-kit checkout** as the default launcher path; auto-download only when missing.
+- [x] Stop parsing human output; switch to launcher `--output json` once available.
+- [x] Make wrapper `ls`/`start`/`stop`/`rm` thin call-throughs to launcher (no duplicate implementation).
 - [ ] Replace wrapper tunnel implementation with `"$launcher" tunnel ...` once parity is reached.
-- [ ] Add/adjust completion and aliases if command names change (e.g. `create` vs `up`).
+- [x] Add/adjust completion and aliases if command names change (e.g. `create` vs `up`).
 
 ### Validation (manual / smoke)
 
-- [x] `codex-workspace --help` shows `create` and `--output`.
-- [ ] `codex-workspace create OWNER/REPO` creates container + clones repo in `/work/<owner>/<repo>`.
-- [x] `codex-workspace create --no-clone --name ws-foo` creates container without cloning.
-- [ ] Secrets mount works when provided: `--secrets-dir ...` results in `CODEX_SECRET_DIR=/home/codex/codex_secrets` inside container.
-- [x] `codex-workspace tunnel ws-foo` uses a valid <=20 name; `--name` override works.
-- [ ] zsh wrapper `codex-workspace create` still works end-to-end with the updated launcher.
+- [x] Launcher contract smoke (codex-kit stub tests):
+  - [x] `codex-workspace --help` shows `create` and `--output`.
+  - [x] `codex-workspace create --no-clone --name ws-foo --output json` emits stdout-only JSON; human logs go to stderr.
+  - [x] Secrets contract (host-side): `--secrets-dir ...` sets `CODEX_SECRET_DIR=/home/codex/codex_secrets` and reports `secrets.*` in JSON.
+  - [x] `codex-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` and enforces `<= 20`.
+  - [x] `codex-workspace rm` removes volumes by default; `--keep-volumes` preserves volumes.
+- [ ] Manual (real Docker) spot checks:
+  - [ ] `codex-workspace create OWNER/REPO` clones into `/work/<owner>/<repo>`.
+  - [ ] Secrets + profile: `codex-workspace create OWNER/REPO --secrets-dir ... --codex-profile <name>` works end-to-end.
+  - [ ] Wrapper `codex-workspace create OWNER/REPO` works end-to-end using launcher JSON output.
 
 ## Rollout plan
 
-1. Land launcher contract changes (alias/version/json output/tunnel/secrets defaults).
-2. Update zsh wrapper to require the new launcher (min version) and use JSON output.
-3. Update docs and announce secrets no longer auto-mount (breaking; wrapper must pass `--secrets-dir`).
-4. Optionally deprecate wrapper re-implementations of lifecycle commands (ls/rm/tunnel) after parity.
+1. Done: land launcher contract changes (alias/version/json output/tunnel/secrets defaults).
+2. Done: update zsh wrapper to require the new launcher (capabilities) and use JSON output.
+3. Next: update docs and announce secrets no longer auto-mount (breaking; wrapper must pass `--secrets-dir`).
+4. Optional: deprecate wrapper re-implementations of lifecycle commands after parity (e.g. tunnel).
 
 ## Risks / notes
 

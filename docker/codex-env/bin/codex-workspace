@@ -425,6 +425,15 @@ workspace_up() {
     die "--secrets-mount requires --secrets-dir (secrets are opt-in)"
   fi
 
+  if [[ -n "$codex_profile" ]]; then
+    if [[ "$use_secrets" != "1" ]]; then
+      die "--codex-profile cannot be combined with --no-secrets"
+    fi
+    if [[ "$secrets_dir_explicit" != "1" ]]; then
+      die "--codex-profile requires --secrets-dir (secrets are opt-in)"
+    fi
+  fi
+
   if [[ "$no_clone" != "1" && -z "$repo_input" ]]; then
     die "usage: codex-workspace up|create <repo> [flags]"
   fi

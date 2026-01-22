@@ -91,6 +91,71 @@ def test_secrets_mount_requires_secrets_dir() -> None:
 
 
 @pytest.mark.script_smoke
+def test_codex_profile_requires_secrets_dir() -> None:
+    completed = run_launcher(["create", "--no-clone", "--name", "ws-test", "--codex-profile", "personal"])
+    assert completed.returncode != 0
+    assert "--codex-profile requires --secrets-dir" in completed.stderr
+
+
+@pytest.mark.script_smoke
+def test_codex_profile_sets_secrets_metadata_and_runs_codex_use(tmp_path: Path) -> None:
+    secrets_dir = tmp_path / "secrets"
+    secrets_dir.mkdir(parents=True, exist_ok=True)
+
+    log_dir = tmp_path / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    completed = run_launcher(
+        [
+            "create",
+            "--no-clone",
+            "--name",
+            "ws-test",
+            "--secrets-dir",
+            str(secrets_dir),
+            "--codex-profile",
+            "personal",
+            "--output",
+            "json",
+        ],
+        extra_env={
+            "CODEX_DOCKER_STUB_CONTAINER_EXISTS": "false",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+        },
+    )
+    assert completed.returncode == 0, completed.stderr
+
+    payload: dict[str, Any] = json.loads(completed.stdout)
+    assert payload["secrets"]["enabled"] is True
+    assert payload["secrets"]["dir"] == str(secrets_dir)
+    assert payload["secrets"]["mount"] == "/home/codex/codex_secrets"
+    assert payload["secrets"]["codex_profile"] == "personal"
+
+    calls = (log_dir / "docker.calls.txt").read_text("utf-8")
+    assert "zsh -lic codex-use personal" in calls
+
+
+@pytest.mark.script_smoke
+def test_setup_git_implies_persist_token_when_present(tmp_path: Path) -> None:
+    log_dir = tmp_path / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    completed = run_launcher(
+        ["create", "--no-clone", "--name", "ws-test", "--setup-git", "--output", "json"],
+        extra_env={
+            "CODEX_DOCKER_STUB_CONTAINER_EXISTS": "false",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "GH_TOKEN": "stub-token",
+            "GITHUB_TOKEN": "",
+        },
+    )
+    assert completed.returncode == 0, completed.stderr
+
+    calls = (log_dir / "docker.calls.txt").read_text("utf-8")
+    assert "-e GH_TOKEN=stub-token" in calls
+
+
+@pytest.mark.script_smoke
 def test_tunnel_output_json_requires_detach() -> None:
     completed = run_launcher(["tunnel", "ws-test", "--output", "json"])
     assert completed.returncode != 0

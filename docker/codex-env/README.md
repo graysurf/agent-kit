@@ -151,6 +151,22 @@ Start a new workspace from a repo input (supports `git@github.com:...` and norma
 ./docker/codex-env/bin/codex-workspace up git@github.com:graysurf/codex-kit.git
 ```
 
+Notes:
+- `create` is an alias of `up` (wrappers may prefer `create`).
+- Capabilities / version:
+
+```sh
+./docker/codex-env/bin/codex-workspace --version
+./docker/codex-env/bin/codex-workspace capabilities
+./docker/codex-env/bin/codex-workspace --supports output-json
+```
+
+- Machine-readable output: add `--output json` (stdout-only JSON; all human output goes to stderr).
+
+```sh
+./docker/codex-env/bin/codex-workspace create --no-clone --name ws-foo --output json
+```
+
 Private repos (recommended): export a token on the host before running `up`:
 
 ```sh
@@ -185,6 +201,12 @@ Start a VS Code tunnel (macOS client attaches via VS Code Tunnels):
 
 ```sh
 ./docker/codex-env/bin/codex-workspace tunnel <workspace-name-or-container>
+```
+
+Machine output (requires `--detach`):
+
+```sh
+./docker/codex-env/bin/codex-workspace tunnel <workspace-name-or-container> --detach --output json
 ```
 
 Common operations:

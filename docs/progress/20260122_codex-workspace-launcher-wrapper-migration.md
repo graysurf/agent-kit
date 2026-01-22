@@ -81,19 +81,19 @@ Links:
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like this~~` and include `Reason:`. Unchecked and unstruck items (e.g. `- [ ] foo`) will block close-progress-pr.
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
     - [x] Move migration doc to `docs/runbooks/` and ensure it reflects the approved contract decisions.
-    - [ ] Create and merge a progress planning PR (docs-only) to track this work.
+    - [x] Create and merge a progress planning PR (docs-only) to track this work.
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - `docs/runbooks/codex-workspace-migration.md`
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned in this progress file.
-    - [ ] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
-    - [ ] Risks and rollback notes are captured.
-    - [ ] A minimal verification plan exists (smoke commands in Step 3).
-- [ ] Step 1: Minimum viable launcher contract (codex-kit)
+    - [x] Requirements, scope, and acceptance criteria are aligned in this progress file.
+    - [x] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
+    - [x] Risks and rollback notes are captured.
+    - [x] A minimal verification plan exists (smoke commands in Step 3).
+- [x] Step 1: Minimum viable launcher contract (codex-kit)
   - Work Items:
     - [x] Add `--version` and capabilities (`capabilities`, `--supports`).
     - [x] Implement `create/up --output json` with stdout JSON / stderr logs.
@@ -110,27 +110,28 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [ ] ~~At least one happy path runs end-to-end (create + optional clone): `codex-workspace create --output json OWNER/REPO`.~~ Reason: current requirement is smoke-only (no real Docker); cover contract via stubbed tests; run manually when Docker is available.
     - [x] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
     - [x] Usage docs updated with new defaults and flags (runbook + launcher usage text).
-- [ ] Step 2: Wrapper integration (zsh-kit)
+- [x] Step 2: Wrapper integration (zsh-kit)
   - Work Items:
-    - [ ] Switch wrapper `create` orchestration to consume launcher JSON output.
-    - [ ] Make wrapper `ls`/`start`/`stop`/`rm` call-throughs to launcher.
-    - [ ] Optionally enforce minimum launcher version/capabilities.
+    - [x] Switch wrapper `create` orchestration to consume launcher JSON output.
+    - [x] Make wrapper `ls`/`start`/`stop`/`rm` call-throughs to launcher.
+    - [x] Optionally enforce minimum launcher version/capabilities.
   - Artifacts:
     - `scripts/_features/codex-workspace/*` (zsh-kit)
   - Exit Criteria:
-    - [ ] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
-    - [ ] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
+    - [x] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
+    - [x] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
 - [ ] Step 3: Validation / smoke tests
   - Work Items:
     - [x] Add launcher smoke tests (stub docker; no real container).
-    - [ ] Run wrapper smoke commands locally.
+    - [ ] Run wrapper smoke commands locally. Reason: validated via zsh-kit hermetic tests (stub launcher/docker), but no real Docker smoke run recorded yet.
   - Artifacts:
     - CI results for implementation PRs
     - Local command logs (copy/paste or saved logs if needed)
+    - zsh-kit tests (local): `cd ~/.config/zsh && ./tools/check.zsh` (pass), `cd ~/.config/zsh && ./tests/run.zsh` (pass)
   - Exit Criteria:
     - [x] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
-    - [ ] Wrapper: `create` works end-to-end using JSON output; lifecycle commands call-through.
-    - [ ] Evidence recorded (PR Testing sections + any necessary logs).
+    - [ ] Wrapper: `create` works end-to-end using JSON output; lifecycle commands call-through. Reason: verified in zsh-kit tests (stubbed), pending a real Docker run.
+    - [ ] Evidence recorded (PR Testing sections + any necessary logs). Reason: implementation PRs not linked/landed yet.
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [ ] Update progress file Links with implementation PRs and mark status DONE when complete.
