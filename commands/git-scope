@@ -391,11 +391,11 @@ _git_scope_collect() {
         for prefix in "${prefixes[@]}"; do
           clean_prefix="${prefix%/}"
           if [[ -d "$clean_prefix" ]]; then
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}/")
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | awk -v prefix="${clean_prefix%/}/" 'index($0, prefix) == 1')
           elif [[ -f "$clean_prefix" ]]; then
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep -x "$clean_prefix")
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | awk -v target="$clean_prefix" '$0 == target')
           else
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}")
+            all_filtered+=$'\n'$(printf '%s\n' "$files" | awk -v prefix="$clean_prefix" 'index($0, prefix) == 1')
           fi
         done
         files="$(printf '%s\n' "$all_filtered" | grep -v '^$' | sort -u)"
