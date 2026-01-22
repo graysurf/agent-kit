@@ -2,13 +2,14 @@
 
 | Status | Created | Updated |
 | --- | --- | --- |
-| IN PROGRESS | 2026-01-22 | 2026-01-22 |
+| DONE | 2026-01-22 | 2026-01-22 |
 
 Links:
 
-- PR: [#63](https://github.com/graysurf/codex-kit/pull/63)
-- Docs: `docs/runbooks/codex-workspace-migration.md`
-- Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
+- PR: https://github.com/graysurf/codex-kit/pull/63
+- Wrapper PR: https://github.com/graysurf/zsh-kit/pull/58
+- Docs: [docs/runbooks/codex-workspace-migration.md](../../runbooks/codex-workspace-migration.md)
+- Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
 
@@ -59,7 +60,7 @@ Links:
 
 - Tunnel logs on host (path returned in launcher JSON).
 - Planning and runbook docs:
-  - `docs/progress/20260122_codex-workspace-launcher-wrapper-migration.md`
+  - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
   - `docs/runbooks/codex-workspace-migration.md`
 
 ## Design / Decisions
@@ -107,40 +108,53 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - `tests/test_codex_workspace_launcher_smoke.py`
     - `tests/stubs/bin/docker`
   - Exit Criteria:
-    - [ ] ~~At least one happy path runs end-to-end (create + optional clone): `codex-workspace create --output json OWNER/REPO`.~~ Reason: current requirement is smoke-only (no real Docker); cover contract via stubbed tests; run manually when Docker is available.
+    - [x] At least one happy path runs end-to-end (create + clone): `codex-workspace create --output json OWNER/REPO`.
     - [x] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
     - [x] Usage docs updated with new defaults and flags (runbook + launcher usage text).
 - [x] Step 2: Wrapper integration (zsh-kit)
   - Work Items:
     - [x] Switch wrapper `create` orchestration to consume launcher JSON output.
     - [x] Make wrapper `ls`/`start`/`stop`/`rm` call-throughs to launcher.
+    - [x] Replace wrapper `tunnel` implementation with launcher call-through.
     - [x] Optionally enforce minimum launcher version/capabilities.
   - Artifacts:
     - `scripts/_features/codex-workspace/*` (zsh-kit)
   - Exit Criteria:
     - [x] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
     - [x] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
-- [ ] Step 3: Validation / smoke tests
+- [x] Step 3: Validation / smoke tests
   - Work Items:
     - [x] Add launcher smoke tests (stub docker; no real container).
-    - [ ] Run wrapper smoke commands locally. Reason: validated via zsh-kit hermetic tests (stub launcher/docker), but no real Docker smoke run recorded yet.
+    - [x] Run wrapper smoke commands locally (real Docker).
   - Artifacts:
     - CI results for implementation PRs
     - Local command logs (copy/paste or saved logs if needed)
     - zsh-kit tests (local): `cd ~/.config/zsh && ./tools/check.zsh` (pass), `cd ~/.config/zsh && ./tests/run.zsh` (pass)
   - Exit Criteria:
     - [x] Launcher: `--version`, `--help`, `create --output json`, `tunnel --detach --output json`, and `rm` behave as specified.
-    - [ ] Wrapper: `create` works end-to-end using JSON output; lifecycle commands call-through. Reason: verified in zsh-kit tests (stubbed), pending a real Docker run.
-    - [ ] Evidence recorded (PR Testing sections + any necessary logs). Reason: implementation PRs not linked/landed yet.
+    - [x] Wrapper: `create` works end-to-end using JSON output; launcher-owned commands (ls/start/stop/rm/tunnel) call-through.
+    - [x] Evidence recorded (local real-Docker command logs).
+
+Evidence (real Docker; 2026-01-22):
+
+- Launcher create + clone:
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-launcher-20260122-084652 --output json`
+  - `workspace=codex-ws-smoke-launcher-20260122-084652`, `path=/work/octocat/Hello-World`
+- Launcher secrets + profile:
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-profile-20260122-084755 --secrets-dir ~/.config/codex_secrets --codex-profile work --output json`
+  - `CODEX_SECRET_DIR=/home/codex/codex_secrets` (in-container)
+- Wrapper create (delegates to launcher JSON output):
+  - `ZSH_SCRIPT_DIR=~/.config/zsh/scripts; source $ZSH_SCRIPT_DIR/_features/codex-workspace/init.zsh; codex-workspace create --no-extras octocat/Hello-World`
+  - `workspace=codex-ws-octocat-hello-world-20260122-085010`, `path=/work/octocat/Hello-World`
 - [ ] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Update progress file Links with implementation PRs and mark status DONE when complete.
-    - [ ] If released, record version/tag and relevant notes.
+    - [x] Update progress file Links with implementation PRs and mark status DONE when complete.
+    - [ ] ~~If released, record version/tag and relevant notes.~~ Reason: no release/tag for this change set.
   - Artifacts:
-    - `docs/progress/20260122_codex-workspace-launcher-wrapper-migration.md`
+    - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
   - Exit Criteria:
-    - [ ] Documentation completed and entry points updated (README / docs index links).
-    - [ ] Cleanup completed (archive progress file when done).
+    - [x] Documentation completed and entry points updated (README / docs index links).
+    - [x] Cleanup completed (archive progress file when done).
 
 ## Modules
 

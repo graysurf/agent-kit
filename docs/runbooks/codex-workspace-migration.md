@@ -1,6 +1,6 @@
 # Codex Workspace: launcher/wrapper migration
 
-Status: In progress (launcher + wrapper contract landed; pending real Docker smoke + wrap-up)  
+Status: In progress (launcher + wrapper contract landed; real Docker smoke done; pending wrap-up)  
 Last updated: 2026-01-22
 
 This doc is a migration plan to reduce drift between:
@@ -116,31 +116,26 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 
 ## Feature map (what moves / what stays)
 
-| Status | Feature | Today | Target owner | Notes |
-| --- | --- | --- | --- | --- |
-| [x] | Parse repo spec (OWNER/REPO, git@, https) | Both | Launcher | Wrapper should stop re-implementing or validate via contract/tests |
-| [x] | Create container + volumes | Launcher | Launcher | Canonical |
-| [x] | Clone repo into `/work` | Launcher | Launcher | Canonical |
-| [x] | Secrets mount contract (`--secrets-dir` required) | Both | Launcher | Launcher has no default; wrapper passes explicit `--secrets-dir` + `--secrets-mount` |
-| [x] | Git auth setup (`--persist-gh-token`, `--setup-git`) | Launcher | Launcher | Wrapper selects token source |
-| [x] | Codex profile apply (`codex-use`) | Both | Launcher | Wrapper only passes `--codex-profile` |
-| [x] | List workspaces (`ls`) | Both | Launcher | Wrapper should call-through (no re-implementation) |
-| [x] | Start/stop workspace | Launcher | Launcher | Wrapper may add UX, but must call-through to launcher |
-| [x] | VS Code tunnel | Both | Launcher | Wrapper should call launcher once parity is reached |
-| [x] | Remove workspace + volumes | Launcher | Launcher | Canonical implementation; wrapper must call-through (no duplicate logic) |
-| [ ] | Attach to workspace (`shell`/`exec`) | Both | Wrapper | Wrapper-owned UX (launcher should not promise a stable attach surface) |
-| [ ] | Rsync host ↔ container | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | Reset repo(s) inside container | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | Host config snapshot (`~/.config` copy) | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | Refresh `/opt/codex-kit` + `/opt/zsh-kit` | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | Private repo seeding (`~/.private`) | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | Extra repos cloning | Wrapper | Wrapper | Keep out of launcher |
-| [ ] | GPG import | Wrapper | Wrapper | Keep out of launcher |
-
-Status legend:
-- `[ ]` TODO
-- `[-]` DOING
-- `[x]` DONE
+| Feature | Today | Target owner | Notes |
+| --- | --- | --- | --- |
+| Parse repo spec (OWNER/REPO, git@, https) | Both | Launcher | Wrapper should stop re-implementing or validate via contract/tests |
+| Create container + volumes | Launcher | Launcher | Canonical |
+| Clone repo into `/work` | Launcher | Launcher | Canonical |
+| Secrets mount contract (`--secrets-dir` required) | Both | Launcher | Launcher has no default; wrapper passes explicit `--secrets-dir` + `--secrets-mount` |
+| Git auth setup (`--persist-gh-token`, `--setup-git`) | Launcher | Launcher | Wrapper selects token source |
+| Codex profile apply (`codex-use`) | Both | Launcher | Wrapper only passes `--codex-profile` |
+| List workspaces (`ls`) | Both | Launcher | Wrapper should call-through (no re-implementation) |
+| Start/stop workspace | Launcher | Launcher | Wrapper may add UX, but must call-through to launcher |
+| VS Code tunnel | Both | Launcher | Wrapper should call launcher once parity is reached |
+| Remove workspace + volumes | Launcher | Launcher | Canonical implementation; wrapper must call-through (no duplicate logic) |
+| Attach to workspace (`shell`/`exec`) | Both | Wrapper | Wrapper-owned UX (launcher should not promise a stable attach surface) |
+| Rsync host ↔ container | Wrapper | Wrapper | Keep out of launcher |
+| Reset repo(s) inside container | Wrapper | Wrapper | Keep out of launcher |
+| Host config snapshot (`~/.config` copy) | Wrapper | Wrapper | Keep out of launcher |
+| Refresh `/opt/codex-kit` + `/opt/zsh-kit` | Wrapper | Wrapper | Keep out of launcher |
+| Private repo seeding (`~/.private`) | Wrapper | Wrapper | Keep out of launcher |
+| Extra repos cloning | Wrapper | Wrapper | Keep out of launcher |
+| GPG import | Wrapper | Wrapper | Keep out of launcher |
 
 ## TODO (implementation checklist)
 
@@ -171,7 +166,7 @@ Status legend:
 - [x] Prefer **local codex-kit checkout** as the default launcher path; auto-download only when missing.
 - [x] Stop parsing human output; switch to launcher `--output json` once available.
 - [x] Make wrapper `ls`/`start`/`stop`/`rm` thin call-throughs to launcher (no duplicate implementation).
-- [ ] Replace wrapper tunnel implementation with `"$launcher" tunnel ...` once parity is reached.
+- [x] Replace wrapper tunnel implementation with `"$launcher" tunnel ...` once parity is reached.
 - [x] Add/adjust completion and aliases if command names change (e.g. `create` vs `up`).
 
 ### Validation (manual / smoke)
@@ -182,10 +177,10 @@ Status legend:
   - [x] Secrets contract (host-side): `--secrets-dir ...` sets `CODEX_SECRET_DIR=/home/codex/codex_secrets` and reports `secrets.*` in JSON.
   - [x] `codex-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` and enforces `<= 20`.
   - [x] `codex-workspace rm` removes volumes by default; `--keep-volumes` preserves volumes.
-- [ ] Manual (real Docker) spot checks:
-  - [ ] `codex-workspace create OWNER/REPO` clones into `/work/<owner>/<repo>`.
-  - [ ] Secrets + profile: `codex-workspace create OWNER/REPO --secrets-dir ... --codex-profile <name>` works end-to-end.
-  - [ ] Wrapper `codex-workspace create OWNER/REPO` works end-to-end using launcher JSON output.
+- [x] Manual (real Docker) spot checks:
+  - [x] `codex-workspace create OWNER/REPO` clones into `/work/<owner>/<repo>`.
+  - [x] Secrets + profile: `codex-workspace create OWNER/REPO --secrets-dir ... --codex-profile <name>` works end-to-end.
+  - [x] Wrapper `codex-workspace create OWNER/REPO` works end-to-end using launcher JSON output.
 
 ## Rollout plan
 
