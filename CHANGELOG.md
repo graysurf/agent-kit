@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.3 - 2026-01-22
+
+### Added
+- `codex-env`: `prefetch-zsh-plugins.sh` with retry/backoff for plugin installs.
+- `codex-env`: `PREFETCH_ZSH_PLUGINS` build arg to skip plugin prefetch.
+- `codex-env`: `ZSH_PLUGIN_FETCH_RETRIES` build arg to tune retry attempts.
+
+### Changed
+- Dockerfile: move image metadata ARGs to the top for consistency.
+- `codex-env`: move `CODEX_AUTH_FILE` export into `entrypoint.sh`.
+
+### Fixed
+- None.
+
 ## v1.3.2 - 2026-01-22
 
 ### Added
