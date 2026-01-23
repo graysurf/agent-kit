@@ -166,11 +166,11 @@ add_exec_source() {
 parse_array_entries() {
   local rest="$1"
   local -a tokens=()
-  local token=""
+  local token=''
   local -i i=1
   local -i in_single=0
   local -i in_double=0
-  local ch=""
+  local ch=''
 
   while (( i <= ${#rest} )); do
     ch="${rest[i]}"
@@ -222,7 +222,9 @@ parse_array_entries() {
   done
 
   [[ -n "$token" ]] && tokens+=("$token")
-  print -rl -- "${tokens[@]}"
+  if (( ${#tokens[@]} > 0 )); then
+    print -rl -- "${tokens[@]}"
+  fi
 }
 
 parse_sources_array() {
