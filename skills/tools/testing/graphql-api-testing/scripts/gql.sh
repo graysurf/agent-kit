@@ -732,7 +732,8 @@ graphql_request() {
 	case "$client" in
 		xh)
 			local -a args
-			args=(--check-status --pretty=none --print=b --json POST "$url")
+			# Prevent xh from trying to read stdin as a request body in non-interactive runs.
+			args=(--ignore-stdin --check-status --pretty=none --print=b --json POST "$url")
 			[[ -n "$token" ]] && args+=("Authorization:Bearer $token")
 			args+=("query=@$op_file")
 			[[ -n "$vars_file" ]] && args+=("variables:=@$vars_file")
@@ -740,7 +741,8 @@ graphql_request() {
 			;;
 		http)
 			local -a args
-			args=(--check-status --pretty=none --print=b --json POST "$url")
+			# Prevent HTTPie from trying to read stdin as a request body in non-interactive runs.
+			args=(--ignore-stdin --check-status --pretty=none --print=b --json POST "$url")
 			[[ -n "$token" ]] && args+=("Authorization:Bearer $token")
 			args+=("query=@$op_file")
 			[[ -n "$vars_file" ]] && args+=("variables:=@$vars_file")
