@@ -1,0 +1,266 @@
+name: Publish codex-env image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [docker]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-codex-env
+  cancel-in-progress: false
+
+env:
+  DOCKERHUB_IMAGE: graysurf/codex-env
+  GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/codex-env
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    outputs:
+      publish_dockerhub: ${{ steps.check.outputs.publish_dockerhub }}
+      publish_ghcr: ${{ steps.check.outputs.publish_ghcr }}
+      created: ${{ steps.meta.outputs.created }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
+
+    steps:
+      - name: Determine publish targets
+        id: check
+        env:
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          publish_ghcr=0
+          publish_dockerhub=0
+
+          if [[ "${EVENT_NAME}" != "pull_request" ]]; then
+            publish_ghcr=1
+          fi
+
+          if [[ "${REPOSITORY}" == "graysurf/codex-kit" && "${EVENT_NAME}" != "pull_request" && -n "${DOCKERHUB_USERNAME}" && -n "${DOCKERHUB_TOKEN}" ]]; then
+            publish_dockerhub=1
+          fi
+
+          echo "publish_ghcr=${publish_ghcr}" >>"$GITHUB_OUTPUT"
+          echo "publish_dockerhub=${publish_dockerhub}" >>"$GITHUB_OUTPUT"
+
+          if [[ "${REPOSITORY}" == "graysurf/codex-kit" && "${EVENT_NAME}" != "pull_request" && "${publish_dockerhub}" != "1" ]]; then
+            echo "Skipping Docker Hub publish: missing DOCKERHUB_USERNAME and/or DOCKERHUB_TOKEN."
+
+            if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+              {
+                echo "## Docker Hub publish: codex-env"
+                echo ""
+                echo "_Skipped: missing repo secrets `DOCKERHUB_USERNAME` and/or `DOCKERHUB_TOKEN`._"
+                echo ""
+              } >>"$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Set build metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$GITHUB_OUTPUT"
+          echo "short_sha=${GITHUB_SHA::7}" >>"$GITHUB_OUTPUT"
+
+  build-amd64:
+    needs: precheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: ${{ needs.precheck.outputs.publish_dockerhub == '1' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: ${{ needs.precheck.outputs.publish_ghcr == '1' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${{ needs.precheck.outputs.short_sha }}"
+          tags=()
+
+          if [[ "${{ needs.precheck.outputs.publish_ghcr }}" == "1" ]]; then
+            tags+=("${GHCR_IMAGE}:sha-${short_sha}-amd64")
+          fi
+
+          if [[ "${{ needs.precheck.outputs.publish_dockerhub }}" == "1" ]]; then
+            tags+=("${DOCKERHUB_IMAGE}:sha-${short_sha}-amd64")
+          fi
+
+          if (( ${#tags[@]} == 0 )); then
+            tags+=("local/${GITHUB_REPOSITORY}:sha-${short_sha}-amd64")
+          fi
+
+          {
+            echo "tags<<EOF"
+            printf "%s\n" "${tags[@]}"
+            echo "EOF"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Build and push (single-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: ${{ needs.precheck.outputs.publish_ghcr == '1' || needs.precheck.outputs.publish_dockerhub == '1' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            CODEX_KIT_REF=${{ github.sha }}
+            IMAGE_VERSION=${{ github.ref_name }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_CREATED=${{ needs.precheck.outputs.created }}
+          cache-from: type=gha,scope=codex-env-amd64
+          cache-to: type=gha,mode=max,scope=codex-env-amd64
+
+  build-arm64:
+    needs: precheck
+    runs-on: ${{ vars.ARM64_RUNNER || 'ubuntu-24.04-arm' }}
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: ${{ needs.precheck.outputs.publish_dockerhub == '1' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: ${{ needs.precheck.outputs.publish_ghcr == '1' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${{ needs.precheck.outputs.short_sha }}"
+          tags=()
+
+          if [[ "${{ needs.precheck.outputs.publish_ghcr }}" == "1" ]]; then
+            tags+=("${GHCR_IMAGE}:sha-${short_sha}-arm64")
+          fi
+
+          if [[ "${{ needs.precheck.outputs.publish_dockerhub }}" == "1" ]]; then
+            tags+=("${DOCKERHUB_IMAGE}:sha-${short_sha}-arm64")
+          fi
+
+          if (( ${#tags[@]} == 0 )); then
+            tags+=("local/${GITHUB_REPOSITORY}:sha-${short_sha}-arm64")
+          fi
+
+          {
+            echo "tags<<EOF"
+            printf "%s\n" "${tags[@]}"
+            echo "EOF"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Build and push (single-arch)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          push: ${{ needs.precheck.outputs.publish_ghcr == '1' || needs.precheck.outputs.publish_dockerhub == '1' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            CODEX_KIT_REF=${{ github.sha }}
+            IMAGE_VERSION=${{ github.ref_name }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_CREATED=${{ needs.precheck.outputs.created }}
+          cache-from: type=gha,scope=codex-env-arm64
+          cache-to: type=gha,mode=max,scope=codex-env-arm64
+
+  publish-manifests:
+    needs: [precheck, build-amd64, build-arm64]
+    if: ${{ needs.precheck.outputs.publish_ghcr == '1' || needs.precheck.outputs.publish_dockerhub == '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: ${{ needs.precheck.outputs.publish_dockerhub == '1' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GHCR
+        if: ${{ needs.precheck.outputs.publish_ghcr == '1' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifest (GHCR)
+        if: ${{ needs.precheck.outputs.publish_ghcr == '1' }}
+        run: |
+          set -euo pipefail
+          image="${GHCR_IMAGE}"
+          sha_tag="sha-${{ needs.precheck.outputs.short_sha }}"
+
+          docker buildx imagetools create \
+            -t "${image}:linuxbrew" \
+            -t "${image}:latest" \
+            -t "${image}:${sha_tag}" \
+            "${image}:${sha_tag}-amd64" \
+            "${image}:${sha_tag}-arm64"
+
+      - name: Create multi-arch manifest (Docker Hub)
+        if: ${{ needs.precheck.outputs.publish_dockerhub == '1' }}
+        run: |
+          set -euo pipefail
+          image="${DOCKERHUB_IMAGE}"
+          sha_tag="sha-${{ needs.precheck.outputs.short_sha }}"
+
+          docker buildx imagetools create \
+            -t "${image}:linuxbrew" \
+            -t "${image}:latest" \
+            -t "${image}:${sha_tag}" \
+            "${image}:${sha_tag}-amd64" \
+            "${image}:${sha_tag}-arm64"
+
