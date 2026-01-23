@@ -227,6 +227,8 @@ parse_array_entries() {
   fi
 }
 
+# parse_sources_array <file>
+# Parse a `typeset -a sources=(...)` block from a wrapper manifest.
 parse_sources_array() {
   local file="$1"
   local in_sources=0
