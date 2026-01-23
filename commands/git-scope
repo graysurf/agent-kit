@@ -32,7 +32,7 @@ export ZSH_COMPDUMP="${ZSH_COMPDUMP:-$ZSH_CACHE_DIR/.zcompdump}"
 
 # --- END _internal/wrappers.bundle-prelude.zsh
 
-# --- BEGIN $HOME/.config/zsh/bootstrap/00-preload.zsh
+# --- BEGIN ~/.config/zsh/bootstrap/00-preload.zsh
 # safe_unalias [-v] <name...>
 # Safely remove one or more aliases without causing errors.
 #
@@ -212,7 +212,7 @@ zsh_env::is_true() {
   esac
 }
 
-# --- END $HOME/.config/zsh/bootstrap/00-preload.zsh
+# --- END ~/.config/zsh/bootstrap/00-preload.zsh
 
 # --- BEGIN git/git-scope.zsh
 # ────────────────────────────────────────────────────────
@@ -385,20 +385,29 @@ _git_scope_collect() {
         | grep -v '^$' | sort -u ;;
     tracked)
       typeset -a prefixes=("${args[@]}")
-      typeset files='' all_filtered=''
+      typeset -a file_list=() all_filtered=()
+      typeset files=''
       files=$(git -c core.quotepath=false ls-files)
+      file_list=("${(@f)files}")
       if [[ ${#prefixes[@]} -gt 0 ]]; then
         for prefix in "${prefixes[@]}"; do
           clean_prefix="${prefix%/}"
           if [[ -d "$clean_prefix" ]]; then
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}/")
+            typeset dir_prefix="${clean_prefix%/}/"
+            for f in "${file_list[@]}"; do
+              [[ "$f" == "${dir_prefix}"* ]] && all_filtered+=("$f")
+            done
           elif [[ -f "$clean_prefix" ]]; then
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep -x "$clean_prefix")
+            for f in "${file_list[@]}"; do
+              [[ "$f" == "$clean_prefix" ]] && all_filtered+=("$f")
+            done
           else
-            all_filtered+=$'\n'$(printf '%s\n' "$files" | grep "^${clean_prefix}")
+            for f in "${file_list[@]}"; do
+              [[ "$f" == "${clean_prefix}"* ]] && all_filtered+=("$f")
+            done
           fi
         done
-        files="$(printf '%s\n' "$all_filtered" | grep -v '^$' | sort -u)"
+        files="$(printf '%s\n' "${all_filtered[@]}" | grep -v '^$' | sort -u)"
       fi
       printf '%s\n' "$files" | while IFS= read -r f; do
         [[ -n "$f" ]] && printf "-\t%s\n" "$f"
@@ -439,14 +448,7 @@ print_file_content() {
     fi
   elif git cat-file -e "HEAD:$file" 2>/dev/null; then
     typeset tmp=''
-    tmp="$(mktemp 2>/dev/null || true)"
-    if [[ -z "$tmp" ]]; then
-      tmp="$(mktemp -t git-scope.XXXXXX 2>/dev/null || true)"
-    fi
-    [[ -n "$tmp" ]] || {
-      printf "❗ Failed to create temp file\n"
-      return 1
-    }
+    tmp="$(mktemp)"
     git show "HEAD:$file" > "$tmp"
 
     if file --mime "$tmp" | grep -q 'charset=binary'; then
