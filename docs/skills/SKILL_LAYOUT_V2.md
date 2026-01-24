@@ -132,6 +132,8 @@ Any `$CODEX_HOME/...` path shown in inline code or code blocks MUST:
 
 - Resolve to an existing path in the repo
 - Not contain duplicated `$CODEX_HOME/...$CODEX_HOME/...` segments
+- Exception: runtime output paths under `$CODEX_HOME/out/` and `$CODEX_HOME/tmp/`
+  are allowed and are not required to exist ahead of time.
 
 Enforcement (planned):
 
@@ -190,7 +192,8 @@ Checklist (copy/paste into a PR):
   `scripts/` inside `_libs/`).
 
 - [ ] Command snippets use `$CODEX_HOME/...` paths that exist, without duplicated
-  `$CODEX_HOME` segments; `_projects` wrapper paths must point at
+  `$CODEX_HOME` segments (runtime output paths under `out/` and `tmp/` are OK);
+  `_projects` wrapper paths must point at
   `skills/_projects/<project>/scripts/*.zsh`.
 
 - [ ] Local-only secrets/config in `_projects` use `.env` or `.env.*`
