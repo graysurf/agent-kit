@@ -58,7 +58,7 @@ def test_pytest_ini_keeps_out_tmp_in_norecursedirs() -> None:
     norecursedirs = parser.get("pytest", "norecursedirs", fallback="")
     values = {line.strip() for line in norecursedirs.splitlines() if line.strip()}
 
-    missing = sorted({"out", "tmp"} - values)
+    missing = sorted({".worktrees", "out", "tmp"} - values)
     assert not missing, f"pytest.ini norecursedirs missing: {', '.join(missing)}"
 
 
