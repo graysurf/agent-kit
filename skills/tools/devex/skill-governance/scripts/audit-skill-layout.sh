@@ -12,6 +12,7 @@ entries:
   - scripts/    (optional)
   - references/ (optional)
   - assets/     (optional)
+  - tests/      (required for tracked skills)
 
 Also enforces:
   - Markdown files with TEMPLATE in the filename must live under `references/`
@@ -59,7 +60,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ALLOWED_TOP_LEVEL = {"SKILL.md", "scripts", "references", "assets"}
+ALLOWED_TOP_LEVEL = {"SKILL.md", "scripts", "references", "assets", "tests"}
 ALLOWED_TEMPLATE_PREFIXES = (("references",), ("assets", "templates"))
 
 
@@ -117,7 +118,11 @@ for skill_dir_str in skill_dirs:
     skill_dir = Path(skill_dir_str)
     tops = top_level_by_skill.get(skill_dir, set())
     unexpected = sorted([t for t in tops if t not in ALLOWED_TOP_LEVEL])
-    missing = [] if "SKILL.md" in tops else ["SKILL.md"]
+    missing = []
+    if "SKILL.md" not in tops:
+        missing.append("SKILL.md")
+    if "tests" not in tops:
+        missing.append("tests/")
 
     if missing:
         errors.append(f"{skill_dir}: missing tracked {', '.join(missing)}")
