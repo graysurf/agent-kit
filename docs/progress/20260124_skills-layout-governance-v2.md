@@ -6,6 +6,7 @@
 
 Links:
 
+- PR: TBD
 - Planning PR: https://github.com/graysurf/codex-kit/pull/75
 - Implementation PRs:
   - https://github.com/graysurf/codex-kit/pull/76
@@ -85,23 +86,23 @@ Links:
 Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason: ...` or a nested `- Reason: ...`) before close-progress-pr can complete. Step 4 is excluded (post-merge / wrap-up).
 Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like this~~` and include `Reason:`. Unchecked and unstruck items (e.g. `- [ ] foo`) will block close-progress-pr.
 
-- [ ] Step 0: Alignment / prerequisites
+- [x] Step 0: Alignment / prerequisites
   - Work Items:
-    - [ ] Confirm Skill Anatomy v2 decisions (sharing strategy, `$CODEX_HOME` rules, test strategy).
-    - [ ] Ensure plan + progress docs are executable (linted; no placeholder tokens).
+    - [x] Confirm Skill Anatomy v2 decisions (sharing strategy, `$CODEX_HOME` rules, test strategy).
+    - [x] Ensure plan + progress docs are executable (linted; no placeholder tokens).
   - Artifacts:
     - `docs/progress/20260124_skills-layout-governance-v2.md` (this file)
     - `docs/plans/skills-layout-governance-plan.md`
   - Exit Criteria:
-    - [ ] Requirements, scope, and acceptance criteria are aligned in this progress file.
-    - [ ] Plan file passes: `scripts/plan/validate_plans.sh --file docs/plans/skills-layout-governance-plan.md`.
-    - [ ] No placeholder tokens remain in progress docs: `rg -n \"\\[\\[.*\\]\\]\" docs/progress -S` returns no output.
-    - [ ] Progress index format is valid: `skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh`.
-- [ ] Step 1: Minimum viable output (MVP)
+    - [x] Requirements, scope, and acceptance criteria are aligned in this progress file.
+    - [x] Plan file passes: `scripts/plan/validate_plans.sh --file docs/plans/skills-layout-governance-plan.md`.
+    - [x] No placeholder tokens remain in progress docs: `rg -n \"\\[\\[.*\\]\\]\" docs/progress -S` returns no output.
+    - [x] Progress index format is valid: `skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh`.
+- [x] Step 1: Minimum viable output (MVP)
   - Work Items:
-    - [ ] Publish canonical spec doc (`docs/skills/SKILL_LAYOUT_V2.md`) and link it from `README.md` + `skill-creator`.
-    - [ ] Implement `scripts/audit-skill-paths.sh` and wire it into `scripts/check.sh --lint` + CI.
-    - [ ] Add fixtures/tests so the new audit fails on known-bad cases and passes on the repo.
+    - [x] Publish canonical spec doc (`docs/skills/SKILL_LAYOUT_V2.md`) and link it from `README.md` + `skill-creator`.
+    - [x] Implement `scripts/audit-skill-paths.sh` and wire it into `scripts/check.sh --lint` + CI.
+    - [x] Add fixtures/tests so the new audit fails on known-bad cases and passes on the repo.
   - Artifacts:
     - `docs/skills/SKILL_LAYOUT_V2.md`
     - `scripts/audit-skill-paths.sh`
@@ -109,14 +110,15 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - `tests/test_audit_scripts.py`
     - `tests/fixtures/`
   - Exit Criteria:
-    - [ ] Lint pipeline passes: `scripts/check.sh --lint`.
-    - [ ] New audit fails on a minimal fixture with a broken `$CODEX_HOME/...` path and reports `error:`.
-    - [ ] Spec doc includes examples for tool/workflow/_projects skills and defines “MUST/SHOULD/MAY” rules.
-- [ ] Step 2: Expansion / integration
+    - [x] Lint pipeline passes: `scripts/check.sh --lint`.
+    - [x] New audit fails on a minimal fixture with a broken `$CODEX_HOME/...` path and reports `error:`.
+    - [x] Spec doc includes examples for tool/workflow/_projects skills and defines “MUST/SHOULD/MAY” rules.
+- [x] Step 2: Expansion / integration
   - Work Items:
-    - [ ] Fix `_projects/*` SKILL.md wrapper paths and remove duplicated `$CODEX_HOME` segments.
-    - [ ] Add group-level `_libs/` skeletons for sharing where appropriate (pattern after `skills/automation/_libs`).
-    - [ ] (Optional) Add a governance skill and convert repo-level scripts into thin wrappers.
+    - [ ] ~~Fix `_projects/*` SKILL.md wrapper paths and remove duplicated `$CODEX_HOME` segments.~~
+      - Reason: `_projects` skills are local-only (gitignored); validated in this environment where the wrappers exist.
+    - [x] Add group-level `_libs/` skeletons for sharing where appropriate (pattern after `skills/automation/_libs`).
+    - [x] (Optional) Add a governance skill and convert repo-level scripts into thin wrappers.
   - Artifacts:
     - `skills/_projects/*/*/SKILL.md`
     - `skills/workflows/_libs/README.md`
@@ -124,32 +126,33 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - `skills/_projects/_libs/README.md`
     - `skills/tools/devex/skill-governance/` (optional)
   - Exit Criteria:
-    - [ ] Skill docs for `_projects` can be followed literally without missing wrapper paths.
-    - [ ] `_libs/` files are non-executable and contain no shebangs; no `_libs/**/scripts/` exists.
-    - [ ] Governance wrappers (if added) match canonical `--help` output and exit codes.
-- [ ] Step 3: Validation / testing
+    - [ ] ~~Skill docs for `_projects` can be followed literally without missing wrapper paths.~~
+      - Reason: `_projects` project skills are not versioned; only `_projects/_libs` is tracked.
+    - [x] `_libs/` files are non-executable and contain no shebangs; no `_libs/**/scripts/` exists.
+    - [x] Governance wrappers (if added) match canonical `--help` output and exit codes.
+- [x] Step 3: Validation / testing
   - Work Items:
-    - [ ] Run full repo checks/tests and capture evidence paths.
+    - [x] Run full repo checks/tests and capture evidence paths.
   - Artifacts:
     - `out/tests/script-regression/summary.json`
     - `out/tests/script-smoke/summary.json`
     - `out/tests/script-coverage/summary.md`
   - Exit Criteria:
-    - [ ] Validation commands executed successfully: `scripts/check.sh --all` and `scripts/test.sh`.
-    - [ ] Evidence exists under `out/tests/` (summaries + logs) and can be linked from PR(s) when needed.
-- [ ] Step 4: Release / wrap-up
+    - [x] Validation commands executed successfully: `scripts/check.sh --all` and `scripts/test.sh`.
+    - [x] Evidence exists under `out/tests/` (summaries + logs) and can be linked from PR(s) when needed.
+- [x] Step 4: Release / wrap-up
   - Work Items:
-    - [ ] Merge implementation PRs and update this progress file Links/PRs.
-    - [ ] Archive this progress file via `close-progress-pr` when DONE.
+    - [x] Merge implementation PRs and update this progress file Links/PRs.
+    - [x] Archive this progress file via `close-progress-pr` when DONE.
   - Artifacts:
     - `docs/progress/archived/20260124_skills-layout-governance-v2.md`
   - Exit Criteria:
-    - [ ] Documentation completed and entry points updated (README / docs index links).
-    - [ ] Cleanup completed (archive progress file when done; remove temporary fixtures/scripts if any).
+    - [x] Documentation completed and entry points updated (README / docs index links).
+    - [x] Cleanup completed (archive progress file when done; remove temporary fixtures/scripts if any).
 
 ## Modules
 
 - `docs/plans/skills-layout-governance-plan.md`: detailed sprints/tasks for the migration and enforcement work.
 - `scripts/audit-skill-layout.sh`: enforces allowed per-skill top-level directory structure.
 - `scripts/validate_skill_contracts.sh`: enforces minimal `## Contract` structure in `skills/**/SKILL.md`.
-- `scripts/audit-skill-paths.sh` (planned): enforces `$CODEX_HOME` path correctness inside SKILL.md.
+- `scripts/audit-skill-paths.sh`: enforces `$CODEX_HOME` path correctness inside SKILL.md.
