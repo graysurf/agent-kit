@@ -552,15 +552,18 @@ run_phase_close() {
   pr2_path="${worktrees_root}/${pr2_worktree}"
   [[ -d "$pr2_path" ]] || die "pr2 worktree path not found: $pr2_path"
 
-  if [[ "$skip_checks" != "1" ]]; then
-    gh pr checks "$pr1_number"
+  pr1_state="$(gh pr view "$pr1_number" --json state -q .state 2>/dev/null || true)"
+  if [[ "$pr1_state" == "OPEN" ]]; then
+    if [[ "$skip_checks" != "1" ]]; then
+      gh pr checks "$pr1_number"
+    fi
+    gh pr ready "$pr1_number" >/dev/null 2>&1 || true
+    merge_args=("$pr1_number" --merge)
+    if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
+      merge_args+=(--yes)
+    fi
+    gh pr merge "${merge_args[@]}" >/dev/null
   fi
-  gh pr ready "$pr1_number" >/dev/null 2>&1 || true
-  merge_args=("$pr1_number" --merge)
-  if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
-    merge_args+=(--yes)
-  fi
-  gh pr merge "${merge_args[@]}" >/dev/null
 
   # Retarget PR2 to the sandbox base branch now that PR1 is merged.
   gh pr edit "$pr2_number" -B "$sandbox_base_branch"
