@@ -3,6 +3,17 @@
 This document is a cross-project reference for CLI tools commonly available in the Codex runtime and recommended usage patterns for development, testing, and documentation work.
 Principle: prefer purpose-built tools that are fast, repo-aware, and emit structured output; avoid ad-hoc pipelines that are slow or fragile.
 
+## Recommended defaults
+
+- Repo-wide search: `rg` (optionally pipe candidates into `fzf`)
+- Find files: `fd` (use `tree`/`eza` for human-readable structure listings)
+- Read files: `bat`; preview Markdown: `glow`
+- Review diffs: `delta` (with `git`)
+- API exploration: `xh`/`httpie` + `jq`; use `curl` for minimal-dependency calls
+- Structured config/data: `yq`/`jq` (avoid regex parsing for YAML/JSON)
+
+---
+
 ## Categories
 
 - Search: code/config/docs discovery (`rg`, `fd`, `fzf`, `tree`)
@@ -114,14 +125,3 @@ Principle: prefer purpose-built tools that are fast, repo-aware, and emit struct
 | `tokei` | Code statistics by language | Estimating repo size/scope and change surface area | Guessing scope without measurements |
 | `btop` / `htop` | Process/resource monitors | Diagnosing slow builds/tests (CPU/mem pressure) | Tuning blindly without observing resource usage |
 | `ncdu` | Disk usage analyzer | Finding large directories, caches, and unexpected growth | Manual `du` drilling through many levels |
-
----
-
-## Recommended defaults
-
-- Repo-wide search: `rg` (optionally pipe candidates into `fzf`)
-- Find files: `fd` (use `tree`/`eza` for human-readable structure listings)
-- Read files: `bat`; preview Markdown: `glow`
-- Review diffs: `delta` (with `git`)
-- API exploration: `xh`/`httpie` + `jq`; use `curl` for minimal-dependency calls
-- Structured config/data: `yq`/`jq` (avoid regex parsing for YAML/JSON)
