@@ -468,7 +468,8 @@ create_impl_pr() {
 
   (
     cd "$worktree_path"
-    gh pr create --draft --base "$base" --title "$title" --body-file "$body_path"
+    head_branch="$(git rev-parse --abbrev-ref HEAD)"
+    gh pr create --draft --base "$base" --head "$head_branch" --title "$title" --body-file "$body_path"
   )
 }
 
