@@ -109,3 +109,4 @@ Capture these artifacts under `out/e2e/progress-pr-workflow/`:
 - Worktree path collisions → remove/rename and run `git worktree prune`.
 - Stacked PRs touching the same files heavily → split further (Sprint 2a/2b/2c) or serialize.
 - Progress link points to a branch that gets deleted → repatch to `blob/<base-branch>/...`.
+- Using `gh pr merge --delete-branch` while the head branch is checked out in a worktree can fail *after* a successful merge and prevent post-merge link patching → prefer the provided progress scripts (or avoid `--delete-branch` and delete the remote branch separately).
