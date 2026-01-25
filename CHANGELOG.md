@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.3 - 2026-01-25
+
+### Added
+- Plan workflows: shared Plan Format v1 template at `skills/workflows/plan/_shared/assets/plan-template.md`.
+- Plan tooling: `scaffold_plan.sh` helper to generate `docs/plans/*-plan.md` from the shared template.
+
+### Changed
+- `create-plan` / `create-plan-rigorous`: reference the shared plan template and requirements.
+- Progress PR tooling: centralize shared progress templates/glossary/PR template under `skills/workflows/pr/progress/_shared`.
+- Docs: trim README skill governance and skill management sections.
+
+### Fixed
+- Tests: update progress-tooling smoke script paths after progress tooling refactor.
+
 ## v2.0.2 - 2026-01-25
 
 ### Added
