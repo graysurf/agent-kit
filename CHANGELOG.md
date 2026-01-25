@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.0 - 2026-01-25
+
+### Added
+- Skill lifecycle tooling: `create-skill` and `remove-skill` skills.
+- Skill governance tooling: `skill-governance` skill with layout + contract validation scripts.
+- Per-skill tests for tracked skills, enforced via audits + CI.
+- `image-processing` skill for convert/resize/crop/optimize workflows via ImageMagick.
+
+### Changed
+- Breaking: skills structure reorg (v2). The v1 `skills/` layout and prior skill entrypoints are not backward compatible.
+- Plan tooling and progress PR workflow E2E driver are now shipped under `skills/workflows/**`.
+
+### Fixed
+- Lint workflows: route checks through the v2 skill governance entrypoints.
+- `image-processing`: add missing shebang for `image_processing.py`.
+- Tests: ignore `.worktrees` to prevent noisy collection.
+
 ## v1.5.0 - 2026-01-24
 
 ### Added
