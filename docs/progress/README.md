@@ -1,5 +1,18 @@
 # Progress Files
 
+Progress files track planning + implementation work for features. See the workflow runbook:
+
+- `docs/workflows/progress-pr-workflow.md`
+
+Conventions:
+
+- Naming: `docs/progress/<YYYYMMDD>_<feature_slug>.md`
+- Archive: move completed files to `docs/progress/archived/` and update this index.
+- Index rules:
+  - Keep the `## In progress` and `## Archived` tables with 3 columns: Date | Feature | PR.
+  - PR cell format: `TBD` or `[#<number>](https://github.com/<owner>/<repo>/pull/<number>)`
+    (validated by `$CODEX_HOME/skills/workflows/pr/progress/create-progress-pr/scripts/validate_progress_index.sh`).
+
 ## In progress
 
 | Date | Feature | PR |

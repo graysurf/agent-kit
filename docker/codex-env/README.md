@@ -60,15 +60,15 @@ docker build -f Dockerfile -t codex-env:linuxbrew \
 ```
 
 Notes:
-- Tools are installed from `zsh-kit/config/tools*.list` files (OS-specific files are picked based on `uname`).
+- Tools are installed from the zsh-kit config lists resolved by `docker/codex-env/bin/install-tools.sh` (OS-specific files are picked based on `uname`).
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.
 - `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
-- On first container start, the entrypoint seeds `$CODEX_HOME` from the pinned `/opt/codex-kit` checkout if the volume is empty.
+- On first container start, the entrypoint seeds `$CODEX_HOME` from the pinned codex-kit checkout (`$CODEX_KIT_DIR`) if the volume is empty.
 
 ## Fallback policy
 
-Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in `zsh-kit` config:
+Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in the zsh-kit config lists resolved by `docker/codex-env/bin/install-tools.sh`:
 
 - `tools.linux.apt.list` (required)
 - `tools.optional.linux.apt.list` (optional)
@@ -86,7 +86,7 @@ Prereqs:
 - Local image exists: `codex-env:linuxbrew`.
 
 CI publish (auto):
-- GitHub Actions workflow: `Publish codex-env image (Docker Hub)` (runs on `main`).
+- GitHub Actions workflow: `Publish codex-env image` (runs on `docker` and supports `workflow_dispatch`).
 - Requires repo secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 - Publishes: `graysurf/codex-env:{linuxbrew,latest,sha-<short>}`.
 - Multi-arch: `linux/amd64` + `linux/arm64`.
@@ -139,7 +139,7 @@ docker pull "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
 
 Notes:
 - The root `Dockerfile` sets OCI labels (including `org.opencontainers.image.source`) so the GHCR package can link back to this repo.
-- CI publish: run the GitHub Actions workflow `Publish codex-env image` (publishes to `ghcr.io/<owner>/codex-env`).
+- CI publish: run the GitHub Actions workflow `Publish codex-env image` (runs on `docker` and supports `workflow_dispatch`; publishes to `ghcr.io/<owner>/codex-env`).
 - Multi-arch: CI publishes `linux/amd64` + `linux/arm64` so Apple Silicon hosts can pull without `--platform`.
 - Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different label, set the GitHub Actions repo variable `ARM64_RUNNER`.
 

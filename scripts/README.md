@@ -9,6 +9,7 @@ commands/                                 Standalone command entrypoints used by
 scripts/
 ├── build/                                Tooling to generate bundled commands.
 ├── db-connect/                           DB connection helpers (psql/mysql/mssql wrappers).
+├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
 ├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
@@ -16,7 +17,7 @@ scripts/
 ├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── check.sh                              Runs selected checks (lint/contracts/semgrep/tests).
+├── check.sh                              Runs selected checks (lint/contracts/skills-layout/plans/env-bools/semgrep/tests).
 └── audit-env-bools.zsh                   Audits boolean env var conventions (zsh).
 ```
 
