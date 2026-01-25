@@ -120,9 +120,9 @@ Tag and push:
 
 ```sh
 GHCR_OWNER=your-github-username-or-org
-GH_TOKEN=your_pat_with_write_packages
-
-echo "$GH_TOKEN" | docker login ghcr.io -u "$GHCR_OWNER" --password-stdin
+read -s GH_TOKEN  # paste a PAT with write:packages (input hidden)
+printf '%s\n' "$GH_TOKEN" | docker login ghcr.io -u "$GHCR_OWNER" --password-stdin
+unset GH_TOKEN
 
 docker tag codex-env:linuxbrew "ghcr.io/${GHCR_OWNER}/codex-env:linuxbrew"
 docker tag codex-env:linuxbrew "ghcr.io/${GHCR_OWNER}/codex-env:latest"
@@ -183,22 +183,18 @@ Notes:
 ./docker/codex-env/bin/codex-workspace create --no-clone --name ws-foo --output json
 ```
 
-Private repos (recommended): export a token on the host before running `up`:
+Private repos: provide a host token for the initial clone (not stored as a container env var):
 
 ```sh
-export GH_TOKEN=your_token
-./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git
-```
-
-Optional: configure token-based git auth inside the workspace (so `git fetch/push` does not prompt):
-
-```sh
-export GH_TOKEN=your_token
+read -s GH_TOKEN
+export GH_TOKEN
 ./docker/codex-env/bin/codex-workspace up git@github.com:OWNER/REPO.git --setup-git
+unset GH_TOKEN
 ```
 
 Notes:
-- `--setup-git` configures git auth inside the workspace.
+- Drop `--setup-git` if you only need the initial clone.
+- `--setup-git` stores auth in the container config (gh or git helper), not as an env var.
 
 Codex profiles (`codex-use`):
 
@@ -240,13 +236,11 @@ SSH cloning:
 
 ## GitHub auth (token or SSH)
 
-Option A: GitHub token (recommended for `gh`)
+Option A: GitHub token via `gh` login (recommended for `gh`)
 
 ```sh
-export GH_TOKEN=your_token
-export CODEX_SECRET_DIR_HOST=/path/to/codex-secrets/profile
-
-docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.secrets.yml up --build
+docker compose up --build
+docker compose exec -it codex-env gh auth login
 docker compose exec -it codex-env gh auth status
 docker compose exec -it codex-env gh auth setup-git
 ```
@@ -263,16 +257,17 @@ docker compose exec -it codex-env ssh -T git@github.com
 
 ## Codex secrets (codex-use)
 
-Mount the host `zsh-kit` secrets directory (contains `_codex-secret.zsh` + `*.json` profiles),
+Mount the host codex secrets directory (contains `_codex-secret.zsh` + `*.json` profiles) to `/home/codex/codex_secrets`,
 then run `codex-use <profile>` inside the container to copy a profile into the active auth file.
 
 ```sh
-export CODEX_SECRET_DIR_HOST=/path/to/zsh-kit/scripts/_features/codex/secrets
+export CODEX_SECRET_DIR_HOST=~/.config/codex_secrets
 docker compose -f docker-compose.yml -f docker/codex-env/docker-compose.secrets.yml up --build
 docker compose exec -it codex-env zsh -lic 'codex-use personal'
 ```
 
 Notes:
+- `docker-compose.secrets.yml` mounts `CODEX_SECRET_DIR_HOST` at `/home/codex/codex_secrets` and sets `CODEX_SECRET_DIR` in-container.
 - The secrets directory is mounted read-write by default because `codex-use` syncs auth back to secrets.
 
 ## Compose (recommended)

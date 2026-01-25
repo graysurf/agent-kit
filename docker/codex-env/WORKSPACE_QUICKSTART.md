@@ -11,11 +11,13 @@ Short guide to create a new workspace and connect with VS Code.
 Notes:
 - `create` is an alias of `up`.
 
-For private repos, export a token on the host before running `create`:
+For private repos, provide a host token for the initial clone (not stored as a container env var):
 
 ```sh
-export GH_TOKEN=your_token
+read -s GH_TOKEN
+export GH_TOKEN
 ./docker/codex-env/bin/codex-workspace create graysurf/codex-kit --name codex-kit --setup-git
+unset GH_TOKEN
 ```
 
 Find workspace names later:
