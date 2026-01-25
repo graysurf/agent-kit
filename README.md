@@ -43,6 +43,7 @@ See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Dock
 | --- | --- | --- |
 | [actionable-advice](./prompts/actionable-advice.md) | Answer a question with clarifying questions, multiple options, and a single recommendation | `/prompts:actionable-advice <question>` |
 | [actionable-knowledge](./prompts/actionable-knowledge.md) | Answer a learning/knowledge question with multiple explanation paths and a single recommended path | `/prompts:actionable-knowledge <question>` |
+| [parallel-first](./prompts/parallel-first.md) | Enable a parallel-first execution policy for this conversation thread (prefer delegate-parallel subagents when safe) | `/prompts:parallel-first` |
 
 ## 🛠️ Skills
 
@@ -60,6 +61,7 @@ Core skills are grouped under `skills/workflows/`, `skills/tools/`, and `skills/
 | Area | Skill | Description |
 | --- | --- | --- |
 | Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
+| Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/) | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate |
 | Planning | [create-plan](./skills/workflows/plan/create-plan/) | Create a comprehensive, phased implementation plan and save it under docs/plans/ |
 | Planning | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/) | Create an extra-thorough implementation plan and get a subagent review |
 | Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
