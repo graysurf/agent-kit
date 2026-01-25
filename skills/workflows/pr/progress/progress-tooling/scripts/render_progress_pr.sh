@@ -3,6 +3,8 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "${script_dir}/.." && pwd)"
+progress_dir="$(cd "${skill_dir}/.." && pwd)"
+shared_dir="${progress_dir%/}/_shared"
 
 usage() {
   cat <<'USAGE'
@@ -100,25 +102,25 @@ case "$mode" in
     if [[ "$source" == "project" ]]; then
       render_project_pr_template
     else
-      cat "${skill_dir}/references/PR_TEMPLATE.md"
+      cat "${shared_dir}/references/PR_TEMPLATE.md"
     fi
     ;;
   --progress-template)
     if [[ "$source" == "project" ]]; then
       cat "${repo_root}/docs/templates/PROGRESS_TEMPLATE.md"
     else
-      cat "${skill_dir}/assets/templates/PROGRESS_TEMPLATE.md"
+      cat "${shared_dir}/assets/templates/PROGRESS_TEMPLATE.md"
     fi
     ;;
   --glossary)
     if [[ "$source" == "project" ]]; then
       cat "${repo_root}/docs/templates/PROGRESS_GLOSSARY.md"
     else
-      cat "${skill_dir}/references/PROGRESS_GLOSSARY.md"
+      cat "${shared_dir}/references/PROGRESS_GLOSSARY.md"
     fi
     ;;
   --output)
-    cat "${skill_dir}/references/OUTPUT_TEMPLATE.md"
+    cat "${shared_dir}/references/OUTPUT_TEMPLATE.md"
     ;;
   *)
     echo "error: unknown mode: $mode" >&2

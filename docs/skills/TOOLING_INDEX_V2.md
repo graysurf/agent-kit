@@ -29,6 +29,15 @@ This doc lists canonical executable entrypoints that live under `skills/**/scrip
 - Compute dependency batches:
   - `$CODEX_HOME/skills/workflows/plan/plan-tooling/scripts/plan_batches.sh`
 
+## Progress tooling (Progress PR workflow)
+
+- Create a new progress file skeleton:
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh`
+- Validate progress index formatting:
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`
+- Render progress PR templates:
+  - `$CODEX_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh`
+
 ## Progress PR workflow (real GitHub E2E driver)
 
 - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`

@@ -206,7 +206,7 @@ resolve_tools() {
   commit_helper="${root%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
   handoff_script="${root%/}/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
   close_script="${root%/}/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
-  create_progress_file_script="${root%/}/skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh"
+  create_progress_file_script="${root%/}/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh"
   create_worktrees_script="${root%/}/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh"
 }
 

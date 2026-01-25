@@ -3,6 +3,8 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "${script_dir}/.." && pwd)"
+progress_dir="$(cd "${skill_dir}/.." && pwd)"
+shared_dir="${progress_dir%/}/_shared"
 
 usage() {
   cat <<'USAGE'
@@ -175,8 +177,8 @@ if [[ "$use_project_templates" == "1" ]]; then
     exit 1
   fi
 else
-  progress_template="${skill_dir}/assets/templates/PROGRESS_TEMPLATE.md"
-  glossary_template="${skill_dir}/references/PROGRESS_GLOSSARY.md"
+  progress_template="${shared_dir}/assets/templates/PROGRESS_TEMPLATE.md"
+  glossary_template="${shared_dir}/references/PROGRESS_GLOSSARY.md"
 
   if [[ "$skip_install_templates" == "0" ]]; then
     mkdir -p "docs/templates"

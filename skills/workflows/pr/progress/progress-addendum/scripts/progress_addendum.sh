@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "${script_dir}/.." && pwd)"
 progress_dir="$(cd "${skill_dir}/.." && pwd)"
-create_progress_file_script="${progress_dir}/create-progress-pr/scripts/create_progress_file.sh"
+create_progress_file_script="${progress_dir}/progress-tooling/scripts/create_progress_file.sh"
 
 usage() {
   cat <<'USAGE'
