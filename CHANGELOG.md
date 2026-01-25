@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.0.2 - 2026-01-25
+
+### Added
+- None.
+
+### Changed
+- Docs: backfill `v2.0.1` changelog entry.
+- Docs: clarify credential instructions for `codex-env`.
+
+### Fixed
+- None.
+
 ## v2.0.1 - 2026-01-25
 
 ### Added
