@@ -47,9 +47,6 @@ See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Dock
 
 ## 🛠️ Skills
 
-All tracked skills must include a minimal `## Contract` section (5 required headings) enforced by [validate_skill_contracts.sh](skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh) and CI.
-Tracked skill directory layout (`SKILL.md` + required `tests/` + optional `scripts/`, `references/`, `assets/`) is enforced by [audit-skill-layout.sh](skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh) and CI.
-
 ### Skill management
 
 See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills using canonical entrypoints.
