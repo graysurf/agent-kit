@@ -48,7 +48,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 4
 - **Location**:
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
 - **Description**: Draft a contract-style doc for the progress PR workflow invariants and failure modes.
   - Write a concise “contract-style” doc for the full flow across skills:
     - progress PR creation (file + PR body link rules)
@@ -62,7 +62,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
   - Doc lists the minimum invariants we will enforce with tests/E2E (links, base branches, cleanup, safety rules).
   - Doc includes the sandbox strategy (Option A/B) and cleanup rules.
 - **Validation**:
-  - `rg -n "## " docs/workflows/progress-pr-workflow.md` shows the expected sections (Progress, Handoff, Stacked PRs, Close, Failure modes).
+  - `rg -n "## " docs/runbooks/progress-pr-workflow.md` shows the expected sections (Progress, Handoff, Stacked PRs, Close, Failure modes).
 
 ### Task 1.2: Add fixture tests for worktree helper scripts
 
@@ -98,7 +98,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 3
 - **Location**:
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
 - **Description**: Document which behaviors must be validated against real GitHub vs CI fixtures/stubs.
   - Explicitly separate:
     - behaviors we can validate in CI with fixtures + `tests/stubs/bin/gh`
@@ -194,7 +194,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
   - `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
   - `skills/workflows/pr/progress/close-progress-pr/SKILL.md`
   - `skills/workflows/pr/progress/progress-addendum/SKILL.md`
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
 - **Description**: Update progress workflow docs to match the hardened scripts and intended evidence/links.
   - Ensure the skill docs:
     - reference the correct helper scripts + flags
@@ -216,7 +216,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Complexity**: 8
 - **Location**:
   - `$CODEX_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
 - **Description**: Add an opt-in real-`gh` E2E driver script with safety gates and durable artifacts.
   - Create a single entrypoint script that performs the Sprint 3 flow end-to-end using real GitHub:
     - hard safety gates:
@@ -493,7 +493,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 
 - **Complexity**: 4
 - **Location**:
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
   - `skills/workflows/pr/progress/worktree-stacked-feature-pr/SKILL.md`
 - **Description**: Reduce ambiguity and add a one-page runbook/checklist for the workflow.
   - Reduce ambiguity:

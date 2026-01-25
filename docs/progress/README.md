@@ -2,7 +2,7 @@
 
 Progress files track planning + implementation work for features. See the workflow runbook:
 
-- `docs/workflows/progress-pr-workflow.md`
+- `docs/runbooks/progress-pr-workflow.md`
 
 Conventions:
 

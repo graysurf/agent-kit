@@ -189,7 +189,7 @@ Canonical skill entrypoints (v2):
 - **Complexity**: 6
 - **Location**:
   - `skills/workflows/plan/create-plan/SKILL.md`
-  - `docs/workflows/progress-pr-workflow.md`
+  - `docs/runbooks/progress-pr-workflow.md`
 - **Description**: Do a repo-wide scan for runnable instructions and rewrite them to canonical `$CODEX_HOME/...` paths.
 - **Dependencies**:
   - Task 2.3
