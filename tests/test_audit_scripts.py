@@ -65,7 +65,7 @@ def test_validate_skill_contracts_fails_for_invalid_contract(tmp_path: Path) -> 
 
 def test_validate_progress_index_passes_for_repo() -> None:
     repo = repo_root()
-    script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
+    script = repo / "skills" / "workflows" / "pr" / "progress" / "progress-tooling" / "scripts" / "validate_progress_index.sh"
     spec: ScriptSpec = {
         "args": [],
         "timeout_sec": 10,
@@ -128,7 +128,7 @@ def test_validate_progress_index_fails_for_invalid_pr_cell(tmp_path: Path) -> No
 
     mutated.write_text("\n".join(lines).rstrip() + "\n", "utf-8")
 
-    script = repo / "skills" / "workflows" / "pr" / "progress" / "create-progress-pr" / "scripts" / "validate_progress_index.sh"
+    script = repo / "skills" / "workflows" / "pr" / "progress" / "progress-tooling" / "scripts" / "validate_progress_index.sh"
     spec: ScriptSpec = {
         "args": ["--file", str(mutated)],
         "timeout_sec": 10,

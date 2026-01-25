@@ -33,7 +33,7 @@ def test_script_smoke_create_progress_file_updates_index(tmp_path: Path):
     )
 
     repo = repo_root()
-    script = "skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh"
+    script = "skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh"
     spec = {
         "args": [
             "--title",
