@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.1.0 - 2026-01-25
+
+### Added
+- SQL skills: `sql-postgres`, `sql-mysql`, and `sql-mssql` (plus shared tooling under `skills/tools/sql/_shared`).
+- Plan: `docs/plans/sql-skills-db-migration-plan.md` for migrating existing DB tooling.
+
+### Changed
+- Scripts: consolidate DB connect tooling under the SQL skills and remove legacy `scripts/db-connect/{psql,mysql,mssql}.zsh`.
+- Docs: update SQL/testing and progress workflow documentation to match the new layout.
+
+### Fixed
+- SQL scripts: pass shell style checks.
+- Docs: fix archived progress doc glossary links.
+
 ## v2.0.3 - 2026-01-25
 
 ### Added
