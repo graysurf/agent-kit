@@ -5,6 +5,38 @@ description: Process images (convert/resize/crop/optimize) via ImageMagick
 
 # Image Processing
 
+Translate a user’s natural-language request into a safe invocation of the bundled wrapper script.
+
+PREFERENCES (optional; honor when provided)
+
+- Output mode: `--out` / `--out-dir` / `--in-place --yes`
+- Format: `png` / `jpg` / `webp`
+- Geometry intent: width/height/scale/aspect, `--fit contain|cover|stretch`, `--gravity`
+- Quality / metadata: `--quality`, `--strip-metadata`, `--background` (required for alpha → JPEG)
+- Reproducibility: `--dry-run`, `--json`, `--report`
+
+POLICY (must-follow per request)
+
+1) If underspecified: ask must-have questions first
+   - Use: `skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`
+   - Ask 1–5 “Need to know” questions with explicit defaults.
+   - Do not run commands until the user answers or explicitly approves assumptions.
+
+2) Single entrypoint (do not bypass)
+   - Only run: `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh`
+   - Do not call ImageMagick binaries directly unless debugging the skill itself.
+
+3) Output mode gate (exactly one)
+   - For output-producing subcommands, require exactly one of:
+     - `--out <file>` (single input only)
+     - `--out-dir <dir>` (batch)
+     - `--in-place --yes` (destructive; requires explicit user intent)
+
+4) Completion response (fixed)
+   - After a successful run, respond using:
+     - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
+   - Include clickable output path(s) and a one-sentence “next prompt” that repeats the same task with concrete paths/options.
+
 ## Contract
 
 Prereqs:
@@ -53,18 +85,11 @@ Failure modes:
   - `--in-place` without `--yes`
   - Alpha → JPEG without `--background`
 
-## Scripts (only entrypoints)
+## Scripts (only entrypoint)
 
 - `$CODEX_HOME/skills/tools/media/image-processing/scripts/image-processing.sh`
 
-## Usage
+## References
 
-See:
 - `skills/tools/media/image-processing/references/IMAGE_PROCESSING_GUIDE.md`
 - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
-
-## Assistant behavior (must-follow)
-
-- Users will describe requirements in natural language.
-- If anything is ambiguous, ask clarifying questions before running commands. Do not guess.
-- After completion, always respond using the fixed template in `ASSISTANT_RESPONSE_TEMPLATE.md`.
