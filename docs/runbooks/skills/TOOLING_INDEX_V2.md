@@ -2,6 +2,11 @@
 
 This doc lists canonical executable entrypoints that live under `skills/**/scripts/`.
 
+## SKILL.md format
+
+- SKILL.md format spec:
+  - `docs/runbooks/skills/SKILL_MD_FORMAT_V1.md`
+
 ## Skill governance
 
 - Validate SKILL.md contract format:

@@ -70,13 +70,78 @@ import sys
 from pathlib import Path
 
 required = ["Prereqs:", "Inputs:", "Outputs:", "Exit codes:", "Failure modes:"]
+MAX_PREAMBLE_NONEMPTY = 2
 
 def die(msg: str) -> None:
   print(f"error: {msg}", file=sys.stderr)
 
-def check_file(path: Path) -> list[str]:
-  raw = path.read_text("utf-8", errors="replace").splitlines()
+def check_file_structure(raw: list[str]) -> list[str]:
+  problems: list[str] = []
 
+  h1_idx: int | None = None
+  for i, line in enumerate(raw):
+    if line.startswith("# "):
+      h1_idx = i
+      break
+  if h1_idx is None:
+    problems.append("missing H1 title (`# <Title>`)")
+    return problems
+
+  contract_idx: int | None = None
+  for i, line in enumerate(raw):
+    if line.strip() == "## Contract":
+      contract_idx = i
+      break
+  if contract_idx is None:
+    problems.append("missing ## Contract")
+    return problems
+
+  if contract_idx <= h1_idx:
+    problems.append("`## Contract` must appear after the H1 title")
+    return problems
+
+  # Contract must be the first H2 after H1.
+  first_h2_idx: int | None = None
+  for i in range(h1_idx + 1, len(raw)):
+    if raw[i].startswith("## "):
+      first_h2_idx = i
+      break
+  if first_h2_idx is not None and first_h2_idx != contract_idx:
+    first_h2 = raw[first_h2_idx].strip()
+    problems.append(f"`## Contract` must be the first H2 (found {first_h2!r} first)")
+
+  # Preamble: allow up to MAX_PREAMBLE_NONEMPTY non-empty lines between H1 and Contract.
+  preamble = raw[h1_idx + 1 : contract_idx]
+  preamble_nonempty = [line for line in preamble if line.strip()]
+  if len(preamble_nonempty) > MAX_PREAMBLE_NONEMPTY:
+    problems.append(
+      f"preamble too long before `## Contract` ({len(preamble_nonempty)} non-empty lines; max {MAX_PREAMBLE_NONEMPTY})"
+    )
+
+  # Disallow any headings before Contract other than the first H1.
+  in_fence = False
+  for line in preamble:
+    stripped = line.lstrip()
+    if stripped.startswith("```"):
+      in_fence = not in_fence
+      continue
+    if in_fence:
+      continue
+    if stripped.startswith("#"):
+      hashes = 0
+      for ch in stripped:
+        if ch == "#":
+          hashes += 1
+          continue
+        break
+      if 1 <= hashes <= 6 and len(stripped) > hashes and stripped[hashes] == " ":
+        problems.append("markdown heading found before `## Contract` (move it after the Contract)")
+        break
+
+  return problems
+
+
+def check_contract_headings(raw: list[str]) -> list[str]:
   try:
     start = next(i for i, line in enumerate(raw) if line.strip() == "## Contract")
   except StopIteration:
@@ -114,12 +179,28 @@ for p in paths:
     errors.append(f"{p}: file not found")
     continue
 
-  problems = check_file(p)
+  raw_lines = p.read_text("utf-8", errors="replace").splitlines()
+  problems: list[str] = []
+  structure = check_file_structure(raw_lines)
+  problems.extend(structure)
+  if "missing ## Contract" not in structure:
+    problems.extend(check_contract_headings(raw_lines))
+
+  # De-duplicate problems while preserving order for stable output.
+  seen: set[str] = set()
+  uniq: list[str] = []
+  for item in problems:
+    if item in seen:
+      continue
+    seen.add(item)
+    uniq.append(item)
+  problems = uniq
   if not problems:
     continue
 
   missing = [x for x in problems if x.startswith("missing ")]
   order = [x for x in problems if x.startswith("out of order ")]
+  other = [x for x in problems if x not in missing and x not in order]
 
   if missing:
     errors.append(f"{p}: {', '.join(missing)}")
@@ -127,6 +208,8 @@ for p in paths:
     errors.append(
       f"{p}: headings out of order in ## Contract (expected: {', '.join(required)})"
     )
+  if other:
+    errors.append(f"{p}: {'; '.join(other)}")
 
 if errors:
   for e in errors:

@@ -167,42 +167,46 @@ PY
 test_rel="tests/test_${test_id}.py"
 test_abs="$abs_skill_dir/$test_rel"
 
-cat >"$abs_skill_dir/SKILL.md" <<EOF
----
-name: ${skill_name}
-description: ${skill_description}
----
+skill_md_template="${repo_root}/skills/tools/skill-management/create-skill/assets/templates/SKILL_TEMPLATE.md"
+if [[ ! -f "$skill_md_template" ]]; then
+  echo "error: missing SKILL.md template: $skill_md_template" >&2
+  exit 1
+fi
 
-# ${skill_title}
+skill_md_tmp="${abs_skill_dir}/SKILL.md.tmp"
+python3 - "$skill_md_template" "$skill_name" "$skill_description" "$skill_title" "$skill_dir" "$stub_script_rel" <<'PY' >"$skill_md_tmp"
+from __future__ import annotations
 
-## Contract
+import sys
+from pathlib import Path
 
-Prereqs:
+template_path = Path(sys.argv[1])
+name = sys.argv[2]
+description = sys.argv[3]
+title = sys.argv[4]
+skill_dir = sys.argv[5]
+script_rel = sys.argv[6]
 
-- TBD
+text = template_path.read_text("utf-8", errors="replace")
+replacements = {
+    "{{name}}": name,
+    "{{description}}": description,
+    "{{title}}": title,
+    "{{skill_dir}}": skill_dir,
+    "{{script_rel}}": script_rel,
+}
+for key, value in replacements.items():
+    text = text.replace(key, value)
 
-Inputs:
+unreplaced = [token for token in replacements.keys() if token in text]
+if unreplaced:
+    raise SystemExit(f"error: failed to render template (unreplaced: {unreplaced})")
+if "{{" in text or "}}" in text:
+    raise SystemExit("error: failed to render template (unrecognized placeholders remain)")
 
-- TBD
-
-Outputs:
-
-- TBD
-
-Exit codes:
-
-- \`0\`: success
-- \`1\`: failure
-- \`2\`: usage error
-
-Failure modes:
-
-- TBD
-
-## Scripts (only entrypoints)
-
-- \`$CODEX_HOME/${skill_dir}/${stub_script_rel}\`
-EOF
+sys.stdout.write(text)
+PY
+mv "$skill_md_tmp" "$abs_skill_dir/SKILL.md"
 
 cat >"$stub_script_abs" <<'EOF'
 #!/usr/bin/env bash

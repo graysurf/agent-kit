@@ -5,13 +5,7 @@ description: Handoff a progress planning PR, then create multiple stacked featur
 
 # Worktree Stacked Feature PR
 
-Create multiple implementation PRs from a single progress/planning PR, using:
-
-- `gh` + `git` for PR/branch management
-- `git worktree` for parallel local checkouts
-- subagents for parallel implementation (one worktree per subagent)
-
-This skill is designed to “follow” a progress PR created by `create-progress-pr`, and is aligned with `handoff-progress-pr` (merge planning PR + keep Progress links stable), but extends the workflow to kick off multiple implementation PRs at once.
+Create multiple implementation PRs from a single progress/planning PR using `git worktree` and parallel subagents.
 
 ## Contract
 
@@ -54,6 +48,16 @@ Failure modes:
 - Planning PR not mergeable / checks failing → stop; fix or explicitly accept bypass.
 - Worktree paths already exist → stop; remove/rename; run `git worktree prune`.
 - Two PRs modify the same files heavily → split into more PRs (Sprint 2a/2b/2c) or serialize.
+
+## Overview
+
+This skill creates multiple implementation PRs from a single progress/planning PR, using:
+
+- `gh` + `git` for PR/branch management
+- `git worktree` for parallel local checkouts
+- subagents for parallel implementation (one worktree per subagent)
+
+This skill is designed to “follow” a progress PR created by `create-progress-pr`, and is aligned with `handoff-progress-pr` (merge planning PR + keep Progress links stable), but extends the workflow to kick off multiple implementation PRs at once.
 
 ## Worktree usage policy (explicit rules)
 
