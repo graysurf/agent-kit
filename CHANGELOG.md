@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.0 - 2026-01-28
+
+### Added
+- Skills: publish `docs/runbooks/skills/SKILL_MD_FORMAT_V1.md` and `scripts/skills/audit_skill_md_format.py` for SKILL.md format enforcement.
+- Tests: add script-spec smoke coverage for `scripts/skills/audit_skill_md_format.py`.
+
+### Changed
+- Skills: enforce `## Contract` placement (Contract-first, short preamble) and update `create-skill` to scaffold SKILL.md from a shared template.
+- Docs: expand and reorganize `image-processing` SKILL.md guidance to follow the Contract-first format.
+- `semantic-commit`: forbid extra repo inspection commands to keep commit generation strictly staged-context driven.
+
+### Fixed
+- Plan tooling: detect TODO/TBD placeholders in required plan fields.
+
 ## v2.1.1 - 2026-01-26
 
 ### Added
