@@ -78,6 +78,115 @@ parse_int_default() {
 	printf "%s" "$raw"
 }
 
+jwt_validate_token() {
+	local token="$1"
+	local label="${2:-token}"
+
+	[[ -n "$token" ]] || return 0
+	if ! bool_from_env "${GQL_JWT_VALIDATE_ENABLED:-}" "GQL_JWT_VALIDATE_ENABLED" "true"; then
+		return 0
+	fi
+
+	local strict=false
+	if bool_from_env "${GQL_JWT_VALIDATE_STRICT:-}" "GQL_JWT_VALIDATE_STRICT" "false"; then
+		strict=true
+	fi
+
+	local leeway
+	leeway="$(parse_int_default "${GQL_JWT_VALIDATE_LEEWAY_SECONDS:-}" "0" "0")"
+
+	if ! command -v python3 >/dev/null 2>&1; then
+		echo "gql.sh: warning: python3 not found; skipping JWT validation for ${label}" >&2
+		return 0
+	fi
+
+	local output rc
+	set +e
+	output="$(python3 - "$token" "$leeway" <<'PY'
+import base64
+import json
+import sys
+import time
+
+token = sys.argv[1].strip()
+leeway = int(sys.argv[2])
+
+parts = token.split(".")
+if len(parts) != 3:
+    print("not_jwt")
+    sys.exit(2)
+
+def b64url_decode(segment: str) -> bytes:
+    segment += "=" * (-len(segment) % 4)
+    return base64.urlsafe_b64decode(segment.encode("utf-8"))
+
+try:
+    _header = json.loads(b64url_decode(parts[0]))
+    payload = json.loads(b64url_decode(parts[1]))
+except Exception:
+    print("invalid_jwt")
+    sys.exit(3)
+
+def parse_numeric(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        raw = value.strip()
+        if raw.isdigit():
+            return int(raw)
+    return None
+
+now = int(time.time())
+exp = payload.get("exp")
+if exp is not None:
+    exp_val = parse_numeric(exp)
+    if exp_val is None:
+        print("exp_invalid")
+        sys.exit(4)
+    if exp_val < (now - leeway):
+        print(f"expired exp={exp_val} now={now}")
+        sys.exit(5)
+
+nbf = payload.get("nbf")
+if nbf is not None:
+    nbf_val = parse_numeric(nbf)
+    if nbf_val is None:
+        print("nbf_invalid")
+        sys.exit(6)
+    if nbf_val > (now + leeway):
+        print(f"nbf_in_future nbf={nbf_val} now={now}")
+        sys.exit(7)
+
+print("ok")
+sys.exit(0)
+PY
+)"
+	rc=$?
+	set -e
+
+	case "$rc" in
+		0) return 0 ;;
+		5) die "gql.sh: JWT expired for ${label} (${output})" ;;
+		7) die "gql.sh: JWT not yet valid for ${label} (${output})" ;;
+		2|3|4|6)
+			if [[ "$strict" == "true" ]]; then
+				die "gql.sh: invalid JWT for ${label} (${output})"
+			fi
+			echo "gql.sh: warning: token for ${label} is not a valid JWT (${output}); skipping format validation" >&2
+			return 0
+			;;
+		*)
+			if [[ "$strict" == "true" ]]; then
+				die "gql.sh: JWT validation failed for ${label} (code ${rc})"
+			fi
+			echo "gql.sh: warning: JWT validation failed for ${label} (code ${rc}); skipping" >&2
+			return 0
+			;;
+	esac
+}
+
 maybe_relpath() {
 	local path="$1"
 	local base="$2"
@@ -327,6 +436,9 @@ Environment variables:
   GQL_URL                            Explicit GraphQL endpoint URL (overridden by --env/--url)
   ACCESS_TOKEN                       If set (and no JWT profile is selected), sends Authorization: Bearer <token>
   GQL_JWT_NAME                       JWT profile name (same as --jwt)
+  GQL_JWT_VALIDATE_ENABLED=true      Validate JWT format and exp/nbf when a token is present (default: true)
+  GQL_JWT_VALIDATE_STRICT=false      Fail on non-JWT/invalid JWT (default: false; warns instead)
+  GQL_JWT_VALIDATE_LEEWAY_SECONDS    Allow clock skew when checking exp/nbf (default: 0)
   GQL_VARS_MIN_LIMIT                 If variables JSON contains numeric `limit` fields (including nested pagination inputs), 
                                      bump them to at least N (default: 5; 0 disables)
   GQL_HISTORY_ENABLED=false          Disable local command history (default: enabled)
@@ -870,11 +982,19 @@ maybe_auto_login() {
 	printf "%s" "$token"
 }
 
-	if [[ "$jwt_profile_selected" == "true" && -z "$access_token" ]]; then
-		if ! access_token="$(maybe_auto_login "$jwt_name")"; then
-			die "JWT profile '$jwt_name' is selected but no token was found and auto-login is not configured."
-		fi
+if [[ "$jwt_profile_selected" == "true" && -z "$access_token" ]]; then
+	if ! access_token="$(maybe_auto_login "$jwt_name")"; then
+		die "JWT profile '$jwt_name' is selected but no token was found and auto-login is not configured."
 	fi
+fi
+
+if [[ -n "$access_token" ]]; then
+	token_label="ACCESS_TOKEN"
+	if [[ "$jwt_profile_selected" == "true" ]]; then
+		token_label="jwt profile '$jwt_name'"
+	fi
+	jwt_validate_token "$access_token" "$token_label"
+fi
 
 variables_file_request="$variables_file"
 vars_min_limit="$(parse_int_default "${GQL_VARS_MIN_LIMIT:-}" "5" "0")"

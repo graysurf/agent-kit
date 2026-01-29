@@ -16,7 +16,8 @@ Prereqs:
 Inputs:
 
 - Operation + variables: `setup/graphql/operations/<op>.graphql` and `setup/graphql/operations/<vars>.json`.
-- Optional flags/env: `--env`, `--url`, `--jwt`, `--config-dir`, `--no-history` (plus `GQL_URL`, `ACCESS_TOKEN`).
+- Optional flags/env: `--env`, `--url`, `--jwt`, `--config-dir`, `--no-history` (plus `GQL_URL`, `ACCESS_TOKEN`,
+  `GQL_JWT_VALIDATE_ENABLED`, `GQL_JWT_VALIDATE_STRICT`, `GQL_JWT_VALIDATE_LEEWAY_SECONDS`).
 
 Outputs:
 

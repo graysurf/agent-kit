@@ -97,6 +97,115 @@ parse_int_default() {
 	printf "%s" "$raw"
 }
 
+jwt_validate_token() {
+	local token="$1"
+	local label="${2:-token}"
+
+	[[ -n "$token" ]] || return 0
+	if ! bool_from_env "${REST_JWT_VALIDATE_ENABLED:-}" "REST_JWT_VALIDATE_ENABLED" "true"; then
+		return 0
+	fi
+
+	local strict=false
+	if bool_from_env "${REST_JWT_VALIDATE_STRICT:-}" "REST_JWT_VALIDATE_STRICT" "false"; then
+		strict=true
+	fi
+
+	local leeway
+	leeway="$(parse_int_default "${REST_JWT_VALIDATE_LEEWAY_SECONDS:-}" "0" "0")"
+
+	if ! command -v python3 >/dev/null 2>&1; then
+		echo "rest.sh: warning: python3 not found; skipping JWT validation for ${label}" >&2
+		return 0
+	fi
+
+	local output rc
+	set +e
+	output="$(python3 - "$token" "$leeway" <<'PY'
+import base64
+import json
+import sys
+import time
+
+token = sys.argv[1].strip()
+leeway = int(sys.argv[2])
+
+parts = token.split(".")
+if len(parts) != 3:
+    print("not_jwt")
+    sys.exit(2)
+
+def b64url_decode(segment: str) -> bytes:
+    segment += "=" * (-len(segment) % 4)
+    return base64.urlsafe_b64decode(segment.encode("utf-8"))
+
+try:
+    _header = json.loads(b64url_decode(parts[0]))
+    payload = json.loads(b64url_decode(parts[1]))
+except Exception:
+    print("invalid_jwt")
+    sys.exit(3)
+
+def parse_numeric(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        raw = value.strip()
+        if raw.isdigit():
+            return int(raw)
+    return None
+
+now = int(time.time())
+exp = payload.get("exp")
+if exp is not None:
+    exp_val = parse_numeric(exp)
+    if exp_val is None:
+        print("exp_invalid")
+        sys.exit(4)
+    if exp_val < (now - leeway):
+        print(f"expired exp={exp_val} now={now}")
+        sys.exit(5)
+
+nbf = payload.get("nbf")
+if nbf is not None:
+    nbf_val = parse_numeric(nbf)
+    if nbf_val is None:
+        print("nbf_invalid")
+        sys.exit(6)
+    if nbf_val > (now + leeway):
+        print(f"nbf_in_future nbf={nbf_val} now={now}")
+        sys.exit(7)
+
+print("ok")
+sys.exit(0)
+PY
+)"
+	rc=$?
+	set -e
+
+	case "$rc" in
+		0) return 0 ;;
+		5) die "rest.sh: JWT expired for ${label} (${output})" ;;
+		7) die "rest.sh: JWT not yet valid for ${label} (${output})" ;;
+		2|3|4|6)
+			if [[ "$strict" == "true" ]]; then
+				die "rest.sh: invalid JWT for ${label} (${output})"
+			fi
+			echo "rest.sh: warning: token for ${label} is not a valid JWT (${output}); skipping format validation" >&2
+			return 0
+			;;
+		*)
+			if [[ "$strict" == "true" ]]; then
+				die "rest.sh: JWT validation failed for ${label} (code ${rc})"
+			fi
+			echo "rest.sh: warning: JWT validation failed for ${label} (code ${rc}); skipping" >&2
+			return 0
+			;;
+	esac
+}
+
 maybe_relpath() {
 	local path="$1"
 	local base="$2"
@@ -285,15 +394,18 @@ Options:
       --config-dir <dir> REST setup dir (searches upward for endpoints.env/tokens.env; default: request dir or ./setup/rest)
       --no-history        Disable writing to .rest_history for this run
 
-	Environment variables:
-	  REST_URL        Explicit REST base URL (overridden by --env/--url)
-	  ACCESS_TOKEN    If set (and no token profile is selected), sends Authorization: Bearer <token>
-	  REST_TOKEN_NAME Token profile name (same as --token)
-	  REST_HISTORY_ENABLED=false          Disable local command history (default: enabled)
-	  REST_HISTORY_FILE         Override history file path (default: <setup_dir>/.rest_history)
-	  REST_HISTORY_LOG_URL_ENABLED=false  Omit URL in history entries (default: included)
-	  REST_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
-	  REST_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
+Environment variables:
+  REST_URL        Explicit REST base URL (overridden by --env/--url)
+  ACCESS_TOKEN    If set (and no token profile is selected), sends Authorization: Bearer <token>
+  REST_TOKEN_NAME Token profile name (same as --token)
+  REST_JWT_VALIDATE_ENABLED=true     Validate JWT format and exp/nbf when a token is present (default: true)
+  REST_JWT_VALIDATE_STRICT=false     Fail on non-JWT/invalid JWT (default: false; warns instead)
+  REST_JWT_VALIDATE_LEEWAY_SECONDS   Allow clock skew when checking exp/nbf (default: 0)
+  REST_HISTORY_ENABLED=false          Disable local command history (default: enabled)
+  REST_HISTORY_FILE         Override history file path (default: <setup_dir>/.rest_history)
+  REST_HISTORY_LOG_URL_ENABLED=false  Omit URL in history entries (default: included)
+  REST_HISTORY_MAX_MB       Rotate when file exceeds size in MB (default: 10; 0 disables)
+  REST_HISTORY_ROTATE_COUNT Number of rotated files to keep (default: 5)
 
 Request schema (JSON only):
   {
@@ -816,6 +928,16 @@ if [[ "$token_profile_selected" == "true" && -z "$access_token" ]]; then
 	)"
 	available_tokens="$(trim "$available_tokens")"
 	die "Token profile '$token_name' is empty/missing (available: ${available_tokens:-none}). Set it in setup/rest/tokens.local.env or use ACCESS_TOKEN without selecting a token profile."
+fi
+
+if [[ -n "$access_token" ]]; then
+	token_label="ACCESS_TOKEN"
+	if [[ "$auth_source_used" == "token" ]]; then
+		token_label="token profile '$token_name'"
+	elif [[ -n "${SERVICE_TOKEN:-}" && -z "${ACCESS_TOKEN:-}" ]]; then
+		token_label="SERVICE_TOKEN"
+	fi
+	jwt_validate_token "$access_token" "$token_label"
 fi
 
 url="${rest_url%/}${path}"

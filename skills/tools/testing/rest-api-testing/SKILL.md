@@ -15,7 +15,8 @@ Prereqs:
 Inputs:
 
 - Request file path: `setup/rest/requests/<name>.request.json`.
-- Optional flags/env: `--env`, `--url`, `--token`, `--config-dir`, `--no-history` (plus `REST_URL`, `ACCESS_TOKEN`).
+- Optional flags/env: `--env`, `--url`, `--token`, `--config-dir`, `--no-history` (plus `REST_URL`, `ACCESS_TOKEN`,
+  `REST_JWT_VALIDATE_ENABLED`, `REST_JWT_VALIDATE_STRICT`, `REST_JWT_VALIDATE_LEEWAY_SECONDS`).
 
 Outputs:
 
