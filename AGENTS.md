@@ -109,3 +109,5 @@
   - `$semantic-commit`: review-first, user-staged.
   - `$semantic-commit-autostage`: automation flow (allows `git add`).
 - Do not run `git commit` directly.
+- Before committing (and before reporting a task as complete), follow the current project's `DEVELOPMENT.md` (when present) to run the appropriate tests/checks and ensure they pass.
+- If tests fail (or can't be run), explicitly say so and explain why (include the failing command and the key error).
