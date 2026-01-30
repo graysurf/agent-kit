@@ -195,7 +195,6 @@ fi
 json_upsert "sandbox_base_branch" "$sandbox_base_branch"
 
 codex_home="${CODEX_HOME:-$repo_root}"
-commit_helper=""
 handoff_script=""
 close_script=""
 create_progress_file_script=""
@@ -203,7 +202,6 @@ create_worktrees_script=""
 
 resolve_tools() {
   local root="${1:-}"
-  commit_helper="${root%/}/skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
   handoff_script="${root%/}/skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh"
   close_script="${root%/}/skills/workflows/pr/progress/close-progress-pr/scripts/close_progress_pr.sh"
   create_progress_file_script="${root%/}/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh"
@@ -211,24 +209,21 @@ resolve_tools() {
 }
 
 resolve_tools "$codex_home"
-if [[ ! -f "$commit_helper" || ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_file_script" || ! -f "$create_worktrees_script" ]]; then
+if [[ ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_file_script" || ! -f "$create_worktrees_script" ]]; then
   # CODEX_HOME is often a global Codex config dir; fall back to the current repo root unless
   # the caller intentionally pointed CODEX_HOME at a codex-kit checkout that contains these scripts.
   resolve_tools "$repo_root"
   codex_home="$repo_root"
 fi
 
-for p in "$commit_helper" "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do
+for p in "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do
   [[ -f "$p" ]] || die "required helper script not found: $p"
 done
+require_cmd semantic-commit
+require_cmd git-scope
 
 run_commit_helper() {
-  if [[ -x "$commit_helper" ]]; then
-    "$commit_helper" "$@"
-    return 0
-  fi
-  require_cmd zsh
-  zsh -f "$commit_helper" "$@"
+  semantic-commit commit "$@"
 }
 
 run_phase_init() {
