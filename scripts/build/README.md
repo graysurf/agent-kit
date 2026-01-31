@@ -58,10 +58,6 @@ zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
 zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
   --input "$HOME/.codex/commands/project-resolve" \
   --output commands/project-resolve
-
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.codex/commands/api-report-from-cmd" \
-  --output commands/api-report-from-cmd
 ```
 
 ### Bundle a minimal wrapper (sources + embedded tool)

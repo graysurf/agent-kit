@@ -73,7 +73,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report \
 Generate a report from a copied `api-gql`/`gql.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_HOME/commands/api-report-from-cmd '<paste an api-gql/gql.sh command snippet>'
+$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
 
 If your repo bootstrapped `setup/graphql/` from the template, you can also use:

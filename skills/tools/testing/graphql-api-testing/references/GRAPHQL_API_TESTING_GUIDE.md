@@ -68,7 +68,7 @@ cp -R "$CODEX_HOME/skills/tools/testing/graphql-api-testing/assets/scaffold/setu
 
 The template includes a helper to turn a copied `api-gql`/`gql.sh` history command into a report:
 
-- `setup/graphql/api-report-from-cmd.sh` (requires `python3` or `python`)
+- `setup/graphql/api-report-from-cmd.sh`
 
 Then fill local-only files (do not commit):
 

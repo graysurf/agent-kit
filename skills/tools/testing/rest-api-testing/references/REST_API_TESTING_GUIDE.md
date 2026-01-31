@@ -49,7 +49,7 @@ cp -R "$CODEX_HOME/skills/tools/testing/rest-api-testing/assets/scaffold/setup/r
 
 The template includes a helper to turn a copied `api-rest`/`rest.sh` history command into a report:
 
-- `setup/rest/api-report-from-cmd.sh` (requires `python3` or `python`)
+- `setup/rest/api-report-from-cmd.sh`
 
 ## Request file schema (JSON only)
 

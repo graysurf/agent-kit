@@ -200,7 +200,7 @@ All notable changes to this project will be documented in this file.
 - `semgrep-find-and-fix` automation skill, including local config and PR/report templates.
 - Repo verification tooling: `$CODEX_HOME/scripts/check.sh` and `$CODEX_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
 - Shell style fixers: `$CODEX_HOME/scripts/fix-shell-style.zsh`, `$CODEX_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$CODEX_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
-- `commands/api-report-from-cmd` helper and API test report templates/metadata (REST + GraphQL).
+- API test report templates/metadata plus `api-gql`/`api-rest report-from-cmd` workflow helpers (REST + GraphQL).
 
 ### Changed
 - CI: lint workflow now validates skill contracts and runs stricter Python type checks.

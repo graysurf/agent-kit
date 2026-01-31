@@ -6,4 +6,4 @@ if [[ -z "${CODEX_HOME:-}" ]]; then
   exit 2
 fi
 
-exec "$CODEX_HOME/commands/api-report-from-cmd" "$@"
+exec "$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest" report-from-cmd "$@"
