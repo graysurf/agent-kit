@@ -34,11 +34,17 @@ def test_script_smoke_fixture_semantic_commit_commit_with_message(tmp_path: Path
     init_fixture_repo(work_tree)
 
     repo = repo_root()
-    script = "skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+    semantic_commit = repo / "commands" / "semantic-commit"
+    script = "commands/semantic-commit"
     spec = {
-        "args": ["--message", "test(fixture): commit staged change"],
+        "command": [
+            str(semantic_commit),
+            "commit",
+            "--message",
+            "test(fixture): commit staged change",
+        ],
         "timeout_sec": 20,
-        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": str(repo / "commands")},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)test\(fixture\): commit staged change.*Directory tree",
@@ -82,11 +88,12 @@ def test_script_smoke_semantic_commit_invalid_messages(
     message_path.write_text(message, "utf-8")
 
     repo = repo_root()
-    script = "skills/tools/devex/semantic-commit/scripts/commit_with_message.sh"
+    semantic_commit = repo / "commands" / "semantic-commit"
+    script = "commands/semantic-commit"
     spec = {
-        "args": ["--message-file", str(message_path)],
+        "command": [str(semantic_commit), "commit", "--message-file", str(message_path)],
         "timeout_sec": 20,
-        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": str(repo / "commands")},
         "expect": {"exit_codes": [1]},
     }
 

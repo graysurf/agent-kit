@@ -61,12 +61,59 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-for cmd in gh git python3 semantic-commit git-scope; do
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+find_codex_root() {
+  local dir="$script_dir"
+  for _ in {1..10}; do
+    if [[ -d "$dir/commands" && -d "$dir/skills" ]]; then
+      printf "%s\n" "$dir"
+      return 0
+    fi
+    dir="$(cd "${dir%/}/.." && pwd -P)"
+  done
+  return 1
+}
+
+resolve_command() {
+  local name="$1"
+  local candidate=''
+
+  if [[ -n "${CODEX_COMMANDS_PATH:-}" ]]; then
+    candidate="${CODEX_COMMANDS_PATH%/}/$name"
+    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
+  fi
+
+  if [[ -n "${CODEX_HOME:-}" ]]; then
+    candidate="${CODEX_HOME%/}/commands/$name"
+    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
+  fi
+
+  if codex_root="$(find_codex_root 2>/dev/null)"; then
+    candidate="${codex_root%/}/commands/$name"
+    [[ -x "$candidate" ]] && { printf "%s\n" "$candidate"; return 0; }
+  fi
+
+  command -v "$name" >/dev/null 2>&1 && command -v "$name"
+}
+
+semantic_commit="$(resolve_command semantic-commit)"
+git_scope="$(resolve_command git-scope)"
+
+for cmd in gh git python3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "error: $cmd is required" >&2
     exit 1
   fi
 done
+if [[ -z "$semantic_commit" ]]; then
+  echo "error: semantic-commit is required" >&2
+  exit 1
+fi
+if [[ -z "$git_scope" ]]; then
+  echo "error: git-scope is required" >&2
+  exit 1
+fi
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "error: must run inside a git work tree" >&2
@@ -738,7 +785,7 @@ if [[ -n "$(git status --porcelain=v1)" ]]; then
   if [[ -f "docs/progress/README.md" ]]; then
     git add "docs/progress/README.md"
   fi
-  semantic-commit commit --message "docs(progress): archive ${filename%.md}"
+  "$semantic_commit" commit --message "docs(progress): archive ${filename%.md}"
   git push
 fi
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Iterable
@@ -53,3 +54,24 @@ def assert_entrypoints_exist(skill_root: Path, rel_paths: Iterable[str]) -> None
             missing.append(rel)
     if missing:
         raise AssertionError(f"missing entrypoints: {', '.join(missing)}")
+
+
+def resolve_codex_command(name: str) -> Path:
+    candidates: list[Path] = []
+
+    if commands_dir := os.environ.get("CODEX_COMMANDS_PATH"):
+        candidates.append(Path(commands_dir) / name)
+
+    if codex_home := os.environ.get("CODEX_HOME"):
+        candidates.append(Path(codex_home) / "commands" / name)
+
+    candidates.append(repo_root() / "commands" / name)
+
+    for candidate in candidates:
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate.resolve()
+
+    if found := shutil.which(name):
+        return Path(found).resolve()
+
+    raise AssertionError(f"{name} not found (set CODEX_COMMANDS_PATH or install {name} on PATH)")

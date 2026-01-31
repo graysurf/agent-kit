@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import os
-import shutil
 import stat
 import subprocess
 import tempfile
 from pathlib import Path
 
-from skills._shared.python.skill_testing import assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract, resolve_codex_command
 
 
 def test_tools_devex_semantic_commit_contract() -> None:
@@ -16,11 +15,11 @@ def test_tools_devex_semantic_commit_contract() -> None:
 
 
 def test_tools_devex_semantic_commit_binary_available() -> None:
-    assert shutil.which("semantic-commit"), "semantic-commit binary not found on PATH"
+    resolve_codex_command("semantic-commit")
 
 
 def test_tools_devex_semantic_commit_git_scope_available() -> None:
-    assert shutil.which("git-scope"), "git-scope binary not found on PATH"
+    resolve_codex_command("git-scope")
 
 
 def _run(
@@ -63,8 +62,7 @@ def _write_executable(dir_path: Path, name: str, contents: str) -> None:
 
 
 def test_tools_devex_semantic_commit_staged_context_outputs_bundle_and_ignores_git_commit_context_json() -> None:
-    semantic_commit = shutil.which("semantic-commit")
-    assert semantic_commit
+    semantic_commit = resolve_codex_command("semantic-commit")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         repo = Path(temp_dir)
@@ -81,7 +79,7 @@ def test_tools_devex_semantic_commit_staged_context_outputs_bundle_and_ignores_g
             )
 
             proc = _run(
-                [semantic_commit, "staged-context"],
+                [str(semantic_commit), "staged-context"],
                 cwd=repo,
                 env={"CODEX_COMMANDS_PATH": str(tools)},
             )
@@ -97,8 +95,7 @@ def test_tools_devex_semantic_commit_staged_context_outputs_bundle_and_ignores_g
 
 
 def test_tools_devex_semantic_commit_commit_creates_commit() -> None:
-    semantic_commit = shutil.which("semantic-commit")
-    assert semantic_commit
+    semantic_commit = resolve_codex_command("semantic-commit")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         repo = Path(temp_dir)
@@ -125,7 +122,7 @@ def test_tools_devex_semantic_commit_commit_creates_commit() -> None:
             path_env = f"{tools}:/usr/bin:/bin:/usr/sbin:/sbin"
 
             proc = _run(
-                [semantic_commit, "commit"],
+                [str(semantic_commit), "commit"],
                 cwd=repo,
                 env={"PATH": path_env},
                 input_text="feat(core): add thing\n\n- Add thing\n",
@@ -140,8 +137,7 @@ def test_tools_devex_semantic_commit_commit_creates_commit() -> None:
 
 
 def test_tools_devex_semantic_commit_commit_fails_when_git_scope_missing() -> None:
-    semantic_commit = shutil.which("semantic-commit")
-    assert semantic_commit
+    semantic_commit = resolve_codex_command("semantic-commit")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         repo = Path(temp_dir)
@@ -150,7 +146,7 @@ def test_tools_devex_semantic_commit_commit_fails_when_git_scope_missing() -> No
         _run(["git", "add", "a.txt"], cwd=repo, env=None)
 
         proc = _run(
-            [semantic_commit, "commit"],
+            [str(semantic_commit), "commit"],
             cwd=repo,
             env={"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
             input_text="feat(core): add thing\n\n- Add thing\n",

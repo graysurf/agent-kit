@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from skills._shared.python.skill_testing import assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract, resolve_codex_command
 
 
 def test_tools_media_image_processing_contract() -> None:
@@ -17,8 +17,8 @@ def test_tools_media_image_processing_contract() -> None:
     assert_skill_contract(skill_root)
 
 
-def test_tools_media_image_processing_binary_in_path() -> None:
-    assert shutil.which("image-processing") is not None
+def test_tools_media_image_processing_command_exists() -> None:
+    resolve_codex_command("image-processing")
 
 
 def _repo_root() -> Path:
@@ -52,14 +52,9 @@ def _unique_out_dir(case: str) -> Path:
 
 
 def _run(args: list[str]) -> subprocess.CompletedProcess[str]:
-    if shutil.which("image-processing") is None:
-        raise AssertionError(
-            "image-processing CLI not found in PATH. Install from "
-            "`/Users/terry/Project/graysurf/nils-cli/crates/image-processing` "
-            "and ensure the install directory is in PATH."
-        )
+    image_processing = resolve_codex_command("image-processing")
     return subprocess.run(
-        ["image-processing", *args],
+        [str(image_processing), *args],
         text=True,
         capture_output=True,
     )

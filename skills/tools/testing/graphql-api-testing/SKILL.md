@@ -1,6 +1,6 @@
 ---
 name: graphql-api-testing
-description: Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in setup/graphql/endpoints.env, using the bundled api-gql binary. Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs, replay requests reliably, and record API test reports.
+description: Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in setup/graphql/endpoints.env, using the bundled api-gql CLI. Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs, replay requests reliably, and record API test reports.
 ---
 
 # GraphQL API Testing
@@ -9,7 +9,7 @@ description: Test GraphQL APIs with repeatable, file-based operations and variab
 
 Prereqs:
 
-- `$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql` available (or `api-gql` on `PATH`).
+- `api-gql` available (prefer `$CODEX_COMMANDS_PATH/api-gql`; fallback: `api-gql` on `PATH`).
 - `jq` recommended for pretty-printing/assertions (optional).
 - `setup/graphql/` exists (or bootstrap from template) with operations, vars, and optional endpoint/jwt presets.
 
@@ -50,7 +50,7 @@ Make GraphQL API calls reproducible via:
 Call an existing operation:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
+$CODEX_COMMANDS_PATH/api-gql call \
   --env local \
   --jwt default \
   setup/graphql/operations/<operation>.graphql \
@@ -61,7 +61,7 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
 Generate a report (includes a replayable `## Command` by default):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report \
+$CODEX_COMMANDS_PATH/api-gql report \
   --case "<test case name>" \
   --op setup/graphql/operations/<operation>.graphql \
   --vars setup/graphql/operations/<variables>.json \
@@ -73,23 +73,19 @@ $CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report \
 Generate a report from a copied `api-gql`/`gql.sh` command snippet (no manual rewriting):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
+$CODEX_COMMANDS_PATH/api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
-
-If your repo bootstrapped `setup/graphql/` from the template, you can also use:
-
-- `setup/graphql/api-report-from-cmd.sh '<paste an api-gql/gql.sh command snippet>'`
 
 Replay the last run (history):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql history --command-only
+$CODEX_COMMANDS_PATH/api-gql history --command-only
 ```
 
 Resolve committed schema SDL (for LLMs to author new operations):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql schema --config-dir setup/graphql
+$CODEX_COMMANDS_PATH/api-gql schema --config-dir setup/graphql
 ```
 
 ## Flow (decision tree)
@@ -115,7 +111,7 @@ In CI, use `api-gql call` as the runner and `jq -e` as assertions (exit code is 
 ```bash
 set -euo pipefail
 
-$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql call \
+$CODEX_COMMANDS_PATH/api-gql call \
   --config-dir setup/graphql \
   --env staging \
   --jwt ci \

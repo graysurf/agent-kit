@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import os
-import shutil
 import stat
 import subprocess
 import tempfile
 from pathlib import Path
 
-from skills._shared.python.skill_testing import assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract, resolve_codex_command
 
 
 def test_automation_semantic_commit_autostage_contract() -> None:
@@ -55,8 +54,7 @@ def _write_executable(dir_path: Path, name: str, contents: str) -> None:
 
 
 def test_automation_semantic_commit_autostage_flow_works_with_semantic_commit_binary() -> None:
-    semantic_commit = shutil.which("semantic-commit")
-    assert semantic_commit, "semantic-commit binary not found on PATH"
+    semantic_commit = resolve_codex_command("semantic-commit")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         repo = Path(temp_dir)
@@ -85,7 +83,7 @@ def test_automation_semantic_commit_autostage_flow_works_with_semantic_commit_bi
             path_env = f"{tools}:/usr/bin:/bin:/usr/sbin:/sbin"
 
             proc = _run(
-                [semantic_commit, "commit"],
+                [str(semantic_commit), "commit"],
                 cwd=repo,
                 env={"PATH": path_env},
                 input_text="chore: test\n",

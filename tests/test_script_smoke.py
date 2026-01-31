@@ -237,11 +237,12 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
     run(["git", "add", "hello.txt"])
 
     repo = repo_root()
-    script = "skills/tools/devex/semantic-commit/scripts/staged_context.sh"
+    semantic_commit = repo / "commands" / "semantic-commit"
+    script = "commands/semantic-commit"
     spec: dict[str, Any] = {
-        "args": [],
+        "command": [str(semantic_commit), "staged-context"],
         "timeout_sec": 10,
-        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None},
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": str(repo / "commands")},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
@@ -284,11 +285,16 @@ def test_script_smoke_fixture_semantic_commit_staged_context_cleans_tmp(tmp_path
     tmpdir.mkdir(parents=True, exist_ok=True)
 
     repo = repo_root()
-    script = "skills/tools/devex/semantic-commit/scripts/staged_context.sh"
+    semantic_commit = repo / "commands" / "semantic-commit"
+    script = "commands/semantic-commit"
     spec: dict[str, Any] = {
-        "args": [],
+        "command": [str(semantic_commit), "staged-context"],
         "timeout_sec": 10,
-        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None, "TMPDIR": str(tmpdir)},
+        "env": {
+            "CODEX_HOME": None,
+            "CODEX_COMMANDS_PATH": str(repo / "commands"),
+            "TMPDIR": str(tmpdir),
+        },
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",

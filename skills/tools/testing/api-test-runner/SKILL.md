@@ -1,6 +1,6 @@
 ---
 name: api-test-runner
-description: Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test binary and emitting JSON (+ optional JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools (pytest/node/LLM) to call.
+description: Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test CLI and emitting JSON (+ optional JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools (pytest/node/LLM) to call.
 ---
 
 # API Test Runner (REST + GraphQL)
@@ -9,7 +9,7 @@ description: Run CI-friendly API test suites (REST + GraphQL) from a single mani
 
 Prereqs:
 
-- `$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test` available (or `api-test` on `PATH`).
+- `api-test` available (prefer `$CODEX_COMMANDS_PATH/api-test`; fallback: `api-test` on `PATH`).
 - `jq` recommended for ad-hoc assertions/formatting (optional).
 
 Inputs:
@@ -39,8 +39,8 @@ Failure modes:
 
 Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing callers:
 
-- REST: `$CODEX_HOME/skills/tools/testing/rest-api-testing/bin/api-rest`
-- GraphQL: `$CODEX_HOME/skills/tools/testing/graphql-api-testing/bin/api-gql`
+- REST: `$CODEX_COMMANDS_PATH/api-rest`
+- GraphQL: `$CODEX_COMMANDS_PATH/api-gql`
 
 The runner:
 
@@ -66,19 +66,19 @@ cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 Run a canonical suite:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run --suite smoke-demo --out out/api-test-runner/results.json
+$CODEX_COMMANDS_PATH/api-test run --suite smoke-demo --out out/api-test-runner/results.json
 ```
 
 Emit JUnit for CI reporters:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run --suite smoke-demo --junit out/api-test-runner/junit.xml
+$CODEX_COMMANDS_PATH/api-test run --suite smoke-demo --junit out/api-test-runner/junit.xml
 ```
 
 Generate a human-friendly summary (CI logs + `$GITHUB_STEP_SUMMARY`), based on the results JSON:
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test summary \
+$CODEX_COMMANDS_PATH/api-test summary \
   --in out/api-test-runner/results.json \
   --out out/api-test-runner/summary.md \
   --slow 5
@@ -87,7 +87,7 @@ $CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test summary \
 Hide skipped cases (optional):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test summary \
+$CODEX_COMMANDS_PATH/api-test summary \
   --in out/api-test-runner/results.json \
   --hide-skipped
 ```
@@ -352,7 +352,7 @@ Control:
 Generic shell (write JSON + JUnit as CI artifacts):
 
 ```bash
-$CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run \
+$CODEX_COMMANDS_PATH/api-test run \
   --suite smoke \
   --out out/api-test-runner/results.json \
   --junit out/api-test-runner/junit.xml
@@ -398,7 +398,7 @@ steps:
       CODEX_HOME: ${{ github.workspace }}
       API_TEST_AUTH_JSON: ${{ secrets.API_TEST_AUTH_JSON }}
     run: |
-      $CODEX_HOME/skills/tools/testing/api-test-runner/bin/api-test run \
+      $CODEX_COMMANDS_PATH/api-test run \
         --suite my-suite \
         --tag staging \
         --tag "shard:${{ matrix.shard }}" \
