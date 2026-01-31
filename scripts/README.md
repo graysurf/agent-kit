@@ -26,13 +26,12 @@ Use `build/bundle-wrapper.zsh` to inline a wrapper (and its `source` files)
 into a single executable script. This is helpful when you want a portable,
 repo-local command without external dependencies on wrapper paths.
 
-Example (git-commit-context-json):
+Example (copy mode: project-resolve):
 
 ```zsh
 zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input $HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json \
-  --output commands/git-commit-context-json \
-  --entry git-commit-context-json
+  --input "$HOME/.codex/commands/project-resolve" \
+  --output commands/project-resolve
 ```
 
 Notes:

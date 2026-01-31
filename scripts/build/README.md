@@ -43,15 +43,6 @@ $CODEX_HOME/scripts/test.sh tests/test_script_smoke_bundle_wrapper.py
 
 ## Examples
 
-### Bundle `git-commit-context-json` into this repo’s `commands/`
-
-```zsh
-zsh -f $CODEX_HOME/scripts/build/bundle-wrapper.zsh \
-  --input "$HOME/.config/zsh/cache/wrappers/bin/git-commit-context-json" \
-  --output commands/git-commit-context-json \
-  --entry git-commit-context-json
-```
-
 ### Re-bundle an already-bundled command (copy mode)
 
 ```zsh

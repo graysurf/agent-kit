@@ -261,7 +261,7 @@ def test_script_smoke_fixture_staged_context(tmp_path: Path):
 
 
 @pytest.mark.script_smoke
-def test_script_smoke_fixture_git_commit_context_json_cleans_tmp(tmp_path: Path):
+def test_script_smoke_fixture_semantic_commit_staged_context_cleans_tmp(tmp_path: Path):
     work_tree = tmp_path / "repo"
     work_tree.mkdir(parents=True, exist_ok=True)
 
@@ -284,18 +284,18 @@ def test_script_smoke_fixture_git_commit_context_json_cleans_tmp(tmp_path: Path)
     tmpdir.mkdir(parents=True, exist_ok=True)
 
     repo = repo_root()
-    script = "commands/git-commit-context-json"
+    script = "skills/tools/devex/semantic-commit/scripts/staged_context.sh"
     spec: dict[str, Any] = {
-        "args": ["--stdout", "--bundle"],
+        "args": [],
         "timeout_sec": 10,
-        "env": {"TMPDIR": str(tmpdir)},
+        "env": {"CODEX_HOME": None, "CODEX_COMMANDS_PATH": None, "TMPDIR": str(tmpdir)},
         "expect": {
             "exit_codes": [0],
             "stdout_regex": r"(?s)===== commit-context\.json =====.*hello\.txt.*===== staged\.patch =====.*diff --git a/hello\.txt b/hello\.txt",
         },
     }
 
-    result = run_smoke_script(script, "git-commit-context-json-cleanup", spec, repo, cwd=work_tree)
+    result = run_smoke_script(script, "staged-context-tmp-cleanup", spec, repo, cwd=work_tree)
     SCRIPT_SMOKE_RUN_RESULTS.append(result)
 
     assert result.status == "pass", (
@@ -307,4 +307,4 @@ def test_script_smoke_fixture_git_commit_context_json_cleans_tmp(tmp_path: Path)
     )
 
     leftovers = sorted(p.name for p in tmpdir.iterdir())
-    assert not leftovers, f"unexpected TMPDIR leftovers from git-commit-context-json: {leftovers}"
+    assert not leftovers, f"unexpected TMPDIR leftovers from semantic-commit staged-context: {leftovers}"
