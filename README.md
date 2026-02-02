@@ -65,6 +65,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
+| PR / CI | [gh-fix-ci](./skills/workflows/pr/gh-fix-ci/) | Debug failing GitHub Actions PR checks, summarize logs, and propose a fix plan |
 | PR / Progress | [create-progress-pr](./skills/workflows/pr/progress/create-progress-pr/) | Create a progress planning file under docs/progress/ and open a PR (no implementation yet) |
 | PR / Progress | [handoff-progress-pr](./skills/workflows/pr/progress/handoff-progress-pr/) | Merge and close a progress planning PR; patch Progress link to base branch; kick off implementation PRs |
 | PR / Progress | [worktree-stacked-feature-pr](./skills/workflows/pr/progress/worktree-stacked-feature-pr/) | Handoff a progress planning PR, then create multiple stacked feature PRs using git worktrees and parallel subagents (one PR per sprint/phase) |
@@ -83,6 +84,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
 | DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
 | Media | [image-processing](./skills/tools/media/image-processing/) | Process images (convert/resize/crop/optimize) via ImageMagick |
+| Media | [screenshot](./skills/tools/media/screenshot/) | Capture OS-level screenshots on macOS/Linux/Windows via bundled helpers |
 | SQL | [sql-postgres](./skills/tools/sql/sql-postgres/) | Run PostgreSQL queries via psql using a prefix + env file convention |
 | SQL | [sql-mysql](./skills/tools/sql/sql-mysql/) | Run MySQL queries via mysql client using a prefix + env file convention |
 | SQL | [sql-mssql](./skills/tools/sql/sql-mssql/) | Run SQL Server queries via sqlcmd using a prefix + env file convention |
