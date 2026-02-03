@@ -78,7 +78,7 @@ jobs:
           fi
 
   pytest:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 10
     env:
       CODEX_HOME: ${{ github.workspace }}
@@ -87,11 +87,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install zsh (for script shebangs)
+      - name: Ensure zsh (for script shebangs)
         run: |
           if ! command -v zsh >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y zsh
+            brew install zsh
           fi
 
       - name: Setup Python
@@ -103,8 +102,7 @@ jobs:
 
       - name: Install image processing deps (ImageMagick + WebP + JPEG tools)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick webp libjpeg-progs
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install imagemagick webp jpeg
 
       - name: Install pytest deps
         run: |
