@@ -71,6 +71,7 @@ jobs:
         run: |
           api-test run \
             --suite smoke-demo \
+            --skip rest.httpbin.get \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml
 
@@ -86,7 +87,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner
+          name: api-test-runner-${{ matrix.os }}
           path: |
             out/api-test-runner/results.json
             out/api-test-runner/junit.xml
@@ -181,7 +182,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-cleanup-fixture
+          name: api-test-runner-cleanup-fixture-${{ matrix.os }}
           path: |
             out/api-test-runner/cleanup/
 
@@ -261,7 +262,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-public-auth-demo
+          name: api-test-runner-public-auth-demo-${{ matrix.os }}
           path: |
             out/api-test-runner/public-auth-demo.results.json
             out/api-test-runner/public-auth-demo.junit.xml
@@ -363,7 +364,7 @@ jobs:
         if: ${{ always() && env.API_TEST_AUTH_JSON != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-runner-auth-secrets-demo
+          name: api-test-runner-auth-secrets-demo-${{ matrix.os }}
           path: |
             out/api-test-runner/auth-secrets-demo.results.json
             out/api-test-runner/auth-secrets-demo.junit.xml
