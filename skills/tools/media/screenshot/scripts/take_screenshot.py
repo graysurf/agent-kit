@@ -516,10 +516,10 @@ def main() -> None:
             elif args.region is None and not args.interactive:
                 display_ids = test_display_ids()
         else:
-            ensure_macos_permissions()
             if args.list_windows:
                 list_macos_windows(args)
                 return
+            ensure_macos_permissions()
             if args.window_id is not None:
                 window_ids = [args.window_id]
             elif args.app or args.window_name or args.active_window:
