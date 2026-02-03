@@ -110,9 +110,14 @@ if [[ "$guide_rc" -ne 0 ]]; then
 fi
 
 [[ -n "$guide_json" ]] || die "guide resolution returned empty output"
-mapfile -t guide_fields < <(parse_project_resolve_json "$guide_json")
-guide_path="${guide_fields[0]:-}"
-guide_source="${guide_fields[1]:-repo}"
+guide_payload="$(parse_project_resolve_json "$guide_json")"
+guide_path="${guide_payload%%$'\n'*}"
+if [[ "$guide_payload" == *$'\n'* ]]; then
+  guide_source="${guide_payload#*$'\n'}"
+else
+  guide_source=""
+fi
+guide_source="${guide_source:-repo}"
 [[ -n "$guide_path" ]] || die "guide resolution returned empty path"
 [[ "$guide_source" == "fallback" ]] && guide_source="default"
 
@@ -135,9 +140,14 @@ if [[ "$template_rc" -ne 0 ]]; then
 fi
 
 [[ -n "$template_json" ]] || die "template resolution returned empty output"
-mapfile -t template_fields < <(parse_project_resolve_json "$template_json")
-template_path="${template_fields[0]:-}"
-template_source="${template_fields[1]:-repo}"
+template_payload="$(parse_project_resolve_json "$template_json")"
+template_path="${template_payload%%$'\n'*}"
+if [[ "$template_payload" == *$'\n'* ]]; then
+  template_source="${template_payload#*$'\n'}"
+else
+  template_source=""
+fi
+template_source="${template_source:-repo}"
 [[ -n "$template_path" ]] || die "template resolution returned empty path"
 [[ "$template_source" == "fallback" ]] && template_source="default"
 

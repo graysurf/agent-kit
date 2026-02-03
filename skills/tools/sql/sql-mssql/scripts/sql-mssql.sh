@@ -86,6 +86,12 @@ fi
 if [[ -n "$file" ]]; then
   client_args+=(-i "$file")
 fi
-client_args+=("${pass_args[@]}")
+if ((${#pass_args[@]})); then
+  client_args+=("${pass_args[@]}")
+fi
 
-sql_skill_run_mssql "$prefix" "$env_file" "${client_args[@]}"
+if ((${#client_args[@]})); then
+  sql_skill_run_mssql "$prefix" "$env_file" "${client_args[@]}"
+else
+  sql_skill_run_mssql "$prefix" "$env_file"
+fi

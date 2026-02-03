@@ -149,7 +149,11 @@ if [[ -z "$resolved" && -n "$search_name" ]]; then
   find_type="f"
   [[ "$kind" == "dir" ]] && find_type="d"
 
-  mapfile -t matches < <(
+  matches=()
+  while IFS= read -r match_line; do
+    [[ -n "$match_line" ]] || continue
+    matches+=("$match_line")
+  done < <(
     find "$repo_abs" -maxdepth "$max_depth" -type "$find_type" -name "$search_name" 2>/dev/null | sort
   )
 

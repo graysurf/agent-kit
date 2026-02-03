@@ -190,7 +190,8 @@ sql_skill_run_mssql() {
     base_args+=(-v "schema=${schema}")
   fi
 
-  case "${trust_cert,,}" in
+  trust_cert_lc="$(printf '%s' "$trust_cert" | tr '[:upper:]' '[:lower:]')"
+  case "$trust_cert_lc" in
     1|true|yes) base_args+=(-C) ;;
   esac
 

@@ -119,23 +119,31 @@ if [[ ! -f "$skill_dir/SKILL.md" ]]; then
   exit 1
 fi
 
-mapfile -t skill_scripts < <(find "$skill_dir/scripts" -type f 2>/dev/null | LC_ALL=C sort || true)
+skill_scripts=()
+while IFS= read -r skill_script; do
+  [[ -n "$skill_script" ]] || continue
+  skill_scripts+=("$skill_script")
+done < <(find "$skill_dir/scripts" -type f 2>/dev/null | LC_ALL=C sort || true)
 spec_files=()
-for s in "${skill_scripts[@]}"; do
-  rel="${s#"$repo_root/"}"
-  rel="${rel#./}"
-  spec="tests/script_specs/${rel}.json"
-  if [[ -f "$spec" ]]; then
-    spec_files+=("$spec")
-  fi
-done
+if ((${#skill_scripts[@]})); then
+  for s in "${skill_scripts[@]}"; do
+    rel="${s#"$repo_root/"}"
+    rel="${rel#./}"
+    spec="tests/script_specs/${rel}.json"
+    if [[ -f "$spec" ]]; then
+      spec_files+=("$spec")
+    fi
+  done
+fi
 
 if [[ "$assume_yes" != "1" ]]; then
   echo "About to remove:" >&2
   echo "  - $skill_dir" >&2
-  for spec in "${spec_files[@]}"; do
-    echo "  - $spec" >&2
-  done
+  if ((${#spec_files[@]})); then
+    for spec in "${spec_files[@]}"; do
+      echo "  - $spec" >&2
+    done
+  fi
   echo "This will also edit tracked Markdown files (excluding docs/progress/archived/**) to remove references." >&2
   echo -n "Proceed? (y/N): " >&2
   read -r reply
@@ -148,10 +156,12 @@ fi
 if [[ "$dry_run" == "1" ]]; then
   echo "dry-run: would git rm + delete $skill_dir and ${#spec_files[@]} spec file(s)" >&2
 else
-  for spec in "${spec_files[@]}"; do
-    git rm --ignore-unmatch -- "$spec" >/dev/null 2>&1 || true
-    rm -f -- "$spec" >/dev/null 2>&1 || true
-  done
+  if ((${#spec_files[@]})); then
+    for spec in "${spec_files[@]}"; do
+      git rm --ignore-unmatch -- "$spec" >/dev/null 2>&1 || true
+      rm -f -- "$spec" >/dev/null 2>&1 || true
+    done
+  fi
 
   git rm -r --ignore-unmatch -- "$skill_dir" >/dev/null 2>&1 || true
   rm -rf -- "$skill_dir" >/dev/null 2>&1 || true

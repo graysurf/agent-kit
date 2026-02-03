@@ -115,7 +115,7 @@ if [[ -z "$feature" ]]; then
   feature="$(basename "$repo_root")"
 fi
 
-readarray -t computed < <(python3 - "$title" "$slug" "$date_yyyymmdd" <<'PY'
+computed="$(python3 - "$title" "$slug" "$date_yyyymmdd" <<'PY'
 import datetime
 import re
 import sys
@@ -141,10 +141,14 @@ else:
 print(slug)
 print(dt.isoformat())
 PY
-)
+)"
 
-slug="${computed[0]}"
-date_iso="${computed[1]}"
+slug="${computed%%$'\n'*}"
+if [[ "$computed" == *$'\n'* ]]; then
+  date_iso="${computed#*$'\n'}"
+else
+  date_iso=""
+fi
 
 case "$status" in
   "DRAFT"|"IN PROGRESS"|"DONE")

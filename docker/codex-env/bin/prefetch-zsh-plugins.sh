@@ -44,7 +44,9 @@ while IFS= read -r raw || [[ -n "${raw:-}" ]]; do
   [[ "$line" == \#* ]] && continue
 
   parts=()
-  mapfile -t parts <<<"${line//::/$'\n'}"
+  while IFS= read -r part; do
+    parts+=("$part")
+  done < <(printf '%s\n' "${line//::/$'\n'}")
 
   plugin_name="${parts[0]:-}"
   plugin_name="${plugin_name#"${plugin_name%%[![:space:]]*}"}"

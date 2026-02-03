@@ -63,7 +63,8 @@ def default_smoke_env(repo: Path) -> dict[str, str]:
         p.mkdir(parents=True, exist_ok=True)
 
     stub_bin = repo / "tests" / "stubs" / "bin"
-    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
+    commands_bin = repo / "commands"
+    base["PATH"] = os.pathsep.join([str(stub_bin), str(commands_bin), base.get("PATH", "")])
 
     base.update(
         {
@@ -107,7 +108,8 @@ def default_env(repo: Path) -> dict[str, str]:
         p.mkdir(parents=True, exist_ok=True)
 
     stub_bin = repo / "tests" / "stubs" / "bin"
-    base["PATH"] = os.pathsep.join([str(stub_bin), base.get("PATH", "")])
+    commands_bin = repo / "commands"
+    base["PATH"] = os.pathsep.join([str(stub_bin), str(commands_bin), base.get("PATH", "")])
 
     base.update(
         {

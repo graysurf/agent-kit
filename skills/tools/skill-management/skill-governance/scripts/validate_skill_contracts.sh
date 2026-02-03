@@ -62,7 +62,15 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 if [[ ${#files[@]} -eq 0 ]]; then
-  mapfile -t files < <(git ls-files -- 'skills/**/SKILL.md' | LC_ALL=C sort)
+  while IFS= read -r skill_file; do
+    [[ -n "$skill_file" ]] || continue
+    files+=("$skill_file")
+  done < <(git ls-files -- 'skills/**/SKILL.md' | LC_ALL=C sort)
+fi
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo "error: no SKILL.md files found" >&2
+  exit 1
 fi
 
 python3 - "${files[@]}" <<'PY'

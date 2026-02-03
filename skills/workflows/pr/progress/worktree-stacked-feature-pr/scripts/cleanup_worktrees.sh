@@ -65,7 +65,11 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 }
 
 echo "Scanning worktrees..."
-mapfile -t paths < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+paths=()
+while IFS= read -r worktree_path; do
+  [[ -n "$worktree_path" ]] || continue
+  paths+=("$worktree_path")
+done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
 
 matches=0
 removed=0
