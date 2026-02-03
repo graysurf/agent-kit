@@ -1,6 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'USAGE'
+Usage:
+  ensure_macos_permissions.sh
+
+Checks (and optionally requests) macOS Screen Recording permission for the
+current terminal session. Intended for use by screenshot tooling.
+USAGE
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  "")
+    ;;
+  *)
+    echo "Unknown option: ${1}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac
+
 if [[ "$(uname)" != "Darwin" ]]; then
   echo "ensure_macos_permissions.sh only supports macOS" >&2
   exit 1

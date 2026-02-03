@@ -95,19 +95,28 @@ case "$profile" in
     for cfg in p/supply-chain p/command-injection p/secrets; do
       configs+=(--config "$cfg")
     done
-    pass_args=(--include='*.sh' --include='*.zsh' --include='/commands/**' "${pass_args[@]}")
+    pass_args_base=(--include='*.sh' --include='*.zsh' --include='/commands/**')
+    if ((${#pass_args[@]})); then
+      pass_args=("${pass_args_base[@]}" "${pass_args[@]}")
+    else
+      pass_args=("${pass_args_base[@]}")
+    fi
     ;;
   scripting)
     for cfg in p/python p/supply-chain p/command-injection p/secrets; do
       configs+=(--config "$cfg")
     done
-    pass_args=(
+    pass_args_base=(
       --include='*.py'
       --include='*.sh'
       --include='*.zsh'
       --include='/commands/**'
-      "${pass_args[@]}"
     )
+    if ((${#pass_args[@]})); then
+      pass_args=("${pass_args_base[@]}" "${pass_args[@]}")
+    else
+      pass_args=("${pass_args_base[@]}")
+    fi
     ;;
   *)
     echo "error: unknown --profile: $profile (expected local|recommended|security|shell|scripting)" >&2
@@ -120,13 +129,22 @@ mkdir -p "$out_dir"
 out_json="$out_dir/semgrep-$(basename "$repo_root")-$(date +%Y%m%d-%H%M%S).json"
 
 set +e
-"$semgrep_bin" scan \
-  "${configs[@]}" \
-  --json \
-  --metrics=off \
-  --disable-version-check \
-  "${pass_args[@]}" \
-  "$target" >"$out_json"
+if ((${#pass_args[@]})); then
+  "$semgrep_bin" scan \
+    "${configs[@]}" \
+    --json \
+    --metrics=off \
+    --disable-version-check \
+    "${pass_args[@]}" \
+    "$target" >"$out_json"
+else
+  "$semgrep_bin" scan \
+    "${configs[@]}" \
+    --json \
+    --metrics=off \
+    --disable-version-check \
+    "$target" >"$out_json"
+fi
 rc=$?
 set -e
 
