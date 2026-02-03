@@ -57,11 +57,19 @@ mkdir -p setup
 cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
 ```
 
-Bootstrap a runnable public-endpoint smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`):
+Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, plus a tiny REST fixture):
 
 ```bash
 cp -R "$CODEX_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
 ```
+
+Start the local REST fixture (required by `smoke-demo`):
+
+```bash
+python3 setup/fixtures/httpbin/server.py --port 43127
+```
+
+Run it in a separate terminal (or background it with `&`) so the suite can connect.
 
 Run a canonical suite:
 
@@ -358,9 +366,15 @@ api-test run \
   --junit out/api-test-runner/junit.xml
 ```
 
-GitHub Actions (runs the bundled public smoke suite using the template bootstrap):
+GitHub Actions (runs the bundled smoke suite; local REST fixture + public GraphQL):
 
 - Example workflow file: `.github/workflows/api-test-runner.yml`
+
+The bundled smoke suite expects a local REST fixture on `http://127.0.0.1:43127`:
+
+```bash
+python3 setup/fixtures/httpbin/server.py --port 43127
+```
 
 If you want to run your own suite in CI, replace the bootstrap step with your repo’s committed `setup/api/`.
 

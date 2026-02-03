@@ -4,15 +4,15 @@
   "defaults": {
     "env": "local",
     "noHistory": true,
-    "rest": { "url": "https://httpbin.org" },
+    "rest": { "url": "http://127.0.0.1:43127" },
     "graphql": { "url": "https://countries.trevorblades.com/" }
   },
   "cases": [
     {
-      "id": "rest.httpbin.get",
+      "id": "rest.local.get",
       "type": "rest",
       "tags": ["public", "demo", "smoke"],
-      "request": "setup/rest/requests/httpbin.get.request.json"
+      "request": "setup/rest/requests/local.get.request.json"
     },
     {
       "id": "graphql.countries.country",

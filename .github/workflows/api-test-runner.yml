@@ -69,9 +69,24 @@ jobs:
         env:
           CODEX_HOME: ${{ github.workspace }}
         run: |
+          set -euo pipefail
+
+          port=43127
+          mkdir -p out/api-test-runner
+          python3 -u setup/fixtures/httpbin/server.py --port "$port" >out/api-test-runner/httpbin-fixture.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" >/dev/null 2>&1 || true' EXIT
+
+          for i in $(seq 1 50); do
+            if curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.1
+          done
+          curl -fsS "http://127.0.0.1:${port}/health" >/dev/null
+
           api-test run \
             --suite smoke-demo \
-            --skip rest.httpbin.get \
             --out out/api-test-runner/results.json \
             --junit out/api-test-runner/junit.xml
 

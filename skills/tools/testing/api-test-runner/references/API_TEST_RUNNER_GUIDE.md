@@ -131,9 +131,17 @@ Option B (recommended when JWTs expire): runtime login via a single JSON secret 
 
 ## GitHub Actions
 
-The repo ships a working example workflow using the bundled public suite:
+The repo ships a working example workflow using the bundled smoke suite (local REST fixture + public GraphQL):
 
 - `.github/workflows/api-test-runner.yml`
+
+The bundled smoke suite expects a local REST fixture on `http://127.0.0.1:43127`:
+
+```bash
+python3 setup/fixtures/httpbin/server.py --port 43127
+```
+
+Run it in a separate terminal (or background it with `&`) so the suite can connect.
 
 To make CI runs easier to scan (especially for non-engineers), generate a small human-friendly summary from the results JSON:
 
@@ -143,7 +151,7 @@ To make CI runs easier to scan (especially for non-engineers), generate a small 
 
 If you want to run a committed `tests/` layout instead:
 
-- Remove the “Bootstrap public suite” step
+- Remove the “Bootstrap smoke suite” step
 - Change the run command to use `--suite <suite>` (or `--suite-file tests/api/suites/<suite>.suite.json`)
 
 ### Matrix sharding (parallel by tags)
