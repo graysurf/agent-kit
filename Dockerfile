@@ -11,6 +11,7 @@ ARG IMAGE_LICENSES="MIT"
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG INSTALL_TOOLS="1"
+ARG INSTALL_NILS_CLI="1"
 ARG INSTALL_OPTIONAL_TOOLS="1"
 ARG INSTALL_VSCODE="1"
 ARG PREFETCH_ZSH_PLUGINS="1"
@@ -56,6 +57,13 @@ ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
 ENV HOMEBREW_CELLAR="/home/linuxbrew/.linuxbrew/Cellar"
 ENV HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
 ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
+
+RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
+    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew tap graysurf/tap; \
+    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install nils-cli; \
+  else \
+    echo "skip: nils-cli (INSTALL_NILS_CLI != 1)" >&2; \
+  fi
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
 ARG ZSH_KIT_REF="main"
