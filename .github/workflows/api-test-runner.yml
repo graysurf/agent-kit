@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   smoke-demo:
+    name: Smoke suite (local REST + GraphQL via httpbin fixture)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -109,6 +110,7 @@ jobs:
             out/api-test-runner/summary.md
 
   cleanup-fixture:
+    name: Cleanup fixture suite (REST + GraphQL writes + cleanup)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -202,6 +204,7 @@ jobs:
             out/api-test-runner/cleanup/
 
   public-auth-demo:
+    name: Public auth demo (DummyJSON REST + Escuelajs GraphQL expected fail)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -286,6 +289,7 @@ jobs:
   auth-secrets-demo:
     # Requires a repo secret named API_TEST_AUTH_JSON (single JSON string).
     # Note: `jobs.<job_id>.if` cannot use `secrets` context, so we gate steps via env instead.
+    name: Auth via API_TEST_AUTH_JSON (DummyJSON REST + Countries GraphQL)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
