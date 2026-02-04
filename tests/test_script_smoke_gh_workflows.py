@@ -47,6 +47,30 @@ def test_script_smoke_fixture_close_feature_pr(tmp_path: Path):
     repo = repo_root()
     script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
     log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr")
+    pr_body = "\n".join(
+        [
+            "# Fixture PR",
+            "",
+            "## Progress",
+            "- None",
+            "",
+            "## Planning PR",
+            "- None",
+            "",
+            "## Summary",
+            "Fixture.",
+            "",
+            "## Changes",
+            "- Fixture",
+            "",
+            "## Testing",
+            "- not run (fixture)",
+            "",
+            "## Risk / Notes",
+            "- None",
+            "",
+        ]
+    )
     spec = {
         "args": ["--pr", "123", "--skip-checks", "--no-cleanup"],
         "timeout_sec": 15,
@@ -58,6 +82,7 @@ def test_script_smoke_fixture_close_feature_pr(tmp_path: Path):
             "CODEX_GH_STUB_BASE_REF": "main",
             "CODEX_GH_STUB_HEAD_REF": "feat/fixture",
             "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_BODY": pr_body,
         },
     }
 
@@ -68,6 +93,104 @@ def test_script_smoke_fixture_close_feature_pr(tmp_path: Path):
     calls_path = log_dir / "gh.calls.txt"
     calls = calls_path.read_text("utf-8")
     assert "gh pr merge 123" in calls
+
+    patched_body = (log_dir / "gh.pr.123.body.md").read_text("utf-8")
+    assert "## Progress" not in patched_body
+    assert "## Planning PR" not in patched_body
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_feature_pr_strips_progress_only(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr-strip-progress-only")
+    pr_body = "\n".join(
+        [
+            "# Fixture PR",
+            "",
+            "## Progress",
+            "- None",
+            "",
+            "## Planning PR",
+            "- #42",
+            "",
+            "## Summary",
+            "Fixture.",
+            "",
+        ]
+    )
+    spec = {
+        "args": ["--pr", "124", "--skip-checks", "--no-cleanup"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "124",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/124",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "feat/fixture",
+            "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-strip-progress-only", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    patched_body = (log_dir / "gh.pr.124.body.md").read_text("utf-8")
+    assert "## Progress" not in patched_body
+    assert "## Planning PR" in patched_body
+    assert "#42" in patched_body
+
+
+@pytest.mark.script_smoke
+def test_script_smoke_fixture_close_feature_pr_strips_planning_only(tmp_path: Path):
+    work_tree, _ = init_fixture_repo(tmp_path)
+
+    repo = repo_root()
+    script = "skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "close-feature-pr-strip-planning-only")
+    pr_body = "\n".join(
+        [
+            "# Fixture PR",
+            "",
+            "## Progress",
+            "- https://example.com/progress",
+            "",
+            "## Planning PR",
+            "- None",
+            "",
+            "## Summary",
+            "Fixture.",
+            "",
+        ]
+    )
+    spec = {
+        "args": ["--pr", "125", "--skip-checks", "--no-cleanup"],
+        "timeout_sec": 15,
+        "env": {
+            "CODEX_GH_STUB_MODE_ENABLED": "true",
+            "CODEX_STUB_LOG_DIR": str(log_dir),
+            "CODEX_GH_STUB_PR_NUMBER": "125",
+            "CODEX_GH_STUB_PR_URL": "https://github.com/example/repo/pull/125",
+            "CODEX_GH_STUB_BASE_REF": "main",
+            "CODEX_GH_STUB_HEAD_REF": "feat/fixture",
+            "CODEX_GH_STUB_STATE": "OPEN",
+            "CODEX_GH_STUB_BODY": pr_body,
+        },
+    }
+
+    result = run_smoke_script(script, "fixture-strip-planning-only", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+    assert result.status == "pass", result
+
+    patched_body = (log_dir / "gh.pr.125.body.md").read_text("utf-8")
+    assert "## Planning PR" not in patched_body
+    assert "## Progress" in patched_body
+    assert "https://example.com/progress" in patched_body
 
 
 @pytest.mark.script_smoke
