@@ -1,11 +1,11 @@
 ---
 name: screenshot
-description: Capture a single window screenshot on macOS via screen-record.
+description: Capture window/desktop screenshots on macOS (screen-record + screencapture).
 ---
 
 # Screenshot
 
-Capture a single window screenshot on macOS using the `screen-record` CLI.
+Capture window and desktop screenshots on macOS (window via `screen-record`, desktop via `screencapture`).
 
 ## Contract
 
@@ -14,13 +14,15 @@ Prereqs:
 - `screen-record` available on `PATH` (install via `brew install nils-cli`).
 - macOS 12+ for real screenshots (uses ScreenCaptureKit).
 - Screen Recording permission granted (use `screen-record --preflight` / `--request-permission`).
-- `bash` for `scripts/screenshot.sh`.
+- `screencapture` (built-in on macOS) for `--desktop` mode.
+- `bash` for `scripts/screenshot.sh` (wrapper).
 
 Inputs:
 
-- `scripts/screenshot.sh` is a thin wrapper around `screen-record`.
+- `scripts/screenshot.sh` is a wrapper around `screen-record` (window) and `screencapture` (desktop).
 - Mode selection:
   - Default: screenshot mode (wrapper adds `--screenshot` unless a different mode flag is present).
+  - Desktop: `--desktop` captures the main display (ignores window selectors).
   - Discovery: `--list-windows` / `--list-apps`.
   - Permissions: `--preflight` / `--request-permission`.
 - Screenshot selectors (choose one):
@@ -51,6 +53,7 @@ Failure modes:
 - Screen Recording permission missing/denied.
 - Ambiguous `--app` / `--window-name` selection (no single match).
 - Invalid flag combinations.
+- `--desktop` only supports `--image-format png|jpg`.
 
 ## Scripts (only entrypoints)
 
@@ -62,6 +65,12 @@ Failure modes:
 
 ```bash
 $CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
+```
+
+- Screenshot the desktop (main display):
+
+```bash
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$CODEX_HOME/out/desktop.png"
 ```
 
 - List windows to find a `--window-id`:

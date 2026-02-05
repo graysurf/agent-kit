@@ -98,7 +98,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
 | Media | [image-processing](./skills/tools/media/image-processing/) | Process images (convert/resize/crop/optimize) via ImageMagick |
 | Media | [screen-record](./skills/tools/media/screen-record/) | Record a single window to a video file via the screen-record CLI (macOS 12+) |
-| Media | [screenshot](./skills/tools/media/screenshot/) | Capture a single window screenshot on macOS via screen-record |
+| Media | [screenshot](./skills/tools/media/screenshot/) | Capture window/desktop screenshots on macOS (screen-record + screencapture) |
 | SQL | [sql-postgres](./skills/tools/sql/sql-postgres/) | Run PostgreSQL queries via psql using a prefix + env file convention |
 | SQL | [sql-mysql](./skills/tools/sql/sql-mysql/) | Run MySQL queries via mysql client using a prefix + env file convention |
 | SQL | [sql-mssql](./skills/tools/sql/sql-mssql/) | Run SQL Server queries via sqlcmd using a prefix + env file convention |
