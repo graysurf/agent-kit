@@ -1,31 +1,33 @@
 ---
 name: screenshot
-description: Capture window/desktop screenshots on macOS (screen-record + screencapture).
+description: Capture screenshots via screen-record on macOS and Linux, with optional macOS desktop capture via screencapture.
 ---
 
 # Screenshot
 
-Capture window and desktop screenshots on macOS (window via `screen-record`, desktop via `screencapture`).
+Capture screenshots through `screen-record` (macOS/Linux) and optional desktop capture via `screencapture` on macOS.
 
 ## Contract
 
 Prereqs:
 
 - `screen-record` available on `PATH` (install via `brew install nils-cli`).
-- macOS 12+ for real screenshots (uses ScreenCaptureKit).
-- Screen Recording permission granted (use `screen-record --preflight` / `--request-permission`).
-- `screencapture` (built-in on macOS) for `--desktop` mode.
+- macOS: Screen Recording permission granted (use `screen-record --preflight` / `--request-permission`).
+- Linux: follow `screen-record` runtime prerequisites (X11 selectors or Wayland `--portal`, plus required dependencies).
+- `screencapture` (built-in on macOS) only when using `--desktop`.
 - `bash` for `scripts/screenshot.sh` (wrapper).
 
 Inputs:
 
-- `scripts/screenshot.sh` is a wrapper around `screen-record` (window) and `screencapture` (desktop).
+- `scripts/screenshot.sh` is a wrapper around `screen-record`; `--desktop` uses `screencapture`.
 - Mode selection:
-  - Default: screenshot mode (wrapper adds `--screenshot` unless a different mode flag is present).
-  - Desktop: `--desktop` captures the main display (ignores window selectors).
-  - Discovery: `--list-windows` / `--list-apps`.
+  - Default: screenshot mode (wrapper adds `--screenshot` unless a pass-through mode is present).
+  - Desktop helper: `--desktop` captures the main display via `screencapture` (macOS only).
+  - Discovery: `--list-windows` / `--list-apps` / `--list-displays`.
   - Permissions: `--preflight` / `--request-permission`.
+  - Version: `--version` / `-V` pass through to `screen-record`.
 - Screenshot selectors (choose one):
+  - `--portal`, or
   - `--window-id <id>`, or
   - `--active-window`, or
   - `--app <name>` (optional `--window-name <name>` with `--app`).
@@ -49,10 +51,12 @@ Exit codes:
 Failure modes:
 
 - `screen-record` missing on `PATH`.
-- Non-macOS runtime (without `CODEX_SCREEN_RECORD_TEST_MODE`) returns a usage error.
-- Screen Recording permission missing/denied.
+- Screen Recording permission missing/denied (macOS).
+- Linux X11 selectors/list modes used without `DISPLAY` (use `--portal` on Wayland-only sessions).
+- `screen-record` runtime dependencies missing (for example: portal backend on Wayland-only sessions).
 - Ambiguous `--app` / `--window-name` selection (no single match).
 - Invalid flag combinations.
+- `--desktop` used on non-macOS.
 - `--desktop` only supports `--image-format png|jpg`.
 
 ## Scripts (only entrypoints)
@@ -67,7 +71,13 @@ Failure modes:
 $CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
 ```
 
-- Screenshot the desktop (main display):
+- Screenshot via portal picker (Linux Wayland):
+
+```bash
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --portal --path "$CODEX_HOME/out/screenshot-portal.png"
+```
+
+- Screenshot the desktop (main display helper, macOS only):
 
 ```bash
 $CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$CODEX_HOME/out/desktop.png"
@@ -77,6 +87,12 @@ $CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path
 
 ```bash
 $CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-windows
+```
+
+- List displays (pass-through to `screen-record`):
+
+```bash
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-displays
 ```
 
 - Screenshot by app/window title:
@@ -95,3 +111,4 @@ screen-record --request-permission
 ## Notes
 
 - Prefer writing under `"$CODEX_HOME/out/"` so outputs are easy to attach/inspect.
+- For non-window video capture, use `screen-record --display` / `--display-id` (recording mode).

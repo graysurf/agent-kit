@@ -9,9 +9,9 @@ Usage:
 Thin wrapper around the `screen-record` CLI.
 
 Behavior:
-  - If you pass a mode flag (`--list-windows`, `--list-apps`, `--preflight`,
+  - If you pass a mode flag (`--list-windows`, `--list-apps`, `--list-displays`, `--preflight`,
     `--request-permission`), this script forwards args to `screen-record` as-is.
-  - If you pass `--desktop`, this script captures the main display via `screencapture`.
+  - If you pass `--desktop`, this script captures the main display via `screencapture` (macOS only).
   - Otherwise, this script defaults to screenshot mode (adds `--screenshot`).
 
 Options:
@@ -21,7 +21,9 @@ Options:
 Examples:
   screenshot.sh --desktop --path "$CODEX_HOME/out/desktop.png"
   screenshot.sh --list-windows
+  screenshot.sh --list-displays
   screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
+  screenshot.sh --portal --path "$CODEX_HOME/out/screenshot-portal.png"
   screenshot.sh --app "Terminal" --window-name "Docs" --path "$CODEX_HOME/out/terminal-docs.png"
 
 For full flags, run:
@@ -32,12 +34,6 @@ USAGE
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
   exit 0
-fi
-
-os="$(uname -s 2>/dev/null || true)"
-if [[ "$os" != "Darwin" && -z "${CODEX_SCREEN_RECORD_TEST_MODE:-}" ]]; then
-  echo "error: screenshot skill only supports macOS (screen-record)" >&2
-  exit 2
 fi
 
 desktop_mode=0
@@ -51,6 +47,13 @@ for arg in "$@"; do
 done
 
 if [[ "$desktop_mode" == "1" ]]; then
+  os="$(uname -s 2>/dev/null || true)"
+  if [[ "$os" != "Darwin" && -z "${CODEX_SCREEN_RECORD_TEST_MODE:-}" ]]; then
+    echo "error: --desktop is only supported on macOS (uses screencapture)" >&2
+    echo "hint: on Linux/Wayland, use screen-record --screenshot --portal" >&2
+    exit 2
+  fi
+
   if ! command -v screencapture >/dev/null 2>&1; then
     echo "error: screencapture is required (built-in on macOS)" >&2
     exit 1
@@ -177,7 +180,7 @@ fi
 pass_through=0
 for arg in "${args[@]}"; do
   case "$arg" in
-    --list-windows|--list-apps|--preflight|--request-permission)
+    --list-windows|--list-apps|--list-displays|--preflight|--request-permission|-V|--version)
       pass_through=1
       break
       ;;
@@ -196,7 +199,7 @@ for arg in "${args[@]}"; do
     --screenshot)
       has_screenshot=1
       ;;
-    --window-id|--window-id=*|--app|--app=*|--active-window)
+    --window-id|--window-id=*|--app|--app=*|--active-window|--portal)
       has_selector=1
       ;;
     --path|--path=*|--dir|--dir=*)
