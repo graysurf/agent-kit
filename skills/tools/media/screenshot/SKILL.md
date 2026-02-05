@@ -1,78 +1,88 @@
 ---
 name: screenshot
-description: Capture OS-level screenshots on macOS/Linux/Windows via bundled helpers.
+description: Capture a single window screenshot on macOS via screen-record.
 ---
 
 # Screenshot
 
-Capture OS-level screenshots with bundled helpers on macOS/Linux/Windows.
+Capture a single window screenshot on macOS using the `screen-record` CLI.
 
 ## Contract
 
 Prereqs:
 
-- `bash` and `python3` for `scripts/screenshot.sh` (macOS/Linux).
-- macOS: `swift` for permission preflight and Screen Recording permission.
-- Linux: `scrot`, `gnome-screenshot`, or ImageMagick `import` (optional `xdotool` for active-window capture).
-- Windows: `powershell` for `scripts/take_screenshot.ps1`.
+- `screen-record` available on `PATH` (install via `brew install nils-cli`).
+- macOS 12+ for real screenshots (uses ScreenCaptureKit).
+- Screen Recording permission granted (use `screen-record --preflight` / `--request-permission`).
+- `bash` for `scripts/screenshot.sh`.
 
 Inputs:
 
-- `scripts/screenshot.sh` (macOS/Linux) forwards args to `scripts/take_screenshot.py`.
-- Supported flags include `--mode`, `--path`, `--app`, `--window-name`, `--window-id`, `--active-window`, `--region`, `--list-windows`.
-- `scripts/take_screenshot.ps1` (Windows) supports `-Mode`, `-Path`, `-Region`, `-ActiveWindow`, `-WindowHandle`.
+- `scripts/screenshot.sh` is a thin wrapper around `screen-record`.
+- Mode selection:
+  - Default: screenshot mode (wrapper adds `--screenshot` unless a different mode flag is present).
+  - Discovery: `--list-windows` / `--list-apps`.
+  - Permissions: `--preflight` / `--request-permission`.
+- Screenshot selectors (choose one):
+  - `--window-id <id>`, or
+  - `--active-window`, or
+  - `--app <name>` (optional `--window-name <name>` with `--app`).
+- Screenshot output args:
+  - `--path <file>` (recommended), or
+  - `--dir <dir>` (used when `--path` is omitted), plus optional `--image-format png|jpg|webp`.
 
 Outputs:
 
-- Screenshot file path(s) printed to stdout (one per line).
-- Files written to the requested path, OS default screenshot folder, or temp location.
+- Screenshot success: stdout prints only the resolved output image path (one line).
+- List success: stdout prints only UTF-8 TSV rows (no header), one per line.
+- Preflight/request success: stdout is empty; any user messaging goes to stderr.
+- Errors: stdout is empty; stderr contains user-facing errors (no stack traces).
 
 Exit codes:
 
 - `0`: success
 - `1`: runtime failure or missing dependency
-- `2`: usage error or unsupported platform
-- `3`: macOS permission preflight blocked in sandbox
+- `2`: usage error (invalid flags/ambiguous selection/unsupported platform)
 
 Failure modes:
 
-- macOS Screen Recording permission missing or denied.
-- No supported screenshot tool found on Linux.
-- PowerShell missing on Windows.
-- App/window selection returns no matches.
+- `screen-record` missing on `PATH`.
+- Non-macOS runtime (without `CODEX_SCREEN_RECORD_TEST_MODE`) returns a usage error.
+- Screen Recording permission missing/denied.
+- Ambiguous `--app` / `--window-name` selection (no single match).
+- Invalid flag combinations.
 
 ## Scripts (only entrypoints)
 
 - `$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh`
-- `$CODEX_HOME/skills/tools/media/screenshot/scripts/take_screenshot.ps1`
 
 ## Usage
 
-- macOS/Linux default location:
+- Screenshot (active window) to `$CODEX_HOME/out/` (recommended):
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
 ```
 
-- macOS/Linux explicit output (recommended for Codex inspection):
+- List windows to find a `--window-id`:
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --path "$CODEX_HOME/out/screenshot.png"
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-windows
 ```
 
-- macOS app capture with preflight:
+- Screenshot by app/window title:
 
 ```bash
-$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --preflight --app "Codex" --mode temp
+$CODEX_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --app "Terminal" --window-name "Docs" --path "$CODEX_HOME/out/terminal-docs.png"
 ```
 
-- Windows (PowerShell):
+- Permission preflight / request (if blocked):
 
-```powershell
-powershell -ExecutionPolicy Bypass -File $CODEX_HOME/skills/tools/media/screenshot/scripts/take_screenshot.ps1 -Mode temp
+```bash
+screen-record --preflight
+screen-record --request-permission
 ```
 
 ## Notes
 
-- For Codex inspection outputs, prefer `--path "$CODEX_HOME/out/..."` instead of `--mode temp`.
-- Third-party license for helper scripts: `references/LICENSE.txt`.
+- Prefer writing under `"$CODEX_HOME/out/"` so outputs are easy to attach/inspect.

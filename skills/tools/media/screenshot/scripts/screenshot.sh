@@ -4,83 +4,97 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  screenshot.sh [--preflight] [--help] [--] <args...>
+  screenshot.sh [--help] [--] <screen-record args...>
 
-Delegates to the cross-platform Python helper on macOS/Linux.
-On Windows, run the PowerShell helper directly.
+Thin wrapper around the `screen-record` CLI.
+
+Behavior:
+  - If you pass a mode flag (`--list-windows`, `--list-apps`, `--preflight`,
+    `--request-permission`), this script forwards args to `screen-record` as-is.
+  - Otherwise, this script defaults to screenshot mode (adds `--screenshot`).
 
 Options:
-  --preflight    Run macOS Screen Recording permission helper before capture.
   --help         Show this help text.
 
 Examples:
-  screenshot.sh --mode temp
-  screenshot.sh --preflight --app "Codex"
-  screenshot.sh --path "$CODEX_HOME/out/screenshot.png"
+  screenshot.sh --list-windows
+  screenshot.sh --active-window --path "$CODEX_HOME/out/screenshot.png"
+  screenshot.sh --app "Terminal" --window-name "Docs" --path "$CODEX_HOME/out/terminal-docs.png"
 
-Pass-through arguments are forwarded to scripts/take_screenshot.py.
+For full flags, run:
+  screen-record --help
 USAGE
 }
 
-preflight=0
-pass_args=()
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
 
-while [[ $# -gt 0 ]]; do
-  case "${1:-}" in
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    --preflight)
-      preflight=1
-      shift
-      ;;
-    --)
-      shift
-      pass_args+=("$@")
+if ! command -v screen-record >/dev/null 2>&1; then
+  cat <<'MSG' >&2
+error: screen-record is required
+
+Install:
+  brew install nils-cli
+MSG
+  exit 1
+fi
+
+os="$(uname -s 2>/dev/null || true)"
+if [[ "$os" != "Darwin" && -z "${CODEX_SCREEN_RECORD_TEST_MODE:-}" ]]; then
+  echo "error: screenshot skill only supports macOS (screen-record)" >&2
+  exit 2
+fi
+
+args=("$@")
+
+pass_through=0
+for arg in "${args[@]}"; do
+  case "$arg" in
+    --list-windows|--list-apps|--preflight|--request-permission)
+      pass_through=1
       break
-      ;;
-    *)
-      pass_args+=("${1:-}")
-      shift
       ;;
   esac
 done
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-python_helper="$script_dir/take_screenshot.py"
-
-os="$(uname -s 2>/dev/null || true)"
-case "$os" in
-  Darwin)
-    platform="macos"
-    ;;
-  Linux)
-    platform="linux"
-    ;;
-  MINGW*|MSYS*|CYGWIN*|Windows_NT)
-    platform="windows"
-    ;;
-  *)
-    platform="unknown"
-    ;;
-esac
-
-if [[ "$platform" == "windows" ]]; then
-  cat <<'MSG' >&2
-Windows detected. Run the PowerShell helper instead:
-  powershell -ExecutionPolicy Bypass -File scripts/take_screenshot.ps1
-MSG
-  exit 2
+if [[ "$pass_through" == "1" ]]; then
+  exec screen-record "${args[@]}"
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "error: python3 is required" >&2
-  exit 1
+has_screenshot=0
+has_selector=0
+has_output=0
+for arg in "${args[@]}"; do
+  case "$arg" in
+    --screenshot)
+      has_screenshot=1
+      ;;
+    --window-id|--window-id=*|--app|--app=*|--active-window)
+      has_selector=1
+      ;;
+    --path|--path=*|--dir|--dir=*)
+      has_output=1
+      ;;
+  esac
+done
+
+final_args=()
+if [[ "$has_screenshot" == "0" ]]; then
+  final_args+=(--screenshot)
 fi
 
-if [[ "$platform" == "macos" && "$preflight" == "1" ]]; then
-  "$script_dir/ensure_macos_permissions.sh"
+if [[ "$has_selector" == "0" ]]; then
+  final_args+=(--active-window)
 fi
 
-exec python3 "$python_helper" "${pass_args[@]}"
+if [[ "$has_output" == "0" && -n "${CODEX_HOME:-}" && -d "${CODEX_HOME:-}" ]]; then
+  out_dir="${CODEX_HOME}/out/screenshot"
+  mkdir -p "$out_dir" 2>/dev/null || true
+  final_args+=(--dir "$out_dir")
+fi
+
+final_args+=("${args[@]}")
+
+exec screen-record "${final_args[@]}"
