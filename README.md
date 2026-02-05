@@ -89,6 +89,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Area | Skill | Description |
 | --- | --- | --- |
 | Browser | [chrome-devtools-site-search](./skills/tools/browser/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
+| Browser | [playwright](./skills/tools/browser/playwright/) | Automate a real browser via Playwright CLI using the wrapper script |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/) | Audit skill layout and validate SKILL.md contracts |
 | Skill Management | [create-skill](./skills/tools/skill-management/create-skill/) | Scaffold a new skill directory that passes skill-governance audit and contract validation |
 | Skill Management | [remove-skill](./skills/tools/skill-management/remove-skill/) | Remove a tracked skill directory and purge non-archived repo references (breaking change) |
