@@ -44,6 +44,7 @@ FAILURE_MARKERS = (
 DEFAULT_MAX_LINES = 160
 DEFAULT_CONTEXT_LINES = 30
 DEFAULT_RUN_LIMIT = 20
+PENDING_EXIT_CODE_PR_CHECKS = 8
 PENDING_LOG_MARKERS = (
     "still in progress",
     "log will be available when it is complete",
@@ -104,6 +105,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_RUN_LIMIT,
         help="Max workflow runs to inspect when using branch/commit targets.",
     )
+    parser.add_argument(
+        "--required",
+        action="store_true",
+        help="PR targets only: only show required checks (uses `gh pr checks --required`).",
+    )
     parser.add_argument("--max-lines", type=int, default=DEFAULT_MAX_LINES)
     parser.add_argument("--context", type=int, default=DEFAULT_CONTEXT_LINES)
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text output.")
@@ -125,7 +131,7 @@ def main() -> int:
         return 1
 
     if target.kind == "pr":
-        checks = fetch_pr_checks(target.value, repo_root)
+        checks = fetch_pr_checks(target.value, repo_root, required=args.required)
     else:
         checks = fetch_runs_for_ref(
             target.value,
@@ -273,42 +279,76 @@ def is_probable_sha(value: str) -> bool:
     return bool(re.fullmatch(r"[0-9a-fA-F]{7,40}", value))
 
 
-def fetch_pr_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
-    primary_fields = ["name", "state", "conclusion", "detailsUrl", "startedAt", "completedAt"]
-    result = run_gh_command(
-        ["pr", "checks", pr_value, "--json", ",".join(primary_fields)],
-        cwd=repo_root,
-    )
-    if result.returncode != 0:
+def fetch_pr_checks(pr_value: str, repo_root: Path, *, required: bool) -> list[dict[str, Any]] | None:
+    # `gh pr checks --json` fields drift across gh versions. Prefer the
+    # currently documented fields first, then fall back to older candidates.
+    candidate_field_sets: list[list[str]] = [
+        [
+            "name",
+            "state",
+            "bucket",
+            "link",
+            "workflow",
+            "startedAt",
+            "completedAt",
+            "description",
+            "event",
+        ],
+        ["name", "state", "bucket", "link", "workflow", "startedAt", "completedAt"],
+        ["name", "state", "conclusion", "detailsUrl", "startedAt", "completedAt"],
+    ]
+    minimal_fallback_fields = [
+        "name",
+        "state",
+        "bucket",
+        "link",
+        "startedAt",
+        "completedAt",
+        "workflow",
+    ]
+
+    def run(fields: list[str]) -> GhResult:
+        cmd = ["pr", "checks", pr_value]
+        if required:
+            cmd.append("--required")
+        cmd += ["--json", ",".join(fields)]
+        return run_gh_command(cmd, cwd=repo_root)
+
+    last_message = ""
+    for fields in candidate_field_sets:
+        result = run(fields)
+        if result.returncode in (0, PENDING_EXIT_CODE_PR_CHECKS):
+            return parse_pr_checks_json(result.stdout)
+
         message = "\n".join(filter(None, [result.stderr, result.stdout])).strip()
+        if message:
+            last_message = message
+
         available_fields = parse_available_fields(message)
-        if available_fields:
-            fallback_fields = [
-                "name",
-                "state",
-                "bucket",
-                "link",
-                "startedAt",
-                "completedAt",
-                "workflow",
-            ]
-            selected_fields = [field for field in fallback_fields if field in available_fields]
-            if not selected_fields:
-                print("Error: no usable fields available for gh pr checks.", file=sys.stderr)
-                return None
-            result = run_gh_command(
-                ["pr", "checks", pr_value, "--json", ",".join(selected_fields)],
-                cwd=repo_root,
-            )
-            if result.returncode != 0:
-                message = (result.stderr or result.stdout or "").strip()
-                print(message or "Error: gh pr checks failed.", file=sys.stderr)
-                return None
-        else:
-            print(message or "Error: gh pr checks failed.", file=sys.stderr)
-            return None
+        if not available_fields:
+            continue
+
+        selected_fields = [field for field in fields if field in available_fields]
+        if not selected_fields:
+            selected_fields = [field for field in minimal_fallback_fields if field in available_fields]
+        if not selected_fields:
+            continue
+
+        result = run(selected_fields)
+        if result.returncode in (0, PENDING_EXIT_CODE_PR_CHECKS):
+            return parse_pr_checks_json(result.stdout)
+
+        retry_message = "\n".join(filter(None, [result.stderr, result.stdout])).strip()
+        if retry_message:
+            last_message = retry_message
+
+    print(last_message or "Error: gh pr checks failed.", file=sys.stderr)
+    return None
+
+
+def parse_pr_checks_json(payload: str) -> list[dict[str, Any]] | None:
     try:
-        data = json.loads(result.stdout or "[]")
+        data = json.loads(payload or "[]")
     except json.JSONDecodeError:
         print("Error: unable to parse checks JSON.", file=sys.stderr)
         return None
@@ -352,6 +392,18 @@ def fetch_runs_for_ref(
     if not isinstance(runs, list):
         print("Error: unexpected workflow runs JSON shape.", file=sys.stderr)
         return None
+
+    # For branch targets, only consider runs for the newest head SHA in the list.
+    # This avoids reporting failures from older (or cancelled) runs after new pushes.
+    if ref_type == "branch":
+        newest_sha = None
+        for run in runs:
+            sha = run.get("headSha")
+            if sha:
+                newest_sha = sha
+                break
+        if newest_sha:
+            runs = [run for run in runs if run.get("headSha") == newest_sha]
 
     normalized: list[dict[str, Any]] = []
     for run in runs:

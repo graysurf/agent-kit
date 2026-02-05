@@ -5,7 +5,7 @@ usage() {
   cat <<'USAGE'
 Usage:
   gh-fix-ci.sh [--repo <path>] [--pr <number|url>] [--ref <branch|sha>] [--branch <name>] [--commit <sha>]
-               [--limit <n>] [--max-lines <n>] [--context <n>] [--json]
+               [--limit <n>] [--required] [--max-lines <n>] [--context <n>] [--json]
 
 Runs the bundled inspect_ci_checks.py to fetch failing PR or branch checks and log snippets.
 
