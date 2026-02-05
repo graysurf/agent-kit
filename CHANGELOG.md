@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.1 - 2026-02-06
+
+### Added
+- Browser automation: add the `playwright` skill and wrapper CLI help flow.
+- Media capture: add `screen-record` and `screenshot` skills, including desktop screenshot mode.
+- Testing: add `api-test-runner` local GraphQL fixture coverage in CI.
+
+### Changed
+- Skills/docs: align `screen-record` and `screenshot` contracts with Linux and desktop-target behavior.
+- Automation: relocate `gh-fix-ci` under automation workflows and refresh CI/workflow naming/filters.
+- Tooling: migrate script entrypoints to `nils-cli` command wrappers and remove deprecated helper wrappers.
+
+### Fixed
+- Worktree cleanup: handle worktree paths containing spaces.
+- Screenshot flow: avoid unnecessary macOS permission prompt when running list/discovery modes.
+- PR workflows/tests: normalize empty-string quote handling and progress-section cleanup behavior.
+
 ## v2.2.0 - 2026-01-28
 
 ### Added
