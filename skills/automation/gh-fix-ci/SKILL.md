@@ -1,6 +1,6 @@
 ---
 name: gh-fix-ci
-description: Fully automated GitHub Actions CI fixer: inspect failing checks, apply fixes, semantic-commit-autostage + push, then watch CI and repeat until green.
+description: "Fully automated GitHub Actions CI fixer: inspect failing checks, apply fixes, semantic-commit-autostage + push, then watch CI and repeat until green."
 ---
 
 # GitHub CI Auto Fix
