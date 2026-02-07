@@ -98,7 +98,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Area | Skill | Description |
 | --- | --- | --- |
 | Agent Docs | [agent-doc-init](./skills/tools/agent-doc-init/) | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries |
-| App Ops | [macos-agent-ops](./skills/tools/macos-agent-ops/) | Run repeatable macOS app checks/scenarios with `macos-agent` (currently via `target/debug/macos-agent`) |
+| App Ops | [macos-agent-ops](./skills/tools/macos-agent-ops/) | Run repeatable macOS app checks/scenarios with `macos-agent` |
 | Browser | [chrome-devtools-site-search](./skills/tools/browser/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
 | Browser | [playwright](./skills/tools/browser/playwright/) | Automate a real browser via Playwright CLI using the wrapper script |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/) | Audit skill layout and validate SKILL.md contracts |

@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-DEFAULT_REPO="$HOME/Project/graysurf/nils-cli"
-NILS_CLI_REPO="${NILS_CLI_REPO:-$DEFAULT_REPO}"
-
 usage() {
   cat <<'USAGE'
 Usage:
@@ -15,9 +11,7 @@ Usage:
   macos-agent-ops.sh run -- <macos-agent args...>
 
 Notes:
-  - Prefers debug binary from nils-cli repo: <repo>/target/debug/macos-agent.
-  - Set NILS_CLI_REPO to override repo root.
-  - Set MACOS_AGENT_BIN to force a specific binary path.
+  - Requires Homebrew-installed macos-agent available on PATH.
 USAGE
 }
 
@@ -29,32 +23,34 @@ require_macos() {
 }
 
 resolve_bin() {
-  if [[ -n "${MACOS_AGENT_BIN:-}" ]]; then
-    if [[ ! -x "$MACOS_AGENT_BIN" ]]; then
-      echo "error: MACOS_AGENT_BIN is not executable: $MACOS_AGENT_BIN" >&2
-      exit 1
-    fi
-    printf '%s\n' "$MACOS_AGENT_BIN"
-    return
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "error: Homebrew is required to run macos-agent-ops" >&2
+    echo "hint: install Homebrew, then run: brew install macos-agent" >&2
+    exit 1
   fi
 
-  local debug_bin="$NILS_CLI_REPO/target/debug/macos-agent"
-  if [[ -x "$debug_bin" ]]; then
-    printf '%s\n' "$debug_bin"
-    return
+  local brew_prefix=''
+  local brew_bin=''
+  brew_bin="$(command -v macos-agent || true)"
+  if [[ -z "$brew_bin" ]]; then
+    echo "error: macos-agent not found on PATH" >&2
+    echo "hint: install with Homebrew: brew install macos-agent" >&2
+    exit 1
   fi
 
-  if [[ -f "$NILS_CLI_REPO/Cargo.toml" ]]; then
-    cargo build -p macos-agent --manifest-path "$NILS_CLI_REPO/Cargo.toml" >/dev/null
-    if [[ -x "$debug_bin" ]]; then
-      printf '%s\n' "$debug_bin"
-      return
-    fi
+  brew_prefix="$(brew --prefix 2>/dev/null || true)"
+  if [[ -z "$brew_prefix" ]]; then
+    echo "error: unable to determine Homebrew prefix" >&2
+    exit 1
   fi
 
-  echo "error: unable to resolve macos-agent debug binary" >&2
-  echo "hint: build with cargo build -p macos-agent --manifest-path \"$NILS_CLI_REPO/Cargo.toml\"" >&2
-  exit 1
+  if [[ "$brew_bin" != "$brew_prefix/bin/macos-agent" ]]; then
+    echo "error: macos-agent must use Homebrew binary: $brew_prefix/bin/macos-agent" >&2
+    echo "found: $brew_bin" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$brew_bin"
 }
 
 run_doctor() {

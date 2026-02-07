@@ -1,6 +1,6 @@
 ---
 name: macos-agent-ops
-description: Use macos-agent debug binary to run repeatable app automation checks and routine tasks on macOS.
+description: Use Homebrew-installed macos-agent to run repeatable app automation checks and routine tasks on macOS.
 ---
 
 # macos-agent ops
@@ -10,7 +10,7 @@ description: Use macos-agent debug binary to run repeatable app automation check
 Prereqs:
 
 - macOS host with Accessibility and Automation permissions granted for Terminal and target apps.
-- `cargo` available and nils-cli repo present (default: `$HOME/Project/graysurf/nils-cli`).
+- Homebrew-installed `macos-agent` available on `PATH`.
 - `cliclick` and `osascript` available on `PATH`.
 - Optional for input stability: `im-select`.
 
@@ -18,8 +18,6 @@ Inputs:
 
 - Command entrypoint: `$CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh`.
 - Optional env vars:
-  - `NILS_CLI_REPO` to override repo root.
-  - `MACOS_AGENT_BIN` to override binary path directly.
   - `MACOS_AGENT_REAL_E2E_INPUT_SOURCE` (example: `abc`) for deterministic input source.
 
 Outputs:
@@ -46,7 +44,7 @@ Failure modes:
 
 ## Workflow
 
-1. Resolve debug binary path (latest released binary may not include newest behavior):
+1. Resolve Homebrew macos-agent binary path:
 
 ```bash
 $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
@@ -112,8 +110,8 @@ $CODEX_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   - Install `im-select` and set `MACOS_AGENT_REAL_E2E_INPUT_SOURCE=abc`.
   - Prefer clipboard-paste style flows over character-by-character typing.
 
-- debug binary missing
-  - Build once in repo: `cargo build -p macos-agent --manifest-path "$NILS_CLI_REPO/Cargo.toml"`.
+- Homebrew macos-agent missing
+  - Install and link with Homebrew: `brew install macos-agent`.
 
 ## References
 
