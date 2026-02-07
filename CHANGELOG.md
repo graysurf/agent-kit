@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.2 - 2026-02-07
+
+### Added
+- Agent docs: roll out core `startup` / `task-tools` / `project-dev` / `skill-dev` contexts and trial tooling.
+- Tests: add missing smoke specs for previously uncovered scripts.
+
+### Changed
+- Docs: document the research workflow and update README media-skill platform support.
+- Docs: align `gh-fix-ci` CI-watch command guidance with 10-second interval behavior.
+- Tests: remove the orphan `image-processing` smoke spec.
+
+### Fixed
+- `agent-doc-init`: avoid `mapfile` usage in project required-file parsing for broader shell compatibility.
+- `create-feature-pr`: omit optional PR sections when they resolve to `None`.
+- `release-workflow`: allow strict release audit with changelog-only dirty state via `--allow-dirty-path`.
+- `script-smoke`: align feature PR smoke cases with optional progress-section handling.
+
 ## v2.2.1 - 2026-02-06
 
 ### Added

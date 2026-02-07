@@ -26,7 +26,8 @@ Use this guide only when the target repository does not provide its own release 
      - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 
 3. Verify prereqs (strict)
-   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --strict`
+   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict`
+   - This strict audit still blocks unrelated dirty files; only `CHANGELOG.md` is allowed before the release commit.
 
 4. (Only when code changed) run the repo’s lint/test/build checks and record results
 

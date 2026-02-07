@@ -9,10 +9,10 @@ die() {
 usage() {
   cat >&2 <<'EOF'
 Usage:
-  release-audit.sh --version <vX.Y.Z> [--repo <path>] [--branch <name>] [--changelog <path>] [--strict]
+  release-audit.sh --version <vX.Y.Z> [--repo <path>] [--branch <name>] [--changelog <path>] [--allow-dirty-path <path>] [--strict]
 
 Checks:
-  - Git repo present and working tree is clean
+  - Git repo present and working tree is clean (or only dirty in allowed paths)
   - Optional: current branch matches --branch
   - Tag <version> does not already exist locally
   - CHANGELOG.md contains a "## <version> - YYYY-MM-DD" entry with required sections
@@ -31,6 +31,7 @@ version=""
 changelog="CHANGELOG.md"
 strict=0
 repo_template=""
+allow_dirty_paths=()
 
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in
@@ -48,6 +49,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --changelog)
       changelog="${2:-}"
+      shift 2
+      ;;
+    --allow-dirty-path)
+      allow_dirty_paths+=("${2:-}")
       shift 2
       ;;
     --strict)
@@ -72,6 +77,28 @@ warned=0
 say_ok() { printf "ok: %s\n" "$1"; }
 say_fail() { printf "fail: %s\n" "$1" >&2; failed=1; }
 say_warn() { printf "warn: %s\n" "$1" >&2; warned=1; }
+
+normalize_repo_path() {
+  local path="${1:-}"
+  local repo_root="${2:-}"
+  path="${path#./}"
+  if [[ -n "$repo_root" && "$path" == "$repo_root/"* ]]; then
+    path="${path#"$repo_root/"}"
+  fi
+  path="${path%/}"
+  printf "%s" "$path"
+}
+
+is_allowed_dirty_path() {
+  local candidate="${1:-}"
+  local allowed=''
+  for allowed in "${allow_dirty_paths[@]}"; do
+    if [[ "$candidate" == "$allowed" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 cd "$repo" || die "unable to cd: $repo"
 
@@ -98,10 +125,54 @@ else
   fi
 fi
 
-if [[ -n "$(git status --porcelain 2>/dev/null || true)" ]]; then
-  say_fail "working tree not clean (commit/stash changes first)"
-else
+typeset -a allow_dirty_paths_normalized=()
+repo_root="$(pwd -P)"
+for allow_dirty_path in "${allow_dirty_paths[@]}"; do
+  normalized_allow_path="$(normalize_repo_path "$allow_dirty_path" "$repo_root")"
+  if [[ -z "$normalized_allow_path" || "$normalized_allow_path" == "." ]]; then
+    say_fail "invalid --allow-dirty-path value: $allow_dirty_path"
+    continue
+  fi
+  allow_dirty_paths_normalized+=("$normalized_allow_path")
+done
+allow_dirty_paths=("${allow_dirty_paths_normalized[@]}")
+
+dirty_status="$(git status --porcelain 2>/dev/null || true)"
+if [[ -z "$dirty_status" ]]; then
   say_ok "working tree clean"
+else
+  if (( ${#allow_dirty_paths[@]} == 0 )); then
+    say_fail "working tree not clean (commit/stash changes first)"
+  else
+    typeset -a unexpected_dirty_paths=()
+    while IFS= read -r dirty_line; do
+      [[ -n "$dirty_line" ]] || continue
+      dirty_path="${dirty_line:3}"
+      dirty_path="${dirty_path# }"
+      if [[ "$dirty_path" == *" -> "* ]]; then
+        dirty_path="${dirty_path##* -> }"
+      fi
+      dirty_path="${dirty_path#\"}"
+      dirty_path="${dirty_path%\"}"
+      dirty_path="$(normalize_repo_path "$dirty_path" "$repo_root")"
+      if [[ -z "$dirty_path" || "$dirty_path" == "." ]]; then
+        continue
+      fi
+      if ! is_allowed_dirty_path "$dirty_path"; then
+        unexpected_dirty_paths+=("$dirty_path")
+      fi
+    done <<< "$dirty_status"
+
+    if (( ${#unexpected_dirty_paths[@]} > 0 )); then
+      unexpected_joined="$(printf '%s, ' "${unexpected_dirty_paths[@]}")"
+      unexpected_joined="${unexpected_joined%, }"
+      say_fail "working tree has unexpected changes: $unexpected_joined"
+    else
+      allowed_joined="$(printf '%s, ' "${allow_dirty_paths[@]}")"
+      allowed_joined="${allowed_joined%, }"
+      say_ok "working tree changes limited to allowed paths: $allowed_joined"
+    fi
+  fi
 fi
 
 current_branch="$(git branch --show-current 2>/dev/null || true)"

@@ -71,6 +71,8 @@ These scripts are designed to run inside a target repo that uses `CHANGELOG.md` 
   - Selects the repo template when present; otherwise falls back to the bundled template.
 - Audit basic prereqs + changelog format:
   - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
+  - During release drafting (before the changelog commit), allow only changelog edits:
+    - `$CODEX_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main --allow-dirty-path CHANGELOG.md --strict`
 - Audit changelog formatting + placeholder cleanup:
   - `$CODEX_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 - Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
