@@ -1,0 +1,7 @@
+[[document]]
+context = "task-tools"
+scope = "home"
+path = "RESEARCH_WORKFLOW.md"
+required = true
+when = "always"
+notes = "Canonical technical lookup flow: Context7 -> Playwright -> gh -> optional clone"

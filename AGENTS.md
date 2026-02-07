@@ -23,22 +23,16 @@
 
 ## Technical info lookup workflow
 
-- Default order (fast -> deep):
-  1. Context7: quick, source-linked doc excerpts (best when official docs are already indexed and stable).
-  2. Official web docs: read the upstream “source of truth” (release notes/specs/PEPs/RFCs) when Context7 is incomplete or you need full context.
-  3. GitHub via `gh`: when docs lag behind or you need the latest changes; inspect files, tags, releases, and PRs.
-  4. Local clone (ask first): when you need full-text search, cross-file analysis, `git log/blame`, or to run/build/test code. Ask the user for explicit consent before cloning, unless they already requested it.
-
-- Decision heuristics:
-  - Need a quick, traceable excerpt -> (1)
-  - Need full narrative context (tables/changelogs/spec text) -> (2)
-  - Need “latest on main” or unreleased behavior -> (3) or (4)
-  - Need to validate by running code/tests -> (4)
-
-- `gh` quick starts (examples):
-  - Open repo in browser: `gh repo view OWNER/REPO --web`
-  - View a raw file: `gh api -H "Accept: application/vnd.github.raw" /repos/OWNER/REPO/contents/PATH?ref=BRANCH_OR_TAG`
-  - Shallow clone for analysis: `gh repo clone OWNER/REPO -- --depth 1`
+- Canonical flow is externalized in `$CODEX_HOME/RESEARCH_WORKFLOW.md` and registered via `$CODEX_HOME/AGENT_DOCS.toml`.
+- Before technical lookup, resolve required docs for tooling context:
+  - `agent-docs resolve --context task-tools --format text`
+- Effective default order (defined in `RESEARCH_WORKFLOW.md`):
+  1. Context7
+  2. Web via `$playwright` skill (replace generic web browsing)
+  3. GitHub via `gh`
+  4. Local clone (ask first unless user explicitly requested clone)
+- Coverage check (strict):
+  - `agent-docs baseline --check --target home --strict`
 
 ## Core guidelines
 
