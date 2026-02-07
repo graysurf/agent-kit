@@ -137,13 +137,13 @@ for allow_dirty_path in "${allow_dirty_paths[@]-}"; do
   fi
   allow_dirty_paths_normalized+=("$normalized_allow_path")
 done
-allow_dirty_paths=("${allow_dirty_paths_normalized[@]}")
+allow_dirty_paths=("${allow_dirty_paths_normalized[@]-}")
 
 dirty_status="$(git status --porcelain 2>/dev/null || true)"
 if [[ -z "$dirty_status" ]]; then
   say_ok "working tree clean"
 else
-  if (( ${#allow_dirty_paths[@]} == 0 )); then
+  if [[ -z "${allow_dirty_paths[*]-}" ]]; then
     say_fail "working tree not clean (commit/stash changes first)"
   else
     typeset -a unexpected_dirty_paths=()
@@ -165,12 +165,12 @@ else
       fi
     done <<< "$dirty_status"
 
-    if (( ${#unexpected_dirty_paths[@]} > 0 )); then
-      unexpected_joined="$(printf '%s, ' "${unexpected_dirty_paths[@]}")"
+    if [[ -n "${unexpected_dirty_paths[*]-}" ]]; then
+      unexpected_joined="$(printf '%s, ' "${unexpected_dirty_paths[@]-}")"
       unexpected_joined="${unexpected_joined%, }"
       say_fail "working tree has unexpected changes: $unexpected_joined"
     else
-      allowed_joined="$(printf '%s, ' "${allow_dirty_paths[@]}")"
+      allowed_joined="$(printf '%s, ' "${allow_dirty_paths[@]-}")"
       allowed_joined="${allowed_joined%, }"
       say_ok "working tree changes limited to allowed paths: $allowed_joined"
     fi
