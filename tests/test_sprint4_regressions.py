@@ -49,7 +49,7 @@ def test_handoff_progress_pr_no_delete_branch_flag() -> None:
     assert not offenders, "found --delete-branch in non-comment lines:\n" + "\n".join(offenders)
 
 
-def test_pytest_ini_keeps_out_tmp_in_norecursedirs() -> None:
+def test_pytest_ini_keeps_worktree_out_tmp_in_norecursedirs() -> None:
     path = repo_root() / "pytest.ini"
     parser = configparser.ConfigParser(interpolation=None)
     parser.read(path)
@@ -58,8 +58,16 @@ def test_pytest_ini_keeps_out_tmp_in_norecursedirs() -> None:
     norecursedirs = parser.get("pytest", "norecursedirs", fallback="")
     values = {line.strip() for line in norecursedirs.splitlines() if line.strip()}
 
-    missing = sorted({".worktrees", "out", "tmp"} - values)
+    missing = sorted({"worktrees", ".worktrees", "out", "tmp"} - values)
     assert not missing, f"pytest.ini norecursedirs missing: {', '.join(missing)}"
+
+
+def test_scripts_test_sh_ignores_worktrees_by_default() -> None:
+    path = repo_root() / "scripts" / "test.sh"
+    text = path.read_text("utf-8", errors="ignore")
+    assert "CODEX_PYTEST_INCLUDE_WORKTREES" in text
+    assert "--ignore=worktrees" in text
+    assert "--ignore=.worktrees" in text
 
 
 def test_e2e_progress_pr_workflow_gh_pr_create_uses_head() -> None:

@@ -7,32 +7,25 @@
 - Override rule: if the current directory (or a closer subdirectory) contains a project/folder-specific `AGENTS.md` (or equivalent), the closest one wins; otherwise fall back to this file.
 - Project-specific specs, workflows, available scripts/tools, and repo structure/index should follow the current project's `DEVELOPMENT`, `README`, `docs`, `prompts`, `skills`, etc. (when present).
 
-## Quick navigation
+## Dispatcher policy (authoritative)
 
-- How do I run/build/test this project? -> read the current project's `DEVELOPMENT`, `README`, `docs/`.
-- What workflows/templates already exist? -> check the current project's `prompts/`, `skills/`, or equivalent directories (when present).
-- Which CLI tools should I use across projects? -> read `$CODEX_HOME/CLI_TOOLS.md` (when present).
-- This file only covers global response behavior and minimal tool-entry conventions; avoid duplicating or conflicting with project docs.
-
-## Global tooling (cross-project)
-
-- `$CODEX_HOME/CLI_TOOLS.md` is the cross-project reference for which CLI tools to use for development, testing, and docs work (when the file exists in the current context).
-- Default preference examples: `rg` over `grep -R`, `fd` over `find`, `jq`/`yq` over regex parsing of JSON/YAML.
-- If a project defines a more specific toolchain/workflow, follow the project docs.
-- If `$CODEX_HOME/CLI_TOOLS.md` is missing, use best-effort defaults and prefer project-specific docs when available.
-
-## Technical info lookup workflow
-
-- Canonical flow is externalized in `$CODEX_HOME/RESEARCH_WORKFLOW.md` and registered via `$CODEX_HOME/AGENT_DOCS.toml`.
-- Before technical lookup, resolve required docs for tooling context:
+- This file is dispatcher-oriented policy only. Long-form workflow detail must live in external docs loaded by `agent-docs`.
+- Canonical dispatch contract: `$CODEX_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`.
+- Determine runtime intent first, then resolve contexts in deterministic preflight order:
+  - `agent-docs resolve --context startup --format text`
   - `agent-docs resolve --context task-tools --format text`
-- Effective default order (defined in `RESEARCH_WORKFLOW.md`):
-  1. Context7
-  2. Web via `$playwright` skill (replace generic web browsing)
-  3. GitHub via `gh`
-  4. Local clone (ask first unless user explicitly requested clone)
-- Coverage check (strict):
-  - `agent-docs baseline --check --target home --strict`
+  - `agent-docs resolve --context project-dev --format text`
+  - `agent-docs resolve --context skill-dev --format text`
+- New repository bootstrap path (missing baseline docs): follow `$CODEX_HOME/docs/runbooks/agent-docs/new-project-bootstrap.md` and use the canonical entrypoint `$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`, then verify with `agent-docs baseline --check --target all --strict --format text`.
+- Strict/non-strict behavior and missing-doc fallback are defined only in the dispatch contract doc above.
+
+## Context ownership (externalized)
+
+- `startup`: baseline startup behavior and required docs.
+- `task-tools`: tool selection policy and technical lookup workflow (`$CODEX_HOME/CLI_TOOLS.md`, `$CODEX_HOME/RESEARCH_WORKFLOW.md`).
+- `project-dev`: project-specific development, build, and test rules.
+- `skill-dev`: skill loading, execution, and output contracts.
+- Keep AGENTS concise: do not duplicate long-form process text that is canonical in these external docs.
 
 ## Core guidelines
 

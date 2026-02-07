@@ -45,6 +45,21 @@ Notes:
 
 ## Validation
 
+### Agent-docs bootstrap helper
+
+Use the `agent-doc-init` skill entrypoint for safe baseline initialization in new repositories:
+
+```bash
+$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
+$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
+```
+
+Validate after apply:
+
+```bash
+agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
+```
+
 ### Skill contract lint
 
 `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.

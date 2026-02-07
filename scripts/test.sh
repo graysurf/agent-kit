@@ -14,6 +14,11 @@ Setup:
 Examples:
   scripts/test.sh
   scripts/test.sh -m script_regression -k chrome-devtools-mcp
+
+Defaults:
+  - Ignores repo-local worktree mirrors (`worktrees/`, `.worktrees/`) to avoid
+    pytest import-path collisions.
+  - Set `CODEX_PYTEST_INCLUDE_WORKTREES=1` to disable this ignore behavior.
 USAGE
 }
 
@@ -40,8 +45,13 @@ if ! "$python" -c "import pytest" >/dev/null 2>&1; then
 fi
 
 export CODEX_HOME="$repo_root"
+declare -a ignore_args=()
+if [[ "${CODEX_PYTEST_INCLUDE_WORKTREES:-}" != "1" ]]; then
+  ignore_args+=(--ignore=worktrees --ignore=.worktrees)
+fi
+
 set +e
-"$python" -m pytest "$@"
+"$python" -m pytest "${ignore_args[@]}" "$@"
 status=$?
 set -e
 

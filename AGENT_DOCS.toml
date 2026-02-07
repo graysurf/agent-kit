@@ -1,7 +1,47 @@
 [[document]]
+context = "startup"
+scope = "home"
+path = "docs/runbooks/agent-docs/STARTUP_WORKFLOW.md"
+required = true
+when = "always"
+notes = "Startup preflight and context dispatch workflow for home-level agent sessions"
+
+[[document]]
+context = "startup"
+scope = "home"
+path = "docs/runbooks/agent-docs/new-project-bootstrap.md"
+required = true
+when = "always"
+notes = "Canonical bootstrap flow for repos missing baseline policy documents"
+
+[[document]]
 context = "task-tools"
 scope = "home"
 path = "RESEARCH_WORKFLOW.md"
 required = true
 when = "always"
 notes = "Canonical technical lookup flow: Context7 -> Playwright -> gh -> optional clone"
+
+[[document]]
+context = "project-dev"
+scope = "home"
+path = "docs/runbooks/agent-docs/PROJECT_DEV_WORKFLOW.md"
+required = true
+when = "always"
+notes = "Project implementation workflow: build, test, validation, and delivery guardrails"
+
+[[document]]
+context = "skill-dev"
+scope = "home"
+path = "docs/runbooks/agent-docs/SKILL_DEV_WORKFLOW.md"
+required = true
+when = "always"
+notes = "Skill authoring workflow: contract, references, scripts, and validation checks"
+
+[[document]]
+context = "skill-dev"
+scope = "home"
+path = "docs/runbooks/agent-docs/init-safety-model.md"
+required = true
+when = "always"
+notes = "Safety contract for non-destructive baseline initialization via agent-doc-init"

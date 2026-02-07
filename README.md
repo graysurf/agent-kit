@@ -44,6 +44,16 @@ Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools 
 export PROJECT_PATH="$PWD"
 ```
 
+For new repositories with missing policy baseline docs, run the canonical bootstrap flow:
+
+```zsh
+$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
+$CODEX_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
+agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
+```
+
+See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-docs/new-project-bootstrap.md) for the full sequence.
+
 ## 🐳 Docker environment
 
 See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
@@ -87,6 +97,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 
 | Area | Skill | Description |
 | --- | --- | --- |
+| Agent Docs | [agent-doc-init](./skills/tools/agent-doc-init/) | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries |
 | Browser | [chrome-devtools-site-search](./skills/tools/browser/chrome-devtools-site-search/) | Browse a site via the chrome-devtools MCP server, summarize results, and open matching pages |
 | Browser | [playwright](./skills/tools/browser/playwright/) | Automate a real browser via Playwright CLI using the wrapper script |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/) | Audit skill layout and validate SKILL.md contracts |

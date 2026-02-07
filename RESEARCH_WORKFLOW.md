@@ -1,41 +1,45 @@
-# Research Workflow
+# Task-Tools Research Workflow
 
-## Purpose
+## Scope
 
-- Define one deterministic technical lookup flow for Codex runs.
-- Keep this process outside `AGENTS.md` so it can be versioned via `AGENT_DOCS.toml`.
+- Canonical required workflow for `task-tools` context.
+- Keep technical lookup policy outside `AGENTS.md`, referenced via `AGENT_DOCS.toml`.
 
-## Ordered flow (default)
+## Entry commands
 
-1. Context7
-   - Use Context7 first for fast, source-linked excerpts.
-2. Web (via `$playwright` skill)
-   - Replace generic web browsing with the Playwright skill workflow.
-   - Use: `$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh`.
-   - Required precheck before proposing commands: `command -v npx >/dev/null 2>&1`.
-3. GitHub via `gh`
-   - Use when docs are stale, missing, or unreleased details are needed.
-4. Local clone (ask first)
-   - Clone only when cross-file search, run/test verification, or deep history analysis is required.
-   - Ask user before cloning unless the user explicitly requested clone.
+1. `agent-docs resolve --context task-tools --strict --format text`
+2. `agent-docs resolve --context startup --format text` (only if startup preflight has not run)
+3. `agent-docs baseline --check --target home --strict --format text` (only when strict resolve fails)
 
-## Decision heuristics
+## Deterministic flow
 
-- Need quick, traceable excerpts -> Context7.
-- Need full official narrative context -> Playwright-driven web reading of official docs.
-- Need latest main/unreleased behavior -> `gh` source inspection.
-- Need execution-level verification -> local clone + run.
+1. Resolve `task-tools` in strict mode before research recommendations.
+2. Use source order exactly:
+   1. Context7
+   2. Web via `$playwright` skill (`$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh`)
+   3. GitHub source via `gh`
+   4. Local clone (ask first unless user already requested clone)
+3. Keep evidence traceable: include concrete doc/source references for external claims.
+4. If fallback/degraded mode is used, label assumptions explicitly.
 
-## Playwright-specific rules
+## Failure handling
 
-- Use CLI-first Playwright skill path, not ad-hoc browser steps.
-- Always snapshot before using element refs (`e*`).
-- Re-snapshot after navigation or substantial UI change.
-- For artifacts in this repo, write to: `out/playwright/<label>`.
+- `task-tools` strict resolve fails:
+  - Run strict baseline check.
+  - Continue in non-strict mode only when at least one required document is usable.
+  - If no usable required docs remain, stop and report missing files.
+- `command -v npx` fails:
+  - Skip Playwright path and continue with Context7 plus `gh`.
+  - Mark web validation gap in output.
+- Context7/web/`gh` source access fails:
+  - Continue to the next source in order.
+  - Report skipped source and error class.
+- Clone is needed but not approved/requested:
+  - Stop at available evidence and state limitation.
 
-## Useful commands
+## Validation checklist
 
-```bash
-agent-docs resolve --context task-tools --format text
-agent-docs baseline --check --target home --strict
-```
+- [ ] `agent-docs resolve --context task-tools --strict --format text` exits 0 before research work.
+- [ ] Source order is preserved: Context7 -> Web -> `gh` -> clone.
+- [ ] At least one concrete source reference is included in findings.
+- [ ] Any fallback/degraded behavior is disclosed.
