@@ -7,8 +7,8 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context task-tools --strict --format text`
-2. `agent-docs resolve --context startup --format text` (only if startup preflight has not run)
+1. `agent-docs resolve --context task-tools --strict --format checklist`
+2. `agent-docs resolve --context startup --format checklist` (only if startup preflight has not run)
 3. `agent-docs baseline --check --target home --strict --format text` (only when strict resolve fails)
 
 ## Deterministic flow
@@ -39,7 +39,7 @@
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context task-tools --strict --format text` exits 0 before research work.
+- [ ] `agent-docs resolve --context task-tools --strict --format checklist` exits 0 before research work.
 - [ ] Source order is preserved: Context7 -> Web -> `gh` -> clone.
 - [ ] At least one concrete source reference is included in findings.
 - [ ] Any fallback/degraded behavior is disclosed.

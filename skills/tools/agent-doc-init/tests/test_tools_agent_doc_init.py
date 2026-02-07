@@ -294,6 +294,6 @@ def test_agent_doc_init_apply_rewrites_template_docs(tmp_path: Path) -> None:
 
     agents = (project_path / "AGENTS.md").read_text(encoding="utf-8")
     dev = (project_path / "DEVELOPMENT.md").read_text(encoding="utf-8")
-    assert "agent-docs resolve --context startup --strict --format text" in agents
+    assert "agent-docs resolve --context startup --strict --format checklist" in agents
     assert 'echo "Define setup command for this repository"' not in dev
     assert "CI workflows inspected:" in dev

@@ -51,8 +51,8 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 **Demo/Validation**:
 - Command(s):
   - `agent-docs contexts --format text`
-  - `agent-docs resolve --context startup --format text`
-  - `agent-docs resolve --context task-tools --format text`
+  - `agent-docs resolve --context startup --format checklist`
+  - `agent-docs resolve --context task-tools --format checklist`
 - Verify:
   - A written context matrix and dispatcher policy exists with unambiguous trigger rules.
 
@@ -112,10 +112,10 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 
 **Demo/Validation**:
 - Command(s):
-  - `agent-docs resolve --context startup --strict --format text`
-  - `agent-docs resolve --context task-tools --strict --format text`
-  - `agent-docs resolve --context project-dev --strict --format text`
-  - `agent-docs resolve --context skill-dev --strict --format text`
+  - `agent-docs resolve --context startup --strict --format checklist`
+  - `agent-docs resolve --context task-tools --strict --format checklist`
+  - `agent-docs resolve --context project-dev --strict --format checklist`
+  - `agent-docs resolve --context skill-dev --strict --format checklist`
   - `agent-docs baseline --check --target home --strict --format text`
 - Verify:
   - All required docs for home-level contexts are present and resolvable.
@@ -132,10 +132,10 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
   - `agent-docs resolve` for startup/task-tools/project-dev/skill-dev shows extension entries with `status=present`.
   - No schema validation errors occur.
 - **Validation**:
-  - `agent-docs resolve --context startup --format text`
-  - `agent-docs resolve --context task-tools --format text`
-  - `agent-docs resolve --context project-dev --format text`
-  - `agent-docs resolve --context skill-dev --format text`
+  - `agent-docs resolve --context startup --format checklist`
+  - `agent-docs resolve --context task-tools --format checklist`
+  - `agent-docs resolve --context project-dev --format checklist`
+  - `agent-docs resolve --context skill-dev --format checklist`
 
 ### Task 2.2: Externalize context-specific policy docs
 - **Location**:
@@ -182,8 +182,8 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 
 **Demo/Validation**:
 - Command(s):
-  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context startup --format text`
-  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context project-dev --format text`
+  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context startup --format checklist`
+  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context project-dev --format checklist`
   - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
 - Verify:
   - Pilot results include a yes/no decision with evidence on `nils-cli` AGENTS modifications.
@@ -217,7 +217,7 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
   - `resolve --context project-dev` picks up project-level extension docs.
   - A clear statement answers whether `nils-cli/AGENTS.md` requires modification.
 - **Validation**:
-  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context project-dev --strict --format text`
+  - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli resolve --context project-dev --strict --format checklist`
   - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli baseline --check --target project --strict --format text`
   - `test -f out/agent-docs-rollout/nils-cli-pilot-changes.md`
 
