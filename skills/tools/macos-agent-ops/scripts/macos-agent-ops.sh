@@ -68,7 +68,7 @@ run_doctor() {
 }
 
 run_app_check() {
-  local app=""
+  local app=''
   local wait_ms="1800"
   local timeout_ms="12000"
   local poll_ms="60"
@@ -112,7 +112,7 @@ run_app_check() {
 }
 
 run_scenario() {
-  local scenario_file=""
+  local scenario_file=''
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --file)
