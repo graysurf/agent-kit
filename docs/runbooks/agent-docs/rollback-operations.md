@@ -18,14 +18,14 @@
 
 1. Capture incident evidence:
    - `agent-docs baseline --check --target all --strict --format text > out/agent-docs-rollout/rollback-baseline-before.txt`
-   - `agent-docs resolve --context startup --strict --format text > out/agent-docs-rollout/rollback-startup-before.txt`
+   - `agent-docs resolve --context startup --strict --format checklist > out/agent-docs-rollout/rollback-startup-before.txt`
 2. Revert dispatcher-oriented policy files to last known good revision.
 3. Remove newly introduced extension entries in `AGENT_DOCS.toml` when they are the regression source.
 4. Disable bootstrap guidance references if rollback requires temporary deactivation:
    - remove `agent-doc-init` startup references in AGENTS/README.
 5. Re-run strict checks:
    - `agent-docs baseline --check --target all --strict --format text`
-   - `agent-docs resolve --context startup --strict --format text`
+   - `agent-docs resolve --context startup --strict --format checklist`
 
 ## Project rollback (`nils-cli`)
 

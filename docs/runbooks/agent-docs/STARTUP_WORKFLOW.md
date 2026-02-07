@@ -7,7 +7,7 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context startup --strict --format text`
+1. `agent-docs resolve --context startup --strict --format checklist`
 2. `agent-docs baseline --check --target home --strict --format text` (only when strict resolve fails)
 
 ## Deterministic flow
@@ -29,6 +29,6 @@
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context startup --strict --format text` exits 0 before task work.
+- [ ] `agent-docs resolve --context startup --strict --format checklist` exits 0 before task work.
 - [ ] On failure, strict baseline check is executed and reported.
 - [ ] No task edits/commands run before startup preflight passes.

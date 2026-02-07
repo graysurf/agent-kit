@@ -7,8 +7,8 @@
 
 ## Entry commands
 
-1. `agent-docs resolve --context project-dev --strict --format text`
-2. `agent-docs resolve --context task-tools --format text` (optional, when external technical lookup is needed)
+1. `agent-docs resolve --context project-dev --strict --format checklist`
+2. `agent-docs resolve --context task-tools --format checklist` (optional, when external technical lookup is needed)
 3. `agent-docs baseline --check --target home --strict --format text` (only when strict resolve fails)
 
 ## Deterministic flow
@@ -30,6 +30,6 @@
 
 ## Validation checklist
 
-- [ ] `agent-docs resolve --context project-dev --strict --format text` exits 0 before edits.
+- [ ] `agent-docs resolve --context project-dev --strict --format checklist` exits 0 before edits.
 - [ ] Required project checks are executed and results reported.
 - [ ] Failures include explicit command/error details.

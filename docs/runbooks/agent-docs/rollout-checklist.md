@@ -3,10 +3,10 @@
 ## Preflight
 
 1. Validate startup and context docs:
-   - `agent-docs resolve --context startup --strict --format text`
-   - `agent-docs resolve --context task-tools --strict --format text`
-   - `agent-docs resolve --context project-dev --strict --format text`
-   - `agent-docs resolve --context skill-dev --strict --format text`
+   - `agent-docs resolve --context startup --strict --format checklist`
+   - `agent-docs resolve --context task-tools --strict --format checklist`
+   - `agent-docs resolve --context project-dev --strict --format checklist`
+   - `agent-docs resolve --context skill-dev --strict --format checklist`
 2. Validate baseline coverage:
    - `agent-docs baseline --check --target home --strict --format text`
 3. Validate trial evidence exists:

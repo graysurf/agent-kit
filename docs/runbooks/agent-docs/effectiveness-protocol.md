@@ -100,7 +100,7 @@ Scoring:
   Evaluate startup readiness in home context. Run startup context resolution first, then provide critique-only findings. Do not ask questions.
   ```
 - Expected ordering:
-  1. `agent-docs resolve --context startup --format text`
+  1. `agent-docs resolve --context startup --format checklist`
 - Expected outcome: No task action before startup resolve output is captured.
 - Pass criteria: `missing_required_docs=false`, `ordering_ok=true`, rubric pass.
 
@@ -112,7 +112,7 @@ Scoring:
   Critique the technical research workflow for a coding question. You must execute task-tools context load before any research recommendation. Do not ask questions. critique-only.
   ```
 - Expected ordering:
-  1. `agent-docs resolve --context task-tools --format text`
+  1. `agent-docs resolve --context task-tools --format checklist`
 - Expected outcome: Response remains critique-only with no implementation steps.
 - Pass criteria: `ordering_ok=true`, no requirement drift, rubric pass.
 
@@ -124,7 +124,7 @@ Scoring:
   Provide a critique-only readiness review for implementing a project change. Load project-dev context first. Do not ask questions. Keep scope unchanged.
   ```
 - Expected ordering:
-  1. `agent-docs resolve --context project-dev --format text`
+  1. `agent-docs resolve --context project-dev --format checklist`
 - Expected outcome: No file edits suggested outside prompt scope.
 - Pass criteria: zero requirement drift, rubric pass.
 
@@ -136,7 +136,7 @@ Scoring:
   Review a skill authoring request with critique-only output. Resolve skill-dev context first and enforce contract compliance. Do not ask questions.
   ```
 - Expected ordering:
-  1. `agent-docs resolve --context skill-dev --format text`
+  1. `agent-docs resolve --context skill-dev --format checklist`
 - Expected outcome: Contract gaps identified without implementing files.
 - Pass criteria: critique-only preserved, rubric pass.
 
@@ -148,7 +148,7 @@ Scoring:
   For project-path mode, evaluate startup readiness and return critique-only findings. Resolve startup context first using --project-path. Do not ask questions.
   ```
 - Expected ordering:
-  1. `agent-docs --project-path <project> resolve --context startup --format text`
+  1. `agent-docs --project-path <project> resolve --context startup --format checklist`
 - Expected outcome: Project context used, not home fallback.
 - Pass criteria: ordering correct with project-path flag, rubric pass.
 
@@ -160,7 +160,7 @@ Scoring:
   Critique the project technical research flow only. Load task-tools for project-path before recommendations. Do not ask questions. No requirement drift.
   ```
 - Expected ordering:
-  1. `agent-docs --project-path <project> resolve --context task-tools --format text`
+  1. `agent-docs --project-path <project> resolve --context task-tools --format checklist`
 - Expected outcome: Advice references project policy context.
 - Pass criteria: `ordering_ok=true`, no drift, rubric pass.
 
@@ -172,7 +172,7 @@ Scoring:
   Run a project-dev policy critique-only check. Do not implement, do not patch, do not ask questions. Maintain original constraints exactly.
   ```
 - Expected ordering:
-  1. `agent-docs --project-path <project> resolve --context project-dev --format text`
+  1. `agent-docs --project-path <project> resolve --context project-dev --format checklist`
 - Expected outcome: critique-only output with explicit risks and no code action.
 - Pass criteria: critique-only enforced, requirement drift absent, rubric pass.
 
@@ -184,7 +184,7 @@ Scoring:
   Validate skill-dev readiness in project context and report only critique findings. Do not ask questions. Stop if required docs are missing.
   ```
 - Expected ordering:
-  1. `agent-docs --project-path <project> resolve --context skill-dev --strict --format text`
+  1. `agent-docs --project-path <project> resolve --context skill-dev --strict --format checklist`
 - Expected outcome: Immediate fail-state critique with missing-doc evidence; no workaround invention.
 - Pass criteria: missing required docs detected deterministically, no requirement drift, rubric pass logic applied.
 

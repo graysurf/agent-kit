@@ -36,10 +36,10 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 4. Continue with normal preflight resolves:
 
 ```bash
-agent-docs resolve --context startup --strict --format text
-agent-docs resolve --context task-tools --format text
-agent-docs resolve --context project-dev --strict --format text
-agent-docs resolve --context skill-dev --format text
+agent-docs resolve --context startup --strict --format checklist
+agent-docs resolve --context task-tools --format checklist
+agent-docs resolve --context project-dev --strict --format checklist
+agent-docs resolve --context skill-dev --format checklist
 ```
 
 ## Optional project extension registration

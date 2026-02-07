@@ -125,6 +125,74 @@ def _run_script(
     return proc, calls
 
 
+def _write_template_docs(project_path: Path) -> None:
+    (project_path / "AGENTS.md").write_text(
+        textwrap.dedent(
+            """\
+            # AGENTS.md
+
+            ## Startup Policy
+
+            Resolve required startup policies before task execution:
+
+            ```bash
+            agent-docs resolve --context startup
+            ```
+
+            ## Project Development Policy
+
+            Resolve project development docs before implementing changes:
+
+            ```bash
+            agent-docs resolve --context project-dev
+            ```
+
+            ## Extension Point
+
+            Use `AGENT_DOCS.toml` to register additional required documents by context and scope.
+            """
+        ),
+        encoding="utf-8",
+    )
+    (project_path / "DEVELOPMENT.md").write_text(
+        textwrap.dedent(
+            """\
+            # DEVELOPMENT.md
+
+            ## Setup
+
+            Run setup before editing or building:
+
+            ```bash
+            echo "Define setup command for this repository"
+            ```
+
+            ## Build
+
+            Run build commands before sharing changes:
+
+            ```bash
+            echo "Define build command for this repository"
+            ```
+
+            ## Test
+
+            Run checks before delivery:
+
+            ```bash
+            echo "Define test command for this repository"
+            ```
+
+            ## Notes
+
+            - Keep commands deterministic and runnable from the repository root.
+            - Update this file when your build or test workflow changes.
+            """
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_tools_agent_doc_init_contract() -> None:
     assert_skill_contract(_skill_root())
 
@@ -190,3 +258,42 @@ def test_agent_doc_init_apply_project_required_entry(tmp_path: Path) -> None:
     assert "--context project-dev" in add_calls[0]
     assert "--path BINARY_DEPENDENCIES.md" in add_calls[0]
     assert "project_entries requested=1 applied=1" in proc.stdout
+
+
+def test_agent_doc_init_dry_run_plans_template_hydration(tmp_path: Path) -> None:
+    project_path = tmp_path / "project"
+    project_path.mkdir(parents=True, exist_ok=True)
+    _write_template_docs(project_path)
+
+    proc, _calls = _run_script(
+        tmp_path,
+        ["--project-path", str(project_path)],
+        baseline_seq="0,0",
+    )
+    assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+    assert "doc_hydration action=planned" in proc.stdout
+    assert "template_guard=pending" in proc.stdout
+
+    dev = (project_path / "DEVELOPMENT.md").read_text(encoding="utf-8")
+    assert 'echo "Define setup command for this repository"' in dev
+
+
+def test_agent_doc_init_apply_rewrites_template_docs(tmp_path: Path) -> None:
+    project_path = tmp_path / "project"
+    project_path.mkdir(parents=True, exist_ok=True)
+    _write_template_docs(project_path)
+
+    proc, _calls = _run_script(
+        tmp_path,
+        ["--apply", "--project-path", str(project_path)],
+        baseline_seq="0,0",
+    )
+    assert proc.returncode == 0, f"exit={proc.returncode}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+    assert "doc_hydration action=applied" in proc.stdout
+    assert "template_guard=passed" in proc.stdout
+
+    agents = (project_path / "AGENTS.md").read_text(encoding="utf-8")
+    dev = (project_path / "DEVELOPMENT.md").read_text(encoding="utf-8")
+    assert "agent-docs resolve --context startup --strict --format text" in agents
+    assert 'echo "Define setup command for this repository"' not in dev
+    assert "CI workflows inspected:" in dev
