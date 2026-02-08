@@ -18,11 +18,13 @@ Inputs:
 
 - CLI subcommand and args forwarded to Playwright CLI.
 - Optional env: `PLAYWRIGHT_CLI_SESSION` (injected only when `--session` is not already provided).
+- Required env for non-help commands: `PLAYWRIGHT_MCP_OUTPUT_DIR`, and it must point to `out/playwright/` (optionally with a subdirectory, for example `out/playwright/run-001`).
 
 Outputs:
 
 - Stdout/stderr from upstream `playwright-cli`.
-- Upstream artifacts; use `PLAYWRIGHT_MCP_OUTPUT_DIR` to choose an explicit output location when needed.
+- Upstream artifacts must be written under `out/playwright/` via `PLAYWRIGHT_MCP_OUTPUT_DIR`.
+- Do not use the default `.playwright-cli/` artifact location.
 
 Exit codes:
 
@@ -50,6 +52,7 @@ Failure modes:
 
 ```bash
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+export PLAYWRIGHT_MCP_OUTPUT_DIR="out/playwright/default"
 "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
 "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://playwright.dev --headed
 "$CODEX_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" snapshot
@@ -60,7 +63,8 @@ export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 - Before non-help commands, verify `npx` exists: `command -v npx >/dev/null 2>&1`.
 - Prefer the wrapper entrypoint instead of global `playwright-cli` installation.
 - Run `snapshot` before using element refs and re-snapshot after navigation or major DOM changes.
-- Set `PLAYWRIGHT_MCP_OUTPUT_DIR` when artifact location must be deterministic.
+- Always set `PLAYWRIGHT_MCP_OUTPUT_DIR` to a path under `out/playwright/` before non-help commands.
+- Never store Playwright artifacts in `.playwright-cli/`.
 
 ## References
 
