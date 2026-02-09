@@ -13,6 +13,10 @@ Usage:
 Creates a new skill skeleton under `skills/` and validates it with:
   - validate_skill_contracts.sh
   - audit-skill-layout.sh --skill-dir
+Then updates root README skill catalog for public domains:
+  - skills/workflows/**
+  - skills/tools/**
+  - skills/automation/**
 
 Notes:
   - Writes files on disk; does not stage or commit.
@@ -273,5 +277,171 @@ fi
 
 "$validator_contracts" --file "$abs_skill_dir/SKILL.md"
 "$validator_layout" --skill-dir "$skill_dir"
+
+readme_file="$repo_root/README.md"
+if [[ ! -f "$readme_file" ]]; then
+  echo "error: missing root README: $readme_file" >&2
+  exit 1
+fi
+
+readme_action="$(
+  python3 - "$readme_file" "$skill_dir" "$skill_name" "$skill_description" <<'PY'
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+
+def normalize_link_path(raw: str) -> str:
+    text = raw.strip()
+    if text.startswith("./"):
+        text = text[2:]
+    return text.rstrip("/")
+
+
+def titleize_token(token: str) -> str:
+    token = token.replace("_", "-").strip("-").strip()
+    if not token:
+        return ""
+    parts = [p for p in token.split("-") if p]
+    return " ".join(p[:1].upper() + p[1:] for p in parts)
+
+
+def parse_table_row(line: str) -> list[str] | None:
+    if not line.startswith("|"):
+        return None
+    cols = [c.strip() for c in line.strip().split("|")[1:-1]]
+    if len(cols) < 3:
+        return None
+    return cols[:3]
+
+
+def extract_link_path(skill_col: str) -> str | None:
+    m = re.search(r"\[[^\]]+\]\(([^)]+)\)", skill_col)
+    if not m:
+        return None
+    return normalize_link_path(m.group(1))
+
+
+def infer_area_from_existing_rows(rows: list[str], parent_dir: str) -> str | None:
+    for row in rows:
+        parsed = parse_table_row(row)
+        if not parsed:
+            continue
+        area, skill_col, _ = parsed
+        link_path = extract_link_path(skill_col)
+        if not link_path:
+            continue
+        if Path(link_path).parent.as_posix() == parent_dir:
+            return area
+    return None
+
+
+def infer_fallback_area(skill_dir: str) -> str:
+    parts = Path(skill_dir).parts
+    # skills/<domain>/<...>/<skill-name>
+    if len(parts) < 4:
+        return "General"
+    area_parts = [titleize_token(p) for p in parts[2:-1] if titleize_token(p)]
+    if not area_parts:
+        return "General"
+    return " / ".join(area_parts)
+
+
+readme_path = Path(sys.argv[1])
+skill_dir = sys.argv[2].strip().strip("/")
+skill_name = sys.argv[3].strip()
+skill_description = " ".join(sys.argv[4].split()).replace("|", r"\|").strip()
+if not skill_description:
+    skill_description = "TBD"
+
+if not readme_path.is_file():
+    raise SystemExit(f"error: README not found: {readme_path}")
+
+parts = Path(skill_dir).parts
+if len(parts) < 3 or parts[0] != "skills":
+    raise SystemExit(f"error: invalid skill-dir for README update: {skill_dir}")
+
+domain = parts[1]
+section_heading_by_domain = {
+    "workflows": "### Workflows",
+    "tools": "### Tools",
+    "automation": "### Automation",
+}
+section_heading = section_heading_by_domain.get(domain)
+if section_heading is None:
+    print(f"skipped: non-public skill domain '{domain}' is not cataloged in README")
+    raise SystemExit(0)
+
+lines = readme_path.read_text("utf-8", errors="replace").splitlines()
+
+try:
+    section_idx = next(i for i, line in enumerate(lines) if line.strip() == section_heading)
+except StopIteration:
+    raise SystemExit(f"error: section not found in README: {section_heading}")
+
+header_idx = None
+for i in range(section_idx + 1, len(lines)):
+    if lines[i].startswith("### ") and i > section_idx + 1:
+        break
+    if lines[i].strip() == "| Area | Skill | Description |":
+        header_idx = i
+        break
+
+if header_idx is None:
+    raise SystemExit(f"error: table header not found under section: {section_heading}")
+
+if header_idx + 1 >= len(lines) or not lines[header_idx + 1].strip().startswith("| --- |"):
+    raise SystemExit(f"error: malformed table separator under section: {section_heading}")
+
+rows_start = header_idx + 2
+rows_end = rows_start
+while rows_end < len(lines) and lines[rows_end].startswith("|"):
+    rows_end += 1
+table_rows = lines[rows_start:rows_end]
+
+normalized_target = normalize_link_path(f"./{skill_dir}/")
+for row in table_rows:
+    parsed = parse_table_row(row)
+    if not parsed:
+        continue
+    _, skill_col, _ = parsed
+    link_path = extract_link_path(skill_col)
+    if link_path and normalize_link_path(link_path) == normalized_target:
+        print("exists")
+        raise SystemExit(0)
+
+parent_dir = Path(skill_dir).parent.as_posix()
+area = infer_area_from_existing_rows(table_rows, parent_dir) or infer_fallback_area(skill_dir)
+skill_cell = f"[{skill_name}](./{skill_dir}/)"
+new_row = f"| {area} | {skill_cell} | {skill_description} |"
+
+insert_at = rows_end
+for i in range(rows_end - 1, rows_start - 1, -1):
+    parsed = parse_table_row(lines[i])
+    if parsed and parsed[0] == area:
+        insert_at = i + 1
+        break
+
+lines.insert(insert_at, new_row)
+readme_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print("updated")
+PY
+)"
+
+case "$readme_action" in
+  updated)
+    ;;
+  exists)
+    ;;
+  skipped:*)
+    echo "note: ${readme_action#skipped: }"
+    ;;
+  *)
+    echo "error: unexpected README update result: $readme_action" >&2
+    exit 1
+    ;;
+esac
 
 echo "ok: created $skill_dir"

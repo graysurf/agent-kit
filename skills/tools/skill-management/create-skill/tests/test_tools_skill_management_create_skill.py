@@ -34,8 +34,12 @@ def test_create_skill_generates_contract_first_skill_md() -> None:
         / "validate_skill_contracts.sh"
     )
 
-    skill_dir = root / "skills" / "_tmp" / f"create-skill-contract-first-{uuid.uuid4().hex}"
+    skill_dir = root / "skills" / "tools" / "_tmp" / f"create-skill-contract-first-{uuid.uuid4().hex}"
     rel_skill_dir = skill_dir.relative_to(root).as_posix()
+    readme = root / "README.md"
+    original_readme = readme.read_text(encoding="utf-8")
+    skill_desc = "Smoke skill catalog update from create-skill"
+    expected_link = f"(./{rel_skill_dir}/)"
 
     try:
         proc = subprocess.run(
@@ -47,7 +51,7 @@ def test_create_skill_generates_contract_first_skill_md() -> None:
                 "--title",
                 "Create Skill Contract First Smoke",
                 "--description",
-                "smoke",
+                skill_desc,
             ],
             cwd=root,
             text=True,
@@ -65,6 +69,11 @@ def test_create_skill_generates_contract_first_skill_md() -> None:
             capture_output=True,
         )
         assert proc2.returncode == 0, f"validate_skill_contracts.sh failed:\n{proc2.stderr}"
+
+        readme_after = readme.read_text(encoding="utf-8")
+        assert expected_link in readme_after, "README is missing the new skill link entry"
+        assert skill_desc in readme_after, "README is missing the new skill description entry"
     finally:
+        readme.write_text(original_readme, encoding="utf-8")
         if skill_dir.exists():
             shutil.rmtree(skill_dir)

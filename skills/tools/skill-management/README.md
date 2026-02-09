@@ -24,6 +24,7 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
   - Use `--skill-dir` when validating a newly scaffolded skill before `git add`.
 - `create-skill`
   - Scaffolds: `SKILL.md` + `scripts/<skill>.sh` + `tests/` (minimum) and runs the governance validators.
+  - Updates root `README.md` skill catalog for public domains (`workflows`, `tools`, `automation`).
   - Does not stage/commit; you still need to fill in the real Contract + implementation.
 - `create-project-skill`
   - Scaffolds project-local skills under `<project>/.codex/skills/` with contract + layout checks.

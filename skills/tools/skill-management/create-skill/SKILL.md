@@ -25,6 +25,7 @@ Outputs:
   - `SKILL.md`
   - `scripts/<skill-name>.sh`
   - `tests/test_<skill_path>.py`
+- Root `README.md` updated with a new skill catalog row (for public domains: `workflows`, `tools`, `automation`).
 - Runs skill-governance validators:
   - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
   - `$CODEX_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir <skill-dir>`
@@ -40,6 +41,7 @@ Failure modes:
 - `--skill-dir` invalid, already exists, or is outside `skills/`.
 - Missing prerequisites (`git`, `python3`).
 - Generated skeleton fails `skill-governance` validation.
+- `README.md` update fails because required section/table structure is missing or malformed.
 
 ## Scripts (only entrypoints)
 
