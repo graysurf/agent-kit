@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.4 - 2026-02-09
+
+### Added
+- New `deliver-feature-pr` workflow skill for create-PR -> CI-fix loop -> close-PR delivery.
+- New `create-project-skill` workflow under skill-management.
+- New `macos-agent-ops` skill for Homebrew `macos-agent` app automation routines.
+- Browser tooling now includes `chrome-devtools-debug-companion` in place of site-search workflow.
+- `create-skill` now updates the skill catalog during scaffolding.
+
+### Changed
+- Agent-doc dispatcher docs tightened strict preflight flow and baseline fallback handling.
+- Playwright workflow now requires MCP output under `out/playwright`.
+- Developer/docs updates for local executable workflow and README skill index clarifications.
+- Legacy command binaries were removed from `commands/`.
+
+### Fixed
+- `macos-agent-ops` guidance and rules now align with AX/input-source workflows.
+- US input-source detection and empty-string initializer handling were hardened in macOS agent scripts.
+- `deliver-feature-pr` skill metadata quoting was corrected.
+- `deliver-feature-pr` script now uses shell-style single-quoted empty `local` initializers.
+
 ## v2.2.3 - 2026-02-07
 
 ### Fixed

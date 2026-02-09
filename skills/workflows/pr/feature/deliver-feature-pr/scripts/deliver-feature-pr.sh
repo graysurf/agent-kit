@@ -119,7 +119,7 @@ cmd_preflight() {
 }
 
 cmd_wait_ci() {
-  local pr=""
+  local pr=''
   local poll_seconds="20"
   local max_wait_seconds="7200"
 
@@ -199,7 +199,7 @@ cmd_wait_ci() {
 }
 
 cmd_close() {
-  local pr=""
+  local pr=''
   local skip_checks="0"
 
   while [[ $# -gt 0 ]]; do
