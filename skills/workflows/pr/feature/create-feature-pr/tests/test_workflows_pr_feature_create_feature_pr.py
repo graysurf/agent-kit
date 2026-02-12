@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import re
 import subprocess
 from pathlib import Path
+from urllib.parse import urlparse
 
 from skills._shared.python.skill_testing import assert_entrypoints_exist, assert_skill_contract
 
@@ -82,8 +84,12 @@ def test_render_feature_pr_builds_progress_url_from_progress_file() -> None:
     assert "## Progress" in result.stdout
     assert "## Planning PR" in result.stdout
     assert "- #123" in result.stdout
-    assert "https://github.com/" in result.stdout
-    assert "/docs/progress/20260206_slug.md" in result.stdout
+    match = re.search(r"\((https://[^\s)]+)\)", result.stdout)
+    assert match is not None, result.stdout
+    parsed = urlparse(match.group(1))
+    assert parsed.scheme == "https"
+    assert parsed.netloc == "github.com"
+    assert parsed.path.endswith("/docs/progress/20260206_slug.md")
 
 
 def test_create_feature_pr_skill_avoids_commit_subject_narrative() -> None:
