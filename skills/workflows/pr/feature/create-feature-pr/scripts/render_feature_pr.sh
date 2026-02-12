@@ -144,7 +144,13 @@ resolve_progress_url_from_file() {
   fi
 
   repo_slug="$(github_slug_from_remote "$remote_url")"
-  branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+  if [[ -z "$branch" ]]; then
+    branch="${GITHUB_HEAD_REF:-}"
+  fi
+  if [[ -z "$branch" ]] || [[ "$branch" == "HEAD" ]]; then
+    branch="$(git for-each-ref --format='%(refname:short)' --points-at HEAD refs/heads refs/remotes/origin 2>/dev/null | sed 's#^origin/##' | awk '$0 != "HEAD" {print; exit}')"
+  fi
   if [[ -z "$branch" ]] || [[ "$branch" == "HEAD" ]]; then
     echo "error: cannot resolve current branch for --progress-file" >&2
     return 1

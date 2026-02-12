@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -23,9 +24,23 @@ def test_workflows_pr_feature_create_feature_pr_entrypoints_exist() -> None:
     )
 
 
-def _run_render(*args: str) -> subprocess.CompletedProcess[str]:
+def _run_render(
+    *args: str,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     script = Path(__file__).resolve().parents[1] / "scripts" / "render_feature_pr.sh"
-    return subprocess.run([str(script), *args], text=True, capture_output=True, check=False)
+    run_env = os.environ.copy()
+    if env:
+        run_env.update(env)
+    return subprocess.run(
+        [str(script), *args],
+        text=True,
+        capture_output=True,
+        check=False,
+        cwd=None if cwd is None else str(cwd),
+        env=run_env,
+    )
 
 
 def _skill_md_text() -> str:
@@ -90,6 +105,35 @@ def test_render_feature_pr_builds_progress_url_from_progress_file() -> None:
     assert parsed.scheme == "https"
     assert parsed.netloc == "github.com"
     assert parsed.path.endswith("/docs/progress/20260206_slug.md")
+
+
+def test_render_feature_pr_builds_progress_url_with_detached_head_fallback(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+
+    subprocess.run(["git", "init", "-q"], cwd=str(repo), check=True)
+    subprocess.run(["git", "config", "user.email", "fixture@example.com"], cwd=str(repo), check=True)
+    subprocess.run(["git", "config", "user.name", "Fixture User"], cwd=str(repo), check=True)
+    (repo / "README.md").write_text("fixture\n", encoding="utf-8")
+    subprocess.run(["git", "add", "README.md"], cwd=str(repo), check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=str(repo), check=True)
+    subprocess.run(["git", "remote", "add", "origin", "https://github.com/org/repo.git"], cwd=str(repo), check=True)
+
+    head_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=str(repo), text=True).strip()
+    subprocess.run(["git", "checkout", "--detach", head_sha], cwd=str(repo), check=True)
+
+    result = _run_render(
+        "--pr",
+        "--from-progress-pr",
+        "--progress-file",
+        "docs/progress/20260206_slug.md",
+        "--planning-pr",
+        "123",
+        cwd=repo,
+        env={"GITHUB_HEAD_REF": "feat/fallback-branch"},
+    )
+    assert result.returncode == 0, result.stderr
+    assert "https://github.com/org/repo/blob/feat/fallback-branch/docs/progress/20260206_slug.md" in result.stdout
 
 
 def test_create_feature_pr_skill_avoids_commit_subject_narrative() -> None:
