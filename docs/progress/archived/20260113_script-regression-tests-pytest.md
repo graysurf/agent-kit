@@ -1,4 +1,4 @@
-# codex-kit: Script regression tests (pytest)
+# agent-kit: Script regression tests (pytest)
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/20
-- Planning PR: https://github.com/graysurf/codex-kit/pull/19
+- PR: https://github.com/graysurf/agent-kit/pull/20
+- Planning PR: https://github.com/graysurf/agent-kit/pull/19
 - Docs: [docs/testing/script-regression.md](../../testing/script-regression.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 

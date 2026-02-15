@@ -1,4 +1,4 @@
-# codex-kit: Skill contract fields and lint
+# agent-kit: Skill contract fields and lint
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/17
-- Planning PR: https://github.com/graysurf/codex-kit/pull/16
+- PR: https://github.com/graysurf/agent-kit/pull/17
+- Planning PR: https://github.com/graysurf/agent-kit/pull/16
 - Docs: None
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 

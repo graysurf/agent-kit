@@ -1,4 +1,4 @@
-# codex-kit: API test runner: CI summary report (GitHub Actions)
+# agent-kit: API test runner: CI summary report (GitHub Actions)
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/15
+- PR: https://github.com/graysurf/agent-kit/pull/15
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20880992440

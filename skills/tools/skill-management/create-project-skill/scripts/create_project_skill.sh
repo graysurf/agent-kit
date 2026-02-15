@@ -93,7 +93,7 @@ done
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 codex_root="$(git -C "$script_dir" rev-parse --show-toplevel 2>/dev/null || true)"
 if [[ -z "$codex_root" ]]; then
-  echo "error: unable to resolve codex-kit repository root" >&2
+  echo "error: unable to resolve agent-kit repository root" >&2
   exit 1
 fi
 

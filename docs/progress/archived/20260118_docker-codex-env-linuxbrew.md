@@ -1,4 +1,4 @@
-# codex-kit: Docker Codex env (Linuxbrew)
+# agent-kit: Docker Codex env (Linuxbrew)
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/59
-- Planning PR: https://github.com/graysurf/codex-kit/pull/58
+- PR: https://github.com/graysurf/agent-kit/pull/59
+- Planning PR: https://github.com/graysurf/agent-kit/pull/58
 - Docs: [docker/codex-env/README.md](../../../docker/codex-env/README.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
@@ -37,7 +37,7 @@ Links:
 ## Scope
 
 - In-scope:
-  - Add Docker assets (Dockerfile + compose/run docs) to `codex-kit` for an Option A (Linuxbrew) dev environment.
+  - Add Docker assets (Dockerfile + compose/run docs) to `agent-kit` for an Option A (Linuxbrew) dev environment.
   - Use `zsh-kit` tool lists as the source of truth for Linuxbrew-installed CLI tools.
   - Provide a clear fallback policy for missing Linuxbrew packages (apt replacement or explicit removal with documented deviation).
   - Provide an explicit multi-environment run workflow (multiple concurrent containers, each with isolated volumes/state).
@@ -65,7 +65,7 @@ Links:
   - `/Users/terry/.config/zsh/config/tools.optional.linux.apt.list` (if present; Linux only)
 - Source repos (public):
   - `https://github.com/graysurf/zsh-kit.git`
-  - `https://github.com/graysurf/codex-kit.git`
+  - `https://github.com/graysurf/agent-kit.git`
 - Runtime host mounts (optional, for “live config” mode):
   - `$HOME/.config/zsh/` (bind mount into container, ideally read-only)
   - Workspace repo(s) (bind mount)
@@ -99,7 +99,7 @@ Links:
 
 - Optional tools are installed by default (required + optional lists), with an explicit opt-out if build time becomes a bottleneck.
 - Install priority order (per tool): Linuxbrew > OS package manager (apt) > release binary download.
-- Source repos (`zsh-kit`, `codex-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
+- Source repos (`zsh-kit`, `agent-kit`) are cloned during image build for reproducibility (pinned to an explicit ref).
 - Split `zsh-kit` tool lists by OS (macOS/Linux) and add Linux apt-only lists for tools that cannot be installed via Linuxbrew (e.g. VS Code `code`, `mitmproxy`).
 - Target runtime: Ubuntu Server (Docker Engine, headless) with macOS VS Code tunnel access to containers; no Docker Desktop requirement.
 - Repository layout: `Dockerfile` + `docker-compose.yml` at repo root; keep helper scripts/docs under `docker/codex-env/`.
@@ -155,7 +155,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Optional install set (brew) = `/Users/terry/.config/zsh/config/tools.optional.list` (+ OS-specific optional lists if present)
       - Linux apt-only additions (optional) = `tools.linux.apt.list` / `tools.optional.linux.apt.list` (if present)
       - Default behavior: install required + optional (opt-out only).
-    - [x] Decide how to source `zsh-kit` and `codex-kit` inside the container:
+    - [x] Decide how to source `zsh-kit` and `agent-kit` inside the container:
       - Clone during image build (self-contained, pinned revision/ref).
     - [x] Decide install fallback order (per tool): Linuxbrew > apt > release binary.
     - [x] Decide `AGENTS_HOME` strategy:
@@ -179,7 +179,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
     - `docs/progress/README.md` entry (In progress table)
     - `docker/codex-env/README.md` (planned) describing decisions and usage
-    - Implementation PR: https://github.com/graysurf/codex-kit/pull/59
+    - Implementation PR: https://github.com/graysurf/agent-kit/pull/59
   - Exit Criteria:
     - [x] Requirements, scope, and acceptance criteria are aligned: reviewed in this progress doc.
     - [x] Data flow and I/O contract are defined: container inputs/outputs/volumes/build args documented here.
@@ -227,7 +227,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Add compatibility shims when required (only when proven necessary by smoke tests):
       - Example: provide `gdate`/`gseq` aliases or symlinks if scripts assume macOS GNU coreutils naming.
       - Decision: Document-only (no shims). See `docker/codex-env/README.md`.
-    - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `codex-kit` (read-only mounts) for fast iteration.
+    - [x] Add a “local bind-mount mode” for `zsh-kit` and/or `agent-kit` (read-only mounts) for fast iteration.
     - [x] Provide runtime secrets injection docs and compose overrides for GitHub/Codex auth.
       - Codex profiles use `codex-use` with secrets mounted under `/opt/zsh-kit/scripts/_features/codex/secrets`.
     - [x] Add a host-side “workspace launcher” (Option A) to quickly start an isolated workspace container from a repo input.
@@ -260,9 +260,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
           - Allow skip via `--no-pull` for offline hosts.
         - [x] Start container in detached mode with a long-running command (so later `docker exec` works consistently).
         - [x] Apply discoverability labels so `ls` can be accurate (example):
-          - `--label codex-kit.workspace=1`
-          - `--label codex-kit.repo=<normalized>`
-          - `--label codex-kit.created-at=<iso8601>`
+          - `--label agent-kit.workspace=1`
+          - `--label agent-kit.repo=<normalized>`
+          - `--label agent-kit.created-at=<iso8601>`
         - [x] Set container `--workdir /work` and ensure `/work` exists and is writable.
           - Also set image baseline: `Dockerfile` ensures `/work` is owned by `codex` to avoid permissions issues for fresh named volumes.
         - [x] Ensure workspace state isolation:
@@ -340,7 +340,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
       - Evidence: `out/docker/verify/20260118_084317/multi-env.log`
     - [x] Workspace launcher is implemented and documented:
       - `docker/codex-env/bin/codex-workspace --help` works (macOS validated; Ubuntu Server pending).
-      - `codex-workspace up git@github.com:graysurf/codex-kit.git` creates a new workspace container and clones repo into `/work` (no host bind mount).
+      - `codex-workspace up git@github.com:graysurf/agent-kit.git` creates a new workspace container and clones repo into `/work` (no host bind mount).
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
       - `codex-workspace tunnel <name> --detach` starts a VS Code tunnel for that workspace (first-run login flow documented).
         - Evidence: `out/docker/verify/20260118_101244_workspace_tunnel_wait/workspace-tunnel.log`
@@ -348,7 +348,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
   - Work Items:
     - [ ] ~~Add a host-invoked smoke script (or documented one-liners) to validate the container toolchain.~~
       - Reason: Not needed for current usage; smoke one-liners + evidence already exist.
-    - [x] Validate `codex-kit` checks inside the container (at minimum lint):
+    - [x] Validate `agent-kit` checks inside the container (at minimum lint):
       - `$AGENTS_HOME/scripts/check.sh --lint`
       - Evidence: `out/docker/verify/20260118_121526_check_lint/check-lint.log`
     - [x] Record evidence outputs under `out/docker/verify/` (tool versions, smoke logs).
@@ -359,7 +359,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Validate the workspace launcher flow end-to-end on a clean host:
       - [x] Pull-only path (no local build): `docker pull graysurf/codex-env:linuxbrew`.
         - Evidence: `out/docker/verify/20260118_120610_pull_only/pull.log`
-      - [x] Create workspace from SSH-style input: `codex-workspace up git@github.com:graysurf/codex-kit.git`.
+      - [x] Create workspace from SSH-style input: `codex-workspace up git@github.com:graysurf/agent-kit.git`.
         - Evidence: `out/docker/verify/20260118_101201_workspace/workspace-launcher.log`
       - [x] Confirm repo is in-container only:
         - Host has no new workspace folder created.

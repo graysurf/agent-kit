@@ -1,4 +1,4 @@
-# codex-kit: Skills layout normalization and audit
+# agent-kit: Skills layout normalization and audit
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/56
+- PR: https://github.com/graysurf/agent-kit/pull/56
 - Docs: [README.md](../../../README.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
@@ -133,7 +133,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, close-progress-pr
     - [x] Open PR and get review.
     - [x] After merge: run `close-progress-pr` to archive this progress file (optional but preferred).
   - Artifacts:
-    - PR: https://github.com/graysurf/codex-kit/pull/56
+    - PR: https://github.com/graysurf/agent-kit/pull/56
   - Exit Criteria:
     - [x] PR is merged and CI is green.
     - [x] Progress file is archived under `docs/progress/archived/` and index is updated.

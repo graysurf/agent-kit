@@ -1,6 +1,6 @@
 # scripts
 
-Repo-local helpers for codex-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local wrappers under `commands/` should not be required for normal use.
+Repo-local helpers for agent-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local wrappers under `commands/` should not be required for normal use.
 
 ## Structure
 

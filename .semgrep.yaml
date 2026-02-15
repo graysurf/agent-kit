@@ -1,5 +1,5 @@
 rules:
-  - id: codex-kit.comment.todo
+  - id: agent-kit.comment.todo
     languages: [generic]
     message: TODO marker (unfinished work or missing edge cases).
     severity: INFO
@@ -10,7 +10,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.comment.fixme
+  - id: agent-kit.comment.fixme
     languages: [generic]
     message: FIXME marker (known-bad behavior).
     severity: WARNING
@@ -21,7 +21,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.comment.bug
+  - id: agent-kit.comment.bug
     languages: [generic]
     message: BUG marker (explicit bug note).
     severity: WARNING
@@ -32,7 +32,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.comment.hack
+  - id: agent-kit.comment.hack
     languages: [generic]
     message: HACK marker (workaround or suspicious code).
     severity: WARNING
@@ -43,7 +43,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.comment.xxx
+  - id: agent-kit.comment.xxx
     languages: [generic]
     message: XXX marker (placeholder or code smell).
     severity: INFO
@@ -54,7 +54,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.shell.typeset-empty-string-double-quotes
+  - id: agent-kit.shell.typeset-empty-string-double-quotes
     languages: [generic]
     message: Prefer ='' over ="" in typeset/local lines.
     severity: INFO
@@ -64,7 +64,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.shell.eval
+  - id: agent-kit.shell.eval
     languages: [generic]
     message: "Avoid eval in shell scripts; prefer arrays or explicit parsing."
     severity: WARNING
@@ -74,7 +74,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.shell.curl-pipe-shell
+  - id: agent-kit.shell.curl-pipe-shell
     languages: [generic]
     message: Avoid piping curl/wget output to a shell (supply-chain risk).
     severity: ERROR
@@ -84,7 +84,7 @@ rules:
         - "*.sh"
         - "*.zsh"
 
-  - id: codex-kit.python.subprocess-shell-true
+  - id: agent-kit.python.subprocess-shell-true
     languages: [python]
     message: Avoid shell=True in subprocess calls; prefer an argv list without a shell.
     severity: ERROR
@@ -97,7 +97,7 @@ rules:
       include:
         - "*.py"
 
-  - id: codex-kit.python.os-system
+  - id: agent-kit.python.os-system
     languages: [python]
     message: Avoid os.system; prefer subprocess with an argv list.
     severity: WARNING
@@ -106,7 +106,7 @@ rules:
       include:
         - "*.py"
 
-  - id: codex-kit.python.eval-exec
+  - id: agent-kit.python.eval-exec
     languages: [python]
     message: Avoid eval/exec; prefer safer parsing or explicit code paths.
     severity: WARNING

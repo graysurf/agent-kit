@@ -1,6 +1,6 @@
-# codex-kit
+# agent-kit
 
-codex-kit tracks Codex CLI setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling. Secrets and session data are
+agent-kit tracks Codex CLI setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling. Secrets and session data are
 intentionally excluded via `.gitignore`.
 
 ## 🗂️ Project Structure

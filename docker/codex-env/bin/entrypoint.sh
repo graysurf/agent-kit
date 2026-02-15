@@ -3,7 +3,7 @@ set -euo pipefail
 
 codex_user="${CODEX_USER:-codex}"
 agents_home="${AGENTS_HOME:-/home/${codex_user}/.agents}"
-codex_src="${CODEX_KIT_DIR:-/opt/codex-kit}"
+codex_src="${CODEX_KIT_DIR:-/opt/agent-kit}"
 
 export CODEX_AUTH_FILE="${CODEX_AUTH_FILE:-${agents_home%/}/auth.json}"
 
@@ -18,7 +18,7 @@ fi
 
 if [[ -d "$agents_home" ]]; then
   if [[ -n "$(ls -A "$agents_home" 2>/dev/null)" ]]; then
-    echo "warn: AGENTS_HOME is not empty but missing codex-kit; skipping seed" >&2
+    echo "warn: AGENTS_HOME is not empty but missing agent-kit; skipping seed" >&2
     exec "$@"
   fi
 fi

@@ -99,15 +99,15 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
             rule_ids.add(check_id)
 
     expected = {
-        "codex-kit.comment.todo",
-        "codex-kit.comment.fixme",
-        "codex-kit.comment.hack",
-        "codex-kit.shell.typeset-empty-string-double-quotes",
-        "codex-kit.shell.eval",
-        "codex-kit.shell.curl-pipe-shell",
-        "codex-kit.python.subprocess-shell-true",
-        "codex-kit.python.os-system",
-        "codex-kit.python.eval-exec",
+        "agent-kit.comment.todo",
+        "agent-kit.comment.fixme",
+        "agent-kit.comment.hack",
+        "agent-kit.shell.typeset-empty-string-double-quotes",
+        "agent-kit.shell.eval",
+        "agent-kit.shell.curl-pipe-shell",
+        "agent-kit.python.subprocess-shell-true",
+        "agent-kit.python.os-system",
+        "agent-kit.python.eval-exec",
     }
     missing = expected - rule_ids
     assert not missing, f"expected Semgrep rules not triggered: {sorted(missing)}"

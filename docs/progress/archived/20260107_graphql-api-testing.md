@@ -1,4 +1,4 @@
-# codex-kit: GraphQL API testing skill
+# agent-kit: GraphQL API testing skill
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/6
+- PR: https://github.com/graysurf/agent-kit/pull/6
 - Docs: [skills/tools/testing/graphql-api-testing/SKILL.md](../../../skills/tools/testing/graphql-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 

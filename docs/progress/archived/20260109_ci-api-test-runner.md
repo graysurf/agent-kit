@@ -1,4 +1,4 @@
-# codex-kit: CI API test runner (REST + GraphQL)
+# agent-kit: CI API test runner (REST + GraphQL)
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/12
-- Planning PR: https://github.com/graysurf/codex-kit/pull/11
+- PR: https://github.com/graysurf/agent-kit/pull/12
+- Planning PR: https://github.com/graysurf/agent-kit/pull/11
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 

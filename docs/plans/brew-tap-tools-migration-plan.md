@@ -1,4 +1,4 @@
-# Plan: Migrate codex-kit Tooling to Homebrew Tap (nils-cli) + Move project-resolve
+# Plan: Migrate agent-kit Tooling to Homebrew Tap (nils-cli) + Move project-resolve
 
 ## Overview
 This plan removes the repo’s dependency on vendored binaries under `commands/` and the `CODEX_COMMANDS_PATH` env var.
@@ -19,7 +19,7 @@ Additionally, `commands/project-resolve` will be moved into `scripts/` as a repo
   - Rewriting historical records (`CHANGELOG.md`, `docs/progress/archived/**`) just to remove `CODEX_COMMANDS_PATH` mentions.
 
 ## Assumptions
-1. Homebrew tap `graysurf/tap` is the canonical distribution channel for the “codex-kit binary tools”.
+1. Homebrew tap `graysurf/tap` is the canonical distribution channel for the “agent-kit binary tools”.
 2. Installing `nils-cli` provides these required binaries on both macOS and Ubuntu (Linuxbrew): `api-gql`, `api-rest`, `api-test`, `cli-template`, `fzf-cli`, `git-lock`, `git-scope`, `git-summary`, `image-processing`, `plan-tooling`, `semantic-commit`.
 3. `project-resolve` remains a repo-local script (installed/used via `$AGENTS_HOME/scripts/project-resolve`), not a Homebrew-installed binary.
 4. CI is allowed to install Homebrew (Linuxbrew) on Ubuntu runners.

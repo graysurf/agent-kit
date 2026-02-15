@@ -219,7 +219,7 @@ resolve_tools() {
 resolve_tools "$agents_home"
 if [[ ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_file_script" || ! -f "$create_worktrees_script" ]]; then
   # AGENTS_HOME is often a global Codex config dir; fall back to the current repo root unless
-  # the caller intentionally pointed AGENTS_HOME at a codex-kit checkout that contains these scripts.
+  # the caller intentionally pointed AGENTS_HOME at a agent-kit checkout that contains these scripts.
   resolve_tools "$repo_root"
   agents_home="$repo_root"
 fi

@@ -3,10 +3,10 @@ FROM ubuntu:24.04
 SHELL ["/bin/bash", "-lc"]
 
 ARG IMAGE_TITLE="codex-env"
-ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + codex-kit)"
-ARG IMAGE_SOURCE="https://github.com/graysurf/codex-kit"
-ARG IMAGE_URL="https://github.com/graysurf/codex-kit"
-ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/codex-kit/tree/main/docker/codex-env"
+ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + agent-kit)"
+ARG IMAGE_SOURCE="https://github.com/graysurf/agent-kit"
+ARG IMAGE_URL="https://github.com/graysurf/agent-kit"
+ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/agent-kit/tree/main/docker/codex-env"
 ARG IMAGE_LICENSES="MIT"
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -45,8 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh codex \
   && echo "codex ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/codex \
   && chmod 0440 /etc/sudoers.d/codex \
-  && mkdir -p /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex/.agents /home/linuxbrew/.linuxbrew \
-  && chown -R codex:codex /opt/zsh-kit /opt/codex-kit /opt/codex-env /home/codex /home/linuxbrew
+  && mkdir -p /opt/zsh-kit /opt/agent-kit /opt/codex-env /home/codex/.agents /home/linuxbrew/.linuxbrew \
+  && chown -R codex:codex /opt/zsh-kit /opt/agent-kit /opt/codex-env /home/codex /home/linuxbrew
 
 USER codex
 
@@ -67,17 +67,17 @@ RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
 ARG ZSH_KIT_REF="nils-cli"
-ARG CODEX_KIT_REPO="https://github.com/graysurf/codex-kit.git"
+ARG CODEX_KIT_REPO="https://github.com/graysurf/agent-kit.git"
 ARG CODEX_KIT_REF="main"
 
 RUN git clone "${ZSH_KIT_REPO}" /opt/zsh-kit \
   && (cd /opt/zsh-kit && git checkout "${ZSH_KIT_REF}")
 
-RUN git clone "${CODEX_KIT_REPO}" /opt/codex-kit \
-  && (cd /opt/codex-kit && git checkout "${CODEX_KIT_REF}")
+RUN git clone "${CODEX_KIT_REPO}" /opt/agent-kit \
+  && (cd /opt/agent-kit && git checkout "${CODEX_KIT_REF}")
 
 ENV ZSH_KIT_DIR="/opt/zsh-kit"
-ENV CODEX_KIT_DIR="/opt/codex-kit"
+ENV CODEX_KIT_DIR="/opt/agent-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
 ENV ZSH_FEATURES="codex,opencode"
 ENV ZSH_BOOT_WEATHER_ENABLED=false

@@ -407,7 +407,7 @@ def test_script_smoke_fixture_close_progress_pr_no_merge(tmp_path: Path):
     progress_file.write_text(
         "\n".join(
             [
-                "# codex-kit: Fixture progress",
+                "# agent-kit: Fixture progress",
                 "",
                 "| Status | Created | Updated |",
                 "| --- | --- | --- |",
@@ -514,7 +514,7 @@ def test_script_smoke_fixture_close_progress_pr_merge_reuses_pr_body(tmp_path: P
     progress_file.write_text(
         "\n".join(
             [
-                "# codex-kit: Fixture progress",
+                "# agent-kit: Fixture progress",
                 "",
                 "| Status | Created | Updated |",
                 "| --- | --- | --- |",
@@ -624,7 +624,7 @@ def test_script_smoke_fixture_close_progress_pr_auto_strikethrough(tmp_path: Pat
     progress_file.write_text(
         "\n".join(
             [
-                "# codex-kit: Fixture progress",
+                "# agent-kit: Fixture progress",
                 "",
                 "| Status | Created | Updated |",
                 "| --- | --- | --- |",
@@ -734,7 +734,7 @@ def test_script_smoke_fixture_close_progress_pr_invalid_strikethrough_fails(tmp_
     progress_file.write_text(
         "\n".join(
             [
-                "# codex-kit: Fixture progress",
+                "# agent-kit: Fixture progress",
                 "",
                 "| Status | Created | Updated |",
                 "| --- | --- | --- |",

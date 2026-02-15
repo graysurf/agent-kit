@@ -1,4 +1,4 @@
-# codex-kit: API test runner: CI auth via GitHub Secrets (JWT login)
+# agent-kit: API test runner: CI auth via GitHub Secrets (JWT login)
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/14
-- Planning PR: https://github.com/graysurf/codex-kit/pull/13
+- PR: https://github.com/graysurf/agent-kit/pull/14
+- Planning PR: https://github.com/graysurf/agent-kit/pull/13
 - Docs: [skills/tools/testing/api-test-runner/SKILL.md](../../../skills/tools/testing/api-test-runner/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 - Downstream validation (real project): https://github.com/Rytass/TunGroup/actions/runs/20879442172

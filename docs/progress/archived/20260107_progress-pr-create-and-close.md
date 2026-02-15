@@ -1,4 +1,4 @@
-# codex-kit: Progress PR create and close
+# agent-kit: Progress PR create and close
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/5
+- PR: https://github.com/graysurf/agent-kit/pull/5
 - Docs: `README.md`
 - Glossary: `docs/templates/PROGRESS_GLOSSARY.md`
 
@@ -16,7 +16,7 @@ Links:
 
 ## Goal
 
-- Add a standard “progress file” workflow for new requirements (create + close) in `codex-kit`.
+- Add a standard “progress file” workflow for new requirements (create + close) in `agent-kit`.
 - Ensure PRs remain traceable over time (progress links survive branch deletion).
 - Keep responsibilities separated: feature PR management vs progress file management.
 
@@ -40,7 +40,7 @@ Links:
   - Add small deterministic scripts under skill folders to reduce repeated manual work
 - Out-of-scope:
   - Enforcing progress files via CI checks across all repos
-  - Implementing any business feature code outside `codex-kit`
+  - Implementing any business feature code outside `agent-kit`
   - Packaging/distributing `.skill` artifacts (optional; defer)
 
 ## I/O Contract

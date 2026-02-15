@@ -1,4 +1,4 @@
-# codex-kit: Codex workspace launcher-wrapper migration
+# agent-kit: Codex workspace launcher-wrapper migration
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/63
+- PR: https://github.com/graysurf/agent-kit/pull/63
 - Wrapper PR: https://github.com/graysurf/zsh-kit/pull/58
 - Docs: [docs/runbooks/codex-workspace-migration.md](../../runbooks/codex-workspace-migration.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
@@ -18,7 +18,7 @@ Links:
 ## Goal
 
 - Define and ship a stable `codex-workspace` launcher contract (version/capabilities, JSON output, tunnel naming, secrets, `rm` semantics).
-- Deduplicate lifecycle features between launcher (codex-kit) and wrapper (zsh-kit) to reduce drift and maintenance cost.
+- Deduplicate lifecycle features between launcher (agent-kit) and wrapper (zsh-kit) to reduce drift and maintenance cost.
 - Preserve wrapper-only Dev Containers UX while using the launcher as the canonical source of truth.
 
 ## Acceptance Criteria
@@ -34,8 +34,8 @@ Links:
 ## Scope
 
 - In-scope:
-  - codex-kit launcher contract work: `--version`, capabilities, `--output json`, tunnel naming + JSON, secrets opt-in, `rm` semantics.
-  - codex-kit docs: runbook and launcher docs updates to reflect the new contract.
+  - agent-kit launcher contract work: `--version`, capabilities, `--output json`, tunnel naming + JSON, secrets opt-in, `rm` semantics.
+  - agent-kit docs: runbook and launcher docs updates to reflect the new contract.
   - zsh-kit wrapper changes: call-through for launcher-owned commands and JSON-based orchestration for create.
 - Out-of-scope:
   - Wrapper-only Dev Containers extras (snapshot, private repo seeding, `/opt/*` refresh, VS Code open, rsync/reset workflows).
@@ -75,7 +75,7 @@ Links:
 - Risk: breaking changes in launcher flags/output can strand older wrappers. Mitigation: add `--version` + capabilities and enforce minimum version in wrapper.
 - Risk: tunnel naming and logging expectations differ across environments. Mitigation: enforce `<= 20` chars in launcher and return `tunnel_name` + `log_path` in JSON.
 - Risk: secrets defaults can accidentally leak host paths into a “canonical” launcher contract. Mitigation: no launcher default; require explicit `--secrets-dir` opt-in.
-- Risk: planning spans multiple repos (codex-kit + zsh-kit). Mitigation: keep links explicit (progress file + planning PR + implementation PRs) and validate with end-to-end smoke steps.
+- Risk: planning spans multiple repos (agent-kit + zsh-kit). Mitigation: keep links explicit (progress file + planning PR + implementation PRs) and validate with end-to-end smoke steps.
 
 ## Steps (Checklist)
 
@@ -94,7 +94,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
     - [x] Risks and rollback notes are captured.
     - [x] A minimal verification plan exists (smoke commands in Step 3).
-- [x] Step 1: Minimum viable launcher contract (codex-kit)
+- [x] Step 1: Minimum viable launcher contract (agent-kit)
   - Work Items:
     - [x] Add `--version` and capabilities (`capabilities`, `--supports`).
     - [x] Implement `create/up --output json` with stdout JSON / stderr logs.
@@ -158,6 +158,6 @@ Evidence (real Docker; 2026-01-22):
 
 ## Modules
 
-- codex-kit launcher: `docker/codex-env/bin/codex-workspace` (canonical lifecycle + contract)
-- codex-kit docs: `docs/runbooks/codex-workspace-migration.md` + `docker/codex-env/*` docs
+- agent-kit launcher: `docker/codex-env/bin/codex-workspace` (canonical lifecycle + contract)
+- agent-kit docs: `docs/runbooks/codex-workspace-migration.md` + `docker/codex-env/*` docs
 - zsh-kit wrapper: `~/.config/zsh/scripts/_features/codex-workspace/*` (host UX and orchestration)

@@ -27,7 +27,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 1. `gh auth status` succeeds on the machine executing the plan.
 2. We can create and merge PRs in at least one safe sandbox target:
    - **Option A (recommended)**: a temporary GitHub repo created for E2E runs, OR
-   - **Option B**: a temporary base branch in `graysurf/codex-kit` used only for E2E PR merges.
+   - **Option B**: a temporary base branch in `graysurf/agent-kit` used only for E2E PR merges.
 3. Base branch name is `main` (parameterize where possible).
 4. Worktrees can be created under `<repo_root>/../.worktrees/<repo_name>/` (default policy in `worktree-stacked-feature-pr`).
 5. We will store E2E logs and artifacts under `out/e2e/progress-pr-workflow/` (never `/tmp`).
@@ -287,7 +287,7 @@ Primary success criteria: we can reliably create/merge/close a planning progress
 - **Description**: Choose a sandbox target and record run metadata (repo/branch, PR IDs) in `run.json`.
   - Choose one:
     - **Option A (recommended)**: create a temporary GitHub repo (private) for the E2E run.
-    - **Option B**: create a temporary base branch (e.g. `test/progress-e2e-<run-id>`) in `graysurf/codex-kit`.
+    - **Option B**: create a temporary base branch (e.g. `test/progress-e2e-<run-id>`) in `graysurf/agent-kit`.
   - Record the decision and identifiers in `out/` (repo URL, base branch, run-id, created PR numbers).
 - **Dependencies**:
   - Task 2.5

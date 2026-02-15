@@ -30,7 +30,7 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 
 os="$(uname -s)"
 
-# codex-kit binaries are provided via Homebrew tap (nils-cli).
+# agent-kit binaries are provided via Homebrew tap (nils-cli).
 if ! command -v plan-tooling >/dev/null 2>&1; then
   brew tap graysurf/tap
   brew install nils-cli

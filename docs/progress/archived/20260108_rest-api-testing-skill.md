@@ -1,4 +1,4 @@
-# codex-kit: REST API testing skill
+# agent-kit: REST API testing skill
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/10
-- Planning PR: https://github.com/graysurf/codex-kit/pull/9
+- PR: https://github.com/graysurf/agent-kit/pull/10
+- Planning PR: https://github.com/graysurf/agent-kit/pull/9
 - Docs: [skills/tools/testing/rest-api-testing/SKILL.md](../../../skills/tools/testing/rest-api-testing/SKILL.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 

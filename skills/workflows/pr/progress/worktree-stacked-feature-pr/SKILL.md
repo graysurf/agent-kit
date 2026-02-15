@@ -64,7 +64,7 @@ This skill is designed to “follow” a progress PR created by `create-progress
 ### Directory layout
 
 - **Worktrees root (default)**: `<repo_root>/../.worktrees/<repo_name>/`
-  - Example: if repo root is `/work/graysurf/codex-kit`, worktrees go to `/work/graysurf/.worktrees/codex-kit/`
+  - Example: if repo root is `/work/graysurf/agent-kit`, worktrees go to `/work/graysurf/.worktrees/agent-kit/`
 - **Worktrees root override**: pass `--worktrees-root <path>` to `create_worktrees_from_tsv.sh` when you need a different root.
 - **Worktree path**: `<worktrees_root>/<worktree_name>/`
   - `worktree_name` must be filesystem-safe: replace `/` with `__`.

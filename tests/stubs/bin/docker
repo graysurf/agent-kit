@@ -120,10 +120,10 @@ case "$cmd" in
         *".State.Status"*)
           printf "%s\n" "${CODEX_DOCKER_STUB_CONTAINER_STATUS:-running}"
           ;;
-        *"codex-kit.repo"*)
+        *"agent-kit.repo"*)
           printf "%s\n" "${CODEX_DOCKER_STUB_LABEL_REPO:-}"
           ;;
-        *"codex-kit.created-at"*)
+        *"agent-kit.created-at"*)
           printf "%s\n" "${CODEX_DOCKER_STUB_LABEL_CREATED_AT:-20260122-000000}"
           ;;
         *)

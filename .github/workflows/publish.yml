@@ -44,14 +44,14 @@ jobs:
             publish_ghcr=1
           fi
 
-          if [[ "${REPOSITORY}" == "graysurf/codex-kit" && "${EVENT_NAME}" != "pull_request" && -n "${DOCKERHUB_USERNAME}" && -n "${DOCKERHUB_TOKEN}" ]]; then
+          if [[ "${REPOSITORY}" == "graysurf/agent-kit" && "${EVENT_NAME}" != "pull_request" && -n "${DOCKERHUB_USERNAME}" && -n "${DOCKERHUB_TOKEN}" ]]; then
             publish_dockerhub=1
           fi
 
           echo "publish_ghcr=${publish_ghcr}" >>"$GITHUB_OUTPUT"
           echo "publish_dockerhub=${publish_dockerhub}" >>"$GITHUB_OUTPUT"
 
-          if [[ "${REPOSITORY}" == "graysurf/codex-kit" && "${EVENT_NAME}" != "pull_request" && "${publish_dockerhub}" != "1" ]]; then
+          if [[ "${REPOSITORY}" == "graysurf/agent-kit" && "${EVENT_NAME}" != "pull_request" && "${publish_dockerhub}" != "1" ]]; then
             echo "Skipping Docker Hub publish: missing DOCKERHUB_USERNAME and/or DOCKERHUB_TOKEN."
 
             if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then

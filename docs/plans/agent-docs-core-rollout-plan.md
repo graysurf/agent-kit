@@ -21,7 +21,7 @@ This plan makes `agent-docs` the primary policy orchestration layer instead of a
 ## Assumptions
 
 1. `agent-docs`, `plan-tooling`, and `semantic-commit` are available on `PATH`.
-2. `$AGENTS_HOME` points to `/Users/terry/.config/codex-kit` in this environment.
+2. `$AGENTS_HOME` points to `/Users/terry/.config/agent-kit` in this environment.
 3. Pilot changes in `/Users/terry/Project/graysurf/nils-cli` can be tested in a dedicated branch/worktree.
 4. Subagent execution is available and can be used to run reproducible scenario checks.
 

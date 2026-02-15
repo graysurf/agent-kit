@@ -5,17 +5,17 @@ Last updated: 2026-01-22
 
 This doc is a migration plan to reduce drift between:
 
-- **codex-kit launcher (canonical, shell-agnostic)**: `docker/codex-env/bin/codex-workspace`
+- **agent-kit launcher (canonical, shell-agnostic)**: `docker/codex-env/bin/codex-workspace`
 - **zsh wrapper + Dev Containers extras**: `~/.config/zsh/scripts/_features/codex-workspace/*` (not in this repo)
 
 ## Decisions (approved)
 
-- **Entry point**: a shell-agnostic executable lives in **codex-kit**.
+- **Entry point**: a shell-agnostic executable lives in **agent-kit**.
 - **Dev Containers extras** (snapshot, private repo, VS Code open, etc.) remain in the **zsh wrapper**.
 - **Secrets**: no launcher default; secrets are opt-in and require `--secrets-dir <host-path>`.
   - Recommended: `--secrets-dir ~/.config/codex_secrets --secrets-mount /home/codex/codex_secrets`
 - **Compatibility**: breaking changes are acceptable.
-- **Launcher selection**: prefer local codex-kit checkout; fallback to auto-download when missing.
+- **Launcher selection**: prefer local agent-kit checkout; fallback to auto-download when missing.
 - **Ownership clarifications**:
   - `ls` is **launcher-owned** (wrapper should call-through, not re-implement).
   - `shell/exec` is **wrapper-owned** (host UX; do not build a stable launcher surface for it).
@@ -23,7 +23,7 @@ This doc is a migration plan to reduce drift between:
 
 ## Current state (inventory)
 
-### codex-kit launcher (`docker/codex-env/bin/codex-workspace`)
+### agent-kit launcher (`docker/codex-env/bin/codex-workspace`)
 
 Owns the core container lifecycle:
 
@@ -50,13 +50,13 @@ Acts as an orchestrator around the launcher and adds “Dev Containers” conven
 - Lifecycle commands (`ls`, `start`, `stop`, `rm`) are thin call-throughs to the launcher.
 - Post-create extras (typical): refresh `/opt/*` repos, snapshot `~/.config`, seed `~/.private`, clone extra repos
 - Additional host-side helpers (separate files): `auth`, `exec`, `rsync`, `reset`, `rm`, `tunnel`, `ls`
-- Auto-downloads the launcher when missing (from `raw.githubusercontent.com/.../codex-kit/...`)
+- Auto-downloads the launcher when missing (from `raw.githubusercontent.com/.../agent-kit/...`)
 
 ## Target architecture
 
 ### Ownership boundaries
 
-- **codex-kit (canonical launcher)**
+- **agent-kit (canonical launcher)**
   - **Minimum** (must be correct + stable): create/up, ls, start/stop, tunnel, rm
   - **Contract surface**: stable machine-readable output (JSON) + version/capabilities
   - **Defaults**: match the agreed secrets scheme
@@ -69,9 +69,9 @@ Acts as an orchestrator around the launcher and adds “Dev Containers” conven
     - optional auto-open VS Code
     - power tools: rsync, reset workflows
 
-### Minimum codex-kit surface (what must live here)
+### Minimum agent-kit surface (what must live here)
 
-codex-kit is the canonical, shell-agnostic entry point. To keep it small and reduce drift, the **minimum long-term supported surface** should be:
+agent-kit is the canonical, shell-agnostic entry point. To keep it small and reduce drift, the **minimum long-term supported surface** should be:
 
 - `codex-workspace create` (alias `up`)
   - Creates the workspace container + named volumes
@@ -90,7 +90,7 @@ codex-kit is the canonical, shell-agnostic entry point. To keep it small and red
 - `codex-workspace --version` (and/or `capabilities`)
   - Lets wrappers require a minimum launcher
 
-### zsh wrapper surface (what should NOT live in codex-kit)
+### zsh wrapper surface (what should NOT live in agent-kit)
 
 Keep host-opinionated and Dev Containers-specific behavior in the wrapper:
 
@@ -132,14 +132,14 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 | Rsync host ↔ container | Wrapper | Wrapper | Keep out of launcher |
 | Reset repo(s) inside container | Wrapper | Wrapper | Keep out of launcher |
 | Host config snapshot (`~/.config` copy) | Wrapper | Wrapper | Keep out of launcher |
-| Refresh `/opt/codex-kit` + `/opt/zsh-kit` | Wrapper | Wrapper | Keep out of launcher |
+| Refresh `/opt/agent-kit` + `/opt/zsh-kit` | Wrapper | Wrapper | Keep out of launcher |
 | Private repo seeding (`~/.private`) | Wrapper | Wrapper | Keep out of launcher |
 | Extra repos cloning | Wrapper | Wrapper | Keep out of launcher |
 | GPG import | Wrapper | Wrapper | Keep out of launcher |
 
 ## TODO (implementation checklist)
 
-### codex-kit: launcher changes
+### agent-kit: launcher changes
 
 - [x] Add `--version` (and/or a small `capabilities` output) so wrappers can require a minimum launcher.
 - [x] Add `up/create --output json` (or similar) and define a stable JSON schema (stop wrappers parsing human output).
@@ -163,7 +163,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 
 ### zsh wrapper: orchestration and dedupe
 
-- [x] Prefer **local codex-kit checkout** as the default launcher path; auto-download only when missing.
+- [x] Prefer **local agent-kit checkout** as the default launcher path; auto-download only when missing.
 - [x] Stop parsing human output; switch to launcher `--output json` once available.
 - [x] Make wrapper `ls`/`start`/`stop`/`rm` thin call-throughs to launcher (no duplicate implementation).
 - [x] Replace wrapper tunnel implementation with `"$launcher" tunnel ...` once parity is reached.
@@ -171,7 +171,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 
 ### Validation (manual / smoke)
 
-- [x] Launcher contract smoke (codex-kit stub tests):
+- [x] Launcher contract smoke (agent-kit stub tests):
   - [x] `codex-workspace --help` shows `create` and `--output`.
   - [x] `codex-workspace create --no-clone --name ws-foo --output json` emits stdout-only JSON; human logs go to stderr.
   - [x] Secrets contract (host-side): `--secrets-dir ...` sets `CODEX_SECRET_DIR=/home/codex/codex_secrets` and reports `secrets.*` in JSON.

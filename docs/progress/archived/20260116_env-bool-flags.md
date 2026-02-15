@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/49
-- Planning PR: https://github.com/graysurf/codex-kit/pull/48
+- PR: https://github.com/graysurf/agent-kit/pull/49
+- Planning PR: https://github.com/graysurf/agent-kit/pull/48
 - Docs: None
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
@@ -114,7 +114,7 @@ Explicit exclusions (out-of-scope examples):
 - Non-boolean env vars like `GQL_VARS_MIN_LIMIT` and `CHROME_DEVTOOLS_PREFLIGHT_TIMEOUT_SEC`.
 - Historical references under `docs/progress/**` (excluded from audit).
 
-| Env (current) | Env (new) | codex-kit touchpoints | Notes |
+| Env (current) | Env (new) | agent-kit touchpoints | Notes |
 | --- | --- | --- | --- |
 | `CHROME_DEVTOOLS_DRY_RUN` | `CHROME_DEVTOOLS_DRY_RUN_ENABLED` | `$AGENTS_HOME/scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |
 | `CHROME_DEVTOOLS_PREFLIGHT` | `CHROME_DEVTOOLS_PREFLIGHT_ENABLED` | `$AGENTS_HOME/scripts/chrome-devtools-mcp.sh`<br>`tests/script_specs/scripts/chrome-devtools-mcp.sh.json` | Rename; strict `true|false` only. |

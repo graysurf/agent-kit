@@ -1,4 +1,4 @@
-# codex-kit: Skills structure reorg v2
+# agent-kit: Skills structure reorg v2
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/80
+- PR: https://github.com/graysurf/agent-kit/pull/80
 - Docs: [docs/plans/skills-structure-reorg-plan.md](../../plans/skills-structure-reorg-plan.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
@@ -150,12 +150,12 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
 
 ## Modules
 
-- Planning PR: https://github.com/graysurf/codex-kit/pull/80
+- Planning PR: https://github.com/graysurf/agent-kit/pull/80
 - Implementation PRs:
-  - https://github.com/graysurf/codex-kit/pull/81
-  - https://github.com/graysurf/codex-kit/pull/82
-  - https://github.com/graysurf/codex-kit/pull/83
-  - https://github.com/graysurf/codex-kit/pull/84
+  - https://github.com/graysurf/agent-kit/pull/81
+  - https://github.com/graysurf/agent-kit/pull/82
+  - https://github.com/graysurf/agent-kit/pull/83
+  - https://github.com/graysurf/agent-kit/pull/84
 - `docs/plans/skills-structure-reorg-plan.md`: sprinted implementation plan (authoritative task breakdown).
 - `skills/workflows/pr/progress/create-progress-pr/scripts/create_progress_file.sh`: progress file scaffold.
 - `skills/workflows/pr/progress/handoff-progress-pr/scripts/handoff_progress_pr.sh`: merge planning PR + patch Progress link.

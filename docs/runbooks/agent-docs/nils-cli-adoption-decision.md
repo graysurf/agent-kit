@@ -25,17 +25,17 @@ Rationale:
 
 Primary evidence files:
 - Gap analysis:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-gap-analysis.md`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-gap-analysis.md`
 - Baseline snapshot:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-current-baseline.txt`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-current-baseline.txt`
 - Pilot change log:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-pilot-changes.md`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-changes.md`
 - Pilot strict resolve:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-pilot-project-dev.strict.txt`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-project-dev.strict.txt`
 - Pilot strict baseline:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-pilot-baseline-project.strict.txt`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-baseline-project.strict.txt`
 - Pilot change isolation:
-  - `/Users/terry/.config/codex-kit/out/agent-docs-rollout/nils-cli-pilot-status.txt`
+  - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-status.txt`
 
 Observed facts from evidence:
 1. Current project baseline is already passing (`missing_required: 0`) under built-in requirements.

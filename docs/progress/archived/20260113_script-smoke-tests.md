@@ -1,4 +1,4 @@
-# codex-kit: Script smoke tests expansion
+# agent-kit: Script smoke tests expansion
 
 | Status | Created | Updated |
 | --- | --- | --- |
@@ -6,8 +6,8 @@
 
 Links:
 
-- PR: https://github.com/graysurf/codex-kit/pull/22
-- Planning PR: https://github.com/graysurf/codex-kit/pull/21
+- PR: https://github.com/graysurf/agent-kit/pull/22
+- Planning PR: https://github.com/graysurf/agent-kit/pull/21
 - Docs: [docs/testing/script-regression.md](../../testing/script-regression.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
@@ -138,7 +138,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
   - Evidence:
     - 2026-01-14T07:48:17+08:00 local: `$AGENTS_HOME/scripts/test.sh` (97 passed in 4.41s) on `feat/script-smoke-tests` @ `1e38e21d`.
     - Local artifacts: `out/tests/script-regression/summary.json`, `out/tests/script-regression/logs`, `out/tests/script-smoke/summary.json`, `out/tests/script-smoke/logs`.
-    - 2026-01-13T23:39:40Z CI: GitHub Actions `Lint` workflow_dispatch success (run `20976621777`, sha `1e38e21d`): https://github.com/graysurf/codex-kit/actions/runs/20976621777
+    - 2026-01-13T23:39:40Z CI: GitHub Actions `Lint` workflow_dispatch success (run `20976621777`, sha `1e38e21d`): https://github.com/graysurf/agent-kit/actions/runs/20976621777
     - Negative samples (failure → fix) recorded under `out/tests/step3-evidence/`:
       - `rest.sh`: curl blocked → stubbed curl success
       - `gql.sh`: xh blocked → stubbed xh success
@@ -156,7 +156,7 @@ Note: Any unchecked checkbox in Step 0–3 must include a Reason (inline `Reason
     - [x] Cleanup completed: move this progress file to archived and mark DONE.
   - Evidence:
     - Versioning decision recorded in this Step 4 (`v1.0.2`).
-    - Release link: https://github.com/graysurf/codex-kit/releases/tag/v1.0.2
+    - Release link: https://github.com/graysurf/agent-kit/releases/tag/v1.0.2
     - Docs present: `docs/testing/script-smoke.md`, `docs/testing/script-regression.md`.
     - Progress archived: `docs/progress/archived/20260113_script-smoke-tests.md`; index updated in `docs/progress/README.md`.
 

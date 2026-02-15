@@ -331,7 +331,7 @@ All notable changes to this project will be documented in this file.
 ## v1.0.2 - 2026-01-14
 
 ### Added
-- `script_smoke` pytest suite with spec-driven + fixture-based coverage across codex-kit scripts.
+- `script_smoke` pytest suite with spec-driven + fixture-based coverage across agent-kit scripts.
 - Hermetic stubs under `tests/stubs/bin/**` (DB clients, HTTP clients, `gh`, and misc tools) for CI-friendly runs.
 - Docs and helpers for managing the smoke test expansion plan.
 
@@ -359,7 +359,7 @@ All notable changes to this project will be documented in this file.
 ## v1.0.0 - 2026-01-13
 
 ### Added
-- Initial release of codex-kit (prompts, skills, scripts, and docs).
+- Initial release of agent-kit (prompts, skills, scripts, and docs).
 - Release workflow fallback template and helper scripts for changelog-driven GitHub releases.
 
 ### Changed

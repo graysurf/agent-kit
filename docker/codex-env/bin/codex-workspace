@@ -513,8 +513,8 @@ workspace_up() {
 	      -d
 	      --name "$container"
 	      --hostname "$hostname"
-	      --label "codex-kit.workspace=1"
-	      --label "codex-kit.created-at=$ts"
+	      --label "agent-kit.workspace=1"
+	      --label "agent-kit.created-at=$ts"
 	      -e "HOME=/home/codex"
 	      -e "AGENTS_HOME=/home/codex/.agents"
 	      -e "CODEX_AUTH_FILE=/home/codex/.agents/auth.json"
@@ -524,7 +524,7 @@ workspace_up() {
 	      -w /work
 	    )
 		    if [[ -n "$owner_repo" ]]; then
-		      run_args+=( --label "codex-kit.repo=$owner_repo" )
+		      run_args+=( --label "agent-kit.repo=$owner_repo" )
 		    fi
 
 	    if [[ "$use_secrets" == "1" && "$secrets_dir_explicit" == "1" ]]; then
@@ -828,11 +828,11 @@ workspace_tunnel() {
 
 workspace_ls() {
   need_cmd docker
-  docker ps -a --filter "label=codex-kit.workspace=1" --format '{{.Names}}' \
+  docker ps -a --filter "label=agent-kit.workspace=1" --format '{{.Names}}' \
     | while IFS= read -r c; do
       [[ -n "$c" ]] || continue
-      repo="$(docker inspect -f '{{ index .Config.Labels "codex-kit.repo" }}' "$c" 2>/dev/null || true)"
-      created="$(docker inspect -f '{{ index .Config.Labels "codex-kit.created-at" }}' "$c" 2>/dev/null || true)"
+      repo="$(docker inspect -f '{{ index .Config.Labels "agent-kit.repo" }}' "$c" 2>/dev/null || true)"
+      created="$(docker inspect -f '{{ index .Config.Labels "agent-kit.created-at" }}' "$c" 2>/dev/null || true)"
       status="$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || true)"
       printf "%s\t%s\t%s\t%s\n" "$c" "$status" "$repo" "$created"
     done
