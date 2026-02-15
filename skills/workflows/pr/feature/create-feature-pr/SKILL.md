@@ -72,7 +72,8 @@ Failure modes:
 3. Determine the base branch (default `origin/HEAD`); ask if unclear.
 4. Create the branch: `git checkout -b feat/<slug>`.
 5. If kickoff artifacts already exist (plan/progress/scaffold/docs), commit them first:
-   - use `semantic-commit-autostage` by default.
+   - use `$semantic-commit-autostage` skill by default.
+   - implement it via the autostage flow defined by that skill (`git add` + `semantic-commit ...`).
    - use `semantic-commit` only when the user has explicitly staged a reviewed subset.
 6. Generate PR body from `references/PR_TEMPLATE.md`.
 7. Push the branch and open a draft PR immediately:
