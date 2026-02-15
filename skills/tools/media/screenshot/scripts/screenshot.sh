@@ -48,7 +48,7 @@ done
 
 if [[ "$desktop_mode" == "1" ]]; then
   os="$(uname -s 2>/dev/null || true)"
-  if [[ "$os" != "Darwin" && -z "${CODEX_SCREEN_RECORD_TEST_MODE:-}" ]]; then
+  if [[ "$os" != "Darwin" && -z "${AGENTS_SCREEN_RECORD_TEST_MODE:-}" ]]; then
     echo "error: --desktop is only supported on macOS (uses screencapture)" >&2
     echo "hint: on Linux/Wayland, use screen-record --screenshot --portal" >&2
     exit 2

@@ -53,7 +53,7 @@ def test_screen_record_help() -> None:
 
 
 def test_list_windows_test_mode() -> None:
-    proc = _run(["--list-windows"], extra_env={"CODEX_SCREEN_RECORD_TEST_MODE": "1"})
+    proc = _run(["--list-windows"], extra_env={"AGENTS_SCREEN_RECORD_TEST_MODE": "1"})
     assert proc.returncode == 0
     assert proc.stderr == ""
     assert proc.stdout.splitlines() == [
@@ -64,7 +64,7 @@ def test_list_windows_test_mode() -> None:
 
 
 def test_list_apps_test_mode() -> None:
-    proc = _run(["--list-apps"], extra_env={"CODEX_SCREEN_RECORD_TEST_MODE": "1"})
+    proc = _run(["--list-apps"], extra_env={"AGENTS_SCREEN_RECORD_TEST_MODE": "1"})
     assert proc.returncode == 0
     assert proc.stderr == ""
     assert proc.stdout.splitlines() == [
