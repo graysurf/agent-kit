@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $AGENTS_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh \
+  $AGENT_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh \
     --skill-dir <skills/.../skill-name> \
     [--dry-run] \
     [--yes] \
@@ -184,7 +184,7 @@ EXCLUDED_PREFIXES = (
 )
 
 patterns = (
-    f"$AGENTS_HOME/{skill_dir}",
+    f"$AGENT_HOME/{skill_dir}",
     f"./{skill_dir}",
     f"{skill_dir}/",
     f"{skill_dir}",
@@ -239,7 +239,7 @@ EXCLUDED_PREFIXES = (
 )
 
 patterns = (
-    f"$AGENTS_HOME/{skill_dir}",
+    f"$AGENT_HOME/{skill_dir}",
     f"./{skill_dir}",
     f"{skill_dir}/",
     f"{skill_dir}",

@@ -59,17 +59,17 @@ Failure modes:
 ## Scripts
 
 - Add a new entry template into a DONE progress file (and bump `Updated`):
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md`
 - Add an entry and link to an existing follow-up progress file:
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --followup-progress docs/progress/<YYYYMMDD>_<slug>.md`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --followup-progress docs/progress/<YYYYMMDD>_<slug>.md`
 - Create a new follow-up progress file (skeleton) and link it from the Addendum entry:
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --followup-title "<short title>"`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --followup-title "<short title>"`
 - Ensure a DONE file has `## Addendum` (insert `- None` if missing; does not change `Updated`):
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --ensure-only`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --file docs/progress/archived/<file>.md --ensure-only`
 - Print a copy/paste entry template (no file edits):
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --print-entry`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/progress_addendum.sh --print-entry`
 - Audit progress files for Addendum placement/format:
-  - `$AGENTS_HOME/skills/workflows/pr/progress/progress-addendum/scripts/audit_progress_addendum.sh`
+  - `$AGENT_HOME/skills/workflows/pr/progress/progress-addendum/scripts/audit_progress_addendum.sh`
   - Optional stricter checks:
     - `.../audit_progress_addendum.sh --require-addendum --check-updated`
     - `.../audit_progress_addendum.sh --require-links`

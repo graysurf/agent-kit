@@ -11,15 +11,15 @@ from .conftest import default_smoke_env, repo_root
 
 
 def launcher_path() -> Path:
-    return repo_root() / "docker" / "codex-env" / "bin" / "codex-workspace"
+    return repo_root() / "docker" / "agent-env" / "bin" / "agent-workspace"
 
 
 def run_launcher(args: list[str], extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     env = default_smoke_env(repo_root())
     env["CODEX_DOCKER_STUB_MODE_ENABLED"] = "true"
-    env["CODEX_ENV_IMAGE"] = "stub/codex-env:latest"
-    env["CODEX_WORKSPACE_PREFIX"] = "codex-ws"
-    env["DEFAULT_SECRETS_MOUNT"] = "/home/codex/codex_secrets"
+    env["CODEX_ENV_IMAGE"] = "stub/agent-env:latest"
+    env["CODEX_WORKSPACE_PREFIX"] = "agent-ws"
+    env["DEFAULT_SECRETS_MOUNT"] = "/home/agent/codex_secrets"
     env["CODEX_DOCKER_STUB_CONTAINER_EXISTS"] = "true"
     env["CODEX_DOCKER_STUB_CONTAINER_RUNNING"] = "true"
     env["CODEX_DOCKER_STUB_IMAGE_EXISTS"] = "true"
@@ -71,10 +71,10 @@ def test_create_output_json_stdout_is_pure_json() -> None:
 
     payload: dict[str, Any] = json.loads(completed.stdout)
     assert payload["command"] == "create"
-    assert payload["workspace"] == "codex-ws-ws-test"
+    assert payload["workspace"] == "agent-ws-ws-test"
     assert payload["repo"] is None
     assert payload["path"] == "/work"
-    assert payload["image"] == "stub/codex-env:latest"
+    assert payload["image"] == "stub/agent-env:latest"
     assert payload["secrets"]["enabled"] is False
 
     assert "workspace:" in completed.stderr
@@ -84,7 +84,7 @@ def test_create_output_json_stdout_is_pure_json() -> None:
 @pytest.mark.script_smoke
 def test_secrets_mount_requires_secrets_dir() -> None:
     completed = run_launcher(
-        ["up", "--no-clone", "--name", "ws-test", "--secrets-mount", "/home/codex/codex_secrets"]
+        ["up", "--no-clone", "--name", "ws-test", "--secrets-mount", "/home/agent/codex_secrets"]
     )
     assert completed.returncode != 0
     assert "--secrets-mount requires --secrets-dir" in completed.stderr
@@ -128,7 +128,7 @@ def test_codex_profile_sets_secrets_metadata_and_runs_codex_use(tmp_path: Path) 
     payload: dict[str, Any] = json.loads(completed.stdout)
     assert payload["secrets"]["enabled"] is True
     assert payload["secrets"]["dir"] == str(secrets_dir)
-    assert payload["secrets"]["mount"] == "/home/codex/codex_secrets"
+    assert payload["secrets"]["mount"] == "/home/agent/codex_secrets"
     assert payload["secrets"]["codex_profile"] == "personal"
 
     calls = (log_dir / "docker.calls.txt").read_text("utf-8")
@@ -153,7 +153,7 @@ def test_setup_git_does_not_persist_token_into_container_env(tmp_path: Path) -> 
 
     calls = (log_dir / "docker.calls.txt").read_text("utf-8")
     assert "-e GH_TOKEN=stub-token" not in calls
-    assert "docker exec -i codex-ws-ws-test bash -lc" in calls
+    assert "docker exec -i agent-ws-ws-test bash -lc" in calls
 
 
 @pytest.mark.script_smoke
@@ -166,7 +166,7 @@ def test_tunnel_output_json_requires_detach() -> None:
 
 @pytest.mark.script_smoke
 def test_tunnel_detach_json_has_short_sanitized_name() -> None:
-    long_container = "codex-ws-super-long-owner-super-long-repo-20260122-123456"
+    long_container = "agent-ws-super-long-owner-super-long-repo-20260122-123456"
     completed = run_launcher(["tunnel", long_container, "--detach", "--output", "json"])
     assert completed.returncode == 0, completed.stderr
 

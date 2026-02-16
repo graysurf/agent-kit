@@ -1,28 +1,28 @@
 services:
-  codex-env:
-    image: codex-env:linuxbrew
+  agent-env:
+    image: agent-env:linuxbrew
     build:
       context: .
       dockerfile: Dockerfile
       args:
         ZSH_KIT_REF: ${ZSH_KIT_REF:-main}
-        CODEX_KIT_REF: ${CODEX_KIT_REF:-main}
+        AGENT_KIT_REF: ${AGENT_KIT_REF:-main}
         INSTALL_TOOLS: ${INSTALL_TOOLS:-1}
         INSTALL_OPTIONAL_TOOLS: ${INSTALL_OPTIONAL_TOOLS:-1}
         INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
     environment:
-      HOME: /home/codex
-      AGENTS_HOME: /home/codex/.agents
-      CODEX_AUTH_FILE: /home/codex/.agents/auth.json
+      HOME: /home/agent
+      AGENT_HOME: /home/agent/.agents
+      CODEX_AUTH_FILE: /home/agent/.agents/auth.json
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work
-      - agents-home:/home/codex
-      - agents-kit-home:/home/codex/.agents
+      - agent-home:/home/agent
+      - agent-kit-home:/home/agent/.agents
     working_dir: /work
     tty: true
     stdin_open: true
 
 volumes:
-  agents-home:
-  agents-kit-home:
+  agent-home:
+  agent-kit-home:

@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh \
+  $AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh \
     --skill-dir <skills/.../skill-name> \
     [--title "<Title>"] \
     [--description "<text>"] \

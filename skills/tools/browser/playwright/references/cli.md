@@ -12,16 +12,16 @@
 Use the canonical wrapper entrypoint:
 
 ```bash
-export AGENTS_HOME="${AGENTS_HOME:-$HOME/.agents}"
-"$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
-"$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://example.com --headed
+export AGENT_HOME="${AGENT_HOME:-$HOME/.agents}"
+"$AGENT_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" --help
+"$AGENT_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh" open https://example.com --headed
 ```
 
 Or set a reusable alias:
 
 ```bash
-export AGENTS_HOME="${AGENTS_HOME:-$HOME/.agents}"
-export PWCLI="$AGENTS_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh"
+export AGENT_HOME="${AGENT_HOME:-$HOME/.agents}"
+export PWCLI="$AGENT_HOME/skills/tools/browser/playwright/scripts/playwright_cli.sh"
 alias pwcli="$PWCLI"
 pwcli --help
 ```

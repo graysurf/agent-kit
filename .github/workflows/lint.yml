@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      AGENTS_HOME: ${{ github.workspace }}
+      AGENT_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -65,19 +65,19 @@ jobs:
 
       - name: Shell lint + syntax (bash + zsh)
         run: |
-          $AGENTS_HOME/scripts/lint.sh --shell
+          $AGENT_HOME/scripts/lint.sh --shell
 
       - name: Env bool audit
         run: |
-          zsh -f $AGENTS_HOME/scripts/audit-env-bools.zsh --check
+          zsh -f $AGENT_HOME/scripts/audit-env-bools.zsh --check
 
       - name: Validate skill contract sections
         run: |
-          $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
+          $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
 
       - name: Validate skill directory layout
         run: |
-          $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh
+          $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh
 
       - name: Smoke test (negative fixture)
         run: |
@@ -102,7 +102,7 @@ jobs:
           - N/A
           MD
 
-          if $AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file "$tmp"; then
+          if $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file "$tmp"; then
             echo "Expected validate_skill_contracts.sh to fail for missing 'Failure modes:'." >&2
             exit 1
           fi
@@ -111,7 +111,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 10
     env:
-      AGENTS_HOME: ${{ github.workspace }}
+      AGENT_HOME: ${{ github.workspace }}
 
     steps:
       - name: Checkout
@@ -171,11 +171,11 @@ jobs:
 
       - name: Python lint + typecheck (ruff + mypy + pyright)
         run: |
-          $AGENTS_HOME/scripts/lint.sh --python
+          $AGENT_HOME/scripts/lint.sh --python
 
       - name: Pytest
         run: |
-          $AGENTS_HOME/scripts/test.sh
+          $AGENT_HOME/scripts/test.sh
 
       - name: Script coverage summary
         if: always()

@@ -1,4 +1,4 @@
-name: Publish codex-env image
+name: Publish agent-env image
 
 on:
   workflow_dispatch:
@@ -10,12 +10,12 @@ permissions:
   packages: write
 
 concurrency:
-  group: publish-codex-env
+  group: publish-agent-env
   cancel-in-progress: false
 
 env:
-  DOCKERHUB_IMAGE: graysurf/codex-env
-  GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/codex-env
+  DOCKERHUB_IMAGE: graysurf/agent-env
+  GHCR_IMAGE: ghcr.io/${{ github.repository_owner }}/agent-env
 
 jobs:
   precheck:
@@ -56,7 +56,7 @@ jobs:
 
             if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
               {
-                echo "## Docker Hub publish: codex-env"
+                echo "## Docker Hub publish: agent-env"
                 echo ""
                 echo "_Skipped: missing repo secrets `DOCKERHUB_USERNAME` and/or `DOCKERHUB_TOKEN`._"
                 echo ""
@@ -134,12 +134,12 @@ jobs:
           push: ${{ needs.precheck.outputs.publish_ghcr == '1' || needs.precheck.outputs.publish_dockerhub == '1' }}
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            CODEX_KIT_REF=${{ github.sha }}
+            AGENT_KIT_REF=${{ github.sha }}
             IMAGE_VERSION=${{ github.ref_name }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_CREATED=${{ needs.precheck.outputs.created }}
-          cache-from: type=gha,scope=codex-env-amd64
-          cache-to: type=gha,mode=max,scope=codex-env-amd64
+          cache-from: type=gha,scope=agent-env-amd64
+          cache-to: type=gha,mode=max,scope=agent-env-amd64
 
   build-arm64:
     needs: precheck
@@ -204,12 +204,12 @@ jobs:
           push: ${{ needs.precheck.outputs.publish_ghcr == '1' || needs.precheck.outputs.publish_dockerhub == '1' }}
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            CODEX_KIT_REF=${{ github.sha }}
+            AGENT_KIT_REF=${{ github.sha }}
             IMAGE_VERSION=${{ github.ref_name }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_CREATED=${{ needs.precheck.outputs.created }}
-          cache-from: type=gha,scope=codex-env-arm64
-          cache-to: type=gha,mode=max,scope=codex-env-arm64
+          cache-from: type=gha,scope=agent-env-arm64
+          cache-to: type=gha,mode=max,scope=agent-env-arm64
 
   publish-manifests:
     needs: [precheck, build-amd64, build-arm64]

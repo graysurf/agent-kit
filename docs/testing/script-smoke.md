@@ -11,7 +11,7 @@
 2) Run smoke:
 
 ```bash
-$AGENTS_HOME/scripts/test.sh -m script_smoke
+$AGENT_HOME/scripts/test.sh -m script_smoke
 ```
 
 ## What it does

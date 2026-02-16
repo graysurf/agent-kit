@@ -31,7 +31,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$AGENTS_HOME/{{skill_dir}}/{{script_rel}}`
+- `$AGENT_HOME/{{skill_dir}}/{{script_rel}}`
 
 ## Workflow
 

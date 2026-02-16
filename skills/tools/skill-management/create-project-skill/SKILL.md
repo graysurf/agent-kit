@@ -29,7 +29,7 @@ Outputs:
   - `scripts/<skill-name>.sh`
   - `tests/test_<skill_path>.sh`
 - Validates generated contract headings using:
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file <SKILL.md>`
 - Validates project-skill layout using an internal local validator.
 
 Exit codes:
@@ -48,7 +48,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$AGENTS_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh`
+- `$AGENT_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh`
 
 ## Workflow
 

@@ -58,13 +58,13 @@ Forbidden:
 
 ## Path rules for SKILL.md
 
-- Executable entrypoints must use absolute `$AGENTS_HOME/...` paths.
+- Executable entrypoints must use absolute `$AGENT_HOME/...` paths.
 - Repo-relative links are allowed for non-executable references.
 
 Example:
 
 ```bash
-$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
+$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh
 ```
 
 ## Naming conventions

@@ -22,17 +22,17 @@ Links:
 ## Acceptance Criteria
 
 - Tracked skills follow v2 layout rules and pass audits:
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Plan tooling and E2E driver have canonical entrypoints under `skills/`:
   - Plan tooling:
     - `$CODEX_COMMANDS_PATH/plan-tooling validate`
     - `$CODEX_COMMANDS_PATH/plan-tooling to-json`
     - `$CODEX_COMMANDS_PATH/plan-tooling batches`
   - Progress workflow E2E driver:
-    - `$AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
-- `SKILL.md` runnable executable references use `$AGENTS_HOME/...` (no CWD-dependent `scripts/...` instructions).
-- Full repo checks pass: `$AGENTS_HOME/scripts/check.sh --all`.
+    - `$AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+- `SKILL.md` runnable executable references use `$AGENT_HOME/...` (no CWD-dependent `scripts/...` instructions).
+- Full repo checks pass: `$AGENT_HOME/scripts/check.sh --all`.
 
 ## Scope
 
@@ -77,7 +77,7 @@ Links:
 ### Rationale
 
 - Reduce ambiguity and drift when adding skills by enforcing a single directory anatomy.
-- Improve portability by ensuring runnable instructions use `$AGENTS_HOME/...` absolute paths.
+- Improve portability by ensuring runnable instructions use `$AGENT_HOME/...` absolute paths.
 
 ### Risks / Uncertainties
 
@@ -102,9 +102,9 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Requirements, scope, and acceptance criteria are aligned: see Goals/Scope/Acceptance Criteria above.
     - [x] Risks and rollback plan are defined: see Risks/Rollback in `docs/plans/skills-structure-reorg-plan.md`.
     - [x] Minimal verification commands are defined:
-      - `$AGENTS_HOME/scripts/check.sh --all`
-      - `$AGENTS_HOME/scripts/test.sh -m script_smoke`
-      - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+      - `$AGENT_HOME/scripts/check.sh --all`
+      - `$AGENT_HOME/scripts/test.sh -m script_smoke`
+      - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - [x] Step 1: MVP (governance + docs baseline)
   - Work Items:
     - [x] Create/land the planning docs (this progress file + plan file) and open the planning PR.
@@ -115,7 +115,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
   - Exit Criteria:
     - [x] Planning PR is merged and Progress link is patched to `blob/main/...`.
     - [x] Repo checks still pass after baseline changes:
-      - `$AGENTS_HOME/scripts/check.sh --contracts --skills-layout`
+      - `$AGENT_HOME/scripts/check.sh --contracts --skills-layout`
 - [x] Step 2: Expansion / integration (migrations + tests)
   - Work Items:
     - [x] Migrate plan tooling and progress E2E driver into `skills/`.
@@ -134,8 +134,8 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - `out/tests/`
   - Exit Criteria:
     - [x] Validation commands executed successfully:
-      - `$AGENTS_HOME/scripts/check.sh --all`
-      - `$AGENTS_HOME/scripts/test.sh`
+      - `$AGENT_HOME/scripts/check.sh --all`
+      - `$AGENT_HOME/scripts/test.sh`
     - [x] Evidence captured under `out/tests/` (summary + script coverage reports).
 - [x] Step 4: Release / wrap-up
   - Work Items:

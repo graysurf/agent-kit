@@ -2,11 +2,11 @@ FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-lc"]
 
-ARG IMAGE_TITLE="codex-env"
-ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Codex CLI dev environment (zsh-kit + agent-kit)"
+ARG IMAGE_TITLE="agent-env"
+ARG IMAGE_DESCRIPTION="Ubuntu 24.04 Agent CLI dev environment (zsh-kit + agent-kit)"
 ARG IMAGE_SOURCE="https://github.com/graysurf/agent-kit"
 ARG IMAGE_URL="https://github.com/graysurf/agent-kit"
-ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/agent-kit/tree/main/docker/codex-env"
+ARG IMAGE_DOCUMENTATION="https://github.com/graysurf/agent-kit/tree/main/docker/agent-env"
 ARG IMAGE_LICENSES="MIT"
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -42,13 +42,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -s /usr/bin/zsh codex \
-  && echo "codex ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/codex \
-  && chmod 0440 /etc/sudoers.d/codex \
-  && mkdir -p /opt/zsh-kit /opt/agent-kit /opt/codex-env /home/codex/.agents /home/linuxbrew/.linuxbrew \
-  && chown -R codex:codex /opt/zsh-kit /opt/agent-kit /opt/codex-env /home/codex /home/linuxbrew
+RUN useradd -m -s /usr/bin/zsh agent \
+  && echo "agent ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/agent \
+  && chmod 0440 /etc/sudoers.d/agent \
+  && mkdir -p /opt/zsh-kit /opt/agent-kit /opt/agent-env /home/agent/.agents /home/linuxbrew/.linuxbrew \
+  && chown -R agent:agent /opt/zsh-kit /opt/agent-kit /opt/agent-env /home/agent /home/linuxbrew
 
-USER codex
+USER agent
 
 RUN NONINTERACTIVE=1 /bin/bash -lc "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
   && /home/linuxbrew/.linuxbrew/bin/brew --version
@@ -67,36 +67,36 @@ RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
 ARG ZSH_KIT_REF="nils-cli"
-ARG CODEX_KIT_REPO="https://github.com/graysurf/agent-kit.git"
-ARG CODEX_KIT_REF="main"
+ARG AGENT_KIT_REPO="https://github.com/graysurf/agent-kit.git"
+ARG AGENT_KIT_REF="main"
 
 RUN git clone "${ZSH_KIT_REPO}" /opt/zsh-kit \
   && (cd /opt/zsh-kit && git checkout "${ZSH_KIT_REF}")
 
-RUN git clone "${CODEX_KIT_REPO}" /opt/agent-kit \
-  && (cd /opt/agent-kit && git checkout "${CODEX_KIT_REF}")
+RUN git clone "${AGENT_KIT_REPO}" /opt/agent-kit \
+  && (cd /opt/agent-kit && git checkout "${AGENT_KIT_REF}")
 
 ENV ZSH_KIT_DIR="/opt/zsh-kit"
-ENV CODEX_KIT_DIR="/opt/agent-kit"
+ENV AGENT_KIT_DIR="/opt/agent-kit"
 ENV ZDOTDIR="/opt/zsh-kit"
-ENV ZSH_FEATURES="codex,opencode"
+ENV ZSH_FEATURES="opencode"
 ENV ZSH_BOOT_WEATHER_ENABLED=false
 ENV ZSH_BOOT_QUOTE_ENABLED=false
-ENV HOME="/home/codex"
-ENV AGENTS_HOME="/home/codex/.agents"
+ENV HOME="/home/agent"
+ENV AGENT_HOME="/home/agent/.agents"
 
-COPY docker/codex-env/ /opt/codex-env/
+COPY docker/agent-env/ /opt/agent-env/
 
 USER root
-RUN chmod +x /opt/codex-env/bin/*.sh
-USER codex
+RUN chmod +x /opt/agent-env/bin/*.sh
+USER agent
 
 RUN if [[ "${INSTALL_TOOLS}" == "1" ]]; then \
-    INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS}" INSTALL_VSCODE="${INSTALL_VSCODE}" /opt/codex-env/bin/install-tools.sh; \
+    INSTALL_OPTIONAL_TOOLS="${INSTALL_OPTIONAL_TOOLS}" INSTALL_VSCODE="${INSTALL_VSCODE}" /opt/agent-env/bin/install-tools.sh; \
   fi
 
 RUN if [[ "${PREFETCH_ZSH_PLUGINS}" == "1" ]]; then \
-    ZSH_PLUGIN_FETCH_RETRIES="${ZSH_PLUGIN_FETCH_RETRIES}" /opt/codex-env/bin/prefetch-zsh-plugins.sh; \
+    ZSH_PLUGIN_FETCH_RETRIES="${ZSH_PLUGIN_FETCH_RETRIES}" /opt/agent-env/bin/prefetch-zsh-plugins.sh; \
   else \
     echo "skip: zsh plugin prefetch (PREFETCH_ZSH_PLUGINS != 1)" >&2; \
   fi
@@ -104,12 +104,12 @@ RUN if [[ "${PREFETCH_ZSH_PLUGINS}" == "1" ]]; then \
 USER root
 
 RUN mkdir -p /work \
-  && chown -R codex:codex /work
+  && chown -R agent:agent /work
 
 WORKDIR /work
 
-USER codex
-ENTRYPOINT ["/usr/bin/tini","--","/opt/codex-env/bin/entrypoint.sh"]
+USER agent
+ENTRYPOINT ["/usr/bin/tini","--","/opt/agent-env/bin/entrypoint.sh"]
 CMD ["zsh", "-l"]
 
 ARG IMAGE_VERSION=""

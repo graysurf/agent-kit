@@ -8,7 +8,7 @@ Links:
 
 - PR: https://github.com/graysurf/agent-kit/pull/63
 - Wrapper PR: https://github.com/graysurf/zsh-kit/pull/58
-- Docs: [docs/runbooks/codex-workspace-migration.md](../../runbooks/codex-workspace-migration.md)
+- Docs: [docs/runbooks/agent-workspace-migration.md](../../runbooks/agent-workspace-migration.md)
 - Glossary: [docs/templates/PROGRESS_GLOSSARY.md](../../templates/PROGRESS_GLOSSARY.md)
 
 ## Addendum
@@ -17,7 +17,7 @@ Links:
 
 ## Goal
 
-- Define and ship a stable `codex-workspace` launcher contract (version/capabilities, JSON output, tunnel naming, secrets, `rm` semantics).
+- Define and ship a stable `agent-workspace` launcher contract (version/capabilities, JSON output, tunnel naming, secrets, `rm` semantics).
 - Deduplicate lifecycle features between launcher (agent-kit) and wrapper (zsh-kit) to reduce drift and maintenance cost.
 - Preserve wrapper-only Dev Containers UX while using the launcher as the canonical source of truth.
 
@@ -46,7 +46,7 @@ Links:
 
 ### Input
 
-- CLI args: `codex-workspace <command> [flags]` (launcher) and `codex-workspace ...` wrapper commands that delegate to launcher.
+- CLI args: `agent-workspace <command> [flags]` (launcher) and `agent-workspace ...` wrapper commands that delegate to launcher.
 - Host paths: `--secrets-dir <host-path>` (opt-in secrets), optional repo spec inputs (`OWNER/REPO`, `https://...`, `git@...`).
 - Environment: Docker daemon access; optional auth material provided by the wrapper (e.g. GitHub token).
 
@@ -60,8 +60,8 @@ Links:
 
 - Tunnel logs on host (path returned in launcher JSON).
 - Planning and runbook docs:
-  - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
-  - `docs/runbooks/codex-workspace-migration.md`
+  - `docs/progress/archived/20260122_agent-workspace-launcher-wrapper-migration.md`
+  - `docs/runbooks/agent-workspace-migration.md`
 
 ## Design / Decisions
 
@@ -88,7 +88,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Create and merge a progress planning PR (docs-only) to track this work.
   - Artifacts:
     - `docs/progress/<YYYYMMDD>_<feature_slug>.md` (this file)
-    - `docs/runbooks/codex-workspace-migration.md`
+    - `docs/runbooks/agent-workspace-migration.md`
   - Exit Criteria:
     - [x] Requirements, scope, and acceptance criteria are aligned in this progress file.
     - [x] Data flow and I/O contract are defined (CLI inputs / JSON outputs / side effects).
@@ -102,13 +102,13 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Implement tunnel name policy + JSON output (requires `--detach`).
     - [x] Implement `rm` default volumes removal with `--keep-volumes`.
   - Artifacts:
-    - `docker/codex-env/bin/codex-workspace`
-    - `docker/codex-env/README.md`
-    - `docker/codex-env/WORKSPACE_QUICKSTART.md`
+    - `docker/agent-env/bin/agent-workspace`
+    - `docker/agent-env/README.md`
+    - `docker/agent-env/WORKSPACE_QUICKSTART.md`
     - `tests/test_codex_workspace_launcher_smoke.py`
     - `tests/stubs/bin/docker`
   - Exit Criteria:
-    - [x] At least one happy path runs end-to-end (create + clone): `codex-workspace create --output json OWNER/REPO`.
+    - [x] At least one happy path runs end-to-end (create + clone): `agent-workspace create --output json OWNER/REPO`.
     - [x] JSON output is valid and stdout-only (no interleaved logs); stderr contains any human logs.
     - [x] Usage docs updated with new defaults and flags (runbook + launcher usage text).
 - [x] Step 2: Wrapper integration (zsh-kit)
@@ -118,7 +118,7 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
     - [x] Replace wrapper `tunnel` implementation with launcher call-through.
     - [x] Optionally enforce minimum launcher version/capabilities.
   - Artifacts:
-    - `scripts/_features/codex-workspace/*` (zsh-kit)
+    - `scripts/_features/agent-workspace/*` (zsh-kit)
   - Exit Criteria:
     - [x] Wrapper no longer parses launcher human output; wrapper logic is driven by JSON.
     - [x] Launcher-owned commands have no duplicate logic in wrapper (thin delegation only).
@@ -138,26 +138,26 @@ Note: For intentionally deferred / not-do items in Step 0–3, use `- [ ] ~~like
 Evidence (real Docker; 2026-01-22):
 
 - Launcher create + clone:
-  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-launcher-20260122-084652 --output json`
-  - `workspace=codex-ws-smoke-launcher-20260122-084652`, `path=/work/octocat/Hello-World`
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/agent-env/bin/agent-workspace create octocat/Hello-World --name smoke-launcher-20260122-084652 --output json`
+  - `workspace=agent-ws-smoke-launcher-20260122-084652`, `path=/work/octocat/Hello-World`
 - Launcher secrets + profile:
-  - `env -u DEFAULT_SECRETS_MOUNT ./docker/codex-env/bin/codex-workspace create octocat/Hello-World --name smoke-profile-20260122-084755 --secrets-dir ~/.config/codex_secrets --codex-profile work --output json`
-  - `CODEX_SECRET_DIR=/home/codex/codex_secrets` (in-container)
+  - `env -u DEFAULT_SECRETS_MOUNT ./docker/agent-env/bin/agent-workspace create octocat/Hello-World --name smoke-profile-20260122-084755 --secrets-dir ~/.config/codex_secrets --codex-profile work --output json`
+  - `CODEX_SECRET_DIR=/home/agent/codex_secrets` (in-container)
 - Wrapper create (delegates to launcher JSON output):
-  - `ZSH_SCRIPT_DIR=~/.config/zsh/scripts; source $ZSH_SCRIPT_DIR/_features/codex-workspace/init.zsh; codex-workspace create --no-extras octocat/Hello-World`
-  - `workspace=codex-ws-octocat-hello-world-20260122-085010`, `path=/work/octocat/Hello-World`
+  - `ZSH_SCRIPT_DIR=~/.config/zsh/scripts; source $ZSH_SCRIPT_DIR/_features/agent-workspace/init.zsh; agent-workspace create --no-extras octocat/Hello-World`
+  - `workspace=agent-ws-octocat-hello-world-20260122-085010`, `path=/work/octocat/Hello-World`
 - [ ] Step 4: Release / wrap-up
   - Work Items:
     - [x] Update progress file Links with implementation PRs and mark status DONE when complete.
     - [ ] ~~If released, record version/tag and relevant notes.~~ Reason: no release/tag for this change set.
   - Artifacts:
-    - `docs/progress/archived/20260122_codex-workspace-launcher-wrapper-migration.md`
+    - `docs/progress/archived/20260122_agent-workspace-launcher-wrapper-migration.md`
   - Exit Criteria:
     - [x] Documentation completed and entry points updated (README / docs index links).
     - [x] Cleanup completed (archive progress file when done).
 
 ## Modules
 
-- agent-kit launcher: `docker/codex-env/bin/codex-workspace` (canonical lifecycle + contract)
-- agent-kit docs: `docs/runbooks/codex-workspace-migration.md` + `docker/codex-env/*` docs
-- zsh-kit wrapper: `~/.config/zsh/scripts/_features/codex-workspace/*` (host UX and orchestration)
+- agent-kit launcher: `docker/agent-env/bin/agent-workspace` (canonical lifecycle + contract)
+- agent-kit docs: `docs/runbooks/agent-workspace-migration.md` + `docker/agent-env/*` docs
+- zsh-kit wrapper: `~/.config/zsh/scripts/_features/agent-workspace/*` (host UX and orchestration)

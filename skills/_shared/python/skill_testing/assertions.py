@@ -8,7 +8,7 @@ from typing import Iterable
 
 
 def repo_root() -> Path:
-    if code_home := os.environ.get("AGENTS_HOME"):
+    if code_home := os.environ.get("AGENT_HOME"):
         path = Path(code_home)
         if path.is_dir():
             return path.resolve()

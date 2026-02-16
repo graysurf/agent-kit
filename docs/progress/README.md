@@ -11,7 +11,7 @@ Conventions:
 - Index rules:
   - Keep the `## In progress` and `## Archived` tables with 3 columns: Date | Feature | PR.
   - PR cell format: `TBD` or `[#<number>](https://github.com/<owner>/<repo>/pull/<number>)`
-    (validated by `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`).
+    (validated by `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`).
 
 ## In progress
 
@@ -23,8 +23,8 @@ Conventions:
 | Date | Feature | PR |
 | --- | --- | --- |
 | 2026-01-24 | [Skills structure reorg v2](archived/20260124_skills-structure-reorg-v2.md) | [#80](https://github.com/graysurf/agent-kit/pull/80) |
-| 2026-01-22 | [Codex workspace launcher-wrapper migration](archived/20260122_codex-workspace-launcher-wrapper-migration.md) | [#63](https://github.com/graysurf/agent-kit/pull/63) |
-| 2026-01-18 | [Docker Codex env (Linuxbrew)](archived/20260118_docker-codex-env-linuxbrew.md) | [#59](https://github.com/graysurf/agent-kit/pull/59) |
+| 2026-01-22 | [Codex workspace launcher-wrapper migration](archived/20260122_agent-workspace-launcher-wrapper-migration.md) | [#63](https://github.com/graysurf/agent-kit/pull/63) |
+| 2026-01-18 | [Docker Agent env (Linuxbrew)](archived/20260118_docker-agent-env-linuxbrew.md) | [#59](https://github.com/graysurf/agent-kit/pull/59) |
 | 2026-01-17 | [Skills layout normalization and audit](archived/20260117_skills-layout-normalization-and-audit.md) | [#56](https://github.com/graysurf/agent-kit/pull/56) |
 | 2026-01-16 | [Env bool flags standardization](archived/20260116_env-bool-flags.md) | [#49](https://github.com/graysurf/agent-kit/pull/49) |
 | 2026-01-13 | [Script smoke tests expansion](archived/20260113_script-smoke-tests.md) | [#22](https://github.com/graysurf/agent-kit/pull/22) |

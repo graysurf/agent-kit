@@ -38,6 +38,6 @@ Failure modes:
 
 ## Scripts (entrypoints)
 
-- `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh`
-- `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh`
-- `$AGENTS_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`
+- `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/create_progress_file.sh`
+- `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/render_progress_pr.sh`
+- `$AGENT_HOME/skills/workflows/pr/progress/progress-tooling/scripts/validate_progress_index.sh`

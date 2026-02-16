@@ -1,5 +1,5 @@
 services:
-  codex-env:
+  agent-env:
     volumes:
       - ${ZSH_KIT_DIR:?Set ZSH_KIT_DIR}:/opt/zsh-kit:ro
-      - ${CODEX_KIT_DIR:?Set CODEX_KIT_DIR}:/opt/agent-kit:ro
+      - ${AGENT_KIT_DIR:?Set AGENT_KIT_DIR}:/opt/agent-kit:ro

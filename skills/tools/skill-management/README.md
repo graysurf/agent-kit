@@ -5,17 +5,17 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
 ## Quick start
 
 - Create a new skill skeleton (writes files, then validates):
-  - `$AGENTS_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/<category>/<area>/<skill-name>`
+  - `$AGENT_HOME/skills/tools/skill-management/create-skill/scripts/create_skill.sh --skill-dir skills/<category>/<area>/<skill-name>`
 - Create a new project-local skill skeleton under `.agents/skills/`:
-  - `$AGENTS_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh --project-path <repo-root> --skill-dir .agents/skills/<skill-name>`
+  - `$AGENT_HOME/skills/tools/skill-management/create-project-skill/scripts/create_project_skill.sh --project-path <repo-root> --skill-dir .agents/skills/<skill-name>`
 - Validate contract headings (all tracked skills):
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - Audit tracked skill layout:
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - Audit a not-yet-tracked skill directory:
-  - `$AGENTS_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/<...>/<skill-name>`
+  - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir skills/<...>/<skill-name>`
 - Remove a skill (breaking change; start with `--dry-run`):
-  - `$AGENTS_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh --skill-dir skills/<...>/<skill-name> --dry-run`
+  - `$AGENT_HOME/skills/tools/skill-management/remove-skill/scripts/remove_skill.sh --skill-dir skills/<...>/<skill-name> --dry-run`
 
 ## Tools
 

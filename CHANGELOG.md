@@ -109,7 +109,7 @@ All notable changes to this project will be documented in this file.
 ## v2.1.1 - 2026-01-26
 
 ### Added
-- Docs: add `docker/codex-workspace-launcher/README.md`.
+- Docs: add `docker/agent-workspace-launcher/README.md`.
 - Tests: add script-spec smoke coverage for more commands and skill scripts.
 
 ### Changed
@@ -155,7 +155,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Docs: backfill `v2.0.1` changelog entry.
-- Docs: clarify credential instructions for `codex-env`.
+- Docs: clarify credential instructions for `agent-env`.
 
 ### Fixed
 - None.
@@ -197,7 +197,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - CI: consolidate publish workflows into a single pipeline.
-- Scripts: set `AGENTS_HOME` to repo root by default for more resilient runs.
+- Scripts: set `AGENT_HOME` to repo root by default for more resilient runs.
 - Plans: remove internal dogfood/review planning docs (keep format + toolchain docs).
 
 ### Fixed
@@ -220,13 +220,13 @@ All notable changes to this project will be documented in this file.
 ## v1.3.3 - 2026-01-22
 
 ### Added
-- `codex-env`: `prefetch-zsh-plugins.sh` with retry/backoff for plugin installs.
-- `codex-env`: `PREFETCH_ZSH_PLUGINS` build arg to skip plugin prefetch.
-- `codex-env`: `ZSH_PLUGIN_FETCH_RETRIES` build arg to tune retry attempts.
+- `agent-env`: `prefetch-zsh-plugins.sh` with retry/backoff for plugin installs.
+- `agent-env`: `PREFETCH_ZSH_PLUGINS` build arg to skip plugin prefetch.
+- `agent-env`: `ZSH_PLUGIN_FETCH_RETRIES` build arg to tune retry attempts.
 
 ### Changed
 - Dockerfile: move image metadata ARGs to the top for consistency.
-- `codex-env`: move `CODEX_AUTH_FILE` export into `entrypoint.sh`.
+- `agent-env`: move `CODEX_AUTH_FILE` export into `entrypoint.sh`.
 
 ### Fixed
 - `api-report`: resolve `--out`/`--response` paths relative to the derived project root.
@@ -234,32 +234,32 @@ All notable changes to this project will be documented in this file.
 ## v1.3.2 - 2026-01-22
 
 ### Added
-- `codex-workspace`: launcher contract for capability discovery + JSON output; wrapper migration docs.
-- `codex-workspace`: `--no-clone` option for bringing up an existing workspace without cloning.
-- `codex-env`: GitHub Actions workflows for GHCR/Docker Hub publishing, including multi-arch (arm64) support and OCI labels.
+- `agent-workspace`: launcher contract for capability discovery + JSON output; wrapper migration docs.
+- `agent-workspace`: `--no-clone` option for bringing up an existing workspace without cloning.
+- `agent-env`: GitHub Actions workflows for GHCR/Docker Hub publishing, including multi-arch (arm64) support and OCI labels.
 - Lint: pyright typechecking in the Python lint workflow.
 - `script_smoke`: spec coverage for `audit-skill-layout.sh`.
 
 ### Changed
-- `codex-env`: use `tini` as init; add `rsync`/linuxbrew directory; disable weather/quote on boot; and improve mount override flows.
-- CI: set `AGENTS_HOME` globally, optimize multi-arch builds, and refresh runner labels.
-- Docs: canonicalize script references to `$AGENTS_HOME` and use `$HOME/` in path examples.
+- `agent-env`: use `tini` as init; add `rsync`/linuxbrew directory; disable weather/quote on boot; and improve mount override flows.
+- CI: set `AGENT_HOME` globally, optimize multi-arch builds, and refresh runner labels.
+- Docs: canonicalize script references to `$AGENT_HOME` and use `$HOME/` in path examples.
 - `find-and-fix-bugs`: add problem + reproduction sections to the skill and PR template.
 - Workspace auth: remove token env vars from the container for safer Git authentication.
 
 ### Fixed
 - `api-report`: expand tilde paths and guard stdin response clashes.
 - `git-scope`: handle `mktemp` fallback on macOS.
-- `codex-workspace`: handle long container names when computing hostnames.
+- `agent-workspace`: handle long container names when computing hostnames.
 - Progress templates: repair the progress template symlink.
 - Docs and tooling: fix duplicated `codex_home` references and clarify desktop notification word limit guidance.
 
 ## v1.3.1 - 2026-01-18
 
 ### Added
-- Docker codex env (Ubuntu 24.04): root `Dockerfile` + compose, tool install scripts, and compose overlays for secrets/SSH/local overrides.
-- Workspace launcher: `docker/codex-env/bin/codex-workspace` (`up/ls/shell/tunnel/rm`) with `--secrets-mount` support and improved auth/mount flows.
-- Docker codex env docs: `docker/codex-env/README.md` and `docker/codex-env/WORKSPACE_QUICKSTART.md` (plus root README link).
+- Docker agent env (Ubuntu 24.04): root `Dockerfile` + compose, tool install scripts, and compose overlays for secrets/SSH/local overrides.
+- Workspace launcher: `docker/agent-env/bin/agent-workspace` (`up/ls/shell/tunnel/rm`) with `--secrets-mount` support and improved auth/mount flows.
+- Docker agent env docs: `docker/agent-env/README.md` and `docker/agent-env/WORKSPACE_QUICKSTART.md` (plus root README link).
 - Git commit context JSON: new `commands/git-commit-context-json` wrapper and `git-tools` JSON output support.
 - `close-progress-pr`: auto-defer unchecked checklist items and enforce deferred checklist formatting.
 
@@ -269,7 +269,7 @@ All notable changes to this project will be documented in this file.
 - Progress templates: clarify that unchecked Step 0–3 items must be struck with `Reason:` (Step 4 excluded).
 
 ### Fixed
-- Shell style fixer: preserve initializer handling in `$AGENTS_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
+- Shell style fixer: preserve initializer handling in `$AGENT_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 
 ## v1.3.0 - 2026-01-17
 
@@ -286,10 +286,10 @@ All notable changes to this project will be documented in this file.
 ## v1.2.0 - 2026-01-16
 
 ### Added
-- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `$AGENTS_HOME/scripts/semgrep-scan.sh` with curated defaults.
+- Semgrep tooling: `.semgrep.yaml`, `.semgrepignore`, and `$AGENT_HOME/scripts/semgrep-scan.sh` with curated defaults.
 - `semgrep-find-and-fix` automation skill, including local config and PR/report templates.
-- Repo verification tooling: `$AGENTS_HOME/scripts/check.sh` and `$AGENTS_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
-- Shell style fixers: `$AGENTS_HOME/scripts/fix-shell-style.zsh`, `$AGENTS_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$AGENTS_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
+- Repo verification tooling: `$AGENT_HOME/scripts/check.sh` and `$AGENT_HOME/scripts/lint.sh` (shellcheck/bash -n/zsh -n, ruff, mypy) plus dev configs (`ruff.toml`, `mypy.ini`, `requirements-dev.txt`).
+- Shell style fixers: `$AGENT_HOME/scripts/fix-shell-style.zsh`, `$AGENT_HOME/scripts/fix-typeset-empty-string-quotes.zsh`, `$AGENT_HOME/scripts/fix-zsh-typeset-initializers.zsh`.
 - API test report templates/metadata plus `api-gql`/`api-rest report-from-cmd` workflow helpers (REST + GraphQL).
 
 ### Changed
@@ -312,7 +312,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Command wrappers are now shipped via `commands/` (instead of a `scripts/` loader).
-- Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$AGENTS_HOME/commands`.
+- Standardized commands path resolution via `CODEX_COMMANDS_PATH` / `$AGENT_HOME/commands`.
 - Release workflow moved into automation, resolves guides/templates deterministically, and audits the changelog pre-publish.
 - PR workflows reduce redundant `gh` metadata lookups.
 - `close-progress-pr` now auto-wraps deferred checklist items.
@@ -322,8 +322,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - `git-tools`: clean up commit context temp file.
-- `chrome-devtools-mcp`: use `AGENTS_HOME` for default paths and expand tilde paths.
-- `graphql-api-testing`: quote `AGENTS_HOME` during script path rewrites.
+- `chrome-devtools-mcp`: use `AGENT_HOME` for default paths and expand tilde paths.
+- `graphql-api-testing`: quote `AGENT_HOME` during script path rewrites.
 - Shell scripts: address minor shellcheck warnings.
 - Progress flow now caches PR body lookups.
 - Git helper scripts load the progress bar lazily.

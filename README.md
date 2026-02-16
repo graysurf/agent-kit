@@ -32,13 +32,13 @@ Upgrade when needed:
 brew upgrade nils-cli
 ```
 
-Set `AGENTS_HOME` in `$HOME/.zshenv`:
+Set `AGENT_HOME` in `$HOME/.zshenv`:
 
 ```zsh
-export AGENTS_HOME="$HOME/.agents"
+export AGENT_HOME="$HOME/.agents"
 ```
 
-`AGENTS_HOME` is the home for this agents-kit toolchain.
+`AGENT_HOME` is the home for this agent-kit toolchain.
 
 Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
 
@@ -49,8 +49,8 @@ export PROJECT_PATH="$PWD"
 For new repositories with missing policy baseline docs, run the canonical bootstrap flow:
 
 ```zsh
-$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
-$AGENTS_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
+$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --dry-run --project-path "$PROJECT_PATH"
+$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"
 agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
 ```
 
@@ -58,7 +58,7 @@ See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-do
 
 ## 🐳 Docker environment
 
-See [docker/codex-env/README.md](docker/codex-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
+See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
 
 ## 🧰 Prompts
 

@@ -5,15 +5,15 @@ Last updated: 2026-01-22
 
 This doc is a migration plan to reduce drift between:
 
-- **agent-kit launcher (canonical, shell-agnostic)**: `docker/codex-env/bin/codex-workspace`
-- **zsh wrapper + Dev Containers extras**: `~/.config/zsh/scripts/_features/codex-workspace/*` (not in this repo)
+- **agent-kit launcher (canonical, shell-agnostic)**: `docker/agent-env/bin/agent-workspace`
+- **zsh wrapper + Dev Containers extras**: `~/.config/zsh/scripts/_features/agent-workspace/*` (not in this repo)
 
 ## Decisions (approved)
 
 - **Entry point**: a shell-agnostic executable lives in **agent-kit**.
 - **Dev Containers extras** (snapshot, private repo, VS Code open, etc.) remain in the **zsh wrapper**.
 - **Secrets**: no launcher default; secrets are opt-in and require `--secrets-dir <host-path>`.
-  - Recommended: `--secrets-dir ~/.config/codex_secrets --secrets-mount /home/codex/codex_secrets`
+  - Recommended: `--secrets-dir ~/.config/codex_secrets --secrets-mount /home/agent/codex_secrets`
 - **Compatibility**: breaking changes are acceptable.
 - **Launcher selection**: prefer local agent-kit checkout; fallback to auto-download when missing.
 - **Ownership clarifications**:
@@ -23,7 +23,7 @@ This doc is a migration plan to reduce drift between:
 
 ## Current state (inventory)
 
-### agent-kit launcher (`docker/codex-env/bin/codex-workspace`)
+### agent-kit launcher (`docker/agent-env/bin/agent-workspace`)
 
 Owns the core container lifecycle:
 
@@ -38,15 +38,15 @@ Owns the core container lifecycle:
 
 Notable current defaults (subject to change):
 
-- Secrets are opt-in (no host-path default); when enabled, the default mount is `/home/codex/codex_secrets`.
+- Secrets are opt-in (no host-path default); when enabled, the default mount is `/home/agent/codex_secrets`.
 - `tunnel` default name is sanitized and enforced to be `<= 20` chars (VS Code requirement).
 - Wrappers should consume stdout JSON (`--output json`) instead of parsing ad-hoc human output.
 
-### zsh wrapper (`~/.config/zsh/scripts/_features/codex-workspace/*`)
+### zsh wrapper (`~/.config/zsh/scripts/_features/agent-workspace/*`)
 
 Acts as an orchestrator around the launcher and adds “Dev Containers” conveniences:
 
-- `codex-workspace create ...`: selects GitHub auth mode (keyring vs env), then calls launcher `create --output json`
+- `agent-workspace create ...`: selects GitHub auth mode (keyring vs env), then calls launcher `create --output json`
 - Lifecycle commands (`ls`, `start`, `stop`, `rm`) are thin call-throughs to the launcher.
 - Post-create extras (typical): refresh `/opt/*` repos, snapshot `~/.config`, seed `~/.private`, clone extra repos
 - Additional host-side helpers (separate files): `auth`, `exec`, `rsync`, `reset`, `rm`, `tunnel`, `ls`
@@ -73,21 +73,21 @@ Acts as an orchestrator around the launcher and adds “Dev Containers” conven
 
 agent-kit is the canonical, shell-agnostic entry point. To keep it small and reduce drift, the **minimum long-term supported surface** should be:
 
-- `codex-workspace create` (alias `up`)
+- `agent-workspace create` (alias `up`)
   - Creates the workspace container + named volumes
   - Optionally clones a repo into `/work` (and optionally checks out `--ref`)
   - Secrets are opt-in via `--secrets-dir` (launcher has no host-path default)
   - Exposes a machine-readable output mode for wrappers (JSON)
-- `codex-workspace ls`
+- `agent-workspace ls`
   - Lists workspace containers with stable semantics/filters (wrapper should call-through)
-- `codex-workspace start` / `codex-workspace stop`
+- `agent-workspace start` / `agent-workspace stop`
   - Canonical start/stop implementation (wrapper may expose a UX alias but must call-through)
-- `codex-workspace tunnel`
+- `agent-workspace tunnel`
   - Sanitizes/limits tunnel names (<= 20 chars)
   - Supports `--detach` and logs to a stable path
-- `codex-workspace rm`
+- `agent-workspace rm`
   - Removes container + workspace volumes by default (`--keep-volumes` keeps volumes)
-- `codex-workspace --version` (and/or `capabilities`)
+- `agent-workspace --version` (and/or `capabilities`)
   - Lets wrappers require a minimum launcher
 
 ### zsh wrapper surface (what should NOT live in agent-kit)
@@ -105,14 +105,14 @@ Keep host-opinionated and Dev Containers-specific behavior in the wrapper:
 Wrappers should not parse ad-hoc human output. The launcher should expose:
 
 - A **version / capability** signal:
-  - `codex-workspace --version` (string)
-  - `codex-workspace capabilities` (stdout JSON)
-  - `codex-workspace --supports <capability>` (exit 0/1)
+  - `agent-workspace --version` (string)
+  - `agent-workspace capabilities` (stdout JSON)
+  - `agent-workspace --supports <capability>` (exit 0/1)
 - A **machine-readable output mode** for create/up:
-  - `codex-workspace up|create ... --output json` where stdout is pure JSON and all human logs go to stderr.
+  - `agent-workspace up|create ... --output json` where stdout is pure JSON and all human logs go to stderr.
   - Current JSON schema (v1): `version`, `capabilities`, `command`, `workspace`, `created`, `repo`, `path`, `image`, `secrets{enabled,dir,mount,codex_profile}`.
 - A consistent tunnel naming behavior (sanitize + `<= 20` chars) with override support.
-  - `codex-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` (plus metadata).
+  - `agent-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` (plus metadata).
 
 ## Feature map (what moves / what stays)
 
@@ -146,7 +146,7 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 - [x] Add `create` as an alias of `up` (keep `up` for backwards compatibility).
 - [x] Make repo spec parsing a single-source-of-truth (`OWNER/REPO`, `git@...`, `https://...`) and document supported forms.
 - [x] Remove launcher secrets host-path defaults; require explicit `--secrets-dir` for any secrets mount.
-  - [x] Keep `--secrets-mount` default at `/home/codex/codex_secrets` and allow override
+  - [x] Keep `--secrets-mount` default at `/home/agent/codex_secrets` and allow override
   - [x] When secrets are mounted, set `CODEX_SECRET_DIR=<mount>` inside the container
 - [x] Validate `--codex-profile` behavior under the new secrets defaults (and keep failure modes clear).
 - [x] Confirm/adjust git auth behavior (`--setup-git`) and document expectations for wrappers.
@@ -158,8 +158,8 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
   - [x] improve default name derivation (strip prefix + timestamp, add hash when truncating)
 - [x] Implement and document `rm` semantics: default removes volumes; `--keep-volumes` keeps volumes (optionally keep `--volumes` as an alias).
 - [x] Update docs in this repo:
-  - [x] `docker/codex-env/README.md` (defaults, examples, migration note)
-  - [x] `docker/codex-env/WORKSPACE_QUICKSTART.md`
+  - [x] `docker/agent-env/README.md` (defaults, examples, migration note)
+  - [x] `docker/agent-env/WORKSPACE_QUICKSTART.md`
 
 ### zsh wrapper: orchestration and dedupe
 
@@ -172,15 +172,15 @@ Wrappers should not parse ad-hoc human output. The launcher should expose:
 ### Validation (manual / smoke)
 
 - [x] Launcher contract smoke (agent-kit stub tests):
-  - [x] `codex-workspace --help` shows `create` and `--output`.
-  - [x] `codex-workspace create --no-clone --name ws-foo --output json` emits stdout-only JSON; human logs go to stderr.
-  - [x] Secrets contract (host-side): `--secrets-dir ...` sets `CODEX_SECRET_DIR=/home/codex/codex_secrets` and reports `secrets.*` in JSON.
-  - [x] `codex-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` and enforces `<= 20`.
-  - [x] `codex-workspace rm` removes volumes by default; `--keep-volumes` preserves volumes.
+  - [x] `agent-workspace --help` shows `create` and `--output`.
+  - [x] `agent-workspace create --no-clone --name ws-foo --output json` emits stdout-only JSON; human logs go to stderr.
+  - [x] Secrets contract (host-side): `--secrets-dir ...` sets `CODEX_SECRET_DIR=/home/agent/codex_secrets` and reports `secrets.*` in JSON.
+  - [x] `agent-workspace tunnel ... --detach --output json` returns `tunnel_name` + `log_path` and enforces `<= 20`.
+  - [x] `agent-workspace rm` removes volumes by default; `--keep-volumes` preserves volumes.
 - [x] Manual (real Docker) spot checks:
-  - [x] `codex-workspace create OWNER/REPO` clones into `/work/<owner>/<repo>`.
-  - [x] Secrets + profile: `codex-workspace create OWNER/REPO --secrets-dir ... --codex-profile <name>` works end-to-end.
-  - [x] Wrapper `codex-workspace create OWNER/REPO` works end-to-end using launcher JSON output.
+  - [x] `agent-workspace create OWNER/REPO` clones into `/work/<owner>/<repo>`.
+  - [x] Secrets + profile: `agent-workspace create OWNER/REPO --secrets-dir ... --codex-profile <name>` works end-to-end.
+  - [x] Wrapper `agent-workspace create OWNER/REPO` works end-to-end using launcher JSON output.
 
 ## Rollout plan
 

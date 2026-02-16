@@ -15,38 +15,38 @@ CODEX_WORKSPACE_CAPABILITIES=(
   "rm-keep-volumes-flag"
 )
 
-DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/codex-env:linuxbrew}"
-WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-codex-ws}"
+DEFAULT_IMAGE="${CODEX_ENV_IMAGE:-graysurf/agent-env:linuxbrew}"
+WORKSPACE_PREFIX="${CODEX_WORKSPACE_PREFIX:-agent-ws}"
 DEFAULT_GITHUB_HOST="${GITHUB_HOST:-github.com}"
 DEFAULT_SECRETS_DIR=""
-DEFAULT_SECRETS_MOUNT="${DEFAULT_SECRETS_MOUNT:-/home/codex/codex_secrets}"
+DEFAULT_SECRETS_MOUNT="${DEFAULT_SECRETS_MOUNT:-/home/agent/codex_secrets}"
 
 usage() {
   cat <<'EOF'
-codex-workspace: start isolated Codex workspaces from a git repo input.
+agent-workspace: start isolated Codex workspaces from a git repo input.
 
 Usage:
-  codex-workspace --version
-  codex-workspace capabilities
-  codex-workspace --supports <capability>
-  codex-workspace up|create [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
+  agent-workspace --version
+  agent-workspace capabilities
+  agent-workspace --supports <capability>
+  agent-workspace up|create [<repo>] [--name <name>] [--no-clone] [--host <host>] [--image <image>] [--no-pull]
                     [--ref <git-ref>] [--dir <path>]
                     [--setup-git]
                     [--secrets-dir <host-path>] [--secrets-mount <container-path>] [--no-secrets]
                     [--codex-profile <profile>]
                     [--tunnel] [--tunnel-detach]
                     [--output json]
-  codex-workspace shell <name>
-  codex-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]
-  codex-workspace ls
-  codex-workspace start <name>
-  codex-workspace stop <name>
-  codex-workspace rm <name> [--keep-volumes]
+  agent-workspace shell <name>
+  agent-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]
+  agent-workspace ls
+  agent-workspace start <name>
+  agent-workspace stop <name>
+  agent-workspace rm <name> [--keep-volumes]
 
 Defaults:
-  --image:       graysurf/codex-env:linuxbrew  (or $CODEX_ENV_IMAGE)
+  --image:       graysurf/agent-env:linuxbrew  (or $CODEX_ENV_IMAGE)
   workspace name: derived from <repo> + timestamp
-  secrets mount: /home/codex/codex_secrets (override via --secrets-mount; env: DEFAULT_SECRETS_MOUNT)
+  secrets mount: /home/agent/codex_secrets (override via --secrets-mount; env: DEFAULT_SECRETS_MOUNT)
 
 Notes:
   - Repo is cloned into a Docker named volume mounted at /work (no host workspace bind mount).
@@ -55,7 +55,7 @@ Notes:
   - For private repos, export GH_TOKEN (or GITHUB_TOKEN) on the host before running `up`.
   - Secrets are opt-in: pass `--secrets-dir <host-path>` to mount secrets.
     - Recommended: `--secrets-dir $HOME/.config/codex_secrets`
-    - When secrets are mounted, codex-workspace sets CODEX_SECRET_DIR in-container to the mount path.
+    - When secrets are mounted, agent-workspace sets CODEX_SECRET_DIR in-container to the mount path.
   - `--codex-profile` requires secrets (`--secrets-dir ...`) and runs `codex-use <profile>` in the container.
   - JSON output: when `--output json` is used, all human output goes to stderr and stdout is pure JSON.
 EOF
@@ -129,7 +129,7 @@ normalize_secrets_mount() {
   local path="${1:-}"
   [[ -n "$path" ]] || die "missing secrets mount path"
   if [[ "$path" == "~"* ]]; then
-    path="/home/codex${path#~}"
+    path="/home/agent${path#~}"
   fi
   [[ "$path" == /* ]] || die "secrets mount must be an absolute path (or \\$HOME/<path>): $path"
   path="${path%/}"
@@ -282,7 +282,7 @@ ensure_container_running() {
 
 volume_names() {
   local container="$1"
-  echo "${container}-work" "${container}-home" "${container}-agents-home"
+  echo "${container}-work" "${container}-home" "${container}-agent-home"
 }
 
 setup_git_auth() {
@@ -345,7 +345,7 @@ workspace_up() {
   local secrets_dir_explicit="0"
   local secrets_mount="$(normalize_secrets_mount "$DEFAULT_SECRETS_MOUNT")"
   local secrets_mount_explicit="0"
-  if [[ "$DEFAULT_SECRETS_MOUNT" != "/home/codex/codex_secrets" ]]; then
+  if [[ "$DEFAULT_SECRETS_MOUNT" != "/home/agent/codex_secrets" ]]; then
     secrets_mount_explicit="1"
   fi
   local no_secrets_explicit="0"
@@ -427,7 +427,7 @@ workspace_up() {
   esac
 
   if [[ "$output" == "json" && "$start_tunnel" == "1" && "$tunnel_detach" != "1" ]]; then
-    die "--output json cannot be combined with interactive --tunnel; use --tunnel-detach or run 'codex-workspace tunnel ...' separately"
+    die "--output json cannot be combined with interactive --tunnel; use --tunnel-detach or run 'agent-workspace tunnel ...' separately"
   fi
 
   if [[ "$use_secrets" == "1" && "$secrets_mount_explicit" == "1" && "$secrets_dir_explicit" != "1" ]]; then
@@ -444,7 +444,7 @@ workspace_up() {
   fi
 
   if [[ "$no_clone" != "1" && -z "$repo_input" ]]; then
-    die "usage: codex-workspace up|create <repo> [flags]"
+    die "usage: agent-workspace up|create <repo> [flags]"
   fi
 
   if [[ "$output" == "json" ]]; then
@@ -515,12 +515,12 @@ workspace_up() {
 	      --hostname "$hostname"
 	      --label "agent-kit.workspace=1"
 	      --label "agent-kit.created-at=$ts"
-	      -e "HOME=/home/codex"
-	      -e "AGENTS_HOME=/home/codex/.agents"
-	      -e "CODEX_AUTH_FILE=/home/codex/.agents/auth.json"
+	      -e "HOME=/home/agent"
+	      -e "AGENT_HOME=/home/agent/.agents"
+	      -e "CODEX_AUTH_FILE=/home/agent/.agents/auth.json"
       -v "${vol_work}:/work"
-      -v "${vol_home}:/home/codex"
-      -v "${vol_codex}:/home/codex/.agents"
+      -v "${vol_home}:/home/agent"
+      -v "${vol_codex}:/home/agent/.agents"
 	      -w /work
 	    )
 		    if [[ -n "$owner_repo" ]]; then
@@ -573,7 +573,7 @@ workspace_up() {
         mkdir -p "$(dirname "$dest")"
 
         if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
-          askpass="/tmp/codex-workspace-git-askpass"
+          askpass="/tmp/agent-workspace-git-askpass"
           cat >"$askpass" <<EOF
 #!/usr/bin/env bash
 case "\${1-}" in
@@ -750,7 +750,7 @@ workspace_tunnel() {
   ensure_container_running "$container"
   docker exec "$container" bash -lc 'command -v code >/dev/null 2>&1' || die "missing 'code' in container (build with INSTALL_VSCODE=1)"
 
-  local log_path="/home/codex/.agents-env/logs/code-tunnel.log"
+  local log_path="/home/agent/.agents-env/logs/code-tunnel.log"
 
   local tunnel_name=""
   if [[ -n "$tunnel_name_arg" ]]; then
@@ -905,7 +905,7 @@ main() {
       return 0
       ;;
     --supports)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace --supports <capability>"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace --supports <capability>"
       if supports_capability "$1"; then
         return 0
       fi
@@ -924,21 +924,21 @@ main() {
     create)
       CODEX_WORKSPACE_SUBCOMMAND="create" workspace_up "$@" ;;
     shell)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace shell <name>"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace shell <name>"
       workspace_shell "$1" ;;
     tunnel)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace tunnel <name> [--name <tunnel_name>] [--detach] [--output json]"
       workspace_tunnel "$1" "${@:2}" ;;
     ls)
       workspace_ls ;;
     start)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace start <name>"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace start <name>"
       workspace_start "$1" ;;
     stop)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace stop <name>"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace stop <name>"
       workspace_stop "$1" ;;
     rm)
-      [[ $# -ge 1 ]] || die "usage: codex-workspace rm <name> [--keep-volumes]"
+      [[ $# -ge 1 ]] || die "usage: agent-workspace rm <name> [--keep-volumes]"
       workspace_rm "$1" "${@:2}" ;;
     *)
       die "unknown command: $cmd" ;;

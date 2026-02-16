@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  $AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase <name> [options]
+  $AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase <name> [options]
 
 This is a real-GitHub E2E driver for the progress workflow:
   planning progress PR -> handoff merge -> 2 stacked implementation PRs -> close/archive
@@ -35,8 +35,8 @@ Artifacts:
   - out/e2e/progress-pr-workflow/<run-id>/run.json
 
 Examples:
-  E2E_ALLOW_REAL_GH=1 $AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all
-  E2E_ALLOW_REAL_GH=1 $AGENTS_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase cleanup --run-id 20260124-120000-abc123
+  E2E_ALLOW_REAL_GH=1 $AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase all
+  E2E_ALLOW_REAL_GH=1 $AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh --phase cleanup --run-id 20260124-120000-abc123
 USAGE
 }
 
@@ -202,7 +202,7 @@ if [[ -z "$sandbox_base_branch" ]]; then
 fi
 json_upsert "sandbox_base_branch" "$sandbox_base_branch"
 
-agents_home="${AGENTS_HOME:-$repo_root}"
+AGENT_HOME="${AGENT_HOME:-$repo_root}"
 handoff_script=""
 close_script=""
 create_progress_file_script=""
@@ -216,12 +216,12 @@ resolve_tools() {
   create_worktrees_script="${root%/}/skills/workflows/pr/progress/worktree-stacked-feature-pr/scripts/create_worktrees_from_tsv.sh"
 }
 
-resolve_tools "$agents_home"
+resolve_tools "$AGENT_HOME"
 if [[ ! -f "$handoff_script" || ! -f "$close_script" || ! -f "$create_progress_file_script" || ! -f "$create_worktrees_script" ]]; then
-  # AGENTS_HOME is often a global Codex config dir; fall back to the current repo root unless
-  # the caller intentionally pointed AGENTS_HOME at a agent-kit checkout that contains these scripts.
+  # AGENT_HOME is often a global Codex config dir; fall back to the current repo root unless
+  # the caller intentionally pointed AGENT_HOME at a agent-kit checkout that contains these scripts.
   resolve_tools "$repo_root"
-  agents_home="$repo_root"
+  AGENT_HOME="$repo_root"
 fi
 
 for p in "$handoff_script" "$close_script" "$create_progress_file_script" "$create_worktrees_script"; do
