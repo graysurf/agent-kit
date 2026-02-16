@@ -1,44 +1,56 @@
 # agent-workspace-launcher
 
-This folder links to the upstream `agent-workspace-launcher` project, a Docker-based launcher that creates Codex-ready workspaces (including prompts, skills, and common CLI tools) for any repository.
+This folder links to upstream `graysurf/agent-workspace-launcher`, now a host-native CLI runtime.
 
 Upstream repository: [graysurf/agent-workspace-launcher](https://github.com/graysurf/agent-workspace-launcher)
 
-## Quick try: launch a `agent-env` workspace
+## Command contract
 
-This is the fastest way to spin up a workspace container backed by `graysurf/agent-env` without cloning the launcher repository.
+- Primary command: `agent-workspace-launcher`
+- Alias command: `awl`
+- Runtime does not require `docker run` or a container backend for normal usage.
 
-### zsh
-
-```sh
-mkdir -p "$HOME/.config/agent-workspace-launcher"
-curl -fsSL https://raw.githubusercontent.com/graysurf/agent-workspace-launcher/main/scripts/cws.zsh \
-  -o "$HOME/.config/agent-workspace-launcher/cws.zsh"
-source "$HOME/.config/agent-workspace-launcher/cws.zsh"
-
-# Create a workspace container for any repo you want to work on:
-cws create OWNER/REPO
-
-# Find the workspace name printed by `create`, or list and then exec into it:
-cws ls
-cws exec <name|container>
-```
-
-### bash
+## Quick try (Homebrew)
 
 ```sh
-mkdir -p "$HOME/.config/agent-workspace-launcher"
-curl -fsSL https://raw.githubusercontent.com/graysurf/agent-workspace-launcher/main/scripts/cws.bash \
-  -o "$HOME/.config/agent-workspace-launcher/cws.bash"
-source "$HOME/.config/agent-workspace-launcher/cws.bash"
+brew tap graysurf/tap
+brew install agent-workspace-launcher
 
-cws create OWNER/REPO
-cws ls
-cws exec <name|container>
+agent-workspace-launcher --help
+awl --help
 ```
 
-Cleanup:
+## Quick try (from source)
 
 ```sh
-cws rm <name|container> --yes
+git clone https://github.com/graysurf/agent-workspace-launcher.git
+cd agent-workspace-launcher
+cargo build --release -p agent-workspace --bin agent-workspace-launcher
+
+./target/release/agent-workspace-launcher --help
+ln -sf "$(pwd)/target/release/agent-workspace-launcher" "$HOME/.local/bin/awl"
+awl --help
 ```
+
+## Optional shell wrappers
+
+If you want `aw*` shorthand aliases in your shell:
+
+```sh
+source scripts/awl.zsh   # zsh
+# or
+source scripts/awl.bash  # bash
+```
+
+## Lifecycle examples
+
+```sh
+agent-workspace-launcher create OWNER/REPO
+agent-workspace-launcher ls
+agent-workspace-launcher exec <workspace>
+agent-workspace-launcher rm <workspace> --yes
+```
+
+## Migration note
+
+Legacy `cws` wrappers are removed. Use `agent-workspace-launcher` or `awl`.
