@@ -18,6 +18,8 @@ Scaffolds a project-local skill under .agents/skills and validates:
 Notes:
   - If --skill-dir does not start with .agents/skills/, it is treated as
     <skill-name> and expanded to .agents/skills/<skill-name>.
+  - If project-local skills already follow a shared prefix convention
+    (for example nils-cli-*), the generated skill name is auto-prefixed.
   - This command writes files and does not stage/commit.
 USAGE
 }
@@ -174,6 +176,34 @@ if not resolved.startswith(".agents/skills/"):
 if len(Path(resolved).parts) < 3:
     print(f"error: --skill-dir must include a skill name under .agents/skills/: {raw}", file=sys.stderr)
     raise SystemExit(2)
+
+skills_root = project_root / ".agents" / "skills"
+existing_skill_names = sorted(
+    p.name for p in skills_root.iterdir() if p.is_dir()
+) if skills_root.is_dir() else []
+
+required_prefix = ""
+repo_prefix = f"{project_root.name}-"
+if existing_skill_names and all(name.startswith(repo_prefix) for name in existing_skill_names):
+    required_prefix = repo_prefix
+elif existing_skill_names:
+    common_prefix = existing_skill_names[0]
+    for name in existing_skill_names[1:]:
+        while common_prefix and not name.startswith(common_prefix):
+            common_prefix = common_prefix[:-1]
+    if "-" in common_prefix:
+        common_prefix = common_prefix[: common_prefix.rfind("-") + 1]
+    else:
+        common_prefix = ""
+    if common_prefix and all(name.startswith(common_prefix) for name in existing_skill_names):
+        required_prefix = common_prefix
+
+parts = list(Path(resolved).parts)
+leaf = parts[-1].strip()
+if required_prefix and not leaf.startswith(required_prefix):
+    leaf = f"{required_prefix}{leaf}"
+    parts[-1] = leaf
+    resolved = "/".join(parts)
 
 print(resolved)
 PY

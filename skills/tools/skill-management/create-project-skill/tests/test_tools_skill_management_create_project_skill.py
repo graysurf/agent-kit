@@ -118,3 +118,49 @@ def test_create_project_skill_rejects_non_agents_skills_prefix() -> None:
         )
         assert proc.returncode == 2, f"expected usage error, got {proc.returncode}:\n{proc.stdout}\n{proc.stderr}"
         assert "must be under .agents/skills/" in proc.stderr
+
+
+def test_create_project_skill_applies_existing_skill_prefix_convention() -> None:
+    root = repo_root()
+    create_script = (
+        root
+        / "skills"
+        / "tools"
+        / "skill-management"
+        / "create-project-skill"
+        / "scripts"
+        / "create_project_skill.sh"
+    )
+
+    with TemporaryDirectory(prefix="create-project-skill-prefix-") as tmp:
+        project_root = Path(tmp) / "nils-cli"
+        project_root.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init", "-q", str(project_root)], check=True)
+
+        existing_skills_root = project_root / ".agents" / "skills"
+        (existing_skills_root / "nils-cli-checks").mkdir(parents=True, exist_ok=True)
+        (existing_skills_root / "nils-cli-install").mkdir(parents=True, exist_ok=True)
+
+        proc = subprocess.run(
+            [
+                "bash",
+                str(create_script),
+                "--project-path",
+                str(project_root),
+                "--skill-dir",
+                "example-project-skill",
+                "--title",
+                "Example Project Skill",
+                "--description",
+                "smoke",
+            ],
+            cwd=root,
+            text=True,
+            capture_output=True,
+        )
+        assert proc.returncode == 0, f"create_project_skill.sh failed:\n{proc.stdout}\n{proc.stderr}"
+
+        skill_root = project_root / ".agents" / "skills" / "nils-cli-example-project-skill"
+        generated_script = skill_root / "scripts" / "nils-cli-example-project-skill.sh"
+        assert skill_root.is_dir(), f"missing generated skill directory: {skill_root}"
+        assert generated_script.is_file(), f"missing generated script: {generated_script}"

@@ -54,6 +54,8 @@ Failure modes:
 
 1. Resolve the target project root (default current directory) and verify it is a git work tree.
 2. Normalize `--skill-dir` to `.agents/skills/...` (supports shorthand `<skill-name>`).
+   - If existing project skills share a prefix convention (for example `nils-cli-`),
+     auto-apply that prefix to the new skill directory name.
 3. Scaffold `SKILL.md`, a scripts entrypoint, and a tests smoke stub.
 4. Run contract validation and local project-skill layout validation.
 5. Return success output with the created project-skill path.
