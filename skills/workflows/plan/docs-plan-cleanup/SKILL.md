@@ -70,3 +70,27 @@ Failure modes:
 4. Apply cleanup after review:
    - `bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --project-path /path/to/project --keep-plan active-plan --execute --delete-empty-dirs`
 5. Use `--delete-important` only when you are sure `docs/specs/**` and `docs/runbooks/**` candidates are obsolete.
+
+## Output and clarification rules
+
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format when reporting cleanup results.
+- When script output contains `[execution]` with `status: applied`, the response must include:
+  1. The exact summary counters from script output:
+     - `total_plan_md`
+     - `plan_md_to_keep`
+     - `plan_md_to_clean`
+     - `plan_related_md_to_clean`
+     - `plan_related_md_kept_referenced_elsewhere`
+     - `plan_related_md_to_rehome`
+     - `plan_related_md_manual_review`
+     - `non_docs_md_referencing_removed_plan`
+  2. All itemized sections from the script report:
+     - `plan_md_to_keep`
+     - `plan_md_to_clean`
+     - `plan_related_md_to_clean`
+     - `plan_related_md_kept_referenced_elsewhere`
+     - `plan_related_md_to_rehome`
+     - `plan_related_md_manual_review`
+     - `non_docs_md_referencing_removed_plan`
+- Do not omit empty sections. If a section has no values, keep it and render `- none`.
+- Copy values from script output directly; do not infer or re-count manually.
