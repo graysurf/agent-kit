@@ -85,6 +85,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/) | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate |
 | Planning | [create-plan](./skills/workflows/plan/create-plan/) | Create a comprehensive, phased implementation plan and save it under docs/plans/ |
 | Planning | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/) | Create an extra-thorough implementation plan and get a subagent review |
+| Planning | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/) | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation |
 | Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
