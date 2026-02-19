@@ -21,7 +21,7 @@ Inputs:
 
 - A user goal (natural language) plus any constraints/success criteria.
 - Optional knobs (defaults recommended):
-  - `max_agents`: 3
+  - `max_agents`: 5
   - `max_retries_per_task`: 2
   - `mode`: patch-artifacts (subagents deliver `changes.patch`; orchestrator applies + validates)
   - `artifact_root`: `$AGENT_HOME/out/delegate-parallel/<run-id>/`

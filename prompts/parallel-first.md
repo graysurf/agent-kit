@@ -25,7 +25,7 @@ POLICY (sticky for this conversation)
 3) If parallelizable: use `delegate-parallel` workflow
    - Follow: `skills/workflows/coordination/delegate-parallel/SKILL.md`
    - Defaults (unless overridden by the user in plain language):
-     - max_agents = 3
+     - max_agents = 5
      - max_retries_per_task = 2
      - mode = patch-artifacts
    - Decompose into task cards, spawn subagents, require artifact-based delivery, integrate deterministically, validate, and iterate until accepted.
