@@ -552,13 +552,13 @@ case "$subcommand" in
       cmd+=(--body-file "$body_file")
     fi
 
-    for item in "${labels[@]}"; do
+    for item in "${labels[@]+"${labels[@]}"}"; do
       cmd+=(--label "$item")
     done
-    for item in "${assignees[@]}"; do
+    for item in "${assignees[@]+"${assignees[@]}"}"; do
       cmd+=(--assignee "$item")
     done
-    for item in "${projects[@]}"; do
+    for item in "${projects[@]+"${projects[@]}"}"; do
       cmd+=(--project "$item")
     done
     if [[ -n "$milestone" ]]; then
@@ -691,22 +691,22 @@ case "$subcommand" in
       cmd+=(--body-file "$body_file")
     fi
 
-    for item in "${add_labels[@]}"; do
+    for item in "${add_labels[@]+"${add_labels[@]}"}"; do
       cmd+=(--add-label "$item")
     done
-    for item in "${remove_labels[@]}"; do
+    for item in "${remove_labels[@]+"${remove_labels[@]}"}"; do
       cmd+=(--remove-label "$item")
     done
-    for item in "${add_assignees[@]}"; do
+    for item in "${add_assignees[@]+"${add_assignees[@]}"}"; do
       cmd+=(--add-assignee "$item")
     done
-    for item in "${remove_assignees[@]}"; do
+    for item in "${remove_assignees[@]+"${remove_assignees[@]}"}"; do
       cmd+=(--remove-assignee "$item")
     done
-    for item in "${add_projects[@]}"; do
+    for item in "${add_projects[@]+"${add_projects[@]}"}"; do
       cmd+=(--add-project "$item")
     done
-    for item in "${remove_projects[@]}"; do
+    for item in "${remove_projects[@]+"${remove_projects[@]}"}"; do
       cmd+=(--remove-project "$item")
     done
 

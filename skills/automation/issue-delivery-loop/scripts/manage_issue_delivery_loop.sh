@@ -45,10 +45,15 @@ trim_text() {
   printf '%s' "$value"
 }
 
+to_lower() {
+  printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]'
+}
+
 is_pr_placeholder() {
   local value=''
   value="$(trim_text "${1:-}")"
-  local lower="${value,,}"
+  local lower=''
+  lower="$(to_lower "$value")"
   case "$lower" in
     ""|"-"|"tbd"|"none"|"n/a"|"na")
       return 0
@@ -321,7 +326,7 @@ build_status_snapshot() {
   if [[ ${#errors[@]} -gt 0 ]]; then
     printf '%s\n' "$output"
     local err
-    for err in "${errors[@]}"; do
+    for err in "${errors[@]+"${errors[@]}"}"; do
       echo "error: $err" >&2
     done
     return 1
@@ -556,13 +561,13 @@ case "$subcommand" in
     fi
 
     item=''
-    for item in "${labels[@]}"; do
+    for item in "${labels[@]+"${labels[@]}"}"; do
       local_open_args+=(--label "$item")
     done
-    for item in "${assignees[@]}"; do
+    for item in "${assignees[@]+"${assignees[@]}"}"; do
       local_open_args+=(--assignee "$item")
     done
-    for item in "${projects[@]}"; do
+    for item in "${projects[@]+"${projects[@]}"}"; do
       local_open_args+=(--project "$item")
     done
 
@@ -788,7 +793,7 @@ case "$subcommand" in
         update_args+=(--add-label "$review_label")
       fi
       lbl=''
-      for lbl in "${remove_labels[@]}"; do
+      for lbl in "${remove_labels[@]+"${remove_labels[@]}"}"; do
         update_args+=(--remove-label "$lbl")
       done
       if [[ ${#update_args[@]} -gt 2 ]]; then
@@ -904,7 +909,7 @@ case "$subcommand" in
     while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
       task_id="$(trim_text "$task")"
       pr_value="$(trim_text "$pr")"
-      status_value="${status,,}"
+      status_value="$(to_lower "$status")"
 
       if [[ "$allow_not_done" != "1" && "$status_value" != "done" ]]; then
         gate_errors+=("${task_id}: Status must be done before close (got: ${status})")
@@ -942,7 +947,7 @@ case "$subcommand" in
     fi
 
     if [[ ${#gate_errors[@]} -gt 0 ]]; then
-      for err in "${gate_errors[@]}"; do
+      for err in "${gate_errors[@]+"${gate_errors[@]}"}"; do
         echo "error: $err" >&2
       done
       exit 1
