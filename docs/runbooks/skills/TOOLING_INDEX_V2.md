@@ -47,3 +47,12 @@ Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, a
 ## Progress PR workflow (real GitHub E2E driver)
 
 - `$AGENT_HOME/skills/workflows/pr/progress/progress-pr-workflow-e2e/scripts/progress_pr_workflow.sh`
+
+## Issue workflow (main-agent + subagent PR automation)
+
+- Main-agent issue lifecycle:
+  - `$AGENT_HOME/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh`
+- Subagent worktree + PR execution:
+  - `$AGENT_HOME/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh`
+- Main-agent PR review + issue sync:
+  - `$AGENT_HOME/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh`

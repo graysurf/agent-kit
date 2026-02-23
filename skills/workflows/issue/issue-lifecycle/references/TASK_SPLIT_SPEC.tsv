@@ -1,0 +1,3 @@
+# task_id	summary	branch	worktree	owner	notes
+T1	Implement API client and unit tests	feat/issue-123-api	issue__123-api	subagent-api	focus on auth edge-cases
+T2	Implement UI wiring and integration tests	feat/issue-123-ui	issue__123-ui	subagent-ui	coordinate with API schema

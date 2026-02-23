@@ -1,0 +1,37 @@
+{
+  "smoke": [
+    {
+      "name": "open-dry-run",
+      "args": [
+        "open",
+        "--title",
+        "Fixture issue",
+        "--body",
+        "Fixture body",
+        "--label",
+        "issue",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "DRY-RUN-ISSUE-URL"
+      }
+    },
+    {
+      "name": "decompose-print",
+      "args": [
+        "decompose",
+        "--issue",
+        "999",
+        "--spec",
+        "tests/fixtures/issue/task_split.tsv"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Task Decomposition"
+      }
+    }
+  ]
+}

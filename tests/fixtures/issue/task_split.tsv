@@ -1,0 +1,3 @@
+# task_id	summary	branch	worktree	owner	notes
+T1	Implement API validation	feat/issue-999-api	issue__999-api	subagent-api	include negative cases
+T2	Implement UI flow	feat/issue-999-ui	issue__999-ui	subagent-ui	keep i18n placeholders

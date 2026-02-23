@@ -1,0 +1,62 @@
+{
+  "smoke": [
+    {
+      "name": "create-worktree-dry-run",
+      "args": [
+        "create-worktree",
+        "--branch",
+        "feat/issue-999-api",
+        "--base",
+        "main",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "feat__issue-999-api"
+      }
+    },
+    {
+      "name": "open-pr-dry-run",
+      "args": [
+        "open-pr",
+        "--issue",
+        "999",
+        "--title",
+        "feat: fixture",
+        "--base",
+        "main",
+        "--head",
+        "feat/issue-999-api",
+        "--body",
+        "Fixture PR body",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "DRY-RUN-PR-URL"
+      }
+    },
+    {
+      "name": "respond-review-dry-run",
+      "args": [
+        "respond-review",
+        "--pr",
+        "456",
+        "--review-comment-url",
+        "https://github.com/org/repo/pull/456#issuecomment-1",
+        "--issue",
+        "999",
+        "--body",
+        "Addressed feedback",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "DRY-RUN-PR-COMMENT-URL"
+      }
+    }
+  ]
+}
