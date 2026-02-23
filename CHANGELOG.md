@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.2.9 - 2026-02-24
+
+### Added
+- New `docs-plan-cleanup` workflow skill to prune outdated `docs/plans` content and reconcile plan-related docs safely.
+
+### Changed
+- `docs-plan-cleanup` output now renders as markdown tables, with a bundled response template and test coverage.
+- Documentation cleanup removed obsolete plan/runbook docs and refreshed progress index references.
+- `find-and-fix-bugs` guidance now clarifies GitHub issue triage behavior.
+
+### Fixed
+- Feature PR close-cleanup scripts now handle git worktrees safely.
+- `image-processing` skill docs/tests now align with the SVG-first CLI flow.
+- Docker auth/home-path defaults are aligned for runtime tooling.
+
 ## v2.2.8 - 2026-02-19
 
 ### Changed
