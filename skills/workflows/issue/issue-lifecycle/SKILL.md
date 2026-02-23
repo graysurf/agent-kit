@@ -27,6 +27,7 @@ Outputs:
 - Optional decomposition markdown comment posted to the issue.
 - Deterministic consistency checks between `Task Decomposition` and `Subagent PRs`.
 - Deterministic CLI output suitable for orchestration scripts.
+- Owner policy enforcement for implementation tasks: `Owner` must reference a subagent identity.
 
 Exit codes:
 
@@ -39,6 +40,7 @@ Failure modes:
 - Ambiguous body inputs (`--body` and `--body-file` together).
 - Decomposition spec malformed (wrong TSV shape or empty rows).
 - Template consistency violations (task mismatch, PR mismatch, invalid status, duplicated branch/worktree).
+- Owner policy violations (`Owner` missing, placeholder, or main-agent/non-subagent identity).
 - `gh` auth/permission failures.
 
 ## Entrypoint
@@ -73,3 +75,4 @@ Failure modes:
 - Use `--dry-run` whenever composing commands from a higher-level orchestrator.
 - `open` / `update` automatically validate template consistency when body contains `## Task Decomposition` / `## Subagent PRs`; use `--skip-consistency-check` only for exceptional cases.
 - Keep decomposition and status notes in issue comments so execution history remains traceable.
+- In issue-driven implementation loops, `Owner` is for subagents only; main-agent remains orchestration/review-only.

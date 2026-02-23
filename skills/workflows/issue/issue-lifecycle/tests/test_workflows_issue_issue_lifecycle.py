@@ -25,3 +25,10 @@ def test_issue_lifecycle_skill_mentions_main_agent_ownership() -> None:
     text = skill_md.read_text(encoding="utf-8")
     assert "Main agent" in text
     assert "decompose" in text
+
+
+def test_issue_lifecycle_skill_mentions_subagent_owner_policy() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+    assert "Owner policy enforcement for implementation tasks" in text
+    assert "`Owner` is for subagents only" in text

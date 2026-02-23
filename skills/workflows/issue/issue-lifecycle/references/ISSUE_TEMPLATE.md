@@ -31,6 +31,7 @@
 - `Task Decomposition.PR` and `Subagent PRs` values must match for the same task.
 - `Status` must be one of: `planned`, `in-progress`, `blocked`, `done`.
 - `Status` = `in-progress` or `done` requires a non-`TBD` PR.
+- `Owner` must be a subagent identifier (contains `subagent`); `main-agent` ownership is invalid for implementation tasks.
 - `Owner`, `Branch`, and `Worktree` must be non-empty; `Branch` and `Worktree` must be unique across tasks.
 
 ## Risks / Uncertainties

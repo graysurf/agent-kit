@@ -62,3 +62,5 @@ Failure modes:
 
 - Use `--dry-run` in orchestration/testing contexts.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
+- Subagents own implementation execution; main-agent does not implement issue task code directly.
+- Even when an issue has a single implementation PR, that PR remains subagent-owned.

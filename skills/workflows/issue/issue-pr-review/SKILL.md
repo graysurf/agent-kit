@@ -61,3 +61,5 @@ Failure modes:
 
 - Important review instructions should remain in PR comments; always mirror the exact comment URL into the issue to direct subagents unambiguously.
 - Use `--dry-run` in workflow simulations before touching live GitHub state.
+- Main-agent performs review/acceptance only; implementation changes belong to subagent-owned task branches/PRs.
+- This skill is the canonical path for main-agent review decisions in issue-delivery loops.

@@ -74,6 +74,19 @@
       }
     },
     {
+      "name": "validate-body-file-fail-main-agent-owner",
+      "args": [
+        "validate",
+        "--body-file",
+        "tests/fixtures/issue/issue_body_main_agent_owner.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "Owner must not be main-agent"
+      }
+    },
+    {
       "name": "sync-body-file-print",
       "args": [
         "sync",

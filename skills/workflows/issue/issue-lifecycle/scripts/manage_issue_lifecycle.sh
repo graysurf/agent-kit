@@ -200,6 +200,7 @@ lines = text.splitlines()
 required_columns = ["Task", "Summary", "Owner", "Branch", "Worktree", "PR", "Status", "Notes"]
 allowed_statuses = {"planned", "in-progress", "blocked", "done"}
 placeholder_pr = {"", "-", "tbd", "none", "n/a", "na"}
+placeholder_owner = {"", "-", "tbd", "none", "n/a", "na"}
 
 
 def section_bounds(heading: str) -> tuple[int, int]:
@@ -313,6 +314,23 @@ def is_pr_placeholder(value: str) -> bool:
     return normalize_pr(value) == "TBD"
 
 
+def normalize_owner_token(value: str) -> str:
+    lowered = value.strip().lower()
+    lowered = lowered.replace("_", " ").replace("-", " ")
+    return "".join(lowered.split())
+
+
+def is_main_agent_owner(value: str) -> bool:
+    lowered = value.strip().lower()
+    token = normalize_owner_token(value)
+
+    if token in {"mainagent", "main", "codex", "orchestrator", "leadagent"}:
+        return True
+    if "main-agent" in lowered or "main agent" in lowered:
+        return True
+    return False
+
+
 task_rows, task_headers = parse_task_rows()
 
 if mode == "sync":
@@ -356,6 +374,15 @@ for idx, row in enumerate(task_rows, start=1):
 
     if not owner:
         errors.append(f"{task_id}: Owner must be non-empty")
+    else:
+        owner_lower = owner.lower()
+        owner_token = normalize_owner_token(owner)
+        if owner_lower in placeholder_owner or owner_token in placeholder_owner:
+            errors.append(f"{task_id}: Owner must reference a subagent identity (not placeholder)")
+        elif is_main_agent_owner(owner):
+            errors.append(f"{task_id}: Owner must not be main-agent (main-agent is orchestration/review-only)")
+        elif "subagent" not in owner_lower:
+            errors.append(f"{task_id}: Owner must reference a subagent identity (must include 'subagent')")
     if not branch:
         errors.append(f"{task_id}: Branch must be non-empty")
     if not worktree:

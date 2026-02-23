@@ -87,6 +87,9 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Planning | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/) | Create an extra-thorough implementation plan and get a subagent review |
 | Planning | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/) | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation |
 | Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
+| Issue | [issue-lifecycle](./skills/workflows/issue/issue-lifecycle/) | Main-agent workflow for opening, maintaining, decomposing, and closing GitHub Issues as the planning source of truth |
+| Issue | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/) | Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked to the owning issue |
+| Issue | [issue-pr-review](./skills/workflows/issue/issue-pr-review/) | Main-agent PR review workflow with explicit PR comment links mirrored to the issue timeline |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/) | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR |
@@ -122,6 +125,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | --- | --- | --- |
 | CI | [gh-fix-ci](./skills/automation/gh-fix-ci/) | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green |
 | DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
+| Issue | [issue-delivery-loop](./skills/automation/issue-delivery-loop/) | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates |
 | Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/) | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced |
 | Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
 | Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |

@@ -64,6 +64,109 @@ is_pr_placeholder() {
   esac
 }
 
+normalize_owner_token() {
+  local value=''
+  value="$(trim_text "${1:-}")"
+  value="$(to_lower "$value")"
+  value="${value//_/ }"
+  value="${value//-/ }"
+  value="${value//\// }"
+  value="${value// /}"
+  printf '%s' "$value"
+}
+
+is_owner_placeholder() {
+  local normalized=''
+  normalized="$(normalize_owner_token "${1:-}")"
+  case "$normalized" in
+    ""|"tbd"|"none"|"na")
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_main_agent_owner() {
+  local owner_raw=''
+  owner_raw="$(trim_text "${1:-}")"
+  local owner_lower=''
+  owner_lower="$(to_lower "$owner_raw")"
+  local normalized=''
+  normalized="$(normalize_owner_token "$owner_raw")"
+
+  case "$normalized" in
+    "mainagent"|"main"|"codex"|"orchestrator"|"leadagent")
+      return 0
+      ;;
+  esac
+
+  case "$owner_lower" in
+    *"main-agent"*|*"main agent"*)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+is_subagent_owner() {
+  local owner_lower=''
+  owner_lower="$(to_lower "$(trim_text "${1:-}")")"
+  [[ "$owner_lower" == *"subagent"* ]]
+}
+
+body_contains_task_decomposition() {
+  local body_file="${1:-}"
+  [[ -f "$body_file" ]] || return 1
+  if command -v rg >/dev/null 2>&1; then
+    rg -q '^## Task Decomposition$' "$body_file"
+    return $?
+  fi
+  grep -Eq '^## Task Decomposition$' "$body_file"
+}
+
+enforce_subagent_owner_policy() {
+  local body_file="${1:-}"
+  local source_label="${2:-issue body}"
+  [[ -f "$body_file" ]] || die "owner policy check body file not found: $body_file"
+
+  if ! body_contains_task_decomposition "$body_file"; then
+    return 0
+  fi
+
+  local errors=()
+  while IFS=$'\t' read -r task _summary owner _branch _worktree _pr _status _notes; do
+    local task_id owner_value
+    task_id="$(trim_text "$task")"
+    owner_value="$(trim_text "$owner")"
+
+    if is_owner_placeholder "$owner_value"; then
+      errors+=("${task_id}: Owner must reference a subagent identity (got: ${owner_value:-<empty>})")
+      continue
+    fi
+    if is_main_agent_owner "$owner_value"; then
+      errors+=("${task_id}: Owner must not be main-agent; main-agent is orchestration/review-only")
+      continue
+    fi
+    if ! is_subagent_owner "$owner_value"; then
+      errors+=("${task_id}: Owner must include 'subagent' to mark delegated implementation ownership")
+      continue
+    fi
+  done < <(parse_issue_tasks_tsv "$body_file")
+
+  if [[ ${#errors[@]} -gt 0 ]]; then
+    local err=''
+    for err in "${errors[@]}"; do
+      echo "error: ${source_label}: ${err}" >&2
+    done
+    return 1
+  fi
+
+  return 0
+}
+
 normalize_pr_ref() {
   local value
   value="$(trim_text "${1:-}")"
@@ -401,6 +504,10 @@ Subcommands:
   ready-for-review    Post main-agent review request and optionally set review labels
   close-after-review  Close issue only after approval URL + merged PR checks
 
+Owner policy:
+  - Task Decomposition.Owner must reference subagent ownership.
+  - main-agent/codex ownership is rejected for implementation tasks.
+
 Common options:
   --repo <owner/repo> Target repository passed to gh via -R
   --dry-run           Print write operations without mutating GitHub state
@@ -548,6 +655,15 @@ case "$subcommand" in
       die "task spec not found: $task_spec"
     fi
 
+    if [[ -n "$body" ]]; then
+      temp_start_body="$(mktemp)"
+      printf '%s\n' "$body" >"$temp_start_body"
+      enforce_subagent_owner_policy "$temp_start_body" "start-body"
+      rm -f "$temp_start_body"
+    elif [[ -n "$body_file" ]]; then
+      enforce_subagent_owner_policy "$body_file" "start-body-file"
+    fi
+
     local_open_args=(open --title "$title")
     if [[ -n "$body" ]]; then
       local_open_args+=(--body "$body")
@@ -663,6 +779,8 @@ case "$subcommand" in
       run_issue_lifecycle validate --body-file "$body_file" >/dev/null
     fi
 
+    enforce_subagent_owner_policy "$body_file" "status ${source_label}:${source_ref}"
+
     snapshot="$(build_status_snapshot "$body_file" "$source_label" "$source_ref")"
     printf '%s\n' "$snapshot"
 
@@ -774,6 +892,8 @@ case "$subcommand" in
       fi
       run_issue_lifecycle validate --body-file "$body_file" >/dev/null
     fi
+
+    enforce_subagent_owner_policy "$body_file" "ready-for-review ${issue_ref}"
 
     review_body="$(build_review_request_body "$body_file" "$issue_ref" "$summary_text")"
     printf '%s\n' "$review_body"
@@ -901,6 +1021,8 @@ case "$subcommand" in
       [[ -f "$body_file" ]] || die "body file not found: $body_file"
       run_issue_lifecycle validate --body-file "$body_file" >/dev/null
     fi
+
+    enforce_subagent_owner_policy "$body_file" "close-after-review"
 
     merged_rows=""
     gate_errors=()
