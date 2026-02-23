@@ -93,6 +93,9 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
 | PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/) | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR |
+| PR / Bug | [create-bug-pr](./skills/workflows/pr/bug/create-bug-pr/) | Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates |
+| PR / Bug | [close-bug-pr](./skills/workflows/pr/bug/close-bug-pr/) | Merge and close a bug PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-bug-pr |
+| PR / Bug | [deliver-bug-pr](./skills/workflows/pr/bug/deliver-bug-pr/) | Define the default end-to-end bug PR delivery method: create PR, wait/fix CI until green, then close PR |
 
 ### Tools
 
