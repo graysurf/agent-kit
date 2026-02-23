@@ -140,6 +140,120 @@ PY
   rm -f "$tmp_in" "$tmp_out"
 }
 
+query_pr_state() {
+  local pr_number="${1:-}"
+  local meta=''
+  local state=''
+
+  if [[ -z "$pr_number" ]]; then
+    return 1
+  fi
+
+  meta="$(gh pr view "$pr_number" --json url,baseRefName,headRefName,state,isDraft -q '[.url, .baseRefName, .headRefName, .state, .isDraft] | @tsv' 2>/dev/null || true)"
+  if [[ -z "$meta" ]]; then
+    return 1
+  fi
+
+  IFS=$'\t' read -r _ _ _ state _ <<<"$meta"
+  if [[ -z "$state" ]]; then
+    return 1
+  fi
+
+  printf "%s\n" "$state"
+  return 0
+}
+
+ensure_origin_base_ref() {
+  local base_branch="${1:-}"
+
+  if [[ -z "$base_branch" ]]; then
+    return 1
+  fi
+
+  if git show-ref --verify --quiet "refs/remotes/origin/${base_branch}"; then
+    return 0
+  fi
+
+  git fetch origin "$base_branch" >/dev/null 2>&1 || return 1
+  git show-ref --verify --quiet "refs/remotes/origin/${base_branch}"
+}
+
+checkout_base_for_local_cleanup() {
+  local base_branch="${1:-}"
+  local switch_out=''
+  local switch_rc=0
+  local detach_out=''
+  local detach_rc=0
+
+  if [[ -z "$base_branch" ]]; then
+    echo "none"
+    return 1
+  fi
+
+  set +e
+  switch_out="$(git switch "$base_branch" 2>&1)"
+  switch_rc=$?
+  set -e
+
+  if [[ "$switch_rc" -eq 0 ]]; then
+    if [[ -n "$switch_out" ]]; then
+      printf '%s\n' "$switch_out" >&2
+    fi
+    echo "attached"
+    return 0
+  fi
+
+  if [[ -n "$switch_out" ]]; then
+    printf '%s\n' "$switch_out" >&2
+  fi
+
+  if ensure_origin_base_ref "$base_branch"; then
+    set +e
+    detach_out="$(git switch --detach "origin/${base_branch}" 2>&1)"
+    detach_rc=$?
+    set -e
+
+    if [[ "$detach_rc" -eq 0 ]]; then
+      if [[ -n "$detach_out" ]]; then
+        printf '%s\n' "$detach_out" >&2
+      fi
+      echo "note: using detached origin/${base_branch} for local cleanup (base branch may be checked out in another worktree)" >&2
+      echo "detached"
+      return 0
+    fi
+
+    if [[ -n "$detach_out" ]]; then
+      printf '%s\n' "$detach_out" >&2
+    fi
+  fi
+
+  echo "none"
+  return 1
+}
+
+delete_remote_head_branch_best_effort() {
+  local head_branch="${1:-}"
+
+  if [[ -z "$head_branch" ]]; then
+    return 0
+  fi
+
+  if ! git remote get-url origin >/dev/null 2>&1; then
+    echo "warning: origin remote not configured; skipping remote branch deletion for ${head_branch}" >&2
+    return 0
+  fi
+
+  local remote_head=''
+  remote_head="$(git ls-remote --heads origin "$head_branch" 2>/dev/null || true)"
+  if [[ -z "$remote_head" ]]; then
+    return 0
+  fi
+
+  if ! git push origin --delete "$head_branch"; then
+    echo "warning: failed to delete remote branch ${head_branch}; delete manually if needed" >&2
+  fi
+}
+
 pr_number=""
 keep_branch="0"
 no_cleanup="0"
@@ -260,46 +374,51 @@ fi
 normalize_progress_and_planning_sections "$pr_number"
 
 merge_args=(--merge)
-if [[ "$keep_branch" == "0" ]]; then
-  merge_args+=(--delete-branch)
-fi
-
 if gh pr merge --help 2>/dev/null | grep -q -- "--yes"; then
   merge_args+=(--yes)
 fi
 
-gh pr merge "$pr_number" "${merge_args[@]}"
+merge_output=''
+merge_rc=0
+set +e
+merge_output="$(gh pr merge "$pr_number" "${merge_args[@]}" 2>&1)"
+merge_rc=$?
+set -e
+
+if [[ -n "$merge_output" ]]; then
+  printf '%s\n' "$merge_output" >&2
+fi
+
+if [[ "$merge_rc" -ne 0 ]]; then
+  pr_state_after_merge="$(query_pr_state "$pr_number" || true)"
+  if [[ "$pr_state_after_merge" != "MERGED" ]]; then
+    exit "$merge_rc"
+  fi
+  echo "warning: gh pr merge exited non-zero after PR #${pr_number} became MERGED; continuing with manual cleanup" >&2
+fi
 
 echo "merged: https://github.com/${repo_full}/pull/${pr_number}" >&2
 echo "pr: ${pr_url}" >&2
+
+if [[ "$keep_branch" == "0" ]]; then
+  delete_remote_head_branch_best_effort "$head_branch"
+fi
 
 if [[ "$no_cleanup" == "1" ]]; then
   exit 0
 fi
 
-set +e
-git switch "$base_branch"
-switched=$?
-set -e
-
-if [[ "$switched" != "0" ]]; then
-  if git show-ref --verify --quiet "refs/remotes/origin/${base_branch}"; then
-    git switch -c "$base_branch" "origin/${base_branch}" || true
-  else
-    git fetch origin "$base_branch" >/dev/null 2>&1 || true
-    if git show-ref --verify --quiet "refs/remotes/origin/${base_branch}"; then
-      git switch -c "$base_branch" "origin/${base_branch}" || true
-    fi
-  fi
-fi
-
-current_branch="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$current_branch" != "$base_branch" ]]; then
-  echo "warning: cannot switch to base branch (${base_branch}); skipping local cleanup" >&2
+cleanup_mode="$(checkout_base_for_local_cleanup "$base_branch" || true)"
+if [[ "$cleanup_mode" == "none" || -z "$cleanup_mode" ]]; then
+  echo "warning: cannot switch to base branch (${base_branch}) or detached origin/${base_branch}; skipping local cleanup" >&2
   exit 0
 fi
 
-git pull --ff-only || echo "warning: git pull --ff-only failed; verify base branch manually" >&2
+if [[ "$cleanup_mode" == "attached" ]]; then
+  git pull --ff-only || echo "warning: git pull --ff-only failed; verify base branch manually" >&2
+else
+  echo "note: skipped git pull --ff-only because local cleanup is using detached origin/${base_branch}" >&2
+fi
 
 if git show-ref --verify --quiet "refs/heads/${head_branch}"; then
   git branch -d "$head_branch" || echo "warning: failed to delete local branch ${head_branch}; delete manually if needed" >&2

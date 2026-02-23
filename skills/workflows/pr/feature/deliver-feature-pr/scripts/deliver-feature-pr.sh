@@ -392,6 +392,29 @@ require_git_repo() {
   }
 }
 
+query_pr_state_for_close() {
+  local pr="${1:-}"
+  local meta=''
+  local state=''
+
+  if [[ -z "$pr" ]]; then
+    return 1
+  fi
+
+  meta="$(gh pr view "$pr" --json url,baseRefName,headRefName,state,isDraft -q '[.url, .baseRefName, .headRefName, .state, .isDraft] | @tsv' 2>/dev/null || true)"
+  if [[ -z "$meta" ]]; then
+    return 1
+  fi
+
+  IFS=$'\t' read -r _ _ _ state _ <<<"$meta"
+  if [[ -z "$state" ]]; then
+    return 1
+  fi
+
+  printf '%s\n' "$state"
+  return 0
+}
+
 contains_failed_check_state() {
   local text="${1:-}"
   if command -v rg >/dev/null 2>&1; then
@@ -595,7 +618,31 @@ cmd_close() {
     cmd+=(--skip-checks)
   fi
 
+  local close_rc=0
+  set +e
   "${cmd[@]}"
+  close_rc=$?
+  set -e
+
+  if [[ "$close_rc" -eq 0 ]]; then
+    return 0
+  fi
+
+  local resolved_pr="$pr"
+  if [[ -z "$resolved_pr" ]]; then
+    resolved_pr="$(gh pr view --json number -q .number 2>/dev/null || true)"
+  fi
+
+  if [[ -n "$resolved_pr" ]]; then
+    local pr_state=''
+    pr_state="$(query_pr_state_for_close "$resolved_pr" || true)"
+    if [[ "$pr_state" == "MERGED" ]]; then
+      echo "warning: close-feature-pr helper exited ${close_rc}, but PR #${resolved_pr} is already MERGED; treating close as success" >&2
+      return 0
+    fi
+  fi
+
+  exit "$close_rc"
 }
 
 main() {
