@@ -19,6 +19,20 @@
       }
     },
     {
+      "name": "open-dry-run-default-skill-template",
+      "args": [
+        "open",
+        "--title",
+        "Fixture issue default template",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "DRY-RUN-ISSUE-URL"
+      }
+    },
+    {
       "name": "decompose-print",
       "args": [
         "decompose",
@@ -31,6 +45,45 @@
       "expect": {
         "exit_codes": [0],
         "stdout_regex": "## Task Decomposition"
+      }
+    },
+    {
+      "name": "validate-body-file-pass",
+      "args": [
+        "validate",
+        "--body-file",
+        "tests/fixtures/issue/issue_body_valid.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "ok: issue body consistency passed"
+      }
+    },
+    {
+      "name": "validate-body-file-fail-mismatch",
+      "args": [
+        "validate",
+        "--body-file",
+        "tests/fixtures/issue/issue_body_mismatch.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "PR mismatch between table"
+      }
+    },
+    {
+      "name": "sync-body-file-print",
+      "args": [
+        "sync",
+        "--body-file",
+        "tests/fixtures/issue/issue_body_mismatch.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "(?s)- T1: TBD.*- T2: https://github\\.com/graysurf/agent-kit/pull/105"
       }
     }
   ]

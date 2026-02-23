@@ -25,6 +25,7 @@ Outputs:
 
 - Issue created/updated/closed/reopened via GitHub Issues.
 - Optional decomposition markdown comment posted to the issue.
+- Deterministic consistency checks between `Task Decomposition` and `Subagent PRs`.
 - Deterministic CLI output suitable for orchestration scripts.
 
 Exit codes:
@@ -37,6 +38,7 @@ Failure modes:
 - Missing required subcommand flags (`--title`, `--issue`, `--spec`, etc.).
 - Ambiguous body inputs (`--body` and `--body-file` together).
 - Decomposition spec malformed (wrong TSV shape or empty rows).
+- Template consistency violations (task mismatch, PR mismatch, invalid status, duplicated branch/worktree).
 - `gh` auth/permission failures.
 
 ## Entrypoint
@@ -46,23 +48,28 @@ Failure modes:
 ## Core usage
 
 1. Create issue (main-agent owned):
-   - `.../manage_issue_lifecycle.sh open --title "<title>" --use-template --label issue --label needs-triage`
+   - `.../manage_issue_lifecycle.sh open --title "<title>" --label issue --label needs-triage`
 2. Maintain issue body/labels while work progresses:
    - `.../manage_issue_lifecycle.sh update --issue <num> --body-file <path> --add-label in-progress`
 3. Decompose work into subagent tasks:
    - `.../manage_issue_lifecycle.sh decompose --issue <num> --spec <task-split.tsv> --comment`
-4. Log progress checkpoints:
+4. Validate/sync issue body consistency:
+   - `.../manage_issue_lifecycle.sh validate --issue <num>`
+   - `.../manage_issue_lifecycle.sh sync --issue <num>`
+   - `.../manage_issue_lifecycle.sh sync --body-file <path> --write`
+5. Log progress checkpoints:
    - `.../manage_issue_lifecycle.sh comment --issue <num> --body "<status update>"`
-5. Close/reopen issue as workflow state changes:
+6. Close/reopen issue as workflow state changes:
    - `.../manage_issue_lifecycle.sh close --issue <num> --reason completed --comment "Implemented via #<pr>"`
    - `.../manage_issue_lifecycle.sh reopen --issue <num> --comment "Follow-up required"`
 
 ## References
 
-- Issue body template: `references/ISSUE_BODY_TEMPLATE.md`
+- Skill issue template (single source of truth): `references/ISSUE_TEMPLATE.md`
 - Task split example spec: `references/TASK_SPLIT_SPEC.tsv`
 
 ## Notes
 
 - Use `--dry-run` whenever composing commands from a higher-level orchestrator.
+- `open` / `update` automatically validate template consistency when body contains `## Task Decomposition` / `## Subagent PRs`; use `--skip-consistency-check` only for exceptional cases.
 - Keep decomposition and status notes in issue comments so execution history remains traceable.
