@@ -4,6 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "${script_dir}/.." && pwd)"
 default_pr_template="${skill_dir}/references/PR_BODY_TEMPLATE.md"
+default_task_prompt_template="${skill_dir}/references/SUBAGENT_TASK_PROMPT_TEMPLATE.md"
 
 die() {
   echo "error: $*" >&2
@@ -35,13 +36,14 @@ run_cmd() {
 usage() {
   cat <<'USAGE'
 Usage:
-  manage_issue_subagent_pr.sh <create-worktree|open-pr|respond-review|validate-pr-body> [options]
+  manage_issue_subagent_pr.sh <create-worktree|open-pr|respond-review|validate-pr-body|render-task-prompt> [options]
 
 Subcommands:
   create-worktree  Create a dedicated worktree/branch for subagent implementation
   open-pr          Open a draft PR for an issue branch and sync PR URL back to issue
   respond-review   Post a PR follow-up comment referencing a main-agent review comment link
   validate-pr-body Validate a PR body (placeholders/template stubs are rejected)
+  render-task-prompt Render a parameterized prompt template for a subagent task
 
 Common options:
   --repo <owner/repo>    Target repository (passed to gh with -R)
@@ -75,6 +77,22 @@ validate-pr-body options:
   --body <text>                  PR body text
   --body-file <path>             PR body file
   --issue <number>               Expected issue number (optional, validates `## Issue` section when present)
+
+render-task-prompt options:
+  --issue <number>               Issue number (required)
+  --task-id <id>                 Task id (required, e.g. T1)
+  --summary <text>               Task summary from Task Decomposition (required)
+  --owner <subagent-id>          Assigned subagent owner (required; must include 'subagent')
+  --branch <name>                Assigned branch (required; non-TBD)
+  --worktree <path>              Assigned worktree path (required; non-TBD)
+  --execution-mode <mode>        per-task|per-sprint|single-pr (required)
+  --pr-title <text>              PR title to use (required)
+  --base <branch>                Base branch for PR/worktree (default: main)
+  --notes <text>                 Task Notes column text (optional)
+  --acceptance <text>            Acceptance bullet (repeatable)
+  --acceptance-file <path>       Acceptance bullets file (one item per non-empty line)
+  --template <path>              Prompt template file (default: references/SUBAGENT_TASK_PROMPT_TEMPLATE.md)
+  --output <path>                Write rendered prompt to file (otherwise stdout)
 USAGE
 }
 
@@ -152,6 +170,121 @@ validate_pr_body_input() {
     return 0
   fi
   validate_pr_body_text "$body_text" "$issue_number" "$source_label"
+}
+
+to_lower() {
+  printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]'
+}
+
+is_placeholder_value() {
+  local value lowered
+  value="${1:-}"
+  lowered="$(to_lower "$value")"
+  case "$lowered" in
+    ""|"-"|tbd|none|n/a|na)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+normalize_execution_mode_value() {
+  local raw lowered
+  raw="${1:-}"
+  lowered="$(to_lower "$raw")"
+  lowered="${lowered//_/-}"
+  lowered="${lowered// /-}"
+  case "$lowered" in
+    per-task|per-sprint|single-pr)
+      printf '%s\n' "$lowered"
+      ;;
+    single)
+      printf '%s\n' "single-pr"
+      ;;
+    pertask)
+      printf '%s\n' "per-task"
+      ;;
+    persprint)
+      printf '%s\n' "per-sprint"
+      ;;
+    *)
+      printf '%s\n' "$raw"
+      ;;
+  esac
+}
+
+is_main_agent_owner() {
+  local owner lowered token
+  owner="${1:-}"
+  lowered="$(to_lower "$owner")"
+  token="${lowered//_/ }"
+  token="${token//-/ }"
+  token="${token// /}"
+
+  case "$token" in
+    mainagent|main|codex|orchestrator|leadagent)
+      return 0
+      ;;
+  esac
+  if [[ "$lowered" == *"main-agent"* || "$lowered" == *"main agent"* ]]; then
+    return 0
+  fi
+  return 1
+}
+
+shell_quote() {
+  printf '%q' "${1:-}"
+}
+
+render_task_prompt_template_text() {
+  local template_file="${1:-}"
+  [[ -f "$template_file" ]] || die "template file not found: $template_file"
+
+  python3 - "$template_file" <<'PY'
+import os
+import re
+import sys
+from pathlib import Path
+
+template_file = Path(sys.argv[1])
+text = template_file.read_text(encoding="utf-8")
+
+keys = [
+    "ISSUE_NUMBER",
+    "TASK_ID",
+    "TASK_SUMMARY",
+    "TASK_OWNER",
+    "BRANCH",
+    "WORKTREE",
+    "EXECUTION_MODE",
+    "BASE_BRANCH",
+    "PR_TITLE",
+    "REPO_DISPLAY",
+    "REPO_FLAG",
+    "TASK_NOTES_BULLETS",
+    "ACCEPTANCE_BULLETS",
+    "PR_BODY_TEMPLATE_PATH",
+    "PR_BODY_DRAFT_PATH",
+    "ISSUE_SUBAGENT_PR_SCRIPT",
+    "CREATE_WORKTREE_HINT",
+    "OPEN_PR_COMMAND",
+    "VALIDATE_PR_BODY_COMMAND",
+]
+values = {k: os.environ.get(k, "") for k in keys}
+
+for key, value in values.items():
+    text = text.replace(f"{{{{{key}}}}}", value)
+
+unresolved = sorted(set(re.findall(r"\{\{[A-Z0-9_]+\}\}", text)))
+if unresolved:
+    raise SystemExit(
+        "error: unresolved prompt template placeholders: " + ", ".join(unresolved)
+    )
+
+sys.stdout.write(text.rstrip("\n") + "\n")
+PY
 }
 
 subcommand="${1:-}"
@@ -371,6 +504,216 @@ case "$subcommand" in
     fi
 
     echo "$pr_url"
+    ;;
+
+  render-task-prompt)
+    issue_number=""
+    task_id=""
+    task_summary=""
+    task_owner=""
+    branch=""
+    worktree=""
+    execution_mode=""
+    pr_title=""
+    base_branch="main"
+    task_notes=""
+    acceptance_file=""
+    prompt_template_file="$default_task_prompt_template"
+    output_file=""
+    acceptance_items=()
+
+    while [[ $# -gt 0 ]]; do
+      case "${1:-}" in
+        --issue)
+          issue_number="${2:-}"
+          shift 2
+          ;;
+        --task-id)
+          task_id="${2:-}"
+          shift 2
+          ;;
+        --summary)
+          task_summary="${2:-}"
+          shift 2
+          ;;
+        --owner)
+          task_owner="${2:-}"
+          shift 2
+          ;;
+        --branch)
+          branch="${2:-}"
+          shift 2
+          ;;
+        --worktree)
+          worktree="${2:-}"
+          shift 2
+          ;;
+        --execution-mode)
+          execution_mode="${2:-}"
+          shift 2
+          ;;
+        --pr-title)
+          pr_title="${2:-}"
+          shift 2
+          ;;
+        --base)
+          base_branch="${2:-}"
+          shift 2
+          ;;
+        --notes)
+          task_notes="${2:-}"
+          shift 2
+          ;;
+        --acceptance)
+          acceptance_items+=("${2:-}")
+          shift 2
+          ;;
+        --acceptance-file)
+          acceptance_file="${2:-}"
+          shift 2
+          ;;
+        --template)
+          prompt_template_file="${2:-}"
+          shift 2
+          ;;
+        --output)
+          output_file="${2:-}"
+          shift 2
+          ;;
+        --repo)
+          repo_arg="${2:-}"
+          shift 2
+          ;;
+        --dry-run)
+          dry_run="1"
+          shift
+          ;;
+        -h|--help)
+          usage
+          exit 0
+          ;;
+        *)
+          die "unknown option for render-task-prompt: $1"
+          ;;
+      esac
+    done
+
+    [[ "$issue_number" =~ ^[0-9]+$ ]] || die "--issue must be a numeric issue number"
+    [[ -n "$task_id" ]] || die "--task-id is required for render-task-prompt"
+    [[ -n "$task_summary" ]] || die "--summary is required for render-task-prompt"
+    [[ -n "$task_owner" ]] || die "--owner is required for render-task-prompt"
+    [[ -n "$branch" ]] || die "--branch is required for render-task-prompt"
+    [[ -n "$worktree" ]] || die "--worktree is required for render-task-prompt"
+    [[ -n "$execution_mode" ]] || die "--execution-mode is required for render-task-prompt"
+    [[ -n "$pr_title" ]] || die "--pr-title is required for render-task-prompt"
+
+    is_placeholder_value "$task_id" && die "--task-id must not be a placeholder"
+    is_placeholder_value "$task_summary" && die "--summary must not be a placeholder"
+    is_placeholder_value "$task_owner" && die "--owner must not be TBD"
+    is_placeholder_value "$branch" && die "--branch must not be TBD"
+    is_placeholder_value "$worktree" && die "--worktree must not be TBD"
+    is_placeholder_value "$pr_title" && die "--pr-title must not be TBD"
+
+    if is_main_agent_owner "$task_owner"; then
+      die "--owner must not be main-agent; subagent-only ownership is required"
+    fi
+    if [[ "$(to_lower "$task_owner")" != *"subagent"* ]]; then
+      die "--owner must include 'subagent' to reflect delegated implementation ownership"
+    fi
+
+    execution_mode="$(normalize_execution_mode_value "$execution_mode")"
+    case "$execution_mode" in
+      per-task|per-sprint|single-pr)
+        ;;
+      *)
+        die "--execution-mode must be one of: per-task, per-sprint, single-pr"
+        ;;
+    esac
+
+    if [[ -n "$acceptance_file" ]]; then
+      [[ -f "$acceptance_file" ]] || die "acceptance file not found: $acceptance_file"
+      while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -n "${line// }" ]] || continue
+        acceptance_items+=("$line")
+      done <"$acceptance_file"
+    fi
+
+    acceptance_bullets=""
+    if [[ ${#acceptance_items[@]} -eq 0 ]]; then
+      acceptance_bullets='- (Use issue/plan acceptance criteria for this task if no task-specific criteria were supplied.)'
+    else
+      for item in "${acceptance_items[@]}"; do
+        acceptance_bullets+="- ${item}"$'\n'
+      done
+      acceptance_bullets="${acceptance_bullets%$'\n'}"
+    fi
+
+    if is_placeholder_value "$task_notes"; then
+      task_notes=""
+    fi
+    if [[ -z "$task_notes" ]]; then
+      task_notes_bullets='- (No additional task notes.)'
+    else
+      task_notes_bullets="- ${task_notes}"
+    fi
+
+    task_id_safe="$(printf '%s' "$task_id" | tr -cs 'A-Za-z0-9._-' '-')"
+    task_id_safe="${task_id_safe#-}"
+    task_id_safe="${task_id_safe%-}"
+    [[ -n "$task_id_safe" ]] || task_id_safe="task"
+
+    issue_subagent_pr_script_ref='$AGENT_HOME/skills/workflows/issue/issue-subagent-pr/scripts/manage_issue_subagent_pr.sh'
+    pr_body_draft_path="/tmp/pr-${issue_number}-${task_id_safe}.md"
+    if [[ -n "$repo_arg" ]]; then
+      repo_display="$repo_arg"
+      repo_flag=" --repo $(shell_quote "$repo_arg")"
+    else
+      repo_display="(current repo context)"
+      repo_flag=""
+    fi
+
+    validate_pr_body_command="${issue_subagent_pr_script_ref} validate-pr-body${repo_flag} --issue $(shell_quote "$issue_number") --body-file $(shell_quote "$pr_body_draft_path")"
+    open_pr_command="${issue_subagent_pr_script_ref} open-pr${repo_flag} --issue $(shell_quote "$issue_number") --title $(shell_quote "$pr_title") --base $(shell_quote "$base_branch") --head $(shell_quote "$branch") --body-file $(shell_quote "$pr_body_draft_path")"
+    create_worktree_hint="Use assigned worktree path $(shell_quote "$worktree"). If the worktree does not exist yet, create it with branch $(shell_quote "$branch") from base $(shell_quote "$base_branch"), then verify the resulting path matches the assignment before editing."
+
+    rendered_prompt="$(
+      ISSUE_NUMBER="$issue_number" \
+      TASK_ID="$task_id" \
+      TASK_SUMMARY="$task_summary" \
+      TASK_OWNER="$task_owner" \
+      BRANCH="$branch" \
+      WORKTREE="$worktree" \
+      EXECUTION_MODE="$execution_mode" \
+      BASE_BRANCH="$base_branch" \
+      PR_TITLE="$pr_title" \
+      REPO_DISPLAY="$repo_display" \
+      REPO_FLAG="$repo_flag" \
+      TASK_NOTES_BULLETS="$task_notes_bullets" \
+      ACCEPTANCE_BULLETS="$acceptance_bullets" \
+      PR_BODY_TEMPLATE_PATH="$default_pr_template" \
+      PR_BODY_DRAFT_PATH="$pr_body_draft_path" \
+      ISSUE_SUBAGENT_PR_SCRIPT="$issue_subagent_pr_script_ref" \
+      CREATE_WORKTREE_HINT="$create_worktree_hint" \
+      OPEN_PR_COMMAND="$open_pr_command" \
+      VALIDATE_PR_BODY_COMMAND="$validate_pr_body_command" \
+      render_task_prompt_template_text "$prompt_template_file"
+    )"
+
+    if [[ -n "$output_file" ]]; then
+      output_dir="$(dirname "$output_file")"
+      if [[ "$dry_run" == "1" ]]; then
+        echo "dry-run: $(print_cmd mkdir -p "$output_dir")" >&2
+        echo "dry-run: $(print_cmd write "$output_file")" >&2
+        printf '%s\n' "$rendered_prompt"
+        exit 0
+      fi
+      mkdir -p "$output_dir"
+      printf '%s\n' "$rendered_prompt" >"$output_file"
+      echo "$output_file"
+      exit 0
+    fi
+
+    printf '%s\n' "$rendered_prompt"
     ;;
 
   validate-pr-body)
