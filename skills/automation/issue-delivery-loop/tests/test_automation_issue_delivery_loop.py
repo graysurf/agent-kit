@@ -51,3 +51,5 @@ def test_issue_delivery_loop_status_snapshot_omits_source_line() -> None:
     text = (skill_root / "scripts" / "manage_issue_delivery_loop.sh").read_text(encoding="utf-8")
     assert "## Main-Agent Status Snapshot" in text
     assert 'output+="- Source: ${source_label} ${issue_ref}${nl}"' not in text
+    assert "| Task | Summary | Planned Status | PR | PR State | Review | Suggested |" in text
+    assert "Merge State" not in text

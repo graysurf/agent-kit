@@ -370,24 +370,24 @@ build_status_snapshot() {
 
   local output="## Main-Agent Status Snapshot${nl}${nl}"
   output+="- Generated at: ${now_utc}${nl}${nl}"
-  output+="| Task | Planned Status | PR | PR State | Review | Merge State | Suggested |${nl}"
+  output+="| Task | Summary | Planned Status | PR | PR State | Review | Suggested |${nl}"
   output+="| --- | --- | --- | --- | --- | --- | --- |${nl}"
 
   local errors=()
   local has_rows="0"
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
+  while IFS=$'\t' read -r task summary _owner _branch _worktree _execution_mode pr status _notes; do
     has_rows="1"
-    local task_id pr_value planned_status
+    local task_id summary_value pr_value planned_status
     task_id="$(trim_text "$task")"
+    summary_value="$(trim_text "$summary")"
     pr_value="$(trim_text "$pr")"
     planned_status="$(trim_text "$status")"
 
-    local pr_display pr_state review_state merge_state suggested
+    local pr_display pr_state review_state suggested
     pr_display="$pr_value"
     pr_state="NO_PR"
     review_state="-"
-    merge_state="-"
     suggested="planned"
 
     if is_pr_placeholder "$pr_value"; then
@@ -403,7 +403,6 @@ build_status_snapshot() {
       if [[ "$dry_run" == "1" ]]; then
         pr_state="UNKNOWN"
         review_state="UNKNOWN"
-        merge_state="UNKNOWN"
         suggested="in-progress"
       else
         local meta
@@ -415,15 +414,13 @@ build_status_snapshot() {
           errors+=("${task_id}: failed to query PR ${pr_ref}: ${meta}")
           pr_state="ERROR"
           review_state="ERROR"
-          merge_state="ERROR"
           suggested="blocked"
         else
-          local _pr_number pr_url state _is_draft review_decision merge_status merged_at
-          IFS=$'\t' read -r _pr_number pr_url state _is_draft review_decision merge_status merged_at <<<"$meta"
+          local _pr_number pr_url state _is_draft review_decision _merge_status merged_at
+          IFS=$'\t' read -r _pr_number pr_url state _is_draft review_decision _merge_status merged_at <<<"$meta"
           pr_display="${pr_url:-$pr_ref}"
           pr_state="${state:-UNKNOWN}"
           review_state="${review_decision:-UNKNOWN}"
-          merge_state="${merge_status:-UNKNOWN}"
 
           if [[ -n "$merged_at" ]]; then
             suggested="done"
@@ -438,7 +435,7 @@ build_status_snapshot() {
       fi
     fi
 
-    output+="| ${task_id} | ${planned_status:-unknown} | ${pr_display} | ${pr_state} | ${review_state} | ${merge_state} | ${suggested} |${nl}"
+    output+="| ${task_id} | ${summary_value:-'-'} | ${planned_status:-unknown} | ${pr_display} | ${pr_state} | ${review_state} | ${suggested} |${nl}"
   done < <(parse_issue_tasks_tsv "$body_file")
 
   [[ "$has_rows" == "1" ]] || die "no task rows found in issue body"
