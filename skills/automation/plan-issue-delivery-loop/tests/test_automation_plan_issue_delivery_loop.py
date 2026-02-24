@@ -36,6 +36,7 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "accept-sprint" in text
     assert "next-sprint" in text
     assert "multi-sprint-guide" in text
+    assert "cleanup-worktrees" in text
     assert "close-after-review" in text
     assert "issue_lifecycle_script" in text
     assert "render_plan_issue_body_from_task_spec" in text
@@ -45,6 +46,15 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "--pr-group <task=group>" in text
     assert "PR_GROUP=" in text
     assert "OPEN_PR_CMD=SHARED_WITH_GROUP" in text
+
+
+def test_plan_issue_delivery_loop_close_plan_enforces_worktree_cleanup() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
+    assert "cleanup_plan_issue_worktrees" in text
+    assert "--issue is required for close-plan" in text
+    assert "close-plan always runs strict worktree cleanup" in text
+    assert "WORKTREE_CLEANUP_STATUS=PASS" in text
 
 
 def test_plan_issue_delivery_loop_sprint_comment_omits_redundant_plan_metadata() -> None:

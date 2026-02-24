@@ -38,6 +38,7 @@ Outputs:
 - Plan issue body task rows are initialized with `TBD` execution metadata and updated later with real execution facts.
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
+- `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
 
 Exit codes:
 
@@ -51,6 +52,7 @@ Failure modes:
 - Required commands missing (`plan-tooling`, `python3`, `gh` via delegated scripts).
 - Approval URL invalid.
 - Final plan close gate fails (task status/PR merge not satisfied).
+- Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
 
 ## Scripts (only entrypoints)
@@ -68,7 +70,7 @@ Failure modes:
    - `next-sprint`: record current sprint acceptance and immediately start the next sprint on the same issue.
 3. Plan close (one-time)
    - `ready-plan`: request final plan review using issue-delivery-loop review helper.
-   - `close-plan`: run the plan-level close gate and close the single plan issue after final approval.
+   - `close-plan`: run the plan-level close gate, close the single plan issue, and enforce task worktree cleanup.
 
 ## Full Skill Flow
 
@@ -83,7 +85,7 @@ Failure modes:
 6. After sprint acceptance is confirmed, run `accept-sprint` to record the approval comment URL on the plan issue (issue stays open).
 7. If another sprint exists, run `next-sprint` (which records current sprint acceptance and starts the next sprint on the same issue), then repeat steps 3-6.
 8. After the final sprint is implemented and accepted, run `ready-plan` for the final plan-level review.
-9. Run `close-plan` with the final approval comment URL to enforce merged-PR/task gates and close the single plan issue.
+9. Run `close-plan` with the final approval comment URL to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees.
 
 ## Role boundary (mandatory)
 

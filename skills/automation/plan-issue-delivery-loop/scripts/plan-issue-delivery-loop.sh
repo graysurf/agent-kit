@@ -220,6 +220,243 @@ default_sprint_task_spec_path() {
     "$sprint"
 }
 
+issue_read_body_cmd() {
+  local issue_number="${1:-}"
+  local out_file="${2:-}"
+  local repo_arg="${3:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  [[ -n "$out_file" ]] || die "output file path is required"
+
+  require_cmd gh
+  local cmd=(gh issue view "$issue_number")
+  if [[ -n "$repo_arg" ]]; then
+    cmd+=(-R "$repo_arg")
+  fi
+  cmd+=(--json body -q .body)
+  "${cmd[@]}" >"$out_file"
+}
+
+cleanup_plan_issue_worktrees() {
+  local issue_number="${1:-}"
+  local repo_arg="${2:-}"
+  local dry_run="${3:-0}"
+  [[ -n "$issue_number" ]] || die "--issue is required for worktree cleanup"
+
+  require_cmd git
+  require_cmd python3
+
+  local body_file=''
+  body_file="$(mktemp)"
+  issue_read_body_cmd "$issue_number" "$body_file" "$repo_arg"
+
+  set +e
+  python3 - "$body_file" "$dry_run" <<'PY'
+import os
+import pathlib
+import subprocess
+import sys
+
+body_file = pathlib.Path(sys.argv[1])
+dry_run = sys.argv[2].strip() == "1"
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower()
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def section_bounds(lines: list[str], heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+
+def list_worktrees() -> list[tuple[str, str]]:
+    output = run(["git", "worktree", "list", "--porcelain"]).stdout.splitlines()
+    rows: list[tuple[str, str]] = []
+    current_path = ""
+    current_branch = ""
+    for line in output + [""]:
+        if not line.strip():
+            if current_path:
+                rows.append((current_path, current_branch))
+            current_path = ""
+            current_branch = ""
+            continue
+        if line.startswith("worktree "):
+            current_path = line[len("worktree ") :].strip()
+            continue
+        if line.startswith("branch "):
+            ref = line[len("branch ") :].strip()
+            if ref.startswith("refs/heads/"):
+                ref = ref[len("refs/heads/") :]
+            current_branch = ref
+    return rows
+
+
+text = body_file.read_text(encoding="utf-8")
+lines = text.splitlines()
+start, end = section_bounds(lines, "## Task Decomposition")
+table_lines = [line for line in lines[start:end] if line.strip().startswith("|")]
+if len(table_lines) < 3:
+    raise SystemExit("error: Task Decomposition must contain a markdown table with at least one task row")
+
+headers = parse_row(table_lines[0])
+required_columns = ["Task", "Branch", "Worktree"]
+missing = [col for col in required_columns if col not in headers]
+if missing:
+    raise SystemExit("error: missing Task Decomposition columns: " + ", ".join(missing))
+
+records: list[tuple[str, str, str]] = []
+for raw in table_lines[2:]:
+    cells = parse_row(raw)
+    if not cells:
+        continue
+    if len(cells) != len(headers):
+        raise SystemExit("error: malformed Task Decomposition row")
+    row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+    task = row.get("Task", "").strip()
+    if not task:
+        continue
+    records.append((task, row.get("Branch", "").strip(), row.get("Worktree", "").strip()))
+
+if not records:
+    raise SystemExit("error: Task Decomposition table must include at least one task row")
+
+repo_root = pathlib.Path(run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()).resolve()
+main_worktree = str(repo_root)
+default_worktrees_root = (repo_root / ".." / ".worktrees" / repo_root.name / "issue").resolve()
+
+expected_branches: set[str] = set()
+expected_worktree_names: set[str] = set()
+expected_paths: set[str] = set()
+
+for _task, branch, worktree in records:
+    if not is_placeholder(branch):
+        expected_branches.add(branch)
+    if is_placeholder(worktree):
+        continue
+    token = worktree.strip()
+    expected_worktree_names.add(pathlib.Path(token).name)
+    token_path = pathlib.Path(token)
+    if token_path.is_absolute():
+        expected_paths.add(str(token_path.resolve()))
+    else:
+        if "/" in token or token.startswith("."):
+            expected_paths.add(str((repo_root / token).resolve()))
+        expected_paths.add(str((default_worktrees_root / token).resolve()))
+
+if not expected_branches and not expected_worktree_names and not expected_paths:
+    print("WORKTREE_CLEANUP_STATUS=SKIP_NO_TARGETS")
+    raise SystemExit(0)
+
+targets: dict[str, list[str]] = {}
+for path_raw, branch in list_worktrees():
+    path = str(pathlib.Path(path_raw).resolve())
+    if path == main_worktree:
+        continue
+    reasons: list[str] = []
+    if branch and branch in expected_branches:
+        reasons.append(f"branch:{branch}")
+    if path in expected_paths:
+        reasons.append("path")
+    if pathlib.Path(path).name in expected_worktree_names:
+        reasons.append(f"name:{pathlib.Path(path).name}")
+    if reasons:
+        targets[path] = sorted(set(reasons))
+
+errors: list[str] = []
+removed = 0
+
+for path in sorted(targets):
+    reason_text = ",".join(targets[path])
+    if dry_run:
+        print(f"DRY_RUN_WORKTREE_REMOVE={path} ({reason_text})")
+        continue
+    proc = subprocess.run(["git", "worktree", "remove", "--force", path], capture_output=True, text=True)
+    if proc.returncode != 0:
+        message = (proc.stderr or proc.stdout or "").strip() or f"exit {proc.returncode}"
+        errors.append(f"{path}: {message}")
+    else:
+        removed += 1
+        print(f"WORKTREE_REMOVED={path} ({reason_text})")
+
+if dry_run:
+    print(f"WORKTREE_CLEANUP_DRY_RUN_TARGETS={len(targets)}")
+    raise SystemExit(0)
+
+prune_proc = subprocess.run(["git", "worktree", "prune"], capture_output=True, text=True)
+if prune_proc.returncode != 0:
+    message = (prune_proc.stderr or prune_proc.stdout or "").strip() or f"exit {prune_proc.returncode}"
+    errors.append(f"git worktree prune failed: {message}")
+
+remaining: list[str] = []
+for path_raw, branch in list_worktrees():
+    path = str(pathlib.Path(path_raw).resolve())
+    if path == main_worktree:
+        continue
+    reasons: list[str] = []
+    if branch and branch in expected_branches:
+        reasons.append(f"branch:{branch}")
+    if path in expected_paths:
+        reasons.append("path")
+    if pathlib.Path(path).name in expected_worktree_names:
+        reasons.append(f"name:{pathlib.Path(path).name}")
+    if reasons:
+        remaining.append(f"{path} ({','.join(sorted(set(reasons)))})")
+
+lingering_paths = []
+for path in sorted(expected_paths):
+    if path != main_worktree and os.path.exists(path):
+        lingering_paths.append(path)
+
+for message in errors:
+    print(f"error: worktree cleanup remove failed: {message}", file=sys.stderr)
+for message in remaining:
+    print(f"error: worktree cleanup residual git worktree: {message}", file=sys.stderr)
+for path in lingering_paths:
+    print(f"error: worktree cleanup residual path exists: {path}", file=sys.stderr)
+
+if errors or remaining or lingering_paths:
+    raise SystemExit(1)
+
+print(f"WORKTREE_CLEANUP_REMOVED={removed}")
+print("WORKTREE_CLEANUP_STATUS=PASS")
+PY
+  local cleanup_rc=$?
+  set -e
+
+  rm -f "$body_file"
+  return "$cleanup_rc"
+}
+
 render_plan_issue_body_from_task_spec() {
   local template_file="${1:-}"
   local plan_file="${2:-}"
@@ -813,7 +1050,8 @@ Subcommands:
   start-plan            Open one plan issue with all plan tasks in Task Decomposition
   status-plan           Wrapper of issue-delivery-loop status for the plan issue
   ready-plan            Wrapper of issue-delivery-loop ready-for-review for final plan review
-  close-plan            Close the single plan issue after final approval + merged PR gates
+  close-plan            Close the single plan issue after final approval + merged PR gates, then enforce worktree cleanup
+  cleanup-worktrees     Enforce cleanup of all issue-assigned task worktrees
   start-sprint          Post sprint-start comment on the plan issue and emit subagent dispatch hints
   ready-sprint          Post sprint-ready comment on the plan issue (issue stays open)
   accept-sprint         Post sprint-accepted comment on the plan issue (issue stays open)
@@ -880,6 +1118,12 @@ close-plan options:
   --reason <completed|not planned>
   --comment <text> | --comment-file <path>
   --allow-not-done
+  Note: after close gate succeeds, close-plan always runs strict worktree cleanup for issue task rows.
+
+cleanup-worktrees options:
+  --issue <number>               Plan issue number (required)
+  --repo <owner/repo>            Optional repository override
+  --dry-run                      Print matching worktrees without removing
 
 start-sprint / ready-sprint / accept-sprint options:
   --plan <path>                  Plan markdown path (required)
@@ -1276,10 +1520,14 @@ close_plan_cmd() {
   local repo_arg=''
   local dry_run='0'
   local passthrough=()
+  local issue_number=''
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --issue|--approved-comment-url|--reason|--comment|--comment-file)
+        if [[ "${1:-}" == "--issue" ]]; then
+          issue_number="${2:-}"
+        fi
         passthrough+=("${1:-}" "${2:-}")
         shift 2
         ;;
@@ -1305,7 +1553,42 @@ close_plan_cmd() {
     esac
   done
 
+  [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
   run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
+  cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
+}
+
+cleanup_worktrees_cmd() {
+  local issue_number=''
+  local repo_arg=''
+  local dry_run='0'
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --issue)
+        issue_number="${2:-}"
+        shift 2
+        ;;
+      --repo)
+        repo_arg="${2:-}"
+        shift 2
+        ;;
+      --dry-run)
+        dry_run='1'
+        shift
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        die "unknown option for cleanup-worktrees: $1"
+        ;;
+    esac
+  done
+
+  [[ -n "$issue_number" ]] || die "--issue is required for cleanup-worktrees"
+  cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
 }
 
 start_sprint_cmd() {
@@ -1972,6 +2255,9 @@ case "$subcommand" in
     ;;
   close-plan)
     close_plan_cmd "$@"
+    ;;
+  cleanup-worktrees)
+    cleanup_worktrees_cmd "$@"
     ;;
   start-sprint)
     start_sprint_cmd "$@"
