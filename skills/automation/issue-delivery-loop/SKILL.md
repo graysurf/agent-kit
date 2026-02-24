@@ -27,6 +27,8 @@ Outputs:
 - Deterministic orchestration over issue lifecycle commands with explicit gate checks.
 - Status snapshot and review-request markdown blocks for traceable issue history.
 - Issue close only when review approval and merged-PR checks pass.
+- Definition of done: execution is complete only when `close-after-review` succeeds and the target issue is actually closed.
+- Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
 - Main-agent acts as orchestrator/reviewer only; implementation branches/PRs are delegated to subagents.
 - Issue task table remains the single execution source of truth (`Subagent PRs` section is legacy and removed by sync).
 
@@ -70,6 +72,15 @@ Failure modes:
    - Use `issue-pr-review` to request follow-up or merge after checks/review are satisfied.
 6. Close after explicit review approval:
    - `.../manage_issue_delivery_loop.sh close-after-review --repo <owner/repo> --issue <number> --approved-comment-url <url>`
+
+## Completion Policy (Mandatory)
+
+- Do not stop at `start`, `status`, or `ready-for-review` as a final state.
+- A successful run must terminate at `close-after-review` with issue state `CLOSED`.
+- If close gates fail, treat the run as unfinished and report:
+  - failing command
+  - gate errors (task status, PR merge, approval URL, or owner policy)
+  - next required unblock action
 
 ## Full Skill Flow
 

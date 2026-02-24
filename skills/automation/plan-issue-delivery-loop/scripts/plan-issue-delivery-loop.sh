@@ -1556,6 +1556,13 @@ close_plan_cmd() {
   [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
   run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
   cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
+  if [[ "$dry_run" == '1' ]]; then
+    printf 'PLAN_CLOSE_STATUS=DRY_RUN\n'
+  else
+    printf 'PLAN_CLOSE_STATUS=SUCCESS\n'
+    printf 'PLAN_ISSUE_NUMBER=%s\n' "$issue_number"
+    printf 'DONE_CRITERIA=ISSUE_CLOSED_AND_WORKTREES_CLEANED\n'
+  fi
 }
 
 cleanup_worktrees_cmd() {

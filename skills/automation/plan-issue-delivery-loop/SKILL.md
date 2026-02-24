@@ -39,6 +39,8 @@ Outputs:
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 - `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
+- Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed, and worktree cleanup passes.
+- Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
 
 Exit codes:
 
@@ -71,6 +73,18 @@ Failure modes:
 3. Plan close (one-time)
    - `ready-plan`: request final plan review using issue-delivery-loop review helper.
    - `close-plan`: run the plan-level close gate, close the single plan issue, and enforce task worktree cleanup.
+
+## Completion Policy (Mandatory)
+
+- Do not stop after `start-plan`, `start-sprint`, `ready-sprint`, or `accept-sprint` as a final state.
+- A successful run must terminate at `close-plan` with:
+  - issue state `CLOSED`
+  - merged-PR close gate satisfied
+  - worktree cleanup gate passing
+- If any close gate fails, treat the run as unfinished and report:
+  - failing command
+  - gate errors (task status, PR merge, approval URL, worktree cleanup)
+  - next required unblock action
 
 ## Full Skill Flow
 

@@ -246,6 +246,19 @@ issue_read_cmd() {
   "${cmd[@]}" >"$out_file"
 }
 
+fetch_issue_state() {
+  local issue_number="${1:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  require_cmd gh
+
+  local cmd=(gh issue view "$issue_number")
+  if [[ -n "$repo_arg" ]]; then
+    cmd+=(-R "$repo_arg")
+  fi
+  cmd+=(--json state -q .state)
+  "${cmd[@]}"
+}
+
 parse_issue_tasks_tsv() {
   local body_file="${1:-}"
   [[ -f "$body_file" ]] || die "issue body file not found: $body_file"
@@ -943,6 +956,7 @@ case "$subcommand" in
     close_comment=""
     close_comment_file=""
     allow_not_done="0"
+    issue_state=""
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -1118,8 +1132,21 @@ case "$subcommand" in
 
     if [[ -n "$issue_number" ]]; then
       run_issue_lifecycle close --issue "$issue_number" --reason "$close_reason" --comment "$final_close_comment" >/dev/null
+      if [[ "$dry_run" == "1" ]]; then
+        printf 'ISSUE_CLOSE_STATUS=DRY_RUN\n'
+      else
+        issue_state="$(fetch_issue_state "$issue_number")"
+        if [[ "$issue_state" != "CLOSED" ]]; then
+          die "close-after-review did not close issue #${issue_number} (state=${issue_state})"
+        fi
+        printf 'ISSUE_CLOSE_STATUS=SUCCESS\n'
+        printf 'ISSUE_NUMBER=%s\n' "$issue_number"
+        printf 'ISSUE_STATE=%s\n' "$issue_state"
+        printf 'DONE_CRITERIA=ISSUE_CLOSED\n'
+      fi
     else
       echo "DRY-RUN-CLOSE-SKIPPED"
+      printf 'ISSUE_CLOSE_STATUS=DRY_RUN\n'
     fi
     ;;
 

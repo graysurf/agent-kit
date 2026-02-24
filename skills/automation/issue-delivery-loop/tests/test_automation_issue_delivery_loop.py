@@ -28,6 +28,14 @@ def test_issue_delivery_loop_skill_enforces_main_agent_role_boundary() -> None:
     assert "implementation must be produced by a subagent PR" in text
 
 
+def test_issue_delivery_loop_skill_requires_close_for_done() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "Definition of done: execution is complete only when `close-after-review` succeeds and the target issue is actually closed." in text
+    assert "A successful run must terminate at `close-after-review` with issue state `CLOSED`." in text
+    assert "If close gates fail, treat the run as unfinished" in text
+
+
 def test_issue_delivery_loop_script_enforces_subagent_owner_policy() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "scripts" / "manage_issue_delivery_loop.sh").read_text(encoding="utf-8")
@@ -37,6 +45,14 @@ def test_issue_delivery_loop_script_enforces_subagent_owner_policy() -> None:
     assert "pr_refs=()" in text
     assert "Tasks [" in text
     assert "(tasks: " in text
+
+
+def test_issue_delivery_loop_close_emits_done_markers() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "scripts" / "manage_issue_delivery_loop.sh").read_text(encoding="utf-8")
+    assert "ISSUE_CLOSE_STATUS=SUCCESS" in text
+    assert "DONE_CRITERIA=ISSUE_CLOSED" in text
+    assert "close-after-review did not close issue" in text
 
 
 def test_issue_delivery_loop_review_request_omits_issue_line() -> None:
