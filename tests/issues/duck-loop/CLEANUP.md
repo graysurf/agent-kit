@@ -2,7 +2,7 @@
 
 This fixture directory is disposable.
 
-From the repository root, remove it with:
+One-command cleanup from the repository root:
 
 ```bash
 rm -rf tests/issues/duck-loop
