@@ -70,6 +70,18 @@ Failure modes:
 6. Close after explicit review approval:
    - `.../manage_issue_delivery_loop.sh close-after-review --repo <owner/repo> --issue <number> --approved-comment-url <url>`
 
+## Full Skill Flow
+
+1. Confirm repository context and `gh auth status` are valid.
+2. Prepare issue metadata (title/body/labels) and optional task decomposition TSV (`Owner` must be subagent identities).
+3. Run `start` to open the issue and optionally bootstrap `Task Decomposition` from the TSV.
+4. Main-agent dispatches implementation tasks to subagents (for example via `issue-subagent-pr`), while remaining orchestration/review-only.
+5. As subagent PRs progress, update the issue task table and PR links so task state stays consistent.
+6. Run `status` to generate a main-agent snapshot comment for task/PR/review state checkpoints.
+7. Run `ready-for-review` when the issue is ready for main-agent review handoff (adds review comment/labels as configured).
+8. Main-agent reviews subagent PRs (typically with `issue-pr-review`), requests follow-up or merges until close gates are satisfied.
+9. Run `close-after-review` with an explicit approval comment URL to enforce final gates (task status + merged PR checks) and close the issue.
+
 ## Notes
 
 - `status` and `ready-for-review` also support `--body-file` for offline/dry-run rendering in tests.
