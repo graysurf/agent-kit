@@ -52,7 +52,10 @@ Failure modes:
 - Same structure as `create-plan`, plus:
   - Fill a per-task **Complexity** score (1–10).
   - Explicitly list dependencies and parallelizable tasks.
+  - Treat each sprint as an integration gate; do not plan cross-sprint execution parallelism.
+  - Focus parallelization design inside each sprint (task/PR dependency graph), not across sprints.
   - Add per-sprint PR grouping intent (`per-sprint` or `group`) when it is clear enough to state.
+  - Add a per-sprint execution profile (`serial`, `parallel-x2`, or `parallel-x3`) and note the intended parallel width.
   - Add a “Rollback plan” that is operationally plausible.
 
 4) Save the plan
@@ -66,6 +69,9 @@ Failure modes:
 
 6) Run a sizing + parallelization pass (mandatory)
 
+- Parallelization policy for this skill:
+  - `Sprint` is an integration/decision gate. Do not schedule cross-sprint execution parallelism.
+  - Optimize for parallel execution inside a sprint by improving the task DAG (dependencies, file overlap, PR grouping).
 - For each sprint, run:
   - `plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>`
   - `plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>`
@@ -74,10 +80,25 @@ Failure modes:
   - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
   - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json`
   - Do not use `--strategy auto` (not implemented yet).
+- Per-sprint sizing/parallelization scorecard (record in the plan or sprint notes):
+  - `Execution Profile`: `serial` | `parallel-x2` | `parallel-x3`
+  - `TotalComplexity`: sum of task complexity in the sprint
+  - `CriticalPathComplexity`: sum of complexity on the longest dependency chain
+  - `MaxBatchWidth`: widest dependency batch returned by `plan-tooling batches`
+  - `OverlapHotspots`: same-batch file/module overlap risks to watch
 - Sizing guardrails (adjust plan when violated):
   - Task complexity target is `1-6`; complexity `>=7` should usually be split into smaller tasks.
-  - Sprint target is `2-5` tasks and total complexity `8-24`.
+  - PR complexity target is `2-5`; preferred max is `6`.
+  - PR complexity `7-8` is an exception and requires explicit justification (single responsibility, low overlap, isolated validation).
+  - PR complexity `>8` should be split before execution planning.
+  - Sprint target is `2-5` tasks and total complexity `8-24`, but evaluate it with the sprint's execution profile:
+    - `serial`: target `2-4` tasks, `TotalComplexity 8-16`, `CriticalPathComplexity 8-16`, `MaxBatchWidth = 1`
+    - `parallel-x2`: target `3-5` tasks, `TotalComplexity 12-22` (up to `24` if justified), `CriticalPathComplexity 8-14`, `MaxBatchWidth <= 2`
+    - `parallel-x3`: target `4-6` tasks, `TotalComplexity 16-24`, `CriticalPathComplexity 10-16`, `MaxBatchWidth <= 3`
+  - Do not use `TotalComplexity` alone as the sizing signal; `CriticalPathComplexity` is the primary throughput constraint.
   - If dependency layers become mostly serial (for example a chain of `>3` tasks), rebalance/split to recover parallel lanes unless the sequence is intentionally strict.
+  - For a task with complexity `>=7`, try to split first; if it cannot be split cleanly, keep it as a dedicated lane and dedicated PR (when parallelizable and isolated enough).
+  - Default limit is at most one task with complexity `>=7` per sprint; more than one requires explicit justification plus low overlap, frozen contracts, and non-blocking validation.
   - For tasks in the same dependency batch, avoid heavy file overlap in `Location`; if overlap is unavoidable, either group those tasks into one PR or serialize them explicitly.
 - After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command(s) until output is deterministic and executable.
 
@@ -92,6 +113,8 @@ Failure modes:
   - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
   - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`per-sprint` or `group` with full mapping).
   - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
+  - Check the sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`) is present and consistent with dependencies.
+  - Check no cross-sprint execution parallelism is implied by the plan sequencing.
   - Check that validation is runnable and matches acceptance criteria.
 - Incorporate useful feedback into the plan (keep changes minimal and coherent).
 
@@ -108,3 +131,5 @@ Shared template (single source of truth):
 Rigorous requirement:
 
 - Fill `Complexity` for every task (int 1–10).
+- Treat sprints as sequential integration gates (no cross-sprint execution parallelism).
+- Optimize parallelism within each sprint and document the per-sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`).
