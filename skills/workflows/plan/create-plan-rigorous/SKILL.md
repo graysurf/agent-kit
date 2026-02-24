@@ -13,7 +13,7 @@ Prereqs:
 
 - User explicitly requests a more rigorous plan than normal.
 - You can spawn a review subagent.
-- `plan-tooling` available on `PATH` for linting (install via `brew install nils-cli`).
+- `plan-tooling` available on `PATH` for linting/parsing/splitting (`validate`, `to-json`, `batches`, `split-prs`; install via `brew install nils-cli`).
 
 Inputs:
 
@@ -52,6 +52,7 @@ Failure modes:
 - Same structure as `create-plan`, plus:
   - Fill a per-task **Complexity** score (1–10).
   - Explicitly list dependencies and parallelizable tasks.
+  - Add per-sprint PR grouping intent (`per-sprint` or `group`) when it is clear enough to state.
   - Add a “Rollback plan” that is operationally plausible.
 
 4) Save the plan
@@ -63,7 +64,24 @@ Failure modes:
 - Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
 - Fix until it passes (no placeholders in required fields; explicit validation commands; dependency IDs exist).
 
-6) Subagent review
+6) Run a sizing + parallelization pass (mandatory)
+
+- For each sprint, run:
+  - `plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>`
+  - `plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>`
+  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json`
+- If planning `group` mode for a sprint:
+  - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
+  - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json`
+  - Do not use `--strategy auto` (not implemented yet).
+- Sizing guardrails (adjust plan when violated):
+  - Task complexity target is `1-6`; complexity `>=7` should usually be split into smaller tasks.
+  - Sprint target is `2-5` tasks and total complexity `8-24`.
+  - If dependency layers become mostly serial (for example a chain of `>3` tasks), rebalance/split to recover parallel lanes unless the sequence is intentionally strict.
+  - For tasks in the same dependency batch, avoid heavy file overlap in `Location`; if overlap is unavoidable, either group those tasks into one PR or serialize them explicitly.
+- After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command(s) until output is deterministic and executable.
+
+7) Subagent review
 
 - Spawn a subagent to review the saved plan file.
 - Give it: the plan path + the original request + any constraints.
@@ -72,12 +90,14 @@ Failure modes:
   - Check for missing required task fields (`Location`, `Description`, `Dependencies`, `Acceptance criteria`, `Validation`).
   - Check for placeholder tokens left behind (`<...>`, `TODO`, `TBD`) in required fields.
   - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
+  - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`per-sprint` or `group` with full mapping).
+  - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
   - Check that validation is runnable and matches acceptance criteria.
 - Incorporate useful feedback into the plan (keep changes minimal and coherent).
 
-7) Final gotchas pass
+8) Final gotchas pass
 
-- Ensure the plan has clear success criteria, validation commands, and risk mitigation.
+- Ensure the plan has clear success criteria, validation commands, risk mitigation, and explicit execution grouping intent per sprint.
 
 ## Plan Template
 
