@@ -220,6 +220,243 @@ default_sprint_task_spec_path() {
     "$sprint"
 }
 
+issue_read_body_cmd() {
+  local issue_number="${1:-}"
+  local out_file="${2:-}"
+  local repo_arg="${3:-}"
+  [[ -n "$issue_number" ]] || die "issue number is required"
+  [[ -n "$out_file" ]] || die "output file path is required"
+
+  require_cmd gh
+  local cmd=(gh issue view "$issue_number")
+  if [[ -n "$repo_arg" ]]; then
+    cmd+=(-R "$repo_arg")
+  fi
+  cmd+=(--json body -q .body)
+  "${cmd[@]}" >"$out_file"
+}
+
+cleanup_plan_issue_worktrees() {
+  local issue_number="${1:-}"
+  local repo_arg="${2:-}"
+  local dry_run="${3:-0}"
+  [[ -n "$issue_number" ]] || die "--issue is required for worktree cleanup"
+
+  require_cmd git
+  require_cmd python3
+
+  local body_file=''
+  body_file="$(mktemp)"
+  issue_read_body_cmd "$issue_number" "$body_file" "$repo_arg"
+
+  set +e
+  python3 - "$body_file" "$dry_run" <<'PY'
+import os
+import pathlib
+import subprocess
+import sys
+
+body_file = pathlib.Path(sys.argv[1])
+dry_run = sys.argv[2].strip() == "1"
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower()
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def section_bounds(lines: list[str], heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+
+def list_worktrees() -> list[tuple[str, str]]:
+    output = run(["git", "worktree", "list", "--porcelain"]).stdout.splitlines()
+    rows: list[tuple[str, str]] = []
+    current_path = ""
+    current_branch = ""
+    for line in output + [""]:
+        if not line.strip():
+            if current_path:
+                rows.append((current_path, current_branch))
+            current_path = ""
+            current_branch = ""
+            continue
+        if line.startswith("worktree "):
+            current_path = line[len("worktree ") :].strip()
+            continue
+        if line.startswith("branch "):
+            ref = line[len("branch ") :].strip()
+            if ref.startswith("refs/heads/"):
+                ref = ref[len("refs/heads/") :]
+            current_branch = ref
+    return rows
+
+
+text = body_file.read_text(encoding="utf-8")
+lines = text.splitlines()
+start, end = section_bounds(lines, "## Task Decomposition")
+table_lines = [line for line in lines[start:end] if line.strip().startswith("|")]
+if len(table_lines) < 3:
+    raise SystemExit("error: Task Decomposition must contain a markdown table with at least one task row")
+
+headers = parse_row(table_lines[0])
+required_columns = ["Task", "Branch", "Worktree"]
+missing = [col for col in required_columns if col not in headers]
+if missing:
+    raise SystemExit("error: missing Task Decomposition columns: " + ", ".join(missing))
+
+records: list[tuple[str, str, str]] = []
+for raw in table_lines[2:]:
+    cells = parse_row(raw)
+    if not cells:
+        continue
+    if len(cells) != len(headers):
+        raise SystemExit("error: malformed Task Decomposition row")
+    row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+    task = row.get("Task", "").strip()
+    if not task:
+        continue
+    records.append((task, row.get("Branch", "").strip(), row.get("Worktree", "").strip()))
+
+if not records:
+    raise SystemExit("error: Task Decomposition table must include at least one task row")
+
+repo_root = pathlib.Path(run(["git", "rev-parse", "--show-toplevel"]).stdout.strip()).resolve()
+main_worktree = str(repo_root)
+default_worktrees_root = (repo_root / ".." / ".worktrees" / repo_root.name / "issue").resolve()
+
+expected_branches: set[str] = set()
+expected_worktree_names: set[str] = set()
+expected_paths: set[str] = set()
+
+for _task, branch, worktree in records:
+    if not is_placeholder(branch):
+        expected_branches.add(branch)
+    if is_placeholder(worktree):
+        continue
+    token = worktree.strip()
+    expected_worktree_names.add(pathlib.Path(token).name)
+    token_path = pathlib.Path(token)
+    if token_path.is_absolute():
+        expected_paths.add(str(token_path.resolve()))
+    else:
+        if "/" in token or token.startswith("."):
+            expected_paths.add(str((repo_root / token).resolve()))
+        expected_paths.add(str((default_worktrees_root / token).resolve()))
+
+if not expected_branches and not expected_worktree_names and not expected_paths:
+    print("WORKTREE_CLEANUP_STATUS=SKIP_NO_TARGETS")
+    raise SystemExit(0)
+
+targets: dict[str, list[str]] = {}
+for path_raw, branch in list_worktrees():
+    path = str(pathlib.Path(path_raw).resolve())
+    if path == main_worktree:
+        continue
+    reasons: list[str] = []
+    if branch and branch in expected_branches:
+        reasons.append(f"branch:{branch}")
+    if path in expected_paths:
+        reasons.append("path")
+    if pathlib.Path(path).name in expected_worktree_names:
+        reasons.append(f"name:{pathlib.Path(path).name}")
+    if reasons:
+        targets[path] = sorted(set(reasons))
+
+errors: list[str] = []
+removed = 0
+
+for path in sorted(targets):
+    reason_text = ",".join(targets[path])
+    if dry_run:
+        print(f"DRY_RUN_WORKTREE_REMOVE={path} ({reason_text})")
+        continue
+    proc = subprocess.run(["git", "worktree", "remove", "--force", path], capture_output=True, text=True)
+    if proc.returncode != 0:
+        message = (proc.stderr or proc.stdout or "").strip() or f"exit {proc.returncode}"
+        errors.append(f"{path}: {message}")
+    else:
+        removed += 1
+        print(f"WORKTREE_REMOVED={path} ({reason_text})")
+
+if dry_run:
+    print(f"WORKTREE_CLEANUP_DRY_RUN_TARGETS={len(targets)}")
+    raise SystemExit(0)
+
+prune_proc = subprocess.run(["git", "worktree", "prune"], capture_output=True, text=True)
+if prune_proc.returncode != 0:
+    message = (prune_proc.stderr or prune_proc.stdout or "").strip() or f"exit {prune_proc.returncode}"
+    errors.append(f"git worktree prune failed: {message}")
+
+remaining: list[str] = []
+for path_raw, branch in list_worktrees():
+    path = str(pathlib.Path(path_raw).resolve())
+    if path == main_worktree:
+        continue
+    reasons: list[str] = []
+    if branch and branch in expected_branches:
+        reasons.append(f"branch:{branch}")
+    if path in expected_paths:
+        reasons.append("path")
+    if pathlib.Path(path).name in expected_worktree_names:
+        reasons.append(f"name:{pathlib.Path(path).name}")
+    if reasons:
+        remaining.append(f"{path} ({','.join(sorted(set(reasons)))})")
+
+lingering_paths = []
+for path in sorted(expected_paths):
+    if path != main_worktree and os.path.exists(path):
+        lingering_paths.append(path)
+
+for message in errors:
+    print(f"error: worktree cleanup remove failed: {message}", file=sys.stderr)
+for message in remaining:
+    print(f"error: worktree cleanup residual git worktree: {message}", file=sys.stderr)
+for path in lingering_paths:
+    print(f"error: worktree cleanup residual path exists: {path}", file=sys.stderr)
+
+if errors or remaining or lingering_paths:
+    raise SystemExit(1)
+
+print(f"WORKTREE_CLEANUP_REMOVED={removed}")
+print("WORKTREE_CLEANUP_STATUS=PASS")
+PY
+  local cleanup_rc=$?
+  set -e
+
+  rm -f "$body_file"
+  return "$cleanup_rc"
+}
+
 render_plan_issue_body_from_task_spec() {
   local template_file="${1:-}"
   local plan_file="${2:-}"
@@ -268,7 +505,7 @@ text = template_path.read_text(encoding="utf-8")
 lines = text.splitlines()
 
 if lines and lines[0].startswith("# "):
-    lines[0] = f"# plan: {plan_title}"
+    lines[0] = f"# {plan_title}"
 
 
 def replace_section(heading: str, body_lines: list[str]) -> None:
@@ -312,22 +549,19 @@ evidence_lines = [
 ]
 
 task_table_lines = [
-    "| Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
 ]
 for task_id, summary, owner, branch, worktree, notes in rows:
     note_val = notes if notes else "-"
     task_table_lines.append(
-        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | TBD | planned | {note_val} |"
+        f"| {task_id} | {summary} | TBD | TBD | TBD | TBD | TBD | planned | {note_val} |"
     )
-
-subagent_pr_lines = [f"- {task_id}: TBD" for task_id, *_ in rows]
 
 replace_section("## Goal", goal_lines)
 replace_section("## Acceptance Criteria", acceptance_lines)
 replace_section("## Scope", scope_lines)
 replace_section("## Task Decomposition", task_table_lines)
-replace_section("## Subagent PRs", subagent_pr_lines)
 replace_section("## Risks / Uncertainties", risk_lines)
 replace_section("## Evidence", evidence_lines)
 
@@ -721,6 +955,188 @@ print("DISPATCH_HINTS_END")
 PY
 }
 
+sync_issue_sprint_task_rows() {
+  local issue_number="${1:-}"
+  local task_spec_file="${2:-}"
+  local repo_arg="${3:-}"
+  local dry_run="${4:-0}"
+
+  [[ -n "$issue_number" ]] || die "issue number is required for sprint task sync"
+  [[ -f "$task_spec_file" ]] || die "task spec file not found: $task_spec_file"
+  if [[ "$dry_run" == '1' ]]; then
+    return 0
+  fi
+
+  local issue_body_file=''
+  issue_body_file="$(mktemp)"
+  issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+
+  local synced_body_file=''
+  synced_body_file="$(mktemp)"
+
+  python3 - "$issue_body_file" "$task_spec_file" "$synced_body_file" <<'PY'
+import csv
+import pathlib
+import re
+import sys
+
+body_path = pathlib.Path(sys.argv[1])
+task_spec_path = pathlib.Path(sys.argv[2])
+output_path = pathlib.Path(sys.argv[3])
+
+if not body_path.is_file():
+    raise SystemExit(f"error: issue body file not found: {body_path}")
+if not task_spec_path.is_file():
+    raise SystemExit(f"error: task spec file not found: {task_spec_path}")
+
+lines = body_path.read_text(encoding="utf-8").splitlines()
+
+
+def section_bounds(heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower().strip("`")
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("tbd"):
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def normalize_pr_display(value: str) -> str:
+    token = (value or "").strip()
+    if is_placeholder(token):
+        return "TBD"
+    if m := re.fullmatch(r"PR#(\d+)", token, flags=re.IGNORECASE):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)(?:[/?#].*)?",
+        token,
+        flags=re.IGNORECASE,
+    ):
+        return f"#{m.group(1)}"
+    return token
+
+
+spec_rows: dict[str, dict[str, str]] = {}
+group_sizes: dict[str, int] = {}
+group_anchor: dict[str, dict[str, str]] = {}
+with task_spec_path.open("r", encoding="utf-8") as handle:
+    reader = csv.reader(handle, delimiter="\t")
+    for raw in reader:
+        if not raw:
+            continue
+        if raw[0].strip().startswith("#"):
+            continue
+        if len(raw) < 7:
+            raise SystemExit("error: malformed task spec row")
+        task_id = raw[0].strip()
+        summary = raw[1].strip()
+        branch = raw[2].strip()
+        worktree = raw[3].strip()
+        owner = raw[4].strip()
+        notes = raw[5].strip()
+        pr_group = raw[6].strip() or task_id
+        if not task_id:
+            continue
+        spec_rows[task_id] = {
+            "summary": summary,
+            "branch": branch,
+            "worktree": worktree,
+            "owner": owner,
+            "notes": notes,
+            "pr_group": pr_group,
+        }
+        group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
+        if pr_group not in group_anchor:
+            group_anchor[pr_group] = {
+                "branch": branch,
+                "worktree": worktree,
+                "owner": owner,
+            }
+
+if not spec_rows:
+    raise SystemExit("error: sprint task spec has no rows")
+
+start, end = section_bounds("## Task Decomposition")
+table_rows = [idx for idx in range(start, end) if lines[idx].strip().startswith("|")]
+if len(table_rows) < 3:
+    raise SystemExit("error: Task Decomposition must contain a markdown table with at least one task row")
+
+header_line_index = table_rows[0]
+headers = parse_row(lines[header_line_index])
+required_columns = ["Task", "Owner", "Branch", "Worktree", "Execution Mode", "PR", "Status", "Notes"]
+missing = [name for name in required_columns if name not in headers]
+if missing:
+    raise SystemExit("error: missing Task Decomposition columns: " + ", ".join(missing))
+header_index = {name: idx for idx, name in enumerate(headers)}
+
+for idx in table_rows[2:]:
+    cells = parse_row(lines[idx])
+    if not cells or len(cells) != len(headers):
+        continue
+    row_changed = False
+    existing_pr = cells[header_index["PR"]]
+    normalized_pr = normalize_pr_display(existing_pr)
+    if existing_pr.strip() != normalized_pr:
+        cells[header_index["PR"]] = normalized_pr
+        row_changed = True
+
+    task_id = cells[header_index["Task"]].strip()
+    spec = spec_rows.get(task_id)
+    if spec is not None:
+        pr_group = spec["pr_group"]
+        mode = "single-pr" if group_sizes.get(pr_group, 0) > 1 else "per-task"
+        execution_source = group_anchor.get(pr_group, spec) if mode == "single-pr" else spec
+
+        cells[header_index["Owner"]] = execution_source["owner"] or cells[header_index["Owner"]]
+        cells[header_index["Branch"]] = f"`{execution_source['branch']}`"
+        cells[header_index["Worktree"]] = f"`{execution_source['worktree']}`"
+        cells[header_index["Execution Mode"]] = mode
+        if spec["notes"]:
+            cells[header_index["Notes"]] = spec["notes"]
+        row_changed = True
+
+    if row_changed:
+        lines[idx] = "| " + " | ".join(cells) + " |"
+
+output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print(output_path)
+PY
+
+  run_issue_lifecycle "$dry_run" "$repo_arg" update --issue "$issue_number" --body-file "$synced_body_file" >/dev/null
+  rm -f "$issue_body_file" "$synced_body_file"
+}
+
 render_sprint_comment_body() {
   local mode="${1:-}"   # start|ready|accepted
   local plan_file="${2:-}"
@@ -730,10 +1146,12 @@ render_sprint_comment_body() {
   local task_spec_file="${6:-}"
   local note_text="${7:-}"
   local approval_comment_url="${8:-}"
+  local issue_body_file="${9:-}"
 
-  python3 - "$mode" "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_file" "$note_text" "$approval_comment_url" <<'PY'
+  python3 - "$mode" "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_file" "$note_text" "$approval_comment_url" "$issue_body_file" <<'PY'
 import csv
 import pathlib
+import re
 import sys
 
 mode = sys.argv[1].strip()
@@ -744,11 +1162,123 @@ sprint_name = sys.argv[5].strip()
 spec_path = pathlib.Path(sys.argv[6])
 note_text = sys.argv[7]
 approval_url = sys.argv[8].strip()
+issue_body_path_raw = sys.argv[9].strip()
+issue_body_path = pathlib.Path(issue_body_path_raw) if issue_body_path_raw else None
 
 if mode not in {"start", "ready", "accepted"}:
     raise SystemExit(f"error: unsupported sprint comment mode: {mode}")
 if not spec_path.is_file():
     raise SystemExit(f"error: task spec file not found: {spec_path}")
+
+
+def is_placeholder(value: str) -> bool:
+    token = (value or "").strip().lower()
+    if token in {"", "-", "tbd", "none", "n/a", "na", "..."}:
+        return True
+    if token.startswith("tbd"):
+        return True
+    if token.startswith("<") and token.endswith(">"):
+        return True
+    if "task ids" in token:
+        return True
+    return False
+
+
+def normalize_pr_display(value: str) -> str:
+    token = (value or "").strip()
+    if is_placeholder(token):
+        return ""
+    if m := re.fullmatch(r"PR#(\d+)", token, flags=re.IGNORECASE):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#(\d+)", token):
+        return f"#{m.group(1)}"
+    if m := re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/pull/(\d+)(?:[/?#].*)?",
+        token,
+        flags=re.IGNORECASE,
+    ):
+        return f"#{m.group(1)}"
+    return token
+
+
+def parse_row(line: str) -> list[str]:
+    s = line.strip()
+    if not (s.startswith("|") and s.endswith("|")):
+        return []
+    return [cell.strip() for cell in s[1:-1].split("|")]
+
+
+def extract_sprint_section(plan_path: pathlib.Path, sprint_number: str) -> str:
+    if not plan_path.is_file():
+        raise SystemExit(f"error: plan file not found: {plan_path}")
+
+    lines = plan_path.read_text(encoding="utf-8").splitlines()
+    target_re = re.compile(rf"^##\s+Sprint\s+{re.escape(sprint_number)}\b")
+
+    start = None
+    for idx, line in enumerate(lines):
+        if target_re.match(line.strip()):
+            start = idx
+            break
+
+    if start is None:
+        return ""
+
+    end = len(lines)
+    for idx in range(start + 1, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+
+    return "\n".join(lines[start:end]).strip()
+
+
+def section_bounds(lines: list[str], heading: str) -> tuple[int, int]:
+    start = None
+    for idx, line in enumerate(lines):
+        if line.strip() == heading:
+            start = idx + 1
+            break
+    if start is None:
+        raise SystemExit(f"error: missing required heading: {heading}")
+    end = len(lines)
+    for idx in range(start, len(lines)):
+        if lines[idx].startswith("## "):
+            end = idx
+            break
+    return start, end
+
+
+def load_issue_pr_values(path: pathlib.Path | None) -> dict[str, str]:
+    if path is None or not path.is_file():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    try:
+        start, end = section_bounds(lines, "## Task Decomposition")
+    except SystemExit:
+        return {}
+    table_lines = [line for line in lines[start:end] if line.strip().startswith("|")]
+    if len(table_lines) < 3:
+        return {}
+    headers = parse_row(table_lines[0])
+    if "Task" not in headers or "PR" not in headers:
+        return {}
+
+    pr_map: dict[str, str] = {}
+    for raw in table_lines[2:]:
+        cells = parse_row(raw)
+        if not cells or len(cells) != len(headers):
+            continue
+        row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+        task = row.get("Task", "").strip()
+        pr_value = row.get("PR", "").strip()
+        if not task or is_placeholder(pr_value):
+            continue
+        pr_map[task] = pr_value
+    return pr_map
 
 rows = []
 with spec_path.open("r", encoding="utf-8") as handle:
@@ -762,9 +1292,15 @@ with spec_path.open("r", encoding="utf-8") as handle:
             raise SystemExit("error: malformed task spec row")
         task_id = raw[0].strip()
         summary = raw[1].strip() if len(raw) >= 2 else ""
-        owner = raw[4].strip() if len(raw) >= 5 else ""
+        pr_group = raw[6].strip() if len(raw) >= 7 else task_id
         notes = raw[5].strip() if len(raw) >= 6 else ""
-        rows.append((task_id, summary, owner, notes))
+        rows.append((task_id, summary, pr_group or task_id, notes))
+
+group_sizes = {}
+for _task_id, _summary, pr_group, _notes in rows:
+    group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
+issue_pr_values = load_issue_pr_values(issue_body_path)
+plan_path = pathlib.Path(plan_file)
 
 if mode == "start":
     heading = f"## Sprint {sprint} Start"
@@ -778,18 +1314,30 @@ else:
 
 print(heading)
 print("")
-print(f"- Plan issue: #{issue_number}")
-print(f"- Plan file: `{plan_file}`")
 print(f"- Sprint: {sprint} ({sprint_name})")
 print(f"- Tasks in sprint: {len(rows)}")
 print(f"- Note: {lead}")
+print("- PR values come from current Task Decomposition; unresolved tasks remain `TBD` until PRs are linked.")
 if approval_url:
     print(f"- Approval comment URL: {approval_url}")
 print("")
-print("| Task | Summary | Owner |")
+print("| Task | Summary | PR |")
 print("| --- | --- | --- |")
-for task_id, summary, owner, _notes in rows:
-    print(f"| {task_id} | {summary or '-'} | {owner or '-'} |")
+for task_id, summary, pr_group, _notes in rows:
+    pr_value = normalize_pr_display(issue_pr_values.get(task_id, ""))
+    if is_placeholder(pr_value):
+        if group_sizes.get(pr_group, 0) > 1:
+            pr_value = f"TBD (shared:{pr_group})"
+        else:
+            pr_value = "TBD (per-task)"
+    print(f"| {task_id} | {summary or '-'} | {pr_value} |")
+
+if mode == "start":
+    sprint_section = extract_sprint_section(plan_path, sprint)
+    if sprint_section:
+        print("")
+        print(sprint_section)
+
 if note_text.strip():
     print("")
     print("## Main-Agent Notes")
@@ -809,7 +1357,8 @@ Subcommands:
   start-plan            Open one plan issue with all plan tasks in Task Decomposition
   status-plan           Wrapper of issue-delivery-loop status for the plan issue
   ready-plan            Wrapper of issue-delivery-loop ready-for-review for final plan review
-  close-plan            Close the single plan issue after final approval + merged PR gates
+  close-plan            Close the single plan issue after final approval + merged PR gates, then enforce worktree cleanup
+  cleanup-worktrees     Enforce cleanup of all issue-assigned task worktrees
   start-sprint          Post sprint-start comment on the plan issue and emit subagent dispatch hints
   ready-sprint          Post sprint-ready comment on the plan issue (issue stays open)
   accept-sprint         Post sprint-accepted comment on the plan issue (issue stays open)
@@ -876,6 +1425,12 @@ close-plan options:
   --reason <completed|not planned>
   --comment <text> | --comment-file <path>
   --allow-not-done
+  Note: after close gate succeeds, close-plan always runs strict worktree cleanup for issue task rows.
+
+cleanup-worktrees options:
+  --issue <number>               Plan issue number (required)
+  --repo <owner/repo>            Optional repository override
+  --dry-run                      Print matching worktrees without removing
 
 start-sprint / ready-sprint / accept-sprint options:
   --plan <path>                  Plan markdown path (required)
@@ -1167,7 +1722,7 @@ start_plan_cmd() {
   render_plan_issue_body_from_task_spec "$issue_lifecycle_template" "$plan_file" "$plan_title" "$task_spec_out" "$issue_body_out" >/dev/null
 
   if [[ -z "$issue_title" ]]; then
-    issue_title="[Plan] ${plan_title}"
+    issue_title="${plan_title}"
   fi
 
   if [[ ${#labels[@]} -eq 0 ]]; then
@@ -1272,10 +1827,14 @@ close_plan_cmd() {
   local repo_arg=''
   local dry_run='0'
   local passthrough=()
+  local issue_number=''
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --issue|--approved-comment-url|--reason|--comment|--comment-file)
+        if [[ "${1:-}" == "--issue" ]]; then
+          issue_number="${2:-}"
+        fi
         passthrough+=("${1:-}" "${2:-}")
         shift 2
         ;;
@@ -1301,7 +1860,49 @@ close_plan_cmd() {
     esac
   done
 
+  [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
   run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
+  cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
+  if [[ "$dry_run" == '1' ]]; then
+    printf 'PLAN_CLOSE_STATUS=DRY_RUN\n'
+  else
+    printf 'PLAN_CLOSE_STATUS=SUCCESS\n'
+    printf 'PLAN_ISSUE_NUMBER=%s\n' "$issue_number"
+    printf 'DONE_CRITERIA=ISSUE_CLOSED_AND_WORKTREES_CLEANED\n'
+  fi
+}
+
+cleanup_worktrees_cmd() {
+  local issue_number=''
+  local repo_arg=''
+  local dry_run='0'
+
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --issue)
+        issue_number="${2:-}"
+        shift 2
+        ;;
+      --repo)
+        repo_arg="${2:-}"
+        shift 2
+        ;;
+      --dry-run)
+        dry_run='1'
+        shift
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        die "unknown option for cleanup-worktrees: $1"
+        ;;
+    esac
+  done
+
+  [[ -n "$issue_number" ]] || die "--issue is required for cleanup-worktrees"
+  cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
 }
 
 start_sprint_cmd() {
@@ -1426,9 +2027,19 @@ start_sprint_cmd() {
   printf 'TASK_SPEC_PATH=%s\n' "$task_spec_out"
 
   emit_dispatch_hints "$task_spec_out" "$issue_number" "$issue_subagent_script"
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
+
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
 
   local comment_body=''
-  comment_body="$(render_sprint_comment_body start "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '')"
+  comment_body="$(render_sprint_comment_body start "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '' "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
@@ -1547,13 +2158,23 @@ ready_sprint_cmd() {
   local pr_group_config=''
   pr_group_config="$(join_lines "${pr_group_entries[@]}")"
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
   fi
 
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
+
   local comment_body=''
-  comment_body="$(render_sprint_comment_body ready "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '')"
+  comment_body="$(render_sprint_comment_body ready "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" '' "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
@@ -1679,13 +2300,23 @@ accept_sprint_cmd() {
   local pr_group_config=''
   pr_group_config="$(join_lines "${pr_group_entries[@]}")"
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
+  sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
     post_comment='1'
   fi
 
+  local issue_body_file=''
+  if [[ "$dry_run" != '1' ]]; then
+    issue_body_file="$(mktemp)"
+    issue_read_body_cmd "$issue_number" "$issue_body_file" "$repo_arg"
+  fi
+
   local comment_body=''
-  comment_body="$(render_sprint_comment_body accepted "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" "$approved_comment_url")"
+  comment_body="$(render_sprint_comment_body accepted "$plan_file" "$issue_number" "$sprint" "$sprint_name" "$task_spec_out" "$summary_text" "$approved_comment_url" "$issue_body_file")"
+  if [[ -n "$issue_body_file" ]]; then
+    rm -f "$issue_body_file"
+  fi
   printf '%s\n' "$comment_body"
 
   if [[ "$post_comment" == '1' ]]; then
@@ -1968,6 +2599,9 @@ case "$subcommand" in
     ;;
   close-plan)
     close_plan_cmd "$@"
+    ;;
+  cleanup-worktrees)
+    cleanup_worktrees_cmd "$@"
     ;;
   start-sprint)
     start_sprint_cmd "$@"
