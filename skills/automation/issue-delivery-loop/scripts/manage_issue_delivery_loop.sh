@@ -137,11 +137,19 @@ enforce_subagent_owner_policy() {
   fi
 
   local errors=()
-  while IFS=$'\t' read -r task _summary owner _branch _worktree _pr _status _notes; do
-    local task_id owner_value
+  while IFS=$'\t' read -r task _summary owner branch worktree execution_mode _pr status _notes; do
+    local task_id owner_value branch_value worktree_value mode_value status_value
     task_id="$(trim_text "$task")"
     owner_value="$(trim_text "$owner")"
+    branch_value="$(trim_text "$branch")"
+    worktree_value="$(trim_text "$worktree")"
+    mode_value="$(trim_text "$execution_mode")"
+    status_value="$(to_lower "$(trim_text "$status")")"
 
+    # Planning/blocked rows can remain TBD until execution details are real.
+    if [[ "$status_value" == "planned" || "$status_value" == "blocked" ]]; then
+      continue
+    fi
     if is_owner_placeholder "$owner_value"; then
       errors+=("${task_id}: Owner must reference a subagent identity (got: ${owner_value:-<empty>})")
       continue
@@ -153,6 +161,15 @@ enforce_subagent_owner_policy() {
     if ! is_subagent_owner "$owner_value"; then
       errors+=("${task_id}: Owner must include 'subagent' to mark delegated implementation ownership")
       continue
+    fi
+    if is_owner_placeholder "$branch_value"; then
+      errors+=("${task_id}: Branch must not be TBD when Status is ${status_value:-<empty>}")
+    fi
+    if is_owner_placeholder "$worktree_value"; then
+      errors+=("${task_id}: Worktree must not be TBD when Status is ${status_value:-<empty>}")
+    fi
+    if is_owner_placeholder "$mode_value"; then
+      errors+=("${task_id}: Execution Mode must not be TBD when Status is ${status_value:-<empty>}")
     fi
   done < <(parse_issue_tasks_tsv "$body_file")
 
@@ -286,6 +303,8 @@ for raw in table_lines[2:]:
     if len(cells) != len(headers):
         raise SystemExit("error: malformed Task Decomposition row")
     row = {headers[idx]: cells[idx] for idx in range(len(headers))}
+    if "Execution Mode" not in row:
+        row["Execution Mode"] = "TBD"
     if not any(v.strip() for v in cells):
         continue
     rows.append(row)
@@ -300,6 +319,7 @@ for row in rows:
         row.get("Owner", "").replace("\t", " "),
         row.get("Branch", "").replace("\t", " "),
         row.get("Worktree", "").replace("\t", " "),
+        row.get("Execution Mode", "").replace("\t", " "),
         row.get("PR", "").replace("\t", " "),
         row.get("Status", "").replace("\t", " "),
         row.get("Notes", "").replace("\t", " "),
@@ -335,7 +355,7 @@ fetch_pr_meta_tsv() {
     --json
     "number,url,state,isDraft,reviewDecision,mergeStateStatus,mergedAt"
     -q
-    '[.number, .url, .state, (if .isDraft then "true" else "false" end), (.reviewDecision // "NONE"), (.mergeStateStatus // "UNKNOWN"), (.mergedAt // "")] | @tsv'
+    '[.number, .url, .state, (if .isDraft then "true" else "false" end), ((.reviewDecision // "") | if . == "" then "NONE" else . end), ((.mergeStateStatus // "") | if . == "" then "UNKNOWN" else . end), (.mergedAt // "")] | @tsv'
   )
 
   "${cmd[@]}"
@@ -359,7 +379,7 @@ build_status_snapshot() {
   local errors=()
   local has_rows="0"
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+  while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
     has_rows="1"
     local task_id pr_value planned_status
     task_id="$(trim_text "$task")"
@@ -453,7 +473,7 @@ build_review_request_body() {
   local task_count=0
   local pr_count=0
 
-  while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+  while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
     task_count=$((task_count + 1))
     local task_id status_value pr_value
     task_id="$(trim_text "$task")"
@@ -1013,6 +1033,9 @@ case "$subcommand" in
 
     temp_body=""
     if [[ -n "$issue_number" ]]; then
+      # Re-normalize the issue body before the final gate so main-agent closes against
+      # the latest corrected Task Decomposition shape (including legacy section cleanup).
+      run_issue_lifecycle sync --issue "$issue_number" >/dev/null
       run_issue_lifecycle validate --issue "$issue_number" >/dev/null
       temp_body="$(mktemp)"
       issue_read_cmd "$issue_number" "$temp_body"
@@ -1030,7 +1053,7 @@ case "$subcommand" in
     pr_refs=()
     pr_tasks=()
 
-    while IFS=$'\t' read -r task _summary _owner _branch _worktree pr status _notes; do
+    while IFS=$'\t' read -r task _summary _owner _branch _worktree _execution_mode pr status _notes; do
       task_id="$(trim_text "$task")"
       pr_value="$(trim_text "$pr")"
       status_value="$(to_lower "$status")"

@@ -35,12 +35,13 @@ run_cmd() {
 usage() {
   cat <<'USAGE'
 Usage:
-  manage_issue_subagent_pr.sh <create-worktree|open-pr|respond-review> [options]
+  manage_issue_subagent_pr.sh <create-worktree|open-pr|respond-review|validate-pr-body> [options]
 
 Subcommands:
   create-worktree  Create a dedicated worktree/branch for subagent implementation
   open-pr          Open a draft PR for an issue branch and sync PR URL back to issue
   respond-review   Post a PR follow-up comment referencing a main-agent review comment link
+  validate-pr-body Validate a PR body (placeholders/template stubs are rejected)
 
 Common options:
   --repo <owner/repo>    Target repository (passed to gh with -R)
@@ -69,6 +70,11 @@ respond-review options:
   --body <text>                  Additional response details
   --body-file <path>             Additional response details file
   --issue <number>               Optional issue number to mirror response status
+
+validate-pr-body options:
+  --body <text>                  PR body text
+  --body-file <path>             PR body file
+  --issue <number>               Expected issue number (optional, validates `## Issue` section when present)
 USAGE
 }
 
@@ -81,6 +87,71 @@ current_branch() {
   branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
   [[ -n "$branch" ]] || die "cannot resolve current branch"
   printf '%s\n' "$branch"
+}
+
+validate_pr_body_text() {
+  local body_text="${1:-}"
+  local issue_number="${2:-}"
+  local source_label="${3:-pr body}"
+
+  python3 - "$issue_number" "$source_label" "$body_text" <<'PY'
+import re
+import sys
+
+issue_number = (sys.argv[1] or "").strip()
+source_label = (sys.argv[2] or "pr body").strip()
+text = sys.argv[3]
+
+if not text.strip():
+    raise SystemExit(f"error: {source_label}: PR body must not be empty")
+
+required_headings = ["## Summary", "## Scope", "## Testing", "## Issue"]
+missing = [h for h in required_headings if h not in text]
+if missing:
+    raise SystemExit(f"error: {source_label}: missing required PR body sections: {', '.join(missing)}")
+
+placeholder_patterns = [
+    (r"<[^>\n]+>", "angle-bracket placeholder"),
+    (r"\bTODO\b", "TODO placeholder"),
+    (r"\bTBD\b", "TBD placeholder"),
+    (r"#<number>", "issue-number placeholder"),
+    (r"not run \(reason\)", "testing placeholder"),
+    (r"<command> \(pass\)", "testing command placeholder"),
+]
+hits = []
+for pattern, label in placeholder_patterns:
+    m = re.search(pattern, text, flags=re.IGNORECASE)
+    if m:
+        hits.append(f"{label}: {m.group(0)}")
+
+if issue_number:
+    issue_pat = re.compile(rf"(?m)^\s*-\s*#\s*{re.escape(issue_number)}\s*$")
+    if not issue_pat.search(text):
+        hits.append(f"missing issue link bullet for #{issue_number} in ## Issue section")
+
+if hits:
+    joined = "; ".join(hits)
+    raise SystemExit(f"error: {source_label}: invalid PR body content ({joined})")
+
+print("ok: PR body validation passed")
+PY
+}
+
+validate_pr_body_input() {
+  local body_text="${1:-}"
+  local body_file="${2:-}"
+  local issue_number="${3:-}"
+  local source_label="${4:-pr body}"
+
+  if [[ -n "$body_text" && -n "$body_file" ]]; then
+    die "use either --body or --body-file, not both"
+  fi
+  if [[ -n "$body_file" ]]; then
+    [[ -f "$body_file" ]] || die "body file not found: $body_file"
+    validate_pr_body_text "$(cat "$body_file")" "$issue_number" "$source_label"
+    return 0
+  fi
+  validate_pr_body_text "$body_text" "$issue_number" "$source_label"
 }
 
 subcommand="${1:-}"
@@ -237,10 +308,6 @@ case "$subcommand" in
     [[ -n "$issue_number" ]] || die "--issue is required for open-pr"
     [[ -n "$pr_title" ]] || die "--title is required for open-pr"
 
-    if [[ -n "$body" && -n "$body_file" ]]; then
-      die "use either --body or --body-file, not both"
-    fi
-
     if [[ -z "$head_branch" ]]; then
       require_cmd git
       head_branch="$(current_branch)"
@@ -252,6 +319,14 @@ case "$subcommand" in
 
     if [[ -n "$body_file" && ! -f "$body_file" ]]; then
       die "body file not found: $body_file"
+    fi
+
+    # Subagent must submit a filled PR body. `--use-template` is allowed, but the
+    # template must be copied/edited first so placeholder tokens are gone.
+    if [[ -n "$body" || -n "$body_file" ]]; then
+      validate_pr_body_input "$body" "$body_file" "$issue_number" "open-pr"
+    else
+      die "PR body is required; provide --body/--body-file (or a filled template via --use-template)"
     fi
 
     require_cmd gh
@@ -266,10 +341,8 @@ case "$subcommand" in
 
     if [[ -n "$body" ]]; then
       cmd+=(--body "$body")
-    elif [[ -n "$body_file" ]]; then
-      cmd+=(--body-file "$body_file")
     else
-      cmd+=(--body "## Summary\n- Implements #${issue_number}.\n\n## Testing\n- not run (subagent to update)\n")
+      cmd+=(--body-file "$body_file")
     fi
 
     if [[ "$dry_run" == "1" ]]; then
@@ -298,6 +371,49 @@ case "$subcommand" in
     fi
 
     echo "$pr_url"
+    ;;
+
+  validate-pr-body)
+    issue_number=""
+    body=""
+    body_file=""
+
+    while [[ $# -gt 0 ]]; do
+      case "${1:-}" in
+        --body)
+          body="${2:-}"
+          shift 2
+          ;;
+        --body-file)
+          body_file="${2:-}"
+          shift 2
+          ;;
+        --issue)
+          issue_number="${2:-}"
+          shift 2
+          ;;
+        --repo)
+          repo_arg="${2:-}"
+          shift 2
+          ;;
+        --dry-run)
+          dry_run="1"
+          shift
+          ;;
+        -h|--help)
+          usage
+          exit 0
+          ;;
+        *)
+          die "unknown option for validate-pr-body: $1"
+          ;;
+      esac
+    done
+
+    if [[ -z "$body" && -z "$body_file" ]]; then
+      die "validate-pr-body requires --body or --body-file"
+    fi
+    validate_pr_body_input "$body" "$body_file" "$issue_number" "validate-pr-body"
     ;;
 
   respond-review)

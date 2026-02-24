@@ -28,14 +28,29 @@
         "main",
         "--head",
         "feat/issue-999-api",
-        "--body",
-        "Fixture PR body",
+        "--body-file",
+        "tests/fixtures/issue/pr_body_valid.md",
         "--dry-run"
       ],
       "timeout_sec": 10,
       "expect": {
         "exit_codes": [0],
         "stdout_regex": "DRY-RUN-PR-URL"
+      }
+    },
+    {
+      "name": "validate-pr-body-fail-placeholder",
+      "args": [
+        "validate-pr-body",
+        "--issue",
+        "999",
+        "--body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "invalid PR body content"
       }
     },
     {

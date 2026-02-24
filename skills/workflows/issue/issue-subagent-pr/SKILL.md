@@ -25,6 +25,7 @@ Outputs:
 
 - Dedicated worktree path for the task.
 - Draft PR URL for the implementation branch.
+- PR body validation gate that rejects unfilled templates/placeholders before PR open.
 - PR follow-up comments referencing main-agent review comment URLs.
 - Optional mirrored issue comments for traceability.
 
@@ -38,6 +39,8 @@ Failure modes:
 - Missing required flags (`--branch`, `--issue`, `--title`, `--review-comment-url`).
 - Worktree path collision.
 - PR body source conflicts (`--body` and `--body-file`).
+- Missing/empty PR body for `open-pr`.
+- Placeholder/template PR body content (`TBD`, `TODO`, `<...>`, `#<number>`, stub testing lines).
 - `gh` auth/permissions insufficient to open or comment on PRs.
 
 ## Entrypoint
@@ -49,8 +52,11 @@ Failure modes:
 1. Create isolated worktree:
    - `.../manage_issue_subagent_pr.sh create-worktree --branch feat/issue-123-api --base main`
 2. Open draft PR and sync PR URL to issue:
-   - `.../manage_issue_subagent_pr.sh open-pr --issue 123 --title "feat: api task" --use-template`
-3. Respond to main-agent review comment with explicit link:
+   - `cp references/PR_BODY_TEMPLATE.md /tmp/pr-123.md && <edit file>`
+   - `.../manage_issue_subagent_pr.sh open-pr --issue 123 --title "feat: api task" --body-file /tmp/pr-123.md`
+3. Validate PR body before submitting (optional explicit precheck):
+   - `.../manage_issue_subagent_pr.sh validate-pr-body --issue 123 --body-file /tmp/pr-123.md`
+4. Respond to main-agent review comment with explicit link:
    - `.../manage_issue_subagent_pr.sh respond-review --pr 456 --review-comment-url <url> --body-file references/REVIEW_RESPONSE_TEMPLATE.md --issue 123`
 
 ## References
@@ -61,6 +67,7 @@ Failure modes:
 ## Notes
 
 - Use `--dry-run` in orchestration/testing contexts.
+- `open-pr --use-template` is not a substitute for filling the PR body; subagent must submit a fully edited body that passes validation.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
 - Subagents own implementation execution; main-agent does not implement issue task code directly.
 - Even when an issue has a single implementation PR, that PR remains subagent-owned.

@@ -312,22 +312,19 @@ evidence_lines = [
 ]
 
 task_table_lines = [
-    "| Task | Summary | Owner | Branch | Worktree | PR | Status | Notes |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
 ]
 for task_id, summary, owner, branch, worktree, notes in rows:
     note_val = notes if notes else "-"
     task_table_lines.append(
-        f"| {task_id} | {summary} | {owner} | `{branch}` | `{worktree}` | TBD | planned | {note_val} |"
+        f"| {task_id} | {summary} | TBD | TBD | TBD | TBD | TBD | planned | {note_val} |"
     )
-
-subagent_pr_lines = [f"- {task_id}: TBD" for task_id, *_ in rows]
 
 replace_section("## Goal", goal_lines)
 replace_section("## Acceptance Criteria", acceptance_lines)
 replace_section("## Scope", scope_lines)
 replace_section("## Task Decomposition", task_table_lines)
-replace_section("## Subagent PRs", subagent_pr_lines)
 replace_section("## Risks / Uncertainties", risk_lines)
 replace_section("## Evidence", evidence_lines)
 

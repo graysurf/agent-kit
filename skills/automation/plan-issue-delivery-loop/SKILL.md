@@ -35,6 +35,7 @@ Outputs:
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
 - Exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - Sprint progress tracked on that issue via comments + task decomposition rows/PR links.
+- Plan issue body task rows are initialized with `TBD` execution metadata and updated later with real execution facts.
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 
@@ -77,7 +78,7 @@ Failure modes:
    - main-agent posts sprint kickoff comment
    - main-agent chooses PR grouping (`per-task`, `manual`, `auto`) and emits dispatch hints
    - subagents create worktrees/PRs and implement tasks
-4. While sprint work is active, use issue task rows + PR links for traceability, and optionally `status-plan` for snapshots.
+4. While sprint work is active, use issue task rows + PR links for traceability (fill actual `Owner/Branch/Worktree/Execution Mode/PR` values as they become real), and optionally `status-plan` for snapshots.
 5. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request comment.
 6. After sprint acceptance is confirmed, run `accept-sprint` to record the approval comment URL on the plan issue (issue stays open).
 7. If another sprint exists, run `next-sprint` (which records current sprint acceptance and starts the next sprint on the same issue), then repeat steps 3-6.
