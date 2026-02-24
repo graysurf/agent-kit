@@ -6,7 +6,7 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 ## Scope
 - In scope:
   - Create sprint-scoped fixture content only under `tests/issues/duck-loop/`.
-  - Validate `per-task` and `manual` PR grouping behavior for every sprint.
+  - Validate `per-sprint` and `group` PR grouping behavior for every sprint.
   - Generate task-spec artifacts in `$AGENT_HOME/out/plan-issue-delivery-loop/` during validation.
 - Out of scope:
   - Any production logic changes outside `tests/issues/duck-loop/`.
@@ -24,20 +24,20 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
   - two tasks intended for shared-PR delivery.
 - All implementation artifacts are isolated under `tests/issues/duck-loop/`.
 - Sprint validation commands show:
-  - `per-task` mode yields unique `pr_group` values per task.
-  - `manual` mode can group two specified tasks into one `pr_group`.
+  - `per-sprint` mode yields one `pr_group` value per sprint.
+  - `group` mode can group two specified tasks into one `pr_group`.
 
 ## Sprint 1: Baseline fixture and grouping smoke
 **Goal**: Establish disposable test area and validate grouping behavior on first sprint tasks.
 **Demo/Validation**:
 - Command(s):
   - `plan-tooling validate --file docs/plans/duck-issue-loop-test-plan.md`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping per-task --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-task.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping manual --pr-group S1T3=s1-shared --pr-group S1T4=s1-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-manual.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-manual.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s1-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-per-sprint.tsv"`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 1 --pr-grouping group --pr-group S1T1=s1-single-1 --pr-group S1T2=s1-single-2 --pr-group S1T3=s1-shared --pr-group S1T4=s1-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-group.tsv"`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s1-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s1-shared\") == 2, groups\nprint(\"ok\")\nPY`
 - Verify:
   - Sprint 1 task-spec files exist under `$AGENT_HOME/out/plan-issue-delivery-loop/`.
-  - Manual grouping output contains exactly two tasks in `s1-shared`.
+  - Group-mode output contains exactly two tasks in `s1-shared`.
 **Parallelizable tasks**:
 - `Task 1.2` and `Task 1.3` can run in parallel after `Task 1.1`.
 - `Task 1.4` depends on `Task 1.3`.
@@ -99,15 +99,15 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
   - `rg -n 'depends-on: Task 1.3' tests/issues/duck-loop/sprint1/grouped-pr/task-b.md`
 
 ## Sprint 2: Repeatability with second fixture set
-**Goal**: Re-run the same two PR-delivery styles with a new sprint fixture set to verify repeatability across `next-sprint` orchestration.
+**Goal**: Re-run the same two PR-delivery styles with a new sprint fixture set to verify repeatability across explicit `accept-sprint` + `start-sprint` orchestration.
 **Demo/Validation**:
 - Command(s):
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping per-task --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-per-task.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping manual --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-manual.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-manual.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s2-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-per-sprint.tsv"`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 2 --pr-grouping group --pr-group S2T1=s2-single --pr-group S2T2=s2-shared --pr-group S2T3=s2-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group.tsv"`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s2-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s2-shared\") == 2, groups\nprint(\"ok\")\nPY`
 - Verify:
-  - Sprint 2 per-task output has one `pr_group` per task.
-  - Sprint 2 manual output groups exactly two tasks into `s2-shared`.
+  - Sprint 2 per-sprint output has one `pr_group` for the sprint.
+  - Sprint 2 group output groups exactly two tasks into `s2-shared`.
 **Parallelizable tasks**:
 - `Task 2.1` and `Task 2.2` can run in parallel.
 - `Task 2.3` depends on `Task 2.2`.
@@ -156,11 +156,11 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 **Goal**: Validate both PR styles one more time and prepare explicit cleanup metadata for post-test teardown.
 **Demo/Validation**:
 - Command(s):
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping per-task --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-per-task.tsv"`
-  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping manual --pr-group S3T2=s3-shared --pr-group S3T3=s3-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-manual.tsv"`
-  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-manual.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s3-shared\") == 2, groups\nprint(\"ok\")\nPY`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping per-sprint --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-per-sprint.tsv"`
+  - `skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh build-task-spec --plan docs/plans/duck-issue-loop-test-plan.md --sprint 3 --pr-grouping group --pr-group S3T1=s3-single --pr-group S3T2=s3-shared --pr-group S3T3=s3-shared --task-spec-out "$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group.tsv"`
+  - `python3 - <<'PY'\nimport csv\nfrom pathlib import Path\nrows=list(csv.reader(Path(\"$AGENT_HOME/out/plan-issue-delivery-loop/duck-s3-group.tsv\").open(), delimiter=\"\\t\"))\ndata=[r for r in rows if r and not r[0].startswith(\"#\")]\ngroups=[r[6] for r in data]\nassert groups.count(\"s3-shared\") == 2, groups\nprint(\"ok\")\nPY`
 - Verify:
-  - Sprint 3 manual spec groups the targeted two tasks.
+  - Sprint 3 group spec groups the targeted two tasks.
   - Cleanup manifest includes all sprint fixture paths.
 **Parallelizable tasks**:
 - `Task 3.1` and `Task 3.2` can run in parallel.
@@ -212,16 +212,16 @@ This plan creates disposable test deliverables under `tests/issues/duck-loop/` t
 - Unit:
   - Not applicable (fixture-content plan only).
 - Integration:
-  - For each sprint, run `build-task-spec` in `per-task` and `manual` modes and inspect `pr_group` column behavior.
+  - For each sprint, run `build-task-spec` in `per-sprint` and `group` modes and inspect `pr_group` column behavior.
   - Run `plan-tooling validate --file docs/plans/duck-issue-loop-test-plan.md` before orchestration.
 - E2E/manual:
-  - Execute `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`, and `next-sprint` using this plan.
+  - Execute the full flow in local dry-run mode: `start-plan --dry-run`, then `start-sprint/ready-sprint/accept-sprint --dry-run`, then `ready-plan --body-file <plan-issue-body> --dry-run`, and `close-plan --body-file <plan-issue-body> --dry-run`.
   - Confirm subagent dispatch hints include one isolated task and one shared group of two tasks in each sprint.
   - After final verification, remove `tests/issues/duck-loop/` in one command.
 
 ## Risks & gotchas
-- Manual grouping keys must match generated task IDs (`SxTy`) or plan task IDs exactly; mismatches fail command execution.
-- `per-task` mode intentionally never groups tasks; grouped scenario must use `manual` (or `auto` with strict dependency chain behavior).
+- Grouping keys must match generated task IDs (`SxTy`) or plan task IDs exactly; mismatches fail command execution.
+- `group` mode requires explicit `--pr-group` mappings for every task in scope.
 - If tasks are renumbered during plan edits, `--pr-group` mappings in run commands must be updated.
 - Fixture files are disposable by design; avoid using them as persistent docs or examples outside this test.
 - GitHub approval URL gates are required for acceptance/close operations and cannot be bypassed in normal flow.

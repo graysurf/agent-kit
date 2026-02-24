@@ -42,7 +42,7 @@ is_positive_int() {
 
 is_valid_pr_grouping() {
   case "${1:-}" in
-    per-task|manual|auto)
+    per-sprint|per-spring|group)
       return 0
       ;;
     *)
@@ -54,12 +54,13 @@ is_valid_pr_grouping() {
 validate_pr_grouping_args() {
   local mode="${1:-}"
   local mapping_count="${2:-0}"
-  is_valid_pr_grouping "$mode" || die "--pr-grouping must be one of: per-task, manual, auto"
-  if [[ "$mode" == "manual" && "$mapping_count" -eq 0 ]]; then
-    die "--pr-grouping manual requires at least one --pr-group <task-or-plan-id>=<group> entry"
+  [[ -n "$mode" ]] || die "--pr-grouping is required (per-sprint|group)"
+  is_valid_pr_grouping "$mode" || die "--pr-grouping must be one of: per-sprint, group"
+  if [[ "$mode" == "group" && "$mapping_count" -eq 0 ]]; then
+    die "--pr-grouping group requires at least one --pr-group <task-or-plan-id>=<group> entry"
   fi
-  if [[ "$mode" != "manual" && "$mapping_count" -gt 0 ]]; then
-    die "--pr-group can only be used when --pr-grouping manual"
+  if [[ "$mode" != "group" && "$mapping_count" -gt 0 ]]; then
+    die "--pr-group can only be used when --pr-grouping group"
   fi
 }
 
@@ -220,6 +221,10 @@ default_sprint_task_spec_path() {
     "$sprint"
 }
 
+default_dry_run_issue_number() {
+  printf 'DRY_RUN_PLAN_ISSUE\n'
+}
+
 issue_read_body_cmd() {
   local issue_number="${1:-}"
   local out_file="${2:-}"
@@ -240,14 +245,22 @@ cleanup_plan_issue_worktrees() {
   local issue_number="${1:-}"
   local repo_arg="${2:-}"
   local dry_run="${3:-0}"
-  [[ -n "$issue_number" ]] || die "--issue is required for worktree cleanup"
+  local body_file_override="${4:-}"
 
   require_cmd git
   require_cmd python3
 
   local body_file=''
-  body_file="$(mktemp)"
-  issue_read_body_cmd "$issue_number" "$body_file" "$repo_arg"
+  local cleanup_body_file='0'
+  if [[ -n "$body_file_override" ]]; then
+    [[ -f "$body_file_override" ]] || die "body file not found: $body_file_override"
+    body_file="$body_file_override"
+  else
+    [[ -n "$issue_number" ]] || die "--issue is required for worktree cleanup"
+    body_file="$(mktemp)"
+    cleanup_body_file='1'
+    issue_read_body_cmd "$issue_number" "$body_file" "$repo_arg"
+  fi
 
   set +e
   python3 - "$body_file" "$dry_run" <<'PY'
@@ -453,7 +466,9 @@ PY
   local cleanup_rc=$?
   set -e
 
-  rm -f "$body_file"
+  if [[ "$cleanup_body_file" == '1' ]]; then
+    rm -f "$body_file"
+  fi
   return "$cleanup_rc"
 }
 
@@ -579,7 +594,7 @@ render_task_spec_from_plan_scope() {
   local owner_prefix="${5:-subagent}"
   local branch_prefix="${6:-issue}"
   local worktree_prefix="${7:-issue__}"
-  local pr_grouping="${8:-per-task}"
+  local pr_grouping="${8:-}"
   local pr_group_entries="${9:-}"
 
   python3 - "$plan_file" "$scope_kind" "$scope_value" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_entries" <<'PY'
@@ -596,8 +611,10 @@ output_path = pathlib.Path(sys.argv[4])
 owner_prefix = sys.argv[5].strip() or "subagent"
 branch_prefix = sys.argv[6].strip() or "issue"
 worktree_prefix = sys.argv[7].strip() or "issue__"
-pr_grouping = sys.argv[8].strip() or "per-task"
+pr_grouping = sys.argv[8].strip()
 pr_group_entries_raw = sys.argv[9]
+if pr_grouping == "per-spring":
+    pr_grouping = "per-sprint"
 
 if not plan.is_file():
     raise SystemExit(f"error: plan file not found: {plan}")
@@ -605,7 +622,7 @@ if scope_kind not in {"plan", "sprint"}:
     raise SystemExit(f"error: unsupported scope_kind: {scope_kind}")
 if scope_kind == "sprint" and (not scope_value.isdigit() or int(scope_value) <= 0):
     raise SystemExit(f"error: sprint must be a positive integer (got: {scope_value})")
-if pr_grouping not in {"per-task", "manual", "auto"}:
+if pr_grouping not in {"per-sprint", "group"}:
     raise SystemExit(f"error: unsupported pr-grouping mode: {pr_grouping}")
 
 parsed = subprocess.run(
@@ -705,6 +722,7 @@ for sprint in selected:
             {
                 "task_id": task_id,
                 "plan_task_id": plan_task_id,
+                "sprint_num": sprint_num,
                 "summary": summary,
                 "branch": branch,
                 "worktree": worktree,
@@ -734,12 +752,12 @@ for raw_line in pr_group_entries_raw.splitlines():
     group_assignments[key] = group_key
     group_assignments[key.casefold()] = group_key
 
-if pr_grouping == "manual" and not group_assignments:
-    raise SystemExit("error: --pr-grouping manual requires at least one --pr-group entry")
-if pr_grouping != "manual" and group_assignments:
-    raise SystemExit("error: --pr-group can only be used when --pr-grouping manual")
+if pr_grouping == "group" and not group_assignments:
+    raise SystemExit("error: --pr-grouping group requires at least one --pr-group entry")
+if pr_grouping != "group" and group_assignments:
+    raise SystemExit("error: --pr-group can only be used when --pr-grouping group")
 
-if pr_grouping == "manual":
+if pr_grouping == "group":
     known_keys = set()
     for rec in task_records:
         known_keys.add(rec["task_id"].casefold())
@@ -750,36 +768,8 @@ if pr_grouping == "manual":
         preview = ", ".join(unknown[:5])
         raise SystemExit(f"error: --pr-group references unknown task keys: {preview}")
 
-if pr_grouping == "auto":
-    task_index = {}
-    for idx, rec in enumerate(task_records):
-        for key in (rec["task_id"], rec["plan_task_id"]):
-            if key:
-                task_index.setdefault(key.casefold(), idx)
-
-    deps_by_task = []
-    outgoing_counts = [0] * len(task_records)
-    for idx, rec in enumerate(task_records):
-        internal_deps = []
-        for dep in rec["dependencies"]:
-            dep_idx = task_index.get(dep.casefold())
-            if dep_idx is not None:
-                if dep_idx not in internal_deps:
-                    internal_deps.append(dep_idx)
-                    outgoing_counts[dep_idx] += 1
-        deps_by_task.append(internal_deps)
-
-    for idx, rec in enumerate(task_records):
-        group_key = ""
-        internal_deps = deps_by_task[idx]
-        # Auto mode only chains strictly sequential tasks to avoid
-        # collapsing fan-out branches that can still run in parallel.
-        if len(internal_deps) == 1:
-            dep_idx = internal_deps[0]
-            if dep_idx < idx and outgoing_counts[dep_idx] == 1:
-                group_key = task_records[dep_idx].get("pr_group", "")
-        rec["pr_group"] = group_key or normalize_group_key(rec["task_id"], f"group-{idx + 1}")
-elif pr_grouping == "manual":
+if pr_grouping == "group":
+    missing = []
     for idx, rec in enumerate(task_records):
         group_key = ""
         for key in (rec["task_id"], rec["plan_task_id"]):
@@ -788,10 +778,20 @@ elif pr_grouping == "manual":
             group_key = group_assignments.get(key) or group_assignments.get(key.casefold(), "")
             if group_key:
                 break
-        rec["pr_group"] = group_key or normalize_group_key(rec["task_id"], f"task-{idx + 1}")
+        if not group_key:
+            missing.append(rec["task_id"])
+            continue
+        rec["pr_group"] = group_key
+    if missing:
+        preview = ", ".join(missing[:8])
+        raise SystemExit(
+            "error: --pr-grouping group requires explicit mapping for every task; missing: "
+            + preview
+        )
 else:
-    for idx, rec in enumerate(task_records):
-        rec["pr_group"] = normalize_group_key(rec["task_id"], f"task-{idx + 1}")
+    for rec in task_records:
+        sprint_num = rec["sprint_num"]
+        rec["pr_group"] = normalize_group_key(f"s{sprint_num}", f"sprint-{sprint_num}")
 
 group_sizes = {}
 group_anchor = {}
@@ -806,6 +806,7 @@ lines = ["# task_id\tsummary\tbranch\tworktree\towner\tnotes\tpr_group"]
 
 for rec in task_records:
     notes_parts = list(rec["notes_parts"])
+    notes_parts.append(f"pr-grouping={pr_grouping}")
     notes_parts.append(f"pr-group={rec['pr_group']}")
     if group_sizes[rec["pr_group"]] > 1:
         notes_parts.append(f"shared-pr-anchor={group_anchor[rec['pr_group']]['task_id']}")
@@ -1047,6 +1048,15 @@ def normalize_pr_display(value: str) -> str:
     return token
 
 
+def extract_note_value(notes: str, key: str) -> str:
+    prefix = f"{key}="
+    for part in notes.split(";"):
+        token = part.strip()
+        if token.lower().startswith(prefix):
+            return token[len(prefix) :].strip()
+    return ""
+
+
 spec_rows: dict[str, dict[str, str]] = {}
 group_sizes: dict[str, int] = {}
 group_anchor: dict[str, dict[str, str]] = {}
@@ -1066,6 +1076,7 @@ with task_spec_path.open("r", encoding="utf-8") as handle:
         owner = raw[4].strip()
         notes = raw[5].strip()
         pr_group = raw[6].strip() or task_id
+        grouping_mode = extract_note_value(notes, "pr-grouping").lower()
         if not task_id:
             continue
         spec_rows[task_id] = {
@@ -1075,6 +1086,7 @@ with task_spec_path.open("r", encoding="utf-8") as handle:
             "owner": owner,
             "notes": notes,
             "pr_group": pr_group,
+            "grouping_mode": grouping_mode,
         }
         group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
         if pr_group not in group_anchor:
@@ -1115,8 +1127,16 @@ for idx in table_rows[2:]:
     spec = spec_rows.get(task_id)
     if spec is not None:
         pr_group = spec["pr_group"]
-        mode = "single-pr" if group_sizes.get(pr_group, 0) > 1 else "per-task"
-        execution_source = group_anchor.get(pr_group, spec) if mode == "single-pr" else spec
+        grouping_mode = spec.get("grouping_mode", "")
+        if grouping_mode == "per-sprint":
+            mode = "per-sprint"
+            execution_source = group_anchor.get(pr_group, spec)
+        elif grouping_mode == "group":
+            mode = "single-pr"
+            execution_source = group_anchor.get(pr_group, spec)
+        else:
+            mode = "single-pr"
+            execution_source = group_anchor.get(pr_group, spec)
 
         cells[header_index["Owner"]] = execution_source["owner"] or cells[header_index["Owner"]]
         cells[header_index["Branch"]] = f"`{execution_source['branch']}`"
@@ -1280,6 +1300,15 @@ def load_issue_pr_values(path: pathlib.Path | None) -> dict[str, str]:
         pr_map[task] = pr_value
     return pr_map
 
+
+def extract_note_value(notes: str, key: str) -> str:
+    prefix = f"{key}="
+    for part in notes.split(";"):
+        token = part.strip()
+        if token.lower().startswith(prefix):
+            return token[len(prefix) :].strip()
+    return ""
+
 rows = []
 with spec_path.open("r", encoding="utf-8") as handle:
     reader = csv.reader(handle, delimiter="\t")
@@ -1294,10 +1323,11 @@ with spec_path.open("r", encoding="utf-8") as handle:
         summary = raw[1].strip() if len(raw) >= 2 else ""
         pr_group = raw[6].strip() if len(raw) >= 7 else task_id
         notes = raw[5].strip() if len(raw) >= 6 else ""
-        rows.append((task_id, summary, pr_group or task_id, notes))
+        grouping_mode = extract_note_value(notes, "pr-grouping").lower()
+        rows.append((task_id, summary, pr_group or task_id, notes, grouping_mode))
 
 group_sizes = {}
-for _task_id, _summary, pr_group, _notes in rows:
+for _task_id, _summary, pr_group, _notes, _grouping_mode in rows:
     group_sizes[pr_group] = group_sizes.get(pr_group, 0) + 1
 issue_pr_values = load_issue_pr_values(issue_body_path)
 plan_path = pathlib.Path(plan_file)
@@ -1323,13 +1353,17 @@ if approval_url:
 print("")
 print("| Task | Summary | PR |")
 print("| --- | --- | --- |")
-for task_id, summary, pr_group, _notes in rows:
+for task_id, summary, pr_group, _notes, grouping_mode in rows:
     pr_value = normalize_pr_display(issue_pr_values.get(task_id, ""))
     if is_placeholder(pr_value):
-        if group_sizes.get(pr_group, 0) > 1:
+        if grouping_mode == "per-sprint":
+            pr_value = "TBD (per-sprint)"
+        elif grouping_mode == "group":
+            pr_value = f"TBD (group:{pr_group})"
+        elif group_sizes.get(pr_group, 0) > 1:
             pr_value = f"TBD (shared:{pr_group})"
         else:
-            pr_value = "TBD (per-task)"
+            pr_value = "TBD"
     print(f"| {task_id} | {summary or '-'} | {pr_value} |")
 
 if mode == "start":
@@ -1362,7 +1396,6 @@ Subcommands:
   start-sprint          Post sprint-start comment on the plan issue and emit subagent dispatch hints
   ready-sprint          Post sprint-ready comment on the plan issue (issue stays open)
   accept-sprint         Post sprint-accepted comment on the plan issue (issue stays open)
-  next-sprint           Record sprint acceptance, then start the next sprint on the same issue
   multi-sprint-guide    Print the full repeated command flow for a plan (1 plan = 1 issue)
 
 Main-agent role boundary:
@@ -1381,8 +1414,8 @@ build-task-spec options (sprint scope):
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
-  --pr-grouping <mode>           per-task (default) | manual | auto
-  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
+  --pr-grouping <mode>           per-sprint | group (required; `per-spring` alias accepted)
+  --pr-group <task=group>        Repeatable; group mode only; task can be SxTy or plan task id
 
 build-plan-task-spec options:
   --plan <path>                  Plan markdown path (required)
@@ -1390,8 +1423,8 @@ build-plan-task-spec options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
-  --pr-grouping <mode>           per-task (default) | manual | auto
-  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
+  --pr-grouping <mode>           per-sprint | group (required; `per-spring` alias accepted)
+  --pr-group <task=group>        Repeatable; group mode only; task can be SxTy or plan task id
 
 start-plan options:
   --plan <path>                  Plan markdown path (required)
@@ -1401,8 +1434,8 @@ start-plan options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
-  --pr-grouping <mode>           per-task (default) | manual | auto
-  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
+  --pr-grouping <mode>           per-sprint | group (required; `per-spring` alias accepted)
+  --pr-group <task=group>        Repeatable; group mode only; task can be SxTy or plan task id
   --label <name>                 Repeatable; default labels: issue, plan
 
 status-plan options:
@@ -1420,7 +1453,8 @@ ready-plan options:
   --no-label-update
 
 close-plan options:
-  --issue <number>               Plan issue number (required)
+  --issue <number>               Plan issue number (required unless --body-file in --dry-run mode)
+  --body-file <path>             Local issue body (dry-run only; no GitHub dependency)
   --approved-comment-url <url>   Final approval comment URL (required)
   --reason <completed|not planned>
   --comment <text> | --comment-file <path>
@@ -1440,30 +1474,17 @@ start-sprint / ready-sprint / accept-sprint options:
   --owner-prefix <text>          Default: subagent
   --branch-prefix <text>         Default: issue
   --worktree-prefix <text>       Default: issue__
-  --pr-grouping <mode>           per-task (default) | manual | auto
-  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
+  --pr-grouping <mode>           per-sprint | group (required; `per-spring` alias accepted)
+  --pr-group <task=group>        Repeatable; group mode only; task can be SxTy or plan task id
   --summary <text> | --summary-file <path>
   --comment | --no-comment       Default: comment when --issue is provided
   --approved-comment-url <url>   accept-sprint only (required)
-
-next-sprint options:
-  --plan <path>                  Plan markdown path (required)
-  --issue <number>               Plan issue number (required)
-  --current-sprint <number>      Current sprint number (required)
-  --approved-comment-url <url>   Current sprint approval comment URL (required)
-  --next-task-spec-out <path>    Optional next sprint task-spec output path
-  --owner-prefix <text>          Default: subagent
-  --branch-prefix <text>         Default: issue
-  --worktree-prefix <text>       Default: issue__
-  --pr-grouping <mode>           per-task (default) | manual | auto
-  --pr-group <task=group>        Repeatable; manual mode only; task can be SxTy or plan task id
-  --summary <text> | --summary-file <path>
-  --comment | --no-comment       Applies to sprint comments (default: comment)
 
 multi-sprint-guide options:
   --plan <path>                  Plan markdown path (required)
   --from-sprint <number>         Default: 1
   --to-sprint <number>           Default: max sprint in plan
+  --dry-run                      Print a local-only rehearsal flow (no GitHub calls)
 USAGE
 }
 
@@ -1474,7 +1495,7 @@ build_task_spec_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
 
   while [[ $# -gt 0 ]]; do
@@ -1557,7 +1578,7 @@ build_plan_task_spec_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
 
   while [[ $# -gt 0 ]]; do
@@ -1634,7 +1655,7 @@ start_plan_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
   local repo_arg=''
   local dry_run='0'
@@ -1736,10 +1757,21 @@ start_plan_cmd() {
   done
 
   local start_output issue_number
-  start_output="$(run_issue_delivery "$dry_run" "$repo_arg" "${start_args[@]}")"
+  if [[ "$dry_run" == '1' ]]; then
+    issue_number="$(default_dry_run_issue_number)"
+    start_output="$(join_lines \
+      "ISSUE_URL=DRY-RUN-ISSUE-URL" \
+      "ISSUE_NUMBER=${issue_number}" \
+      "TASK_SPEC_APPLIED=0")"
+  else
+    start_output="$(run_issue_delivery "$dry_run" "$repo_arg" "${start_args[@]}")"
+    issue_number="$(printf '%s\n' "$start_output" | awk -F= '/^ISSUE_NUMBER=/{print $2; exit}')"
+  fi
   printf '%s\n' "$start_output"
 
-  issue_number="$(printf '%s\n' "$start_output" | awk -F= '/^ISSUE_NUMBER=/{print $2; exit}')"
+  if [[ -z "$issue_number" ]]; then
+    issue_number="$(default_dry_run_issue_number)"
+  fi
   printf 'PLAN_FILE=%s\n' "$plan_file"
   printf 'PLAN_ISSUE_NUMBER=%s\n' "$issue_number"
   printf 'PLAN_TITLE=%s\n' "$plan_title"
@@ -1791,10 +1823,26 @@ ready_plan_cmd() {
   local repo_arg=''
   local dry_run='0'
   local passthrough=()
+  local issue_number=''
+  local body_file=''
+  local summary_text=''
+  local summary_file=''
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
       --issue|--body-file|--summary|--summary-file|--label|--remove-label)
+        if [[ "${1:-}" == "--issue" ]]; then
+          issue_number="${2:-}"
+        fi
+        if [[ "${1:-}" == "--body-file" ]]; then
+          body_file="${2:-}"
+        fi
+        if [[ "${1:-}" == "--summary" ]]; then
+          summary_text="${2:-}"
+        fi
+        if [[ "${1:-}" == "--summary-file" ]]; then
+          summary_file="${2:-}"
+        fi
         passthrough+=("${1:-}" "${2:-}")
         shift 2
         ;;
@@ -1820,6 +1868,25 @@ ready_plan_cmd() {
     esac
   done
 
+  if [[ "$dry_run" == '1' ]]; then
+    if [[ -n "$issue_number" && -n "$body_file" ]]; then
+      die "use either --issue or --body-file for ready-plan, not both"
+    fi
+    if [[ -z "$issue_number" && -z "$body_file" ]]; then
+      die "ready-plan requires --issue or --body-file"
+    fi
+    [[ -n "$body_file" ]] || die "--body-file is required for ready-plan --dry-run"
+    [[ -f "$body_file" ]] || die "body file not found: $body_file"
+    summary_text="$(read_optional_text "$summary_text" "$summary_file")"
+    printf 'READY_PLAN_STATUS=DRY_RUN\n'
+    printf 'READY_PLAN_SCOPE=LOCAL_BODY_FILE\n'
+    printf 'READY_PLAN_BODY_FILE=%s\n' "$body_file"
+    if [[ -n "$summary_text" ]]; then
+      printf 'READY_PLAN_SUMMARY=%s\n' "$summary_text"
+    fi
+    return 0
+  fi
+
   run_issue_delivery "$dry_run" "$repo_arg" ready-for-review "${passthrough[@]}"
 }
 
@@ -1828,12 +1895,20 @@ close_plan_cmd() {
   local dry_run='0'
   local passthrough=()
   local issue_number=''
+  local body_file=''
+  local approved_comment_url=''
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-      --issue|--approved-comment-url|--reason|--comment|--comment-file)
+      --issue|--body-file|--approved-comment-url|--reason|--comment|--comment-file)
         if [[ "${1:-}" == "--issue" ]]; then
           issue_number="${2:-}"
+        fi
+        if [[ "${1:-}" == "--body-file" ]]; then
+          body_file="${2:-}"
+        fi
+        if [[ "${1:-}" == "--approved-comment-url" ]]; then
+          approved_comment_url="${2:-}"
         fi
         passthrough+=("${1:-}" "${2:-}")
         shift 2
@@ -1860,12 +1935,25 @@ close_plan_cmd() {
     esac
   done
 
-  [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
-  run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
-  cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
+  [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for close-plan"
+  validate_approval_comment_url_format "$approved_comment_url" >/dev/null
+
+  if [[ -n "$issue_number" && -n "$body_file" ]]; then
+    die "use either --issue or --body-file for close-plan, not both"
+  fi
+
   if [[ "$dry_run" == '1' ]]; then
+    [[ -n "$body_file" ]] || die "--body-file is required for close-plan --dry-run"
+    [[ -f "$body_file" ]] || die "body file not found: $body_file"
+    cleanup_plan_issue_worktrees '' "$repo_arg" "$dry_run" "$body_file"
     printf 'PLAN_CLOSE_STATUS=DRY_RUN\n'
+    printf 'PLAN_CLOSE_SCOPE=LOCAL_BODY_FILE\n'
+    printf 'PLAN_CLOSE_BODY_FILE=%s\n' "$body_file"
   else
+    [[ -n "$issue_number" ]] || die "--issue is required for close-plan"
+    [[ -z "$body_file" ]] || die "--body-file is only supported with --dry-run"
+    run_issue_delivery "$dry_run" "$repo_arg" close-after-review "${passthrough[@]}"
+    cleanup_plan_issue_worktrees "$issue_number" "$repo_arg" "$dry_run"
     printf 'PLAN_CLOSE_STATUS=SUCCESS\n'
     printf 'PLAN_ISSUE_NUMBER=%s\n' "$issue_number"
     printf 'DONE_CRITERIA=ISSUE_CLOSED_AND_WORKTREES_CLEANED\n'
@@ -1913,7 +2001,7 @@ start_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
   local summary_text=''
   local summary_file=''
@@ -2015,7 +2103,17 @@ start_sprint_cmd() {
   render_task_spec_from_plan_scope "$plan_file" sprint "$sprint" "$task_spec_out" "$owner_prefix" "$branch_prefix" "$worktree_prefix" "$pr_grouping" "$pr_group_config" >/dev/null
 
   if [[ -z "$post_comment" ]]; then
-    post_comment='1'
+    if [[ "$dry_run" == '1' ]]; then
+      post_comment='0'
+    else
+      post_comment='1'
+    fi
+  fi
+
+  if (( sprint > 1 )); then
+    local previous_sprint
+    previous_sprint=$((sprint - 1))
+    printf 'TRANSITION=SPRINT_%s_TO_%s\n' "$previous_sprint" "$sprint"
   fi
 
   printf 'PLAN_FILE=%s\n' "$plan_file"
@@ -2058,7 +2156,7 @@ ready_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
   local summary_text=''
   local summary_file=''
@@ -2161,7 +2259,11 @@ ready_sprint_cmd() {
   sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
-    post_comment='1'
+    if [[ "$dry_run" == '1' ]]; then
+      post_comment='0'
+    else
+      post_comment='1'
+    fi
   fi
 
   local issue_body_file=''
@@ -2193,7 +2295,7 @@ accept_sprint_cmd() {
   local owner_prefix='subagent'
   local branch_prefix='issue'
   local worktree_prefix='issue__'
-  local pr_grouping='per-task'
+  local pr_grouping=''
   local pr_group_entries=()
   local summary_text=''
   local summary_file=''
@@ -2303,7 +2405,11 @@ accept_sprint_cmd() {
   sync_issue_sprint_task_rows "$issue_number" "$task_spec_out" "$repo_arg" "$dry_run"
 
   if [[ -z "$post_comment" ]]; then
-    post_comment='1'
+    if [[ "$dry_run" == '1' ]]; then
+      post_comment='0'
+    else
+      post_comment='1'
+    fi
   fi
 
   local issue_body_file=''
@@ -2329,186 +2435,11 @@ accept_sprint_cmd() {
   printf 'PLAN_ISSUE_REMAINS_OPEN=1\n'
 }
 
-next_sprint_cmd() {
-  local plan_file=''
-  local issue_number=''
-  local current_sprint=''
-  local approved_comment_url=''
-  local next_task_spec_out=''
-  local owner_prefix='subagent'
-  local branch_prefix='issue'
-  local worktree_prefix='issue__'
-  local pr_grouping='per-task'
-  local pr_group_entries=()
-  local summary_text=''
-  local summary_file=''
-  local post_comment=''
-  local repo_arg=''
-  local dry_run='0'
-
-  while [[ $# -gt 0 ]]; do
-    case "${1:-}" in
-      --plan)
-        plan_file="${2:-}"
-        shift 2
-        ;;
-      --issue)
-        issue_number="${2:-}"
-        shift 2
-        ;;
-      --current-sprint)
-        current_sprint="${2:-}"
-        shift 2
-        ;;
-      --approved-comment-url)
-        approved_comment_url="${2:-}"
-        shift 2
-        ;;
-      --next-task-spec-out)
-        next_task_spec_out="${2:-}"
-        shift 2
-        ;;
-      --owner-prefix)
-        owner_prefix="${2:-}"
-        shift 2
-        ;;
-      --branch-prefix)
-        branch_prefix="${2:-}"
-        shift 2
-        ;;
-      --worktree-prefix)
-        worktree_prefix="${2:-}"
-        shift 2
-        ;;
-      --pr-grouping)
-        pr_grouping="${2:-}"
-        shift 2
-        ;;
-      --pr-group)
-        pr_group_entries+=("${2:-}")
-        shift 2
-        ;;
-      --summary)
-        summary_text="${2:-}"
-        shift 2
-        ;;
-      --summary-file)
-        summary_file="${2:-}"
-        shift 2
-        ;;
-      --comment)
-        post_comment='1'
-        shift
-        ;;
-      --no-comment)
-        post_comment='0'
-        shift
-        ;;
-      --repo)
-        repo_arg="${2:-}"
-        shift 2
-        ;;
-      --dry-run)
-        dry_run='1'
-        shift
-        ;;
-      -h|--help)
-        usage
-        exit 0
-        ;;
-      *)
-        die "unknown option for next-sprint: $1"
-        ;;
-    esac
-  done
-
-  [[ -n "$plan_file" ]] || die "--plan is required for next-sprint"
-  [[ -n "$issue_number" ]] || die "--issue is required for next-sprint"
-  [[ -n "$current_sprint" ]] || die "--current-sprint is required for next-sprint"
-  [[ -n "$approved_comment_url" ]] || die "--approved-comment-url is required for next-sprint"
-  is_positive_int "$current_sprint" || die "--current-sprint must be a positive integer"
-  validate_pr_grouping_args "$pr_grouping" "${#pr_group_entries[@]}"
-  summary_text="$(read_optional_text "$summary_text" "$summary_file")"
-
-  validate_plan "$plan_file"
-
-  local comment_flag='--comment'
-  if [[ "$post_comment" == '0' ]]; then
-    comment_flag='--no-comment'
-  fi
-
-  local accept_cmd=(
-    "$0"
-    accept-sprint
-    --plan "$plan_file"
-    --issue "$issue_number"
-    --sprint "$current_sprint"
-    --approved-comment-url "$approved_comment_url"
-    --owner-prefix "$owner_prefix"
-    --branch-prefix "$branch_prefix"
-    --worktree-prefix "$worktree_prefix"
-    --pr-grouping "$pr_grouping"
-    "$comment_flag"
-  )
-  local pr_group_entry=''
-  for pr_group_entry in "${pr_group_entries[@]}"; do
-    accept_cmd+=(--pr-group "$pr_group_entry")
-  done
-  if [[ -n "$summary_text" ]]; then
-    accept_cmd+=(--summary "$summary_text")
-  fi
-  if [[ -n "$repo_arg" ]]; then
-    accept_cmd+=(--repo "$repo_arg")
-  fi
-  if [[ "$dry_run" == '1' ]]; then
-    accept_cmd+=(--dry-run)
-  fi
-
-  "${accept_cmd[@]}"
-
-  local next_sprint
-  next_sprint=$((current_sprint + 1))
-
-  local next_meta next_name next_task_count max_sprint
-  next_meta="$(plan_sprint_meta_tsv "$plan_file" "$next_sprint")"
-  IFS=$'\t' read -r next_name next_task_count max_sprint <<<"$next_meta"
-  [[ "$next_task_count" -gt 0 ]] || die "next sprint ${next_sprint} has no tasks"
-
-  printf 'TRANSITION=SPRINT_%s_TO_%s\n' "$current_sprint" "$next_sprint"
-  printf 'PLAN_ISSUE_NUMBER=%s\n' "$issue_number"
-
-  local start_cmd=(
-    "$0"
-    start-sprint
-    --plan "$plan_file"
-    --issue "$issue_number"
-    --sprint "$next_sprint"
-    --owner-prefix "$owner_prefix"
-    --branch-prefix "$branch_prefix"
-    --worktree-prefix "$worktree_prefix"
-    --pr-grouping "$pr_grouping"
-    "$comment_flag"
-  )
-  for pr_group_entry in "${pr_group_entries[@]}"; do
-    start_cmd+=(--pr-group "$pr_group_entry")
-  done
-  if [[ -n "$next_task_spec_out" ]]; then
-    start_cmd+=(--task-spec-out "$next_task_spec_out")
-  fi
-  if [[ -n "$repo_arg" ]]; then
-    start_cmd+=(--repo "$repo_arg")
-  fi
-  if [[ "$dry_run" == '1' ]]; then
-    start_cmd+=(--dry-run)
-  fi
-
-  "${start_cmd[@]}"
-}
-
 multi_sprint_guide_cmd() {
   local plan_file=''
   local from_sprint='1'
   local to_sprint=''
+  local guide_dry_run='0'
 
   while [[ $# -gt 0 ]]; do
     case "${1:-}" in
@@ -2523,6 +2454,10 @@ multi_sprint_guide_cmd() {
       --to-sprint)
         to_sprint="${2:-}"
         shift 2
+        ;;
+      --dry-run)
+        guide_dry_run='1'
+        shift
         ;;
       -h|--help)
         usage
@@ -2550,25 +2485,66 @@ multi_sprint_guide_cmd() {
     die "--from-sprint must be <= --to-sprint"
   fi
 
+  local dry_run_issue_number=''
+  local dry_run_issue_body=''
+  if [[ "$guide_dry_run" == '1' ]]; then
+    dry_run_issue_number="$(default_dry_run_issue_number)"
+    dry_run_issue_body="$(default_plan_issue_body_path "$plan_file")"
+  fi
+
   printf 'MULTI_SPRINT_GUIDE_BEGIN\n'
   printf 'DESIGN=ONE_PLAN_ONE_ISSUE\n'
+  if [[ "$guide_dry_run" == '1' ]]; then
+    printf 'MODE=DRY_RUN_LOCAL\n'
+  else
+    printf 'MODE=LIVE\n'
+  fi
   printf 'PLAN_FILE=%s\n' "$plan_file"
   printf 'PLAN_TITLE=%s\n' "$plan_title"
   printf 'FROM_SPRINT=%s\n' "$from_sprint"
   printf 'TO_SPRINT=%s\n' "$to_sprint"
-  printf 'STEP_1=%s\n' "$(print_cmd "$0" start-plan --plan "$plan_file" --repo "<owner/repo>")"
-  printf 'STEP_2=%s\n' "$(print_cmd "$0" start-sprint --plan "$plan_file" --issue "<plan-issue>" --sprint "$from_sprint" --repo "<owner/repo>")"
+  if [[ "$guide_dry_run" == '1' ]]; then
+    printf 'DRY_RUN_PLAN_ISSUE=%s\n' "$dry_run_issue_number"
+    printf 'DRY_RUN_ISSUE_BODY=%s\n' "$dry_run_issue_body"
+    printf 'STEP_1=%s\n' "$(print_cmd "$0" start-plan --plan "$plan_file" --pr-grouping "<per-sprint|group>" --dry-run)"
+    printf 'STEP_2=%s\n' "$(print_cmd "$0" start-sprint --plan "$plan_file" --issue "$dry_run_issue_number" --sprint "$from_sprint" --pr-grouping "<per-sprint|group>" --no-comment --dry-run)"
+  else
+    printf 'STEP_1=%s\n' "$(print_cmd "$0" start-plan --plan "$plan_file" --pr-grouping "<per-sprint|group>" --repo "<owner/repo>")"
+    printf 'STEP_2=%s\n' "$(print_cmd "$0" start-sprint --plan "$plan_file" --issue "<plan-issue>" --sprint "$from_sprint" --pr-grouping "<per-sprint|group>" --repo "<owner/repo>")"
+  fi
 
   local step_index=3
   local sprint=''
   for (( sprint=from_sprint; sprint<to_sprint; sprint++ )); do
-    printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" next-sprint --plan "$plan_file" --issue "<plan-issue>" --current-sprint "$sprint" --approved-comment-url "<approval-comment-url-sprint-${sprint}>" --repo "<owner/repo>")"
+    local next_sprint
+    next_sprint=$((sprint + 1))
+    if [[ "$guide_dry_run" == '1' ]]; then
+      printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" accept-sprint --plan "$plan_file" --issue "$dry_run_issue_number" --sprint "$sprint" --approved-comment-url "<approval-comment-url-sprint-${sprint}>" --pr-grouping "<per-sprint|group>" --no-comment --dry-run)"
+    else
+      printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" accept-sprint --plan "$plan_file" --issue "<plan-issue>" --sprint "$sprint" --approved-comment-url "<approval-comment-url-sprint-${sprint}>" --pr-grouping "<per-sprint|group>" --repo "<owner/repo>")"
+    fi
+    step_index=$((step_index + 1))
+    if [[ "$guide_dry_run" == '1' ]]; then
+      printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" start-sprint --plan "$plan_file" --issue "$dry_run_issue_number" --sprint "$next_sprint" --pr-grouping "<per-sprint|group>" --no-comment --dry-run)"
+    else
+      printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" start-sprint --plan "$plan_file" --issue "<plan-issue>" --sprint "$next_sprint" --pr-grouping "<per-sprint|group>" --repo "<owner/repo>")"
+    fi
     step_index=$((step_index + 1))
   done
 
-  printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" ready-plan --issue "<plan-issue>" --summary "Final plan review" --repo "<owner/repo>")"
+  if [[ "$guide_dry_run" == '1' ]]; then
+    printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" ready-plan --body-file "$dry_run_issue_body" --summary "Final plan review" --no-comment --no-label-update --dry-run)"
+  else
+    printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" ready-plan --issue "<plan-issue>" --summary "Final plan review" --repo "<owner/repo>")"
+  fi
   step_index=$((step_index + 1))
-  printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" close-plan --issue "<plan-issue>" --approved-comment-url "<final-plan-approval-comment-url>" --repo "<owner/repo>")"
+  if [[ "$guide_dry_run" == '1' ]]; then
+    printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" close-plan --body-file "$dry_run_issue_body" --approved-comment-url "<final-plan-approval-comment-url>" --dry-run)"
+    printf 'NOTE_DRY_RUN=%s\n' "Dry-run guide is local-only and does not call GitHub."
+  else
+    printf 'STEP_%s=%s\n' "$step_index" "$(print_cmd "$0" close-plan --issue "<plan-issue>" --approved-comment-url "<final-plan-approval-comment-url>" --repo "<owner/repo>")"
+  fi
+  printf 'NOTE_GROUP_MODE=%s\n' "When using --pr-grouping group, pass --pr-group for every task in the selected scope."
   printf 'MULTI_SPRINT_GUIDE_END\n'
 }
 
@@ -2611,9 +2587,6 @@ case "$subcommand" in
     ;;
   accept-sprint)
     accept_sprint_cmd "$@"
-    ;;
-  next-sprint)
-    next_sprint_cmd "$@"
     ;;
   multi-sprint-guide)
     multi_sprint_guide_cmd "$@"

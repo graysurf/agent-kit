@@ -25,9 +25,14 @@ Inputs:
   - sprint acceptance record comments
   - final plan issue close gate
 - Optional repository override (`--repo <owner/repo>`).
-- Optional PR grouping controls:
-  - `--pr-grouping per-task|manual|auto` (default: `per-task`)
-  - `--pr-group <task-or-plan-id>=<group>` (repeatable; for `manual`)
+- Local rehearsal mode (`--dry-run`) for full flow testing without GitHub API calls:
+  - `start-plan` emits a synthetic plan-issue token (`DRY_RUN_PLAN_ISSUE`).
+  - sprint commands default to no comment posting in dry-run.
+  - `ready-plan` should use `--body-file`.
+  - `close-plan --dry-run` requires `--body-file`.
+- Required PR grouping controls (no defaults):
+  - `--pr-grouping per-sprint|group` (`per-spring` alias accepted)
+  - `--pr-group <task-or-plan-id>=<group>` (repeatable; required for `group`, and must cover every task in scope)
 
 Outputs:
 
@@ -42,6 +47,7 @@ Outputs:
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 - `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
+- `multi-sprint-guide --dry-run` emits a local-only command sequence that avoids GitHub calls.
 - Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed, and worktree cleanup passes.
 - Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
 
@@ -54,7 +60,7 @@ Exit codes:
 Failure modes:
 
 - Plan file missing, sprint missing, or selected sprint has zero tasks.
-- Required commands missing (`plan-tooling`, `python3`, `gh` via delegated scripts).
+- Required commands missing (`plan-tooling`, `python3`; `gh` required for live GitHub mode).
 - Approval URL invalid.
 - Final plan close gate fails (task status/PR merge not satisfied).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
@@ -72,7 +78,7 @@ Failure modes:
    - `start-sprint`: generate sprint task TSV, sync sprint task rows in issue body, post sprint-start comment, emit subagent dispatch hints (supports grouped PR dispatch).
    - `ready-sprint`: post sprint-ready comment for sprint-level review/acceptance on the same issue.
    - `accept-sprint`: record sprint acceptance (comment only); plan issue remains open.
-   - `next-sprint`: record current sprint acceptance and immediately start the next sprint on the same issue.
+   - If another sprint exists, run `start-sprint` for the next sprint on the same issue.
 3. Plan close (one-time)
    - `ready-plan`: request final plan review using issue-delivery-loop review helper.
    - `close-plan`: run the plan-level close gate, close the single plan issue, and enforce task worktree cleanup.
@@ -95,7 +101,7 @@ Failure modes:
 2. Run `start-plan` to open exactly one GitHub issue for the whole plan (`1 plan = 1 issue`).
 3. Run `start-sprint` for Sprint 1 on that same issue:
    - main-agent posts sprint kickoff comment
-   - main-agent chooses PR grouping (`per-task`, `manual`, `auto`) and emits dispatch hints
+   - main-agent chooses PR grouping (`per-sprint` or `group`) and emits dispatch hints
    - subagents create worktrees/PRs and implement tasks
 4. While sprint work is active, keep issue task rows + PR links traceable:
    - sprint row metadata is synced from task-spec by sprint commands
@@ -104,7 +110,7 @@ Failure modes:
    - optionally run `status-plan` for snapshots
 5. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request comment.
 6. After sprint acceptance is confirmed, run `accept-sprint` to record the approval comment URL on the plan issue (issue stays open).
-7. If another sprint exists, run `next-sprint` (which records current sprint acceptance and starts the next sprint on the same issue), then repeat steps 3-6.
+7. If another sprint exists, run `start-sprint` for the next sprint on the same issue, then repeat steps 4-6.
 8. After the final sprint is implemented and accepted, run `ready-plan` for the final plan-level review.
 9. Run `close-plan` with the final approval comment URL to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees.
 

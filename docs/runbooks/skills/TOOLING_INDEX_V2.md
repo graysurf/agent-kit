@@ -52,5 +52,5 @@ For create/validate/remove workflows, see `skills/tools/skill-management/README.
 
 - End-to-end orchestration (`start` / `status` / `ready-for-review` / `close-after-review`):
   - `$AGENT_HOME/skills/automation/issue-delivery-loop/scripts/manage_issue_delivery_loop.sh`
-- Plan-driven sprint orchestration (`start-plan` / `start-sprint` / `ready-sprint` / `accept-sprint` / `next-sprint` / `ready-plan` / `close-plan`):
+- Plan-driven sprint orchestration (`start-plan` / `start-sprint` / `ready-sprint` / `accept-sprint` / `ready-plan` / `close-plan`):
   - `$AGENT_HOME/skills/automation/plan-issue-delivery-loop/scripts/plan-issue-delivery-loop.sh`

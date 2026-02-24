@@ -42,7 +42,7 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "build-plan-task-spec" in text
     assert "start-sprint" in text
     assert "accept-sprint" in text
-    assert "next-sprint" in text
+    assert "next-sprint" not in text
     assert "multi-sprint-guide" in text
     assert "cleanup-worktrees" in text
     assert "close-after-review" in text
@@ -52,11 +52,19 @@ def test_plan_issue_delivery_loop_script_supports_sprint_progression_flow() -> N
     assert "validate_pr_grouping_args" in text
     assert "--pr-grouping <mode>" in text
     assert "--pr-group <task=group>" in text
+    assert "per-sprint | group (required; `per-spring` alias accepted)" in text
+    assert "--pr-grouping is required (per-sprint|group)" in text
+    assert "per-task (default)" not in text
+    assert "--pr-grouping manual" not in text
+    assert "--pr-grouping auto" not in text
     assert "PR_GROUP=" in text
     assert "OPEN_PR_CMD=SHARED_WITH_GROUP" in text
     assert "sync_issue_sprint_task_rows" in text
     assert "PR values come from current Task Decomposition" in text
     assert "group_anchor" in text
+    assert "MODE=DRY_RUN_LOCAL" in text
+    assert "NOTE_DRY_RUN=" in text
+    assert "default_dry_run_issue_number" in text
 
 
 def test_plan_issue_delivery_loop_close_plan_enforces_worktree_cleanup() -> None:
@@ -64,6 +72,8 @@ def test_plan_issue_delivery_loop_close_plan_enforces_worktree_cleanup() -> None
     text = (skill_root / "scripts" / "plan-issue-delivery-loop.sh").read_text(encoding="utf-8")
     assert "cleanup_plan_issue_worktrees" in text
     assert "--issue is required for close-plan" in text
+    assert "--body-file is required for close-plan --dry-run" in text
+    assert "PLAN_CLOSE_SCOPE=LOCAL_BODY_FILE" in text
     assert "close-plan always runs strict worktree cleanup" in text
     assert "WORKTREE_CLEANUP_STATUS=PASS" in text
     assert "PLAN_CLOSE_STATUS=SUCCESS" in text
