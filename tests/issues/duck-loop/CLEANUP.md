@@ -8,5 +8,5 @@ To remove all duck-loop fixtures, run:
 This includes profile directories such as:
 
 - `tests/issues/duck-loop/sprint1/per-sprint/`
-- `tests/issues/duck-loop/group-shared/`
-- `tests/issues/duck-loop/group-isolated/`
+- `tests/issues/duck-loop/sprint2/group-shared/`
+- `tests/issues/duck-loop/sprint3/group-isolated/`
