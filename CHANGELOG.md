@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.1 - 2026-02-26
+
+### Changed
+- `plan-issue-delivery-loop` release flow now uses `ready-plan --no-label-update` to avoid review label mutation.
+- Removed disposable lifecycle fixtures under `tests/issues/duck-lifecycle/` after loop validation completion.
+
 ## v2.3.0 - 2026-02-25
 
 ### Added
