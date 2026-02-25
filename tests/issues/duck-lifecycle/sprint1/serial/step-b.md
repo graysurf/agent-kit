@@ -1,5 +1,7 @@
 # Sprint 1 Serial Fixture: Step B
 
+issue: 175
+sprint: 1
 topology: serial
 step: B
 task: Task 1.3
