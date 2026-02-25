@@ -31,6 +31,7 @@ def test_issue_delivery_loop_skill_uses_binary_first_command_contract() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "plan-issue" in text
     assert "plan-issue-local" in text
+    assert "link-pr" in text
     assert "status-plan" in text
     assert "ready-plan" in text
     assert "close-plan" in text

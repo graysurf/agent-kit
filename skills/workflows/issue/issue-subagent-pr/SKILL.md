@@ -108,7 +108,10 @@ Failure modes:
        --body "Task ${TASK_ID} in progress by subagent. Branch: \`${BRANCH}\`. Worktree: \`${WORKTREE}\`. PR: #${PR_NUMBER}. Review response: ${REVIEW_COMMENT_URL}"
      ```
 6. Optional plan-issue artifact sync note:
-   - Keep Task Decomposition row fields (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`) aligned with actual execution facts; use canonical PR references like `#${PR_NUMBER}` so `plan-issue status-plan` / `ready-plan` snapshots remain consistent.
+   - In plan-issue flows, prefer main-agent `link-pr` updates over manual markdown edits:
+     - `plan-issue link-pr --issue "$ISSUE" --task "$TASK_ID" --pr "#${PR_NUMBER}" --status in-progress`
+   - Subagent should include exact task selector + PR number in handoff comments so main-agent can run `link-pr` deterministically.
+   - Keep Task Decomposition row fields (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`) aligned with actual execution facts so `plan-issue status-plan` / `ready-plan` snapshots remain consistent.
 
 ## References
 

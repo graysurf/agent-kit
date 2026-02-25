@@ -24,12 +24,13 @@ Inputs:
   - sprint acceptance record comments
   - final plan issue close gate
 - Optional repository override (`--repo <owner/repo>`) in live mode.
-- Typed subcommands: `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`, `ready-plan`, `close-plan`.
+- Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
 - Typed local rehearsal behavior:
   - `plan-issue-local` runs without GitHub API usage for local sprint orchestration rehearsal.
   - `plan-issue --dry-run` provides live-binary rehearsal behavior without mutating GitHub.
   - local rehearsal for sprint commands still requires `--issue <number>` input; use a local placeholder number (for example `999`) when no live issue exists.
   - sprint commands default to no comment posting during dry-run/local rehearsal.
+  - `link-pr` supports `--issue` (live) or `--body-file` (offline); for local rehearsal, use `--body-file` (and typically `--dry-run`).
   - `ready-plan` requires one of `--issue` or `--body-file`; dry-run/local rehearsal should use `--body-file <path>`.
   - `close-plan` requires `--approved-comment-url`; dry-run/local rehearsal also requires `--body-file <path>`.
 - Required PR grouping controls:
@@ -45,9 +46,14 @@ Outputs:
 - Plan-scoped task-spec TSV generated from all plan tasks (all sprints) for one issue.
 - Sprint-scoped task-spec TSV generated per sprint for subagent dispatch hints, including `pr_group`.
 - Sprint-scoped rendered subagent prompt files + a prompt manifest (`task_id -> prompt_path -> execution_mode`) generated at `start-sprint`.
+- `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata (`Owner/Branch/Worktree/Notes`).
 - Live mode (`plan-issue`) creates/updates exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
 - Local rehearsal (`plan-issue-local` or `plan-issue --dry-run`) emits equivalent orchestration artifacts without GitHub mutations.
-- `start-sprint`/`ready-sprint`/`accept-sprint` sync sprint task rows (`Owner/Branch/Worktree/Execution Mode/Notes`) from the sprint task-spec.
+- `## Task Decomposition` remains runtime-truth for execution lanes; `start-sprint` validates drift against plan-derived lane metadata before emitting artifacts.
+- Sprint task-spec/prompts are derived artifacts from runtime-truth rows (not a second execution source of truth).
+- `link-pr` normalizes PR references to canonical `#<number>` and updates task `PR`/`Status` fields.
+- `link-pr --task <task-id>` auto-syncs all rows in the same runtime lane (`per-sprint`/`pr-shared`) to keep shared-lane PR/state consistent.
+- `link-pr --sprint <n>` must resolve to a single runtime lane; use `--pr-group <group>` when sprint `n` has multiple shared lanes.
 - `accept-sprint` additionally enforces sprint PRs are merged and syncs sprint task `Status` to `done` in live mode.
 - `start-sprint` for sprint `N>1` is blocked until sprint `N-1` is merged and all its task rows are `done`.
 - PR references in sprint comments and review tables use canonical `#<number>` format.
@@ -71,6 +77,8 @@ Failure modes:
 - Plan file missing, sprint missing, or selected sprint has zero tasks.
 - Required commands missing (`plan-tooling`, `plan-issue`, `plan-issue-local`; `gh` only required for live GitHub mode).
 - Typed argument validation fails (unknown subcommand, invalid flag, malformed `--pr-group`, invalid `--pr-grouping`).
+- `link-pr` PR selector invalid (`--pr` must resolve to a concrete PR number).
+- `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
 - Dry-run/local `ready-plan` invoked without `--issue` or `--body-file`.
 - Dry-run/local `close-plan` invoked without required `--approved-comment-url` and `--body-file`.
@@ -90,7 +98,8 @@ Failure modes:
 3. Plan issue bootstrap (one-time):
    - `start-plan`: parse the full plan, generate one task decomposition covering all sprints, and open one plan issue in live mode.
 4. Sprint execution loop (repeat on the same plan issue):
-   - `start-sprint`: generate sprint task TSV, render per-task subagent prompts, sync sprint task rows in issue body, post sprint-start comment in live mode, and emit subagent dispatch hints (supports grouped PR dispatch). For sprint `N>1`, this command requires sprint `N-1` merged+done gate to pass first.
+   - `start-sprint`: validate runtime-truth sprint rows against plan-derived lane metadata, generate sprint task TSV, render per-task subagent prompts, post sprint-start comment in live mode, and emit subagent dispatch hints (supports grouped PR dispatch). For sprint `N>1`, this command requires sprint `N-1` merged+done gate to pass first.
+   - As subagent PRs open, use `link-pr` to record PR references and runtime task status (`planned|in-progress|blocked`).
    - `ready-sprint`: post sprint-ready comment in live mode to request main-agent review before merge.
    - After review approval, merge sprint PRs.
    - `accept-sprint`: validate sprint PRs are merged, sync sprint task statuses to `done`, and record sprint acceptance comment on the same issue in live mode (issue stays open).
@@ -142,18 +151,19 @@ Failure modes:
    - main-agent chooses PR grouping + strategy (`per-sprint`, `group + auto`, or `group + deterministic`) and emits dispatch hints
    - main-agent starts subagents using rendered `TASK_PROMPT_PATH` prompt artifacts from dispatch hints
    - subagents create worktrees/PRs and implement tasks
-6. While sprint work is active, keep issue task rows + PR links traceable:
-   - sprint row metadata is synced from task-spec by sprint commands
-   - unresolved PRs remain `TBD`
-   - linked PRs should be recorded as `#<number>`
-7. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
-8. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
-9. Run `accept-sprint` with the approval comment URL in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
-10. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
-11. After the final sprint is implemented and accepted, run `ready-plan` for final review:
+6. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
+   - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
+   - sprint scope: `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
+   - `--task` auto-syncs shared lanes; `--sprint` without `--pr-group` is valid only when the sprint target resolves to one runtime lane.
+7. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
+8. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
+9. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
+10. Run `accept-sprint` with the approval comment URL in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
+11. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
+12. After the final sprint is implemented and accepted, run `ready-plan` for final review:
    - live mode: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
    - dry-run/local rehearsal: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md>`
-12. Run `close-plan` with the final approval comment URL in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
+13. Run `close-plan` with the final approval comment URL in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
    - live mode: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
    - dry-run/local rehearsal: `plan-issue close-plan --dry-run --approved-comment-url <comment-url> --body-file <close-plan-comment.md>`
 
@@ -163,6 +173,9 @@ Failure modes:
    - Validate: `plan-tooling validate --file <plan.md>`
    - Start plan: `plan-issue start-plan --plan <plan.md> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
    - Start sprint: `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
+   - Link PR (task scope): `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
+   - Link PR (sprint lane scope): `plan-issue link-pr --issue <number> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
+   - Status checkpoint (optional): `plan-issue status-plan --issue <number> [--repo <owner/repo>]`
    - Ready sprint: `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
    - Accept sprint: `plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> --approved-comment-url <comment-url> [--pr-group <task-id>=<group> ...] [--repo <owner/repo>]`
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
@@ -171,6 +184,9 @@ Failure modes:
   - Validate: `plan-tooling validate --file <plan.md>`
   - Start plan: `plan-issue-local start-plan --plan <plan.md> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...]`
   - Start sprint: `plan-issue-local start-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...]`
+  - Link PR (task scope): `plan-issue-local link-pr --body-file <issue-body.md> --task <task-id> --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run`
+  - Link PR (sprint lane scope): `plan-issue-local link-pr --body-file <issue-body.md> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run`
+  - Status checkpoint (optional): `plan-issue-local status-plan --body-file <issue-body.md> --dry-run`
   - Ready sprint: `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> [--pr-group <task-id>=<group> ...]`
   - Accept sprint: `plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping <per-sprint|group> --strategy <auto|deterministic> --approved-comment-url <comment-url> [--pr-group <task-id>=<group> ...]`
 3. Plan-level local/offline rehearsal (`plan-issue --dry-run`)

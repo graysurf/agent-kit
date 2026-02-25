@@ -40,10 +40,20 @@ def test_plan_issue_delivery_loop_skill_uses_binary_first_command_contract() -> 
     assert "plan-issue-local" in text
     assert "start-plan" in text
     assert "start-sprint" in text
+    assert "link-pr" in text
+    assert "status-plan" in text
     assert "ready-sprint" in text
     assert "accept-sprint" in text
     assert "ready-plan" in text
     assert "close-plan" in text
+
+
+def test_plan_issue_delivery_loop_skill_mentions_split_prs_v2_runtime_ownership() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "split-prs" in text
+    assert "grouping primitives only" in text
+    assert "materializes runtime metadata" in text
 
 
 def test_plan_issue_delivery_loop_skill_excludes_deleted_wrapper_scripts() -> None:
