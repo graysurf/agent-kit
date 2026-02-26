@@ -17,6 +17,8 @@ def test_issue_subagent_pr_skill_mentions_worktree_isolation() -> None:
     assert "Subagent" in text
     assert "Task Decomposition" in text
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
+    assert "SUBAGENT_INIT_SNAPSHOT_PATH" in text
+    assert "DISPATCH_RECORD_PATH" in text
 
 
 def test_issue_subagent_pr_skill_requires_native_git_gh_commands() -> None:
