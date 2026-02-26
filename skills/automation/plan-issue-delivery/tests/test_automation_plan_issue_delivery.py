@@ -130,3 +130,22 @@ def test_e2e_sprint1_fixture_enforces_artifact_tokens_and_canonical_pr_markers()
 
     assert "#101" in seen_pr_tokens, "Sprint 1 fixture lost canonical PR marker #101."
     assert "#102" in seen_pr_tokens, "Sprint 1 fixture lost canonical PR marker #102."
+
+
+def test_plan_issue_delivery_e2e_sprint2_invariants() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    fixture = repo_root / "tests" / "fixtures" / "issue" / "plan_issue_delivery_e2e_sprint2.md"
+    text = fixture.read_text(encoding="utf-8")
+
+    assert "## Task Decomposition" in text, "Sprint 2 fixture must define Task Decomposition rows."
+    assert "pr-shared" in text, "Sprint 2 fixture must include explicit shared-lane markers."
+
+    for pr_token in ("#201", "#202"):
+        assert pr_token in text, f"Sprint 2 fixture must include canonical PR token {pr_token}."
+
+    task_rows = [line for line in text.splitlines() if line.startswith("| S2T")]
+    assert task_rows, "Sprint 2 fixture must include Sprint 2 task rows."
+    for row in task_rows:
+        assert "| done |" in row, f"Sprint 2 row must remain done-state for acceptance gates: {row}"
+        assert re.search(r"\\| #\\d+ \\|", row), f"Sprint 2 row must use canonical PR marker: {row}"
+        assert "github.com/" not in row, f"Sprint 2 row must avoid raw URL-only PR references: {row}"
