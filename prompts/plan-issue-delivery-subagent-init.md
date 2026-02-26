@@ -25,6 +25,13 @@ Execution context (fill before run)
 - PR grouping mode: <per-sprint|group>
 - PR group (if grouped): <GROUP_NAME or N/A>
 
+Required inputs from main-agent (must be attached)
+- Rendered task prompt artifact (`TASK_PROMPT_PATH`) from `start-sprint`.
+- Plan task context for assigned IDs:
+  - exact task section snippet and/or
+  - direct link/path to the source plan task section.
+- If either item is missing, stop and request the missing context before implementation.
+
 Delivery requirements
 1) Keep changes within assigned task scope; escalate before widening scope.
 2) Run relevant tests for impacted areas and capture results.

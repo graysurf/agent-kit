@@ -24,6 +24,10 @@ Inputs:
 - Approval URL format for both gates: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
+- Mandatory subagent dispatch bundle:
+  - rendered `TASK_PROMPT_PATH` from `start-sprint`
+  - `prompts/plan-issue-delivery-subagent-init.md`
+  - plan task context per assignment (exact plan task section snippet and/or direct plan section link/path)
 - Local rehearsal policy:
   - Default execution path is live mode (`plan-issue`) in this main skill.
   - If the user explicitly requests rehearsal, load `references/LOCAL_REHEARSAL.md` and run that playbook.
@@ -49,7 +53,11 @@ Outputs:
 - Sprint start comments may still show `TBD` PR placeholders until subagents open PRs and rows are linked.
 - `start-sprint` comments append the full markdown section for the active sprint from the plan file (for example Sprint 1/2/3 sections).
 - Dispatch hints can open one shared PR for multiple ordered/small tasks when grouped.
-- Main-agent must launch subagents from rendered `TASK_PROMPT_PATH` artifacts (no ad-hoc dispatch prompt bypass).
+- Main-agent must launch subagents with the full dispatch bundle:
+  - rendered `TASK_PROMPT_PATH` artifact
+  - `prompts/plan-issue-delivery-subagent-init.md`
+  - plan task section context (snippet/link/path)
+- Ad-hoc dispatch prompts that bypass the required bundle are invalid.
 - Final issue close only after plan-level acceptance and merged-PR close gate.
 - `close-plan` enforces cleanup of all issue-assigned task worktrees before completion.
 - Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed (live mode), and worktree cleanup passes.
@@ -69,6 +77,7 @@ Failure modes:
 - `link-pr` PR selector invalid (`--pr` must resolve to a concrete PR number).
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `plan-issue-delivery-subagent-init.md`, plan task section snippet/link/path).
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
@@ -128,7 +137,10 @@ Failure modes:
    - Every follow-up command in this flow should use `--issue "$ISSUE_NUMBER"`.
 7. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
-   - main-agent starts subagents using rendered `TASK_PROMPT_PATH` prompt artifacts from dispatch hints
+   - main-agent starts subagents using dispatch bundles that include:
+     - rendered `TASK_PROMPT_PATH` prompt artifact from dispatch hints
+     - `prompts/plan-issue-delivery-subagent-init.md`
+     - assigned plan task section snippet/link/path (from plan file or sprint-start comment section)
    - subagents create worktrees/PRs and implement tasks
 8. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
    - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
