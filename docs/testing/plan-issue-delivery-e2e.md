@@ -1,5 +1,7 @@
 # Plan-Issue-Delivery E2E Runbook (Sprint 1)
 
+Sprint 1 anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only`.
+
 ## Prerequisites
 
 - `plan-tooling` and `plan-issue` are available on `PATH`.
