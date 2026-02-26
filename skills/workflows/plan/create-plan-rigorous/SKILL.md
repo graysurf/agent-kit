@@ -75,11 +75,12 @@ Failure modes:
 - For each sprint, run:
   - `plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>`
   - `plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>`
-  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json`
-- If planning `group` mode for a sprint:
+  - `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy auto --format json`
+- If planning explicit deterministic/manual grouping for a sprint:
   - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
   - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json`
-  - Do not use `--strategy auto` (not implemented yet).
+- If planning explicit single-lane-per-sprint behavior:
+  - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json`
 - Per-sprint sizing/parallelization scorecard (record in the plan or sprint notes):
   - `Execution Profile`: `serial` | `parallel-x2` | `parallel-x3`
   - `TotalComplexity`: sum of task complexity in the sprint
@@ -100,7 +101,7 @@ Failure modes:
   - For a task with complexity `>=7`, try to split first; if it cannot be split cleanly, keep it as a dedicated lane and dedicated PR (when parallelizable and isolated enough).
   - Default limit is at most one task with complexity `>=7` per sprint; more than one requires explicit justification plus low overlap, frozen contracts, and non-blocking validation.
   - For tasks in the same dependency batch, avoid heavy file overlap in `Location`; if overlap is unavoidable, either group those tasks into one PR or serialize them explicitly.
-- After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command(s) until output is deterministic and executable.
+- After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command(s) until output is stable and executable in the intended grouping mode.
 
 7) Subagent review
 
@@ -111,7 +112,7 @@ Failure modes:
   - Check for missing required task fields (`Location`, `Description`, `Dependencies`, `Acceptance criteria`, `Validation`).
   - Check for placeholder tokens left behind (`<...>`, `TODO`, `TBD`) in required fields.
   - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
-  - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`per-sprint` or `group` with full mapping).
+  - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`group + auto` by default; `group + deterministic` with full mapping or `per-sprint` when explicitly requested).
   - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
   - Check the sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`) is present and consistent with dependencies.
   - Check no cross-sprint execution parallelism is implied by the plan sequencing.
