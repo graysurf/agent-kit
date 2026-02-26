@@ -54,8 +54,12 @@ Failure modes:
   - Explicitly list dependencies and parallelizable tasks.
   - Treat each sprint as an integration gate; do not plan cross-sprint execution parallelism.
   - Focus parallelization design inside each sprint (task/PR dependency graph), not across sprints.
-  - Add per-sprint PR grouping intent (`per-sprint` or `group`) when it is clear enough to state.
-  - Add a per-sprint execution profile (`serial`, `parallel-x2`, or `parallel-x3`) and note the intended parallel width.
+  - Add sprint metadata lines with exact case-sensitive labels:
+    - `**PR grouping intent**: per-sprint|group`
+    - `**Execution Profile**: serial|parallel-xN`
+  - Keep grouping/profile metadata coherent:
+    - If `PR grouping intent` is `per-sprint`, do not declare parallel width `>1`.
+    - If planning multi-lane parallel PR execution, set `PR grouping intent` to `group`.
   - Add a “Rollback plan” that is operationally plausible.
 
 4) Save the plan
@@ -81,6 +85,9 @@ Failure modes:
   - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json`
 - If planning explicit single-lane-per-sprint behavior:
   - Validate with: `plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json`
+- Metadata guardrails:
+  - Metadata field names are strict; do not use variants such as `PR Grouping Intent`.
+  - `plan-tooling validate` now blocks metadata mismatch by default (`per-sprint` cannot pair with parallel width `>1`).
 - Per-sprint sizing/parallelization scorecard (record in the plan or sprint notes):
   - `Execution Profile`: `serial` | `parallel-x2` | `parallel-x3`
   - `TotalComplexity`: sum of task complexity in the sprint
@@ -113,6 +120,7 @@ Failure modes:
   - Check for placeholder tokens left behind (`<...>`, `TODO`, `TBD`) in required fields.
   - Check task atomicity (single responsibility) and parallelization opportunities (dependency clarity, minimal file overlap).
   - Check the plan can be split with `plan-tooling split-prs` in the intended grouping mode (`group + auto` by default; `group + deterministic` with full mapping or `per-sprint` when explicitly requested).
+  - Check sprint metadata labels are exact (`PR grouping intent`, `Execution Profile`) and consistent with grouping strategy.
   - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
   - Check the sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`) is present and consistent with dependencies.
   - Check no cross-sprint execution parallelism is implied by the plan sequencing.
