@@ -17,10 +17,20 @@ Prereqs:
 
 Inputs:
 
-- Issue number, task ID/scope, and assigned owner/branch/worktree facts.
+- Repository context:
+  - issue number (`ISSUE`) and task ID (`TASK_ID`)
+  - optional repository override (`owner/repo`) for `gh` commands
+- Required implementation context in live mode (same priority, both required):
+  - GitHub issue artifacts:
+    - assigned `## Task Decomposition` row for `TASK_ID`
+    - target sprint section context from issue comments (prefer `## Sprint <N> Start`)
+  - Main-agent dispatch artifacts:
+    - rendered task prompt artifact (`TASK_PROMPT_PATH`)
+    - plan task section context (exact snippet and/or direct link/path)
+- Required implementation context in local rehearsal mode:
+  - local rendered task prompt/artifacts and plan task context (no GitHub lookup for placeholder issues such as `999`)
 - Base branch, PR title, and PR body markdown file path.
 - Optional review comment URL + response body markdown for follow-up comments.
-- Optional repository override (`owner/repo`) for `gh` commands when not running in the default remote context.
 
 Outputs:
 
@@ -39,6 +49,10 @@ Exit codes:
 Failure modes:
 
 - Missing assigned execution facts (issue/task/owner/branch/worktree).
+- Live mode: unable to resolve the assigned task row from issue `## Task Decomposition`.
+- Live mode: unable to resolve target sprint task context from issue comments.
+- Live mode: missing `TASK_PROMPT_PATH` or missing plan task section context from main-agent dispatch.
+- Context mismatch between issue artifacts and main-agent dispatch artifacts (scope, ownership, branch/worktree, execution mode).
 - Worktree path collision or branch already bound to another worktree.
 - Empty PR body file or unresolved template placeholders (`TBD`, `TODO`, `<...>`, `#<number>`, template stub lines).
 - Missing required PR body sections (`## Summary`, `## Scope`, `## Testing`, `## Issue`).
@@ -50,9 +64,36 @@ Failure modes:
 - Use native `gh` for draft PR creation and PR/issue comments.
 - Use `rg`-based checks (or equivalent) for PR body section/placeholder validation before PR open and before final review updates.
 
-## Core usage
+## Ordered workflow (read requirements first)
 
-1. Create isolated worktree/branch with `git worktree`:
+1. Determine execution mode and initialize context variables:
+   - ```bash
+     REPO="owner/repo"   # optional when current remote context is correct
+     ISSUE=175
+     SPRINT=2
+     TASK_ID="S2T3"
+     ```
+   - Live mode: `ISSUE` is a real GitHub issue number.
+   - Local rehearsal mode: `ISSUE` is placeholder (for example `999`), so use local artifacts only.
+2. Collect required context artifacts before edits:
+   - Live mode: collect issue artifacts with `gh`:
+     - ```bash
+       gh issue view "$ISSUE" -R "$REPO" --json body --jq '.body' \
+       | awk -F'|' -v t="$TASK_ID" '
+           /^\|/ { task=$2; gsub(/^ +| +$/, "", task); if (task==t) print $0 }'
+       ```
+     - ```bash
+       gh api "repos/$REPO/issues/$ISSUE/comments" --paginate \
+         --jq '.[] | select(.body|contains("## Sprint '"$SPRINT"' Start")) | .html_url, .body'
+       ```
+   - Collect main-agent artifacts in both modes:
+     - `TASK_PROMPT_PATH`
+     - plan task section snippet/link/path
+3. Reconcile context and apply hard start gate:
+   - Treat issue artifacts and main-agent artifacts as equal-priority sources in live mode.
+   - Confirm assigned task facts align across sources: owner, branch, worktree, execution mode, task scope, and acceptance intent.
+   - If any required context is missing or conflicting, stop and request clarification from main-agent before implementation.
+4. Create isolated worktree/branch with `git worktree`:
    - ```bash
      ISSUE=123
      TASK_ID=T1
@@ -66,7 +107,10 @@ Failure modes:
      git branch --show-current
      git worktree list
      ```
-2. Prepare and validate PR body (required sections + placeholder checks):
+5. Implement task scope and run required task-level validation:
+   - Prefer validation commands from task context (`TASK_PROMPT_PATH` / sprint task section / Task Decomposition notes).
+   - Keep edits inside assigned task scope; escalate before widening scope.
+6. Prepare and validate PR body (required sections + placeholder checks):
    - ```bash
      BODY_FILE="$WORKTREE/.tmp/pr-${ISSUE}-${TASK_ID}.md"
      mkdir -p "$(dirname "$BODY_FILE")"
@@ -80,7 +124,7 @@ Failure modes:
      rg -n 'TBD|TODO|<[^>]+>|#<number>|<implemented scope>|<explicitly excluded scope>|<command> \\(pass\\)|not run \\(reason\\)' "$BODY_FILE" \
        && { echo "Placeholder content found in PR body" >&2; exit 1; } || true
      ```
-3. Open draft PR with `gh pr create`:
+7. Open draft PR with `gh pr create`:
    - ```bash
      gh pr create \
        --draft \
@@ -93,7 +137,7 @@ Failure modes:
      PR_URL="$(gh pr view --json url --jq '.url')"
      echo "Opened ${PR_URL}"
      ```
-4. Post review response comment with `gh pr comment`:
+8. Post review response comment with `gh pr comment` (when follow-up requested):
    - ```bash
      REVIEW_COMMENT_URL="https://github.com/<owner>/<repo>/pull/<pr>#issuecomment-<id>"
      RESPONSE_FILE="$WORKTREE/.tmp/review-response-${PR_NUMBER}.md"
@@ -102,12 +146,12 @@ Failure modes:
 
      gh pr comment "$PR_NUMBER" --body-file "$RESPONSE_FILE"
      ```
-5. Optional issue sync comment with `gh issue comment` (traceability):
+9. Optional issue sync comment with `gh issue comment` (traceability):
    - ```bash
      gh issue comment "$ISSUE" \
        --body "Task ${TASK_ID} in progress by subagent. Branch: \`${BRANCH}\`. Worktree: \`${WORKTREE}\`. PR: #${PR_NUMBER}. Review response: ${REVIEW_COMMENT_URL}"
      ```
-6. Optional plan-issue artifact sync note:
+10. Optional plan-issue artifact sync note:
    - In plan-issue flows, prefer main-agent `link-pr` updates over manual markdown edits:
      - `plan-issue link-pr --issue "$ISSUE" --task "$TASK_ID" --pr "#${PR_NUMBER}" --status in-progress`
    - Subagent should include exact task selector + PR number in handoff comments so main-agent can run `link-pr` deterministically.
