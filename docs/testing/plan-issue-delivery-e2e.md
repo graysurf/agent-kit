@@ -1,6 +1,6 @@
-# Plan-Issue-Delivery E2E Runbook (Sprint 1 + Sprint 2)
+# Plan-Issue-Delivery E2E Runbook (Sprint 1 + Sprint 2 + Sprint 3)
 
-Sprint 1 anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only`.
+Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/ready-plan/close-plan`.
 
 ## Prerequisites
 
@@ -49,3 +49,15 @@ Sprint 1 anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only
 - [ ] Sprint approval evidence is available as an `approved-comment-url` before acceptance.
 - [ ] Acceptance command includes required approval evidence:
   `plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+
+## Sprint 3 Final Plan Review and Close Checklist
+
+Use this final-gate section only after all sprint-level `accept-sprint` loops are complete.
+
+- [ ] Final plan review command has been run and recorded:
+  `plan-issue ready-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto`
+- [ ] `ready-plan` evidence confirms every required sprint PR is merged and no required task row is pending.
+- [ ] Final closure command is prepared with plan-level approval evidence:
+  `plan-issue close-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+- [ ] `close-plan` is blocked when the merged-PR gate fails for any required lane PR.
+- [ ] `close-plan` is blocked when plan-level approval evidence is missing or invalid.
