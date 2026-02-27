@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.2 - 2026-02-27
+
+### Added
+
+- `plan-issue-delivery` now includes a worktree cleanup helper and associated smoke docs (`#198`).
+- `plan-issue` now requires dispatch snapshot artifacts for run traceability.
+- `plan-issue-delivery` test coverage now includes sprint1/sprint2 fixture artifact and PR normalization checks (`#195`, `#196`).
+
+### Changed
+
+- Plan-issue prompt/runbook guidance now clarifies worktree usage, approval flow, and sprint close-gate checklists (`#197`, `#199`).
+- `plan-issue-delivery` now documents runtime workspace policy and resolves prompt paths via `AGENT_HOME`.
+- Skill/docs metadata were normalized with strict markdown linting and updated issue-delivery automation slug naming.
+
+### Fixed
+
+- `issue-subagent-pr` now asserts dispatch snapshot environment variable names.
+- README automation-skill listings now remove duplicate entries and restore missing plan-issue prompt preset references.
+
 ## v2.3.0 - 2026-02-25
 
 ### Added
