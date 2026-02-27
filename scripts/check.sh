@@ -4,9 +4,9 @@ set -euo pipefail
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/check.sh [--lint] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
+  scripts/check.sh [--lint] [--markdown] [--contracts] [--skills-layout] [--plans] [--env-bools] [--tests] [--semgrep] [--all] [--] [pytest args...]
 
-Runs repo-local lint checks (shell + python), validates skill contracts, runs env-bools audit, optionally runs Semgrep, and runs pytest.
+Runs repo-local checks (shell/python lint, markdown lint, skill contracts, env-bools, optional Semgrep, pytest).
 
 Setup:
   .venv/bin/pip install -r requirements-dev.txt
@@ -14,6 +14,7 @@ Setup:
 Examples:
   scripts/check.sh --all
   scripts/check.sh --lint
+  scripts/check.sh --markdown
   scripts/check.sh --env-bools
   scripts/check.sh --tests -- -m script_smoke
   scripts/check.sh --semgrep
@@ -21,6 +22,7 @@ USAGE
 }
 
 run_lint=0
+run_markdown=0
 run_contracts=0
 run_skill_layout=0
 run_plans=0
@@ -93,6 +95,10 @@ while [[ $# -gt 0 ]]; do
       run_lint=1
       shift
       ;;
+    --markdown)
+      run_markdown=1
+      shift
+      ;;
     --contracts)
       run_contracts=1
       shift
@@ -119,6 +125,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --all)
       run_lint=1
+      run_markdown=1
       run_contracts=1
       run_skill_layout=1
       run_plans=1
@@ -151,7 +158,7 @@ if [[ "$seen_pytest_args" -eq 1 && "$run_tests" -eq 0 ]]; then
   exit 2
 fi
 
-if [[ "$run_lint" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
+if [[ "$run_lint" -eq 0 && "$run_markdown" -eq 0 && "$run_contracts" -eq 0 && "$run_skill_layout" -eq 0 && "$run_plans" -eq 0 && "$run_env_bools" -eq 0 && "$run_tests" -eq 0 && "$run_semgrep" -eq 0 ]]; then
   usage
   exit 0
 fi
@@ -162,6 +169,7 @@ agent_home="${AGENT_HOME:-$repo_root}"
 export AGENT_HOME="$agent_home"
 
 lint_rc=0
+markdown_rc=0
 contract_rc=0
 skill_layout_rc=0
 plans_rc=0
@@ -177,6 +185,18 @@ if [[ "$run_lint" -eq 1 ]]; then
 
   if [[ "$lint_rc" -ne 0 ]]; then
     echo "error: lint failed (exit=$lint_rc)" >&2
+  fi
+fi
+
+if [[ "$run_markdown" -eq 1 ]]; then
+  echo "lint: markdown" >&2
+  set +e
+  bash scripts/ci/markdownlint-audit.sh --strict
+  markdown_rc=$?
+  set -e
+
+  if [[ "$markdown_rc" -ne 0 ]]; then
+    echo "error: markdown lint failed (exit=$markdown_rc)" >&2
   fi
 fi
 
@@ -262,6 +282,6 @@ if [[ "$run_tests" -eq 1 ]]; then
   fi
 fi
 
-if [[ "$lint_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
+if [[ "$lint_rc" -ne 0 || "$markdown_rc" -ne 0 || "$contract_rc" -ne 0 || "$skill_layout_rc" -ne 0 || "$plans_rc" -ne 0 || "$env_bools_rc" -ne 0 || "$semgrep_rc" -ne 0 || "$test_rc" -ne 0 ]]; then
   exit 1
 fi

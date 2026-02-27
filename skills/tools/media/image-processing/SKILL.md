@@ -66,20 +66,20 @@ Failure modes:
 
 ### Policies (must-follow per request)
 
-1) If underspecified: ask must-have questions first
+1. If underspecified: ask must-have questions first
    - Use: `skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`
    - Ask 1–5 “Need to know” questions with explicit defaults.
    - Do not run commands until the user answers or explicitly approves assumptions.
 
-2) Single entrypoint (do not bypass)
+2. Single entrypoint (do not bypass)
    - Only run: `image-processing` (from `PATH`; install via `brew install nils-cli`)
    - Do not call ImageMagick binaries directly unless debugging the `image-processing` CLI itself.
 
-3) Contract gate (exactly one operation path)
+3. Contract gate (exactly one operation path)
    - `convert`: require `--from-svg`, `--to`, `--out`; forbid `--in`.
    - `svg-validate`: require exactly one `--in` and `--out`; forbid `--to`/`--width`/`--height`.
 
-4) Completion response (fixed)
+4. Completion response (fixed)
    - After a successful run, respond using:
      - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
    - Include clickable output path(s) and a one-sentence “next prompt” that repeats the same task with concrete paths/options.

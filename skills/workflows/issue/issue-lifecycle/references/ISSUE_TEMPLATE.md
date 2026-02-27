@@ -1,39 +1,40 @@
-# <feature>: <short title>
+# `<feature>`: `<short title>`
 
 ## Goal
 
-- <target outcome>
+- `<target outcome>`
 
 ## Acceptance Criteria
 
-- <verifiable condition>
+- `<verifiable condition>`
 
 ## Scope
 
 - In-scope:
-  - <item>
+  - `<item>`
 - Out-of-scope:
-  - <item>
+  - `<item>`
 
 ## Task Decomposition
 
-| Task | Summary | Owner | Branch | Worktree | Execution Mode | PR | Status | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| T1 | <summary> | TBD | TBD | TBD | TBD | TBD | planned | <notes> |
+|Task|Summary|Owner|Branch|Worktree|Execution Mode|PR|Status|Notes|
+|---|---|---|---|---|---|---|---|---|
+|T1|`SUMMARY`|TBD|TBD|TBD|TBD|TBD|planned|`NOTES`|
 
 ## Consistency Rules
 
 - `Status` must be one of: `planned`, `in-progress`, `blocked`, `done`.
 - `Status` = `in-progress` or `done` requires non-`TBD` execution metadata (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`).
-- `Owner` must be a subagent identifier (contains `subagent`) once the task is assigned; `main-agent` ownership is invalid for implementation tasks.
+- `Owner` must be a subagent identifier (contains `subagent`) once the task is assigned; `main-agent` ownership is invalid for
+  implementation tasks.
 - `Execution Mode` should be one of: `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment).
 - `Branch` and `Worktree` uniqueness is enforced only for rows using `Execution Mode = pr-isolated`.
 
 ## Risks / Uncertainties
 
-- <risk or unknown>
-- <mitigation or validation plan>
+- `<risk or unknown>`
+- `<mitigation or validation plan>`
 
 ## Evidence
 
-- <logs, test reports, screenshots, links>
+- `<logs, test reports, screenshots, links>`

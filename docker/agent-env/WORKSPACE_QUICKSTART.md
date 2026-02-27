@@ -9,6 +9,7 @@ Short guide to create a new workspace and connect with VS Code.
 ```
 
 Notes:
+
 - `create` is an alias of `up`.
 
 For private repos, provide a host token for the initial clone (not stored as a container env var):
@@ -63,7 +64,8 @@ Alternatively, print a new device code by running the login command:
 docker exec -it agent-ws-agent-kit code tunnel user login --provider github
 ```
 
-Tip: the command/log will show a code like `ABCD-EFGH` — enter that code at https://github.com/login/device (you do not paste it back into the terminal).
+Tip: the command/log will show a code like `ABCD-EFGH` — enter that code at <https://github.com/login/device> (you do not paste it back into
+the terminal).
 
 Verify the tunnel is connected (expected: `"tunnel":"Connected"` and `"name":"agent-kit"`):
 
@@ -71,7 +73,8 @@ Verify the tunnel is connected (expected: `"tunnel":"Connected"` and `"name":"ag
 docker exec -it agent-ws-agent-kit code tunnel status
 ```
 
-Note: the first VS Code connection may take a few minutes while the VS Code Server is downloaded inside the container (you may see "Downloading VS Code Server...").
+Note: the first VS Code connection may take a few minutes while the VS Code Server is downloaded inside the container (you may see
+"Downloading VS Code Server...").
 
 Connect from VS Code:
 

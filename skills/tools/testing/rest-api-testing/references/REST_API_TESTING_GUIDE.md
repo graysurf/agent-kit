@@ -75,14 +75,14 @@ Schema:
 
 ## Steps
 
-1) Start the API server (project-specific)
+1. Start the API server (project-specific)
 
 ```bash
 # Example
 # yarn serve:api
 ```
 
-2) Configure endpoint presets (local/staging/dev)
+1. Configure endpoint presets (local/staging/dev)
 
 Edit `setup/rest/endpoints.env` to match your environments. Example:
 
@@ -94,7 +94,7 @@ REST_URL_LOCAL=http://localhost:<port>
 # REST_URL_STAGING=https://<staging-host>
 ```
 
-3) (Optional) Configure token profiles
+1. (Optional) Configure token profiles
 
 Put placeholders in `setup/rest/tokens.env` and real tokens in `setup/rest/tokens.local.env` (gitignored). Example:
 
@@ -103,7 +103,7 @@ REST_TOKEN_DEFAULT="<your token>"
 REST_TOKEN_ADMIN="<admin token>"
 ```
 
-4) Call REST requests (recommended: Codex skill script)
+1. Call REST requests (recommended: Codex skill script)
 
 Tip: if you are not running from the repo root, add `--config-dir setup/rest` to the commands below.
 
@@ -119,7 +119,7 @@ If the endpoint requires auth:
 - Use a token profile (requires `REST_TOKEN_<NAME>` to be non-empty in `setup/rest/tokens.local.env`): add `--token <name>`
 - Or use a one-off token via env (useful for CI): export `ACCESS_TOKEN`
 
-5) (Optional) Use built-in assertions for CI/E2E
+1. (Optional) Use built-in assertions for CI/E2E
 
 Add `expect` to the request file:
 
@@ -133,13 +133,15 @@ Add `expect` to the request file:
 
 Then run the request; the script should exit non-zero on assertion failure.
 
-6) Generate a test report under `docs/`
+1. Generate a test report under `docs/`
 
-Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the request (path/query/body) and re-run before writing the report.
+Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the request (path/query/body) and
+re-run before writing the report.
 
 Notes:
 
-- Reports redact common secret-like fields by default (e.g. `Authorization`, `Cookie`, `accessToken`); use `--no-redact` only when necessary.
+- Reports redact common secret-like fields by default (e.g. `Authorization`, `Cookie`, `accessToken`); use `--no-redact` only when
+  necessary.
 - If the request includes `expect`, the report will include an `### Assertions` section.
 
 ```bash
@@ -156,13 +158,14 @@ Report output contract (recommended):
 
 - `$AGENT_HOME/skills/tools/testing/rest-api-testing/references/REST_API_TEST_REPORT_CONTRACT.md`
 
-If you already have an `api-rest`/`rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without manually rewriting it:
+If you already have an `api-rest`/`rest.sh` command snippet (e.g. from `setup/rest/.rest_history`), you can generate the report without
+manually rewriting it:
 
 ```bash
 api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 ```
 
-7) CI / E2E usage (recommended pattern)
+1. CI / E2E usage (recommended pattern)
 
 If a request file includes `expect`, `api-rest call` should exit non-zero on assertion failure. This makes it suitable for CI.
 

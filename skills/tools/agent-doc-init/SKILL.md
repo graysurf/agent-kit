@@ -32,7 +32,8 @@ Outputs:
 - Deterministic summary lines to stdout.
 - Baseline checks before/after initialization.
 - Optional baseline scaffolding (`scaffold-baseline --missing-only` by default).
-- Project-doc hydration for baseline templates (`AGENTS.md`, `DEVELOPMENT.md`) using detected repo context (CI workflows, Formula files, git remote).
+- Project-doc hydration for baseline templates (`AGENTS.md`, `DEVELOPMENT.md`) using detected repo context (CI workflows, Formula files, git
+  remote).
 - Optional project extension upserts via `agent-docs add`.
 
 Exit codes:

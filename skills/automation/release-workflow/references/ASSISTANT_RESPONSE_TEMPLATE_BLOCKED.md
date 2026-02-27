@@ -1,9 +1,14 @@
+<!-- markdownlint-disable-file MD041 -->
+
 ## Failure Summary
-<paste the failure output here (include audit/check output when applicable)>
+
+`<paste the failure output here (include audit/check output when applicable)>`
 
 ## Checks
-- <command> (fail)
+
+- `<command>` (fail)
 - not run (reason)
 
 ## Question
-<ask how to proceed>
+
+`<ask how to proceed>`

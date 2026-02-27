@@ -1,6 +1,8 @@
 ---
 name: fix-bug-pr
-description: Find bug-type PRs with unresolved bug items (Issues Found table), fix and push updates, comment with what changed, and keep PR body status synced (set to fixed when complete).
+description:
+  Find bug-type PRs with unresolved bug items (Issues Found table), fix and push updates, comment with what changed, and keep PR body status
+  synced (set to fixed when complete).
 ---
 
 # Fix Bug PR
@@ -56,9 +58,12 @@ Failure modes:
 
 4. Implement the minimal fix + validation:
    - Prefer small, targeted diffs; avoid refactors.
-   - Follow the target repo’s testing/build docs and CI workflow: install required tooling/deps, then run the most relevant lint/test/build commands.
-   - If docs are missing/unclear, infer likely commands from common entrypoints (package.json scripts, Makefile/Justfile/Taskfile, language defaults).
-   - Treat validation as a gate: if checks fail, do not commit/push; fix and re-run (or stop and report). If checks cannot be run, document why in the PR comment.
+   - Follow the target repo’s testing/build docs and CI workflow: install required tooling/deps, then run the most relevant lint/test/build
+     commands.
+   - If docs are missing/unclear, infer likely commands from common entrypoints (package.json scripts, Makefile/Justfile/Taskfile, language
+     defaults).
+   - Treat validation as a gate: if checks fail, do not commit/push; fix and re-run (or stop and report). If checks cannot be run, document
+     why in the PR comment.
 
 5. Commit + push:
    - Use `semantic-commit-autostage` (end-to-end automation) unless the user explicitly wants manual staging.

@@ -1,6 +1,8 @@
 ---
 name: plan-issue-delivery
-description: "Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation."
+description:
+  "Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to
+  the next sprint without main-agent implementation."
 ---
 
 # Plan Issue Delivery
@@ -48,12 +50,15 @@ Outputs:
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
 - Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
 - Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability.
-- `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata (`Owner/Branch/Worktree/Notes`).
+- `plan-tooling split-prs` v2 emits grouping primitives only (`task_id`, `summary`, `pr_group`); `plan-issue` materializes runtime metadata
+  (`Owner/Branch/Worktree/Notes`).
 - Live mode (`plan-issue`) creates/updates exactly one GitHub Issue for the whole plan (`1 plan = 1 issue`).
-- `## Task Decomposition` remains runtime-truth for execution lanes; `start-sprint` validates drift against plan-derived lane metadata before emitting artifacts.
+- `## Task Decomposition` remains runtime-truth for execution lanes; `start-sprint` validates drift against plan-derived lane metadata
+  before emitting artifacts.
 - Sprint task-spec/prompts are derived artifacts from runtime-truth rows (not a second execution source of truth).
 - `link-pr` normalizes PR references to canonical `#<number>` and updates task `PR`/`Status` fields.
-- `link-pr --task <task-id>` auto-syncs all rows in the same runtime lane (`per-sprint`/`pr-shared`) to keep shared-lane PR/state consistent.
+- `link-pr --task <task-id>` auto-syncs all rows in the same runtime lane (`per-sprint`/`pr-shared`) to keep shared-lane PR/state
+  consistent.
 - `link-pr --sprint <n>` must resolve to a single runtime lane; use `--pr-group <group>` when sprint `n` has multiple shared lanes.
 - `accept-sprint` additionally enforces sprint PRs are merged and syncs sprint task `Status` to `done` in live mode.
 - `start-sprint` for sprint `N>1` is blocked until sprint `N-1` is merged and all its task rows are `done`.
@@ -88,8 +93,10 @@ Failure modes:
 - `link-pr` target ambiguous (for example sprint selector spans multiple runtime lanes without `--pr-group`).
 - Live mode approval URL invalid.
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
-- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or `DISPATCH_RECORD_PATH` not emitted under runtime root).
-- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`, `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
+- Sprint runtime artifacts missing (for example `TASK_PROMPT_PATH`, `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or
+  `DISPATCH_RECORD_PATH` not emitted under runtime root).
+- Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`,
+  `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
@@ -112,7 +119,8 @@ Failure modes:
   - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`
   - `per-sprint`: `.../worktrees/per-sprint/sprint-<N>`
 - `start-sprint` must copy the source plan into `PLAN_SNAPSHOT_PATH` before subagent dispatch.
-- `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent dispatch.
+- `start-sprint` must copy `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` into `SUBAGENT_INIT_SNAPSHOT_PATH` before subagent
+  dispatch.
 - `start-sprint` must emit one `DISPATCH_RECORD_PATH` per assigned task before subagent dispatch.
 - Subagent plan reference priority:
   - assigned plan task snippet/link/path (primary)
@@ -134,7 +142,8 @@ Failure modes:
 1. Validate the plan (`plan-tooling validate`) and lock grouping policy (`group + auto` by default).
 2. Run `start-plan`, then capture the emitted issue number once and reuse it for all later commands.
 3. Initialize issue runtime workspace under `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`.
-4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts exist, dispatch subagents, and keep row state current via `link-pr`.
+4. Run `start-sprint`, ensure `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
+   exist, dispatch subagents, and keep row state current via `link-pr`.
 5. For each sprint: `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
 7. After final sprint acceptance, run `ready-plan`, then `close-plan` with plan-level approval URL.
@@ -148,7 +157,8 @@ Failure modes:
    - You must pass `--pr-group` and cover every task in scope.
 4. Use explicit `per-sprint` only when the user explicitly requests one shared lane per sprint.
    - Do not pass `--pr-group`; all tasks in the sprint share one PR group anchor.
-5. Keep the same grouping flags across the same sprint flow (`start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`) to avoid row/spec drift.
+5. Keep the same grouping flags across the same sprint flow (`start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`) to avoid
+   row/spec drift.
 
 ## Completion Policy (Mandatory)
 
@@ -166,7 +176,8 @@ Failure modes:
 
 1. Confirm the plan file exists and passes `plan-tooling validate`.
 2. Default execution mode is live (`plan-issue ...`).
-3. If the user explicitly asks for local rehearsal, switch to `references/LOCAL_REHEARSAL.md` instead of mixing rehearsal commands into this flow.
+3. If the user explicitly asks for local rehearsal, switch to `references/LOCAL_REHEARSAL.md` instead of mixing rehearsal commands into this
+   flow.
 4. Lock PR grouping policy from user intent:
    - no explicit user request: use `group + auto`
    - explicit request for deterministic/manual grouping: use `group + deterministic` with full `--pr-group` coverage
@@ -179,8 +190,10 @@ Failure modes:
    - Runtime root: `$AGENT_HOME/out/plan-issue-delivery`
    - Issue root: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER`
    - Snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan.snapshot.md`
-   - Subagent init snapshot path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
-   - Dispatch record path: `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
+   - Subagent init snapshot path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/prompts/plan-issue-delivery-subagent-init.snapshot.md`
+   - Dispatch record path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/sprint-<N>/manifests/dispatch-<TASK_ID>.json`
 8. Run `start-sprint` for Sprint 1 on the same plan issue token/number:
    - main-agent follows the locked grouping policy (default `group + auto`; switch only on explicit user request) and emits dispatch hints
    - main-agent starts subagents using dispatch bundles that include:
@@ -192,39 +205,60 @@ Failure modes:
    - subagents create worktrees/PRs and implement tasks
 9. While sprint work is active, link each subagent PR into runtime-truth rows with `link-pr`:
    - task scope: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
-   - sprint scope: `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
+   - sprint scope:
+     `plan-issue link-pr --issue <number> --sprint <n> --pr-group <group> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` auto-syncs shared lanes; `--sprint` without `--pr-group` is valid only when the sprint target resolves to one runtime lane.
 10. Optionally run `status-plan` checkpoints to keep plan-level progress snapshots traceable.
 11. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
 12. Main-agent reviews sprint PR content, records approval, and merges the sprint PRs.
-13. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done` (issue stays open).
+13. Run `accept-sprint` with `SPRINT_APPROVED_COMMENT_URL` in live mode to enforce merged-PR gate and sync sprint task status rows to `done`
+    (issue stays open).
 14. If another sprint exists, run `start-sprint` for the next sprint on the same issue; this is blocked until prior sprint is merged+done.
 15. After the final sprint is implemented and accepted, run `ready-plan` for final review:
-   - `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-16. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force cleanup of task worktrees:
-   - `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
+
+- `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+
+1. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce merged-PR/task gates, close the single plan issue, and force
+   cleanup of task worktrees:
+
+- `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 
 ## Command-Oriented Flow
 
-Default command templates in this section use the fixed policy `--pr-grouping group --strategy auto`.
-Only switch to `group + deterministic` or `per-sprint` when the user explicitly requests that behavior.
-Capture the `ISSUE_NUMBER` output from `start-plan` once, then reuse it in all `--issue` flags.
-Keep approval URLs explicit per gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`, `PLAN_APPROVED_COMMENT_URL` for `close-plan`.
+Default command templates in this section use the fixed policy `--pr-grouping group --strategy auto`. Only switch to `group + deterministic`
+or `per-sprint` when the user explicitly requests that behavior. Capture the `ISSUE_NUMBER` output from `start-plan` once, then reuse it in
+all `--issue` flags. Keep approval URLs explicit per gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`, `PLAN_APPROVED_COMMENT_URL`
+for `close-plan`.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
    - Start plan: `plan-issue start-plan --plan <plan.md> --pr-grouping group --strategy auto [--repo <owner/repo>]`
-   - Start sprint: `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
-   - Link PR (task scope): `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
-   - Link PR (sprint lane scope): `plan-issue link-pr --issue <number> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
+   - Start sprint:
+     `plan-issue start-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
+   - Link PR (task scope):
+     `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]`
+   - Link PR (sprint lane scope):
+
+     ```bash
+     plan-issue link-pr --issue <number> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>] [--repo <owner/repo>]
+     ```
+
    - Status checkpoint (optional): `plan-issue status-plan --issue <number> [--repo <owner/repo>]`
-   - Ready sprint: `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
-   - Accept sprint: `plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url> [--repo <owner/repo>]`
+   - Ready sprint:
+     `plan-issue ready-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto [--repo <owner/repo>]`
+   - Accept sprint:
+
+     ```bash
+     plan-issue accept-sprint --plan <plan.md> --issue <number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url> [--repo <owner/repo>]
+     ```
+
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
    - Close plan: `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
 2. Explicit override patterns (only when user explicitly requests):
-  - Deterministic/manual split: replace `--strategy auto` with `--strategy deterministic` and pass full `--pr-group <task-id>=<group>` coverage.
-  - Per-sprint single lane: replace `--pr-grouping group --strategy auto` with `--pr-grouping per-sprint` and do not pass `--pr-group`.
+
+- Deterministic/manual split: replace `--strategy auto` with `--strategy deterministic` and pass full `--pr-group <task-id>=<group>`
+  coverage.
+- Per-sprint single lane: replace `--pr-grouping group --strategy auto` with `--pr-grouping per-sprint` and do not pass `--pr-group`.
 
 ## Role boundary (mandatory)
 

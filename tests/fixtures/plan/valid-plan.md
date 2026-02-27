@@ -3,6 +3,7 @@
 ## Sprint 1: Fixture sprint
 
 ### Task 1.1: First task
+
 - **Location**:
   - `docs/plans/README.md`
 - **Description**: Write a small docs update.
@@ -13,6 +14,7 @@
   - `plan-tooling validate --file tests/fixtures/plan/valid-plan.md`
 
 ### Task 1.2: Second task depends on first
+
 - **Location**:
   - `scripts/README.md`
 - **Description**: Add a note after the docs update exists.
@@ -24,6 +26,7 @@
   - `plan-tooling batches --file tests/fixtures/plan/valid-plan.md --sprint 1`
 
 ### Task 1.3: Third task depends on first
+
 - **Location**:
   - `scripts/check.sh`
 - **Description**: Another task that can run in parallel with Task 1.2 after Task 1.1.

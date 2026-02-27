@@ -1,6 +1,9 @@
 ---
 name: rest-api-testing
-description: Test REST APIs with repeatable, file-based requests under <project>/setup/rest, with per-project endpoint and Bearer token presets, using the bundled api-rest CLI. Use when the user asks to manually call REST endpoints, replay requests reliably, add CI-friendly assertions, and record API test reports.
+description:
+  Test REST APIs with repeatable, file-based requests under <project>/setup/rest, with per-project endpoint and Bearer token presets, using
+  the bundled api-rest CLI. Use when the user asks to manually call REST endpoints, replay requests reliably, add CI-friendly assertions,
+  and record API test reports.
 ---
 
 # REST API Testing
@@ -103,7 +106,8 @@ api-rest report-from-cmd '<paste an api-rest/rest.sh command snippet>'
 - Requests can embed CI-friendly assertions:
   - `expect.status` (integer; required when `expect` is present)
   - `expect.jq` (optional; evaluated with `jq -e` against the JSON response)
-- Reports redact common secret-like fields by default (e.g. `Authorization`, `Cookie`, `accessToken`); use `--no-redact` only when necessary.
+- Reports redact common secret-like fields by default (e.g. `Authorization`, `Cookie`, `accessToken`); use `--no-redact` only when
+  necessary.
 - Prefer `--config-dir setup/rest` in automation for deterministic discovery.
 
 ## References

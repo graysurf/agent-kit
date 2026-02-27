@@ -1,6 +1,8 @@
 ---
 name: execute-plan-parallel
-description: Execute a markdown implementation plan by spawning parallel subagents for unblocked tasks, then integrate results and validate. Triggers on explicit "/execute-plan-parallel <plan.md> [sprint <n>]".
+description:
+  Execute a markdown implementation plan by spawning parallel subagents for unblocked tasks, then integrate results and validate. Triggers
+  on explicit "/execute-plan-parallel <plan.md> [sprint <n>]".
 ---
 
 # Execute Plan (Parallel)
@@ -38,12 +40,12 @@ Failure modes:
 
 ## Workflow
 
-1) Parse the request
+1. Parse the request
 
 - Identify the plan file path.
 - If no sprint/phase is specified, ask the user which sprint/phase to run (or default to Sprint 1).
 
-2) Read and parse the plan
+1. Read and parse the plan
 
 - Prefer using repo tooling (avoid parsing drift):
   - Lint: `plan-tooling validate --file <plan.md>`
@@ -58,7 +60,7 @@ Failure modes:
   - Validation
   - Dependencies / blockers
 
-3) Launch parallel subagents for unblocked tasks
+1. Launch parallel subagents for unblocked tasks
 
 - Batch-launch subagents for tasks that have no unmet dependencies (use `plan-tooling batches` output when available).
 - Provide each subagent the task text, relevant context, and strict scope: “implement this task only”.
@@ -68,21 +70,21 @@ Failure modes:
   - How acceptance criteria are met
   - What validation ran (or why not)
 
-4) Integrate results and resolve conflicts
+1. Integrate results and resolve conflicts
 
 - Apply changes, resolve overlapping edits, and keep diffs minimal.
 - If the plan implies commits, follow the repo’s commit policy (do not run `git commit` directly).
 
-5) Repeat
+1. Repeat
 
 - Mark completed tasks.
 - Launch the next batch of unblocked tasks until the sprint/phase is done.
 
-6) Validate
+1. Validate
 
 - Run the plan’s validation commands (or the closest available repo commands).
 - If validation fails, fix within scope or mark the task blocked with the failure reason.
 
-7) Report
+1. Report
 
 - Summarize: completed vs blocked tasks, files changed, and validation status.

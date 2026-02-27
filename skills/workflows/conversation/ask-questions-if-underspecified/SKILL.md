@@ -1,6 +1,8 @@
 ---
 name: ask-questions-if-underspecified
-description: Clarify requirements before implementing changes or plans when a request is underspecified. Use when objectives, scope, constraints, acceptance criteria, or environment details are unclear and you need the minimum set of questions before proceeding.
+description:
+  Clarify requirements before implementing changes or plans when a request is underspecified. Use when objectives, scope, constraints,
+  acceptance criteria, or environment details are unclear and you need the minimum set of questions before proceeding.
 ---
 
 # Ask Questions If Underspecified
@@ -33,12 +35,12 @@ Failure modes:
 
 ## Goal
 
-Ask the minimum set of clarifying questions needed to avoid wrong work. Do not begin implementation until must-have answers are provided or the user explicitly approves stated assumptions.
+Ask the minimum set of clarifying questions needed to avoid wrong work. Do not begin implementation until must-have answers are provided or
+the user explicitly approves stated assumptions.
 
 ## Workflow
 
-1) Decide whether the request is underspecified
-
+1. Decide whether the request is underspecified
    - Check objective (what should change vs stay the same)
    - Check done criteria (acceptance, examples, edge cases)
    - Check scope (files/components/users in or out)
@@ -46,21 +48,18 @@ Ask the minimum set of clarifying questions needed to avoid wrong work. Do not b
    - Check environment (language/runtime versions, OS, test runner)
    - Check safety/reversibility (migrations, rollout, risk)
 
-2) Ask must-have questions first
-
+2. Ask must-have questions first
    - Ask 1 to 5 questions that remove whole branches of work
    - Use numbered questions with short options (a/b/c)
    - Provide a clear default (bold it) and a fast path reply like "defaults"
    - Allow "not sure - use default" when helpful
    - Separate "Need to know" from "Nice to know" only if it reduces friction
 
-3) Pause before acting
-
+3. Pause before acting
    - Do not run commands, edit files, or make a detailed plan that depends on missing info
    - A low-risk discovery read is allowed if it does not commit to a direction
 
-4) Confirm and proceed
-
+4. Confirm and proceed
    - Restate requirements and success criteria in 1 to 3 sentences
    - Begin work only after answers or explicit approval of assumptions
 

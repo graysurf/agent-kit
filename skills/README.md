@@ -1,6 +1,7 @@
 # skills/
 
-This directory contains Codex CLI skills tracked by this repo. A "skill" is a self-contained set of runnable instructions plus any scripts, helpers, tests, and references needed to keep it reliable.
+This directory contains Codex CLI skills tracked by this repo. A "skill" is a self-contained set of runnable instructions plus any scripts,
+helpers, tests, and references needed to keep it reliable.
 
 ## Canonical docs
 

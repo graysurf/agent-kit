@@ -1,6 +1,9 @@
 ---
 name: api-test-runner
-description: Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test CLI and emitting JSON (+ optional JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools (pytest/node/LLM) to call.
+description:
+  Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test CLI and emitting JSON (+ optional
+  JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools
+  (pytest/node/LLM) to call.
 ---
 
 # API Test Runner (REST + GraphQL)
@@ -109,7 +112,8 @@ Canonical locations searched by `--suite`:
 
 Runner entrypoints:
 
-- `--suite <name>` → resolves to `tests/api/suites/<name>.suite.json` (fallback: `setup/api/suites/...`); override the search dir with `API_TEST_SUITES_DIR`
+- `--suite <name>` → resolves to `tests/api/suites/<name>.suite.json` (fallback: `setup/api/suites/...`); override the search dir with
+  `API_TEST_SUITES_DIR`
 - `--suite-file <path>` → explicit suite file path (use when the suite manifest is not in a canonical suites dir)
 
 Notes:
@@ -117,7 +121,8 @@ Notes:
 - REST cases point at `*.request.json` (same inputs used by `api-rest call`).
 - GraphQL cases point at `*.graphql` + variables `*.json` (same inputs used by `api-gql call`).
 - Suite manifest location is independent from REST/GraphQL `configDir` (those can live under `tests/rest`, `tests/graphql`, etc).
-- GraphQL write safety: if an operation file contains a `mutation` definition, the runner treats it as write-capable and requires `allowWrite=true` on the case.
+- GraphQL write safety: if an operation file contains a `mutation` definition, the runner treats it as write-capable and requires
+  `allowWrite=true` on the case.
 - GraphQL default validation: when `allowErrors=false` and `expect.jq` is omitted, the runner requires `.data` to be a non-null object.
 - Auth safety: `.auth.*.credentialsJq` must yield exactly one object (multiple matches fail fast).
 
@@ -184,15 +189,18 @@ Notes:
 - `defaults.noHistory` (and case `noHistory`) map to `--no-history` on underlying `api-rest call` / `api-gql call`.
 - `defaults.rest.configDir` / `defaults.graphql.configDir` default to `setup/rest` / `setup/graphql`.
 - For REST and GraphQL endpoint selection, prefer `url` for CI determinism (avoids env preset drift).
-- `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not printed in command snippets).
+- `rest-flow` runs `loginRequest` first, extracts a token (via `tokenJq`), then runs `request` with `ACCESS_TOKEN=<token>` (token is not
+  printed in command snippets).
 
 ### Case cleanup (optional)
 
-For write cases that create persistent resources (DB rows, uploaded files, etc), attach a `cleanup` block so the runner removes test artifacts after the case runs.
+For write cases that create persistent resources (DB rows, uploaded files, etc), attach a `cleanup` block so the runner removes test
+artifacts after the case runs.
 
 - `cleanup` can be an object (single step) or an array of steps.
 - Each cleanup step must include `type`: `rest` or `graphql`.
-- Cleanup steps run only when writes are allowed: `API_TEST_ALLOW_WRITES_ENABLED=true` (or `--allow-writes`) or when the effective `env` is `local`.
+- Cleanup steps run only when writes are allowed: `API_TEST_ALLOW_WRITES_ENABLED=true` (or `--allow-writes`) or when the effective `env` is
+  `local`.
 
 REST cleanup step fields:
 
@@ -251,7 +259,8 @@ REST cleanup example (delete by key extracted from the response):
 }
 ```
 
-Note: `api-rest` also supports per-request cleanup blocks; case-level `cleanup` is an alternative that can cover both REST + GraphQL in one suite.
+Note: `api-rest` also supports per-request cleanup blocks; case-level `cleanup` is an alternative that can cover both REST + GraphQL in one
+suite.
 
 ## CI auth (GitHub Secrets / JWT login)
 
@@ -261,7 +270,8 @@ How it works:
 
 - You provide credentials via a JSON env var (default: `API_TEST_AUTH_JSON`).
 - The runner logs in once per referenced profile (cached for the run) using either a REST or GraphQL login provider.
-- For cases that specify `token` (REST) or `jwt` (GraphQL), the runner injects `ACCESS_TOKEN` for that case and does not rely on `tokens(.local).env` / `jwts(.local).env`.
+- For cases that specify `token` (REST) or `jwt` (GraphQL), the runner injects `ACCESS_TOKEN` for that case and does not rely on
+  `tokens(.local).env` / `jwts(.local).env`.
 
 Recommended secret schema (example):
 
@@ -334,7 +344,8 @@ Defaults:
   - `expect.jq` (optional; evaluated with `jq -e` against the JSON response)
 - GraphQL:
   - Default: the runner enforces `.errors` is empty, plus optional per-case `expect.jq`.
-  - `allowErrors: true`: skip the default no-errors check and rely on `expect.jq` (required) to assert the expected error(s), e.g. `.errors[0].extensions.code == "PHONE_VERIFICATION_INCOMPLETE"`.
+  - `allowErrors: true`: skip the default no-errors check and rely on `expect.jq` (required) to assert the expected error(s), e.g.
+    `.errors[0].extensions.code == "PHONE_VERIFICATION_INCOMPLETE"`.
 
 ## CLI flags
 

@@ -77,16 +77,13 @@ pwcli pdf
 ## Session Behavior
 
 - `--session` / `--session=<name>` is passed through unchanged.
-- If `--session` is omitted and `PLAYWRIGHT_CLI_SESSION` is set, the wrapper injects `--session "$PLAYWRIGHT_CLI_SESSION"` before forwarding args.
+- If `--session` is omitted and `PLAYWRIGHT_CLI_SESSION` is set, the wrapper injects `--session "$PLAYWRIGHT_CLI_SESSION"` before forwarding
+  args.
 - `--help` / `-h` is handled locally by the wrapper (no `npx`, Node, or network needed).
 
 ## Troubleshooting
 
-- `Error: npx is required but not found on PATH.`:
-  install Node.js/npm and ensure `npx` is on `PATH`.
-- First-run fetch fails:
-  allow access to npm registry and retry.
-- Browser launch commands fail:
-  run `pwcli install-browser`.
-- Element refs become stale:
-  run `pwcli snapshot` again after navigation or major DOM changes.
+- `Error: npx is required but not found on PATH.`: install Node.js/npm and ensure `npx` is on `PATH`.
+- First-run fetch fails: allow access to npm registry and retry.
+- Browser launch commands fail: run `pwcli install-browser`.
+- Element refs become stale: run `pwcli snapshot` again after navigation or major DOM changes.

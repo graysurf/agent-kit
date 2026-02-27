@@ -1,6 +1,8 @@
 ---
 name: issue-delivery
-description: "Orchestrate plan-issue review/close loops where main-agent owns orchestration and review only, subagents own implementation PRs, and close gates require approval plus merged PRs."
+description:
+  "Orchestrate plan-issue review/close loops where main-agent owns orchestration and review only, subagents own implementation PRs, and
+  close gates require approval plus merged PRs."
 ---
 
 # Issue Delivery
@@ -59,7 +61,8 @@ Failure modes:
 - Task rows violate close gates (status not `done`, execution metadata/PR missing, or PR not merged).
 - Issue/PR metadata fetch fails via `gh` in live mode.
 - Task `Owner` is `main-agent`/non-subagent identity in `Task Decomposition`.
-- Plan-sprint originated dispatch launched without required bundle (`TASK_PROMPT_PATH`, `plan-issue-delivery-subagent-init.md`, plan task snippet/link/path).
+- Plan-sprint originated dispatch launched without required bundle (`TASK_PROMPT_PATH`, `plan-issue-delivery-subagent-init.md`, plan task
+  snippet/link/path).
 
 ## Role Boundary (Mandatory)
 
@@ -77,13 +80,15 @@ Failure modes:
 ## Core usage
 
 1. Live mode is default in this main skill: `plan-issue <subcommand> ...`.
-2. Resolve and reuse a single `ISSUE_NUMBER` from upstream plan orchestration, then dispatch implementation to subagents via `issue-subagent-pr`.
+2. Resolve and reuse a single `ISSUE_NUMBER` from upstream plan orchestration, then dispatch implementation to subagents via
+   `issue-subagent-pr`.
    - If the issue originated from `plan-issue start-sprint`, dispatch each subagent with:
      - rendered `TASK_PROMPT_PATH`
      - `prompts/plan-issue-delivery-subagent-init.md`
      - assigned plan task section snippet/link/path
 3. Keep runtime-truth rows synchronized with `link-pr`; add `status-plan` checkpoints when needed.
-4. Handoff review with `ready-plan`, run main-agent review decisions through `issue-pr-review`, and merge/follow-up until close gates are satisfied.
+4. Handoff review with `ready-plan`, run main-agent review decisions through `issue-pr-review`, and merge/follow-up until close gates are
+   satisfied.
 5. Close with `close-plan` using `PLAN_APPROVED_COMMENT_URL`.
 6. If local rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
 
@@ -99,7 +104,8 @@ Failure modes:
 ## Full Skill Flow
 
 1. Confirm repository context, runtime mode (`plan-issue`), and `gh auth status` for live mode.
-2. Confirm the plan issue already exists, capture `ISSUE_NUMBER` from upstream orchestration output, and keep using that single value for all `--issue` flags.
+2. Confirm the plan issue already exists, capture `ISSUE_NUMBER` from upstream orchestration output, and keep using that single value for
+   all `--issue` flags.
 3. Confirm task decomposition ownership remains subagent-only.
 4. Main-agent dispatches implementation tasks to subagents (for example via `issue-subagent-pr`), while remaining orchestration/review-only.
    - For plan-sprint originated issues, dispatch must include the required bundle:
@@ -107,13 +113,15 @@ Failure modes:
      - `prompts/plan-issue-delivery-subagent-init.md`
      - assigned plan task section snippet/link/path
 5. As subagent PRs progress, run `link-pr` to update issue task `PR` and `Status` fields (instead of manual table edits).
-   - Task-scoped link: `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
+   - Task-scoped link:
+     `plan-issue link-pr --issue <number> --task <task-id> --pr <#123|123|pull-url> [--status <planned|in-progress|blocked>]`
    - `--task` automatically syncs shared-lane rows (`per-sprint` / `pr-shared`) in one operation.
    - Sprint-scoped link is valid only when the target resolves to one runtime lane; otherwise specify `--pr-group`.
 6. Run `status-plan` to generate a main-agent snapshot comment for task/PR/review state checkpoints.
 7. Run `ready-plan` when the issue is ready for main-agent review handoff.
 8. Main-agent reviews subagent PRs (typically with `issue-pr-review`), requests follow-up or merges until close gates are satisfied.
-9. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` to enforce final gates (task status plus merged PR checks), re-sync/normalize the issue task table, and close the issue.
+9. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` to enforce final gates (task status plus merged PR checks), re-sync/normalize the issue
+   task table, and close the issue.
 
 ## Notes
 

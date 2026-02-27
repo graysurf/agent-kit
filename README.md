@@ -1,6 +1,9 @@
 # agent-kit
 
-agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling. Secrets and session data are intentionally excluded via `.gitignore`.
+<!-- markdownlint-disable-file MD060 -->
+
+agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling.
+Secrets and session data are intentionally excluded via `.gitignore`.
 
 ## 🗂️ Project Structure
 
@@ -63,79 +66,81 @@ See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Dock
 
 ### Common
 
-| Prompt | Description | Usage |
-| --- | --- | --- |
-| [actionable-advice](./prompts/actionable-advice.md) | Answer a question with clarifying questions, multiple options, and a single recommendation | `/prompts:actionable-advice <question>` |
-| [actionable-knowledge](./prompts/actionable-knowledge.md) | Answer a learning/knowledge question with multiple explanation paths and a single recommended path | `/prompts:actionable-knowledge <question>` |
-| [parallel-first](./prompts/parallel-first.md) | Enable a parallel-first execution policy for this conversation thread (prefer delegate-parallel subagents when safe) | `/prompts:parallel-first` |
-| [plan-issue-delivery-main-agent-init](./prompts/plan-issue-delivery-main-agent-init.md) | Init prompt for the orchestration-only main agent in plan-issue-delivery | `/prompts:plan-issue-delivery-main-agent-init <optional overrides for repo/plan/issue/sprint/grouping>` |
-| [plan-issue-delivery-subagent-init](./prompts/plan-issue-delivery-subagent-init.md) | Init prompt for implementation-owned subagents in plan-issue-delivery | `/prompts:plan-issue-delivery-subagent-init <optional overrides for task/worktree/branch/pr-mode>` |
+| Prompt                                                                                  | Description                                                                                                          | Usage                                                                                                   |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [actionable-advice](./prompts/actionable-advice.md)                                     | Answer a question with clarifying questions, multiple options, and a single recommendation                           | `/prompts:actionable-advice <question>`                                                                 |
+| [actionable-knowledge](./prompts/actionable-knowledge.md)                               | Answer a learning/knowledge question with multiple explanation paths and a single recommended path                   | `/prompts:actionable-knowledge <question>`                                                              |
+| [parallel-first](./prompts/parallel-first.md)                                           | Enable a parallel-first execution policy for this conversation thread (prefer delegate-parallel subagents when safe) | `/prompts:parallel-first`                                                                               |
+| [plan-issue-delivery-main-agent-init](./prompts/plan-issue-delivery-main-agent-init.md) | Init prompt for the orchestration-only main agent in plan-issue-delivery                                             | `/prompts:plan-issue-delivery-main-agent-init <optional overrides for repo/plan/issue/sprint/grouping>` |
+| [plan-issue-delivery-subagent-init](./prompts/plan-issue-delivery-subagent-init.md)     | Init prompt for implementation-owned subagents in plan-issue-delivery                                                | `/prompts:plan-issue-delivery-subagent-init <optional overrides for task/worktree/branch/pr-mode>`      |
 
 ## 🛠️ Skills
 
 ### Skill management
 
-See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills (including project-local `.agents/skills`) using canonical entrypoints.
+See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills (including
+project-local `.agents/skills`) using canonical entrypoints.
 
-Core skills are grouped under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and [skills/automation/](skills/automation). Internal/meta skills live under `skills/.system/` (not listed below).
+Core skills are grouped under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
+[skills/automation/](skills/automation). Internal/meta skills live under `skills/.system/` (not listed below).
 
 ### Workflows
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified |
-| Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/) | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate |
-| Planning | [create-plan](./skills/workflows/plan/create-plan/) | Create a comprehensive, phased implementation plan and save it under docs/plans/ |
-| Planning | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/) | Create an extra-thorough implementation plan and get a subagent review |
-| Planning | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/) | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation |
-| Planning | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/) | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate |
-| Issue | [issue-lifecycle](./skills/workflows/issue/issue-lifecycle/) | Main-agent workflow for opening, maintaining, decomposing, and closing GitHub Issues as the planning source of truth |
-| Issue | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/) | Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked to the owning issue |
-| Issue | [issue-pr-review](./skills/workflows/issue/issue-pr-review/) | Main-agent PR review workflow with explicit PR comment links mirrored to the issue timeline |
-| PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/) | Create feature branches and open a PR with a standard template |
-| PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/) | Merge and close PRs after a quick PR hygiene review; delete the feature branch |
-| PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/) | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR |
-| PR / Bug | [create-bug-pr](./skills/workflows/pr/bug/create-bug-pr/) | Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates |
-| PR / Bug | [close-bug-pr](./skills/workflows/pr/bug/close-bug-pr/) | Merge and close a bug PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-bug-pr |
-| PR / Bug | [deliver-bug-pr](./skills/workflows/pr/bug/deliver-bug-pr/) | Define the default end-to-end bug PR delivery method: create PR, wait/fix CI until green, then close PR |
+| Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified                               |
+| Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/)                             | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate                                              |
+| Planning     | [create-plan](./skills/workflows/plan/create-plan/)                                                 | Create a comprehensive, phased implementation plan and save it under docs/plans/                                                          |
+| Planning     | [create-plan-rigorous](./skills/workflows/plan/create-plan-rigorous/)                               | Create an extra-thorough implementation plan and get a subagent review                                                                    |
+| Planning     | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/)                                     | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation                                           |
+| Planning     | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/)                             | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate                                                 |
+| Issue        | [issue-lifecycle](./skills/workflows/issue/issue-lifecycle/)                                        | Main-agent workflow for opening, maintaining, decomposing, and closing GitHub Issues as the planning source of truth                      |
+| Issue        | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/)                                    | Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked to the owning issue         |
+| Issue        | [issue-pr-review](./skills/workflows/issue/issue-pr-review/)                                        | Main-agent PR review workflow with explicit PR comment links mirrored to the issue timeline                                               |
+| PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/)                               | Create feature branches and open a PR with a standard template                                                                            |
+| PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/)                                 | Merge and close PRs after a quick PR hygiene review; delete the feature branch                                                            |
+| PR / Feature | [deliver-feature-pr](./skills/workflows/pr/feature/deliver-feature-pr/)                             | Define the default end-to-end feature delivery method: create PR, wait/fix CI until green, then close PR                                  |
+| PR / Bug     | [create-bug-pr](./skills/workflows/pr/bug/create-bug-pr/)                                           | Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates |
+| PR / Bug     | [close-bug-pr](./skills/workflows/pr/bug/close-bug-pr/)                                             | Merge and close a bug PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-bug-pr     |
+| PR / Bug     | [deliver-bug-pr](./skills/workflows/pr/bug/deliver-bug-pr/)                                         | Define the default end-to-end bug PR delivery method: create PR, wait/fix CI until green, then close PR                                   |
 
 ### Tools
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| Agent Docs | [agent-doc-init](./skills/tools/agent-doc-init/) | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries |
-| App Ops | [macos-agent-ops](./skills/tools/macos-agent-ops/) | Run repeatable macOS app checks/scenarios with `macos-agent` |
-| Browser | [chrome-devtools-debug-companion](./skills/tools/browser/chrome-devtools-debug-companion/) | Diagnose browser-level issues via chrome-devtools MCP with evidence-driven root-cause analysis |
-| Browser | [playwright](./skills/tools/browser/playwright/) | Automate a real browser via Playwright CLI using the wrapper script |
-| Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/) | Audit skill layout and validate SKILL.md contracts |
-| Skill Management | [create-skill](./skills/tools/skill-management/create-skill/) | Scaffold a new skill directory that passes skill-governance audit and contract validation |
-| Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/) | Scaffold a project-local skill under `<project>/.agents/skills/` with contract/layout validation |
-| Skill Management | [remove-skill](./skills/tools/skill-management/remove-skill/) | Remove a tracked skill directory and purge non-archived repo references (breaking change) |
-| DevEx | [semantic-commit](./skills/tools/devex/semantic-commit/) | Commit staged changes using Semantic Commit format |
-| DevEx | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/) | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable) |
-| DevEx | [desktop-notify](./skills/tools/devex/desktop-notify/) | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux) |
-| Media | [image-processing](./skills/tools/media/image-processing/) | Process images (convert/resize/crop/optimize) via ImageMagick |
-| Media | [screen-record](./skills/tools/media/screen-record/) | Record a single window or full display to a video file via the screen-record CLI (macOS 12+ and Linux) |
-| Media | [screenshot](./skills/tools/media/screenshot/) | Capture screenshots via screen-record on macOS and Linux, with optional macOS desktop capture via screencapture |
-| SQL | [sql-postgres](./skills/tools/sql/sql-postgres/) | Run PostgreSQL queries via psql using a prefix + env file convention |
-| SQL | [sql-mysql](./skills/tools/sql/sql-mysql/) | Run MySQL queries via mysql client using a prefix + env file convention |
-| SQL | [sql-mssql](./skills/tools/sql/sql-mssql/) | Run SQL Server queries via sqlcmd using a prefix + env file convention |
-| Testing | [api-test-runner](./skills/tools/testing/api-test-runner/) | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results |
-| Testing | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/) | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports |
-| Testing | [rest-api-testing](./skills/tools/testing/rest-api-testing/) | Test REST APIs with repeatable, file-based requests and generate API test reports |
+| Agent Docs       | [agent-doc-init](./skills/tools/agent-doc-init/)                                           | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries         |
+| App Ops          | [macos-agent-ops](./skills/tools/macos-agent-ops/)                                         | Run repeatable macOS app checks/scenarios with `macos-agent`                                                    |
+| Browser          | [chrome-devtools-debug-companion](./skills/tools/browser/chrome-devtools-debug-companion/) | Diagnose browser-level issues via chrome-devtools MCP with evidence-driven root-cause analysis                  |
+| Browser          | [playwright](./skills/tools/browser/playwright/)                                           | Automate a real browser via Playwright CLI using the wrapper script                                             |
+| Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/)                      | Audit skill layout and validate SKILL.md contracts                                                              |
+| Skill Management | [create-skill](./skills/tools/skill-management/create-skill/)                              | Scaffold a new skill directory that passes skill-governance audit and contract validation                       |
+| Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/)              | Scaffold a project-local skill under `<project>/.agents/skills/` with contract/layout validation                |
+| Skill Management | [remove-skill](./skills/tools/skill-management/remove-skill/)                              | Remove a tracked skill directory and purge non-archived repo references (breaking change)                       |
+| DevEx            | [semantic-commit](./skills/tools/devex/semantic-commit/)                                   | Commit staged changes using Semantic Commit format                                                              |
+| DevEx            | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/)               | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable)                       |
+| DevEx            | [desktop-notify](./skills/tools/devex/desktop-notify/)                                     | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux)                                 |
+| Media            | [image-processing](./skills/tools/media/image-processing/)                                 | Process images (convert/resize/crop/optimize) via ImageMagick                                                   |
+| Media            | [screen-record](./skills/tools/media/screen-record/)                                       | Record a single window or full display to a video file via the screen-record CLI (macOS 12+ and Linux)          |
+| Media            | [screenshot](./skills/tools/media/screenshot/)                                             | Capture screenshots via screen-record on macOS and Linux, with optional macOS desktop capture via screencapture |
+| SQL              | [sql-postgres](./skills/tools/sql/sql-postgres/)                                           | Run PostgreSQL queries via psql using a prefix + env file convention                                            |
+| SQL              | [sql-mysql](./skills/tools/sql/sql-mysql/)                                                 | Run MySQL queries via mysql client using a prefix + env file convention                                         |
+| SQL              | [sql-mssql](./skills/tools/sql/sql-mssql/)                                                 | Run SQL Server queries via sqlcmd using a prefix + env file convention                                          |
+| Testing          | [api-test-runner](./skills/tools/testing/api-test-runner/)                                 | Run CI-friendly API test suites (REST + GraphQL) from a single manifest; emits JSON (+ optional JUnit) results  |
+| Testing          | [graphql-api-testing](./skills/tools/testing/graphql-api-testing/)                         | Test GraphQL APIs with repeatable, file-based operations/variables and generate API test reports                |
+| Testing          | [rest-api-testing](./skills/tools/testing/rest-api-testing/)                               | Test REST APIs with repeatable, file-based requests and generate API test reports                               |
 
 ### Automation
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| DevEx | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows |
-| Issue | [issue-delivery](./skills/automation/issue-delivery/) | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates |
-| Issue | [plan-issue-delivery](./skills/automation/plan-issue-delivery/) | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
-| Maintenance | [gh-fix-ci](./skills/automation/gh-fix-ci/) | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green |
-| Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/) | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced |
-| Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/) | Find, triage, and fix bugs; open a PR with a standard template |
-| Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/) | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR |
-| Release | [release-workflow](./skills/automation/release-workflow/) | Execute project release workflows by following a repo release guide (with a bundled fallback) |
+| DevEx       | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows                                                                                          |
+| Issue       | [issue-delivery](./skills/automation/issue-delivery/)                       | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates                                                    |
+| Issue       | [plan-issue-delivery](./skills/automation/plan-issue-delivery/)             | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
+| Maintenance | [gh-fix-ci](./skills/automation/gh-fix-ci/)                                 | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green                                                                                   |
+| Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/)                               | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced                                                                                 |
+| Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/)                 | Find, triage, and fix bugs; open a PR with a standard template                                                                                                                             |
+| Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
+| Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
 
 ## 🪪 License
 

@@ -1,4 +1,4 @@
-# skills/workflows/plan/_shared
+# skills/workflows/plan/\_shared
 
 Purpose: shared assets for plan-related skills under `skills/workflows/plan/`.
 

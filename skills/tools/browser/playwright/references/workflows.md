@@ -1,8 +1,7 @@
 # Playwright CLI Workflows
 
-Use the wrapper script and snapshot often.
-Assume `PWCLI` is set and `pwcli` is an alias for `"$PWCLI"`.
-In this repo, set `PLAYWRIGHT_MCP_OUTPUT_DIR=out/playwright/<label>` so artifacts go there (and `.playwright-cli/` is not created).
+Use the wrapper script and snapshot often. Assume `PWCLI` is set and `pwcli` is an alias for `"$PWCLI"`. In this repo, set
+`PLAYWRIGHT_MCP_OUTPUT_DIR=out/playwright/<label>` so artifacts go there (and `.playwright-cli/` is not created).
 
 ## Standard interaction loop
 
@@ -95,4 +94,5 @@ Minimal example:
 - If a flow depends on prior state, use a named `--session`.
 - If the browser is missing, run `pwcli install-browser`.
 - If a skill is missing, run `pwcli install-skills`.
-- Known issue (Playwright CLI 0.0.63): after creating a named session, later commands with `--session` may fail with "The session is already configured." Workarounds: use the default session or delete/recreate the named session.
+- Known issue (Playwright CLI 0.0.63): after creating a named session, later commands with `--session` may fail with "The session is already
+  configured." Workarounds: use the default session or delete/recreate the named session.

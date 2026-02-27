@@ -1,6 +1,7 @@
 # Docker Agent env (Ubuntu 24.04)
 
-This folder defines a Linux container development environment intended to mirror the [zsh-kit](https://github.com/graysurf/zsh-kit) and [agent-kit](https://github.com/graysurf/agent-kit) workflow as closely as practical, targeting headless Ubuntu Server hosts.
+This folder defines a Linux container development environment intended to mirror the [zsh-kit](https://github.com/graysurf/zsh-kit) and
+[agent-kit](https://github.com/graysurf/agent-kit) workflow as closely as practical, targeting headless Ubuntu Server hosts.
 
 ## Build
 
@@ -11,6 +12,7 @@ docker build -f Dockerfile -t agent-env:linuxbrew .
 ```
 
 Source checkout policy:
+
 - `zsh-kit` and `agent-kit` are always cloned from the `main` branch during image build.
 - Image defaults: `ZSH_KIT_DIR=~/.config/zsh`, `AGENT_KIT_DIR=~/.agents`.
 - `AGENT_HOME` is intentionally runtime-configurable (not pinned via Dockerfile `ENV`).
@@ -56,15 +58,20 @@ docker build -f Dockerfile -t agent-env:linuxbrew \
 ```
 
 Notes:
-- Tools are installed from the zsh-kit config lists resolved by `docker/agent-env/bin/install-tools.sh` (OS-specific files are picked based on `uname`).
+
+- Tools are installed from the zsh-kit config lists resolved by `docker/agent-env/bin/install-tools.sh` (OS-specific files are picked based
+  on `uname`).
 - The image uses `tini` as PID 1 for signal forwarding and zombie reaping.
-- `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
+- `visual-studio-code` cannot be installed via Linuxbrew; on Linux, `tools.optional.linux.apt.list` declares `code::code` and
+  `INSTALL_VSCODE=1` uses the Microsoft apt repo to install it.
 - `mitmproxy` is installed via `apt` on Linux (declared in `tools.optional.linux.apt.list`).
-- On first container start, the entrypoint seeds `$AGENT_HOME` from the bundled agent-kit checkout (`$AGENT_KIT_DIR`) if the volume is empty.
+- On first container start, the entrypoint seeds `$AGENT_HOME` from the bundled agent-kit checkout (`$AGENT_KIT_DIR`) if the volume is
+  empty.
 
 ## Fallback policy
 
-Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in the zsh-kit config lists resolved by `docker/agent-env/bin/install-tools.sh`:
+Install order is `brew` > `apt` > release binary. Linux apt fallbacks live in the zsh-kit config lists resolved by
+`docker/agent-env/bin/install-tools.sh`:
 
 - `tools.linux.apt.list` (required)
 - `tools.optional.linux.apt.list` (optional)
@@ -78,15 +85,18 @@ If a brew install fails on Linux, add a matching apt entry or explicitly remove 
 ## Publish to Docker Hub
 
 Prereqs:
+
 - `docker login` already completed.
 - Local image exists: `agent-env:linuxbrew`.
 
 CI publish (auto):
+
 - GitHub Actions workflow: `Publish agent-env image` (runs on `docker` and supports `workflow_dispatch`).
 - Requires repo secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 - Publishes: `graysurf/agent-env:{linuxbrew,latest,sha-<short>}`.
 - Multi-arch: `linux/amd64` + `linux/arm64`.
-- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different label, set the GitHub Actions repo variable `ARM64_RUNNER`.
+- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different
+  label, set the GitHub Actions repo variable `ARM64_RUNNER`.
 
 Tag and push:
 
@@ -109,6 +119,7 @@ docker pull "${DOCKERHUB_USER}/agent-env:linuxbrew"
 ## Publish to GitHub Container Registry (GHCR)
 
 Prereqs:
+
 - `docker login ghcr.io` already completed (PAT with `write:packages`, or publish via GitHub Actions).
 - Local image exists: `agent-env:linuxbrew`.
 
@@ -134,16 +145,18 @@ docker pull "ghcr.io/${GHCR_OWNER}/agent-env:linuxbrew"
 ```
 
 Notes:
+
 - The root `Dockerfile` sets OCI labels (including `org.opencontainers.image.source`) so the GHCR package can link back to this repo.
-- CI publish: run the GitHub Actions workflow `Publish agent-env image` (runs on `docker` and supports `workflow_dispatch`; publishes to `ghcr.io/<owner>/agent-env`).
+- CI publish: run the GitHub Actions workflow `Publish agent-env image` (runs on `docker` and supports `workflow_dispatch`; publishes to
+  `ghcr.io/<owner>/agent-env`).
 - Multi-arch: CI publishes `linux/amd64` + `linux/arm64` so Apple Silicon hosts can pull without `--platform`.
-- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different label, set the GitHub Actions repo variable `ARM64_RUNNER`.
+- Runner note: the GitHub-hosted ARM64 runners use partner labels like `ubuntu-24.04-arm` / `ubuntu-22.04-arm`. If you need a different
+  label, set the GitHub Actions repo variable `ARM64_RUNNER`.
 
 ## Workspace launcher (isolated, no host workspace)
 
-`docker-compose.yml` defaults to bind-mounting a host workspace into `/work` (convenient for local iteration).
-If you want a fully isolated workspace that lives only inside Docker (named volumes; no host workspace folder created),
-use the launcher script.
+`docker-compose.yml` defaults to bind-mounting a host workspace into `/work` (convenient for local iteration). If you want a fully isolated
+workspace that lives only inside Docker (named volumes; no host workspace folder created), use the launcher script.
 
 Pull the prebuilt image (skip if you already built locally):
 
@@ -154,6 +167,7 @@ docker pull ghcr.io/graysurf/agent-env:linuxbrew
 ```
 
 If you see `pull access denied`, the image may not be public under that namespace yet. Options:
+
 - Run `docker login` (Docker Hub) or `docker login ghcr.io` (GHCR) and retry.
 - Or use your own tag: `./docker/agent-env/bin/agent-workspace up <repo> --image DOCKERHUB_USER/agent-env:linuxbrew`
 
@@ -164,6 +178,7 @@ Start a new workspace from a repo input (supports `git@github.com:...` and norma
 ```
 
 Notes:
+
 - `create` is an alias of `up` (wrappers may prefer `create`).
 - Capabilities / version:
 
@@ -189,6 +204,7 @@ unset GH_TOKEN
 ```
 
 Notes:
+
 - Drop `--setup-git` if you only need the initial clone.
 - `--setup-git` stores auth in the container config (gh or git helper), not as an env var.
 
@@ -198,6 +214,7 @@ Codex profiles (`codex-use`):
 - Manual: `docker exec -it <workspace> zsh -lic 'codex-use personal'`
 
 Notes:
+
 - Secrets are opt-in for the launcher: pass `--secrets-dir <host-path>` to mount secrets into the container.
   - Recommended host path: `~/.config/codex_secrets`
   - Default mount path: `/home/agent/codex_secrets` (override with `--secrets-mount` or `DEFAULT_SECRETS_MOUNT=<container-path>`).
@@ -228,7 +245,8 @@ Common operations:
 
 SSH cloning:
 
-- `agent-workspace` currently uses HTTPS cloning. If you need SSH agent forwarding, use Compose with `docker/agent-env/docker-compose.ssh.yml`.
+- `agent-workspace` currently uses HTTPS cloning. If you need SSH agent forwarding, use Compose with
+  `docker/agent-env/docker-compose.ssh.yml`.
 
 ## GitHub auth (token or SSH)
 
@@ -253,8 +271,8 @@ docker compose exec -it agent-env ssh -T git@github.com
 
 ## Codex secrets (codex-use)
 
-Mount the host codex secrets directory (contains `_codex-secret.zsh` + `*.json` profiles) to `/home/agent/codex_secrets`,
-then run `codex-use <profile>` inside the container to copy a profile into the active auth file.
+Mount the host codex secrets directory (contains `_codex-secret.zsh` + `*.json` profiles) to `/home/agent/codex_secrets`, then run
+`codex-use <profile>` inside the container to copy a profile into the active auth file.
 
 ```sh
 export CODEX_SECRET_DIR_HOST=~/.config/codex_secrets
@@ -263,6 +281,7 @@ docker compose exec -it agent-env zsh -lic 'codex-use personal'
 ```
 
 Notes:
+
 - `docker-compose.secrets.yml` mounts `CODEX_SECRET_DIR_HOST` at `/home/agent/codex_secrets` and sets `CODEX_SECRET_DIR` in-container.
 - The secrets directory is mounted read-write by default because `codex-use` syncs auth back to secrets.
 
@@ -297,8 +316,10 @@ docker compose -f docker-compose.yml -f docker/agent-env/docker-compose.local.ym
 ```
 
 Notes:
+
 - `ZSH_KIT_DIR` (host path) is mounted to `/home/agent/.config/zsh` inside the container.
-- `AGENT_KIT_DIR` (host path) is mounted to `/home/agent/.agent-kit-src`, and the local override sets container `AGENT_KIT_DIR` to that mount.
+- `AGENT_KIT_DIR` (host path) is mounted to `/home/agent/.agent-kit-src`, and the local override sets container `AGENT_KIT_DIR` to that
+  mount.
 
 ## VS Code tunnel (macOS client)
 

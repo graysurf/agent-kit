@@ -88,7 +88,8 @@ Most commands assume a per-repo `setup/graphql/` directory. All commands support
 
 - `api-gql call` / `api-gql report` / `api-gql history` / `api-gql schema`
 
-If `--config-dir` is omitted, scripts try to discover the setup dir by searching upward for known files (e.g. `endpoints.env`, `jwts.env`, `.gql_history`, `schema.env`).
+If `--config-dir` is omitted, scripts try to discover the setup dir by searching upward for known files (e.g. `endpoints.env`, `jwts.env`,
+`.gql_history`, `schema.env`).
 
 Recommendation:
 
@@ -104,14 +105,14 @@ Recommendation:
 
 ## Steps
 
-1) Start the API server (project-specific)
+1. Start the API server (project-specific)
 
 ```bash
 # Example
 # yarn serve:api
 ```
 
-2) Configure endpoint presets (local/staging/dev)
+1. Configure endpoint presets (local/staging/dev)
 
 Edit `setup/graphql/endpoints.env` to match your environments. Example:
 
@@ -123,7 +124,7 @@ GQL_URL_LOCAL=http://localhost:<port>/graphql
 # GQL_URL_STAGING=https://<staging-host>/graphql
 ```
 
-3) (Optional) Configure JWT profiles
+1. (Optional) Configure JWT profiles
 
 Put placeholders in `setup/graphql/jwts.env` and real tokens in `setup/graphql/jwts.local.env` (gitignored). Example:
 
@@ -132,9 +133,10 @@ GQL_JWT_DEFAULT="<your token>"
 GQL_JWT_ADMIN="<admin token>"
 ```
 
-Select a profile with `--jwt <name>` (or `GQL_JWT_NAME=<name>`; you can also put `GQL_JWT_NAME=<name>` in `jwts.local.env`). If the selected JWT is missing/empty, `api-gql call` falls back to calling `setup/graphql/operations/login.graphql` to fetch one.
+Select a profile with `--jwt <name>` (or `GQL_JWT_NAME=<name>`; you can also put `GQL_JWT_NAME=<name>` in `jwts.local.env`). If the selected
+JWT is missing/empty, `api-gql call` falls back to calling `setup/graphql/operations/login.graphql` to fetch one.
 
-4) (Recommended) Configure schema (SDL)
+1. (Recommended) Configure schema (SDL)
 
 If the repo commits its GraphQL schema SDL, LLMs can generate operations/variables even without separate API docs.
 
@@ -154,16 +156,18 @@ Print the schema contents:
 api-gql schema --config-dir setup/graphql --cat
 ```
 
-5) Prepare operation and variables files
+1. Prepare operation and variables files
 
 Example structure:
 
 - `setup/graphql/operations/login.graphql`
 - `setup/graphql/operations/login.variables.json`
 
-For list queries, prefer a reasonable page size to avoid “too little data” reports. By default, `api-gql call` / `api-gql report` normalize any numeric `limit` fields (including nested pagination inputs) to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+For list queries, prefer a reasonable page size to avoid “too little data” reports. By default, `api-gql call` / `api-gql report` normalize
+any numeric `limit` fields (including nested pagination inputs) to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to
+disable).
 
-6) Call GraphQL operations (recommended: Codex skill script)
+1. Call GraphQL operations (recommended: Codex skill script)
 
 Tip: if you are not running from the repo root, add `--config-dir setup/graphql` to the commands below.
 
@@ -222,9 +226,10 @@ api-gql call \
 | jq .
 ```
 
-7) Generate a test report under `docs/`
+1. Generate a test report under `docs/`
 
-Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the query/variables (filters, time range, IDs) and re-run before writing the report.
+Reports should include real data. If the response is empty and that’s not clearly intended/correct, adjust the query/variables (filters,
+time range, IDs) and re-run before writing the report.
 
 ```bash
 export GQL_REPORT_DIR="docs" # optional (default: <project root>/docs; relative to <project root>)
@@ -250,15 +255,18 @@ api-gql report \
 
 If you intentionally expect an empty/no-data result (or want a draft without running yet), pass `--allow-empty`.
 
-If you already have an `api-gql`/`gql.sh` command snippet (e.g. from `setup/graphql/.gql_history`), you can generate the report without manually rewriting it:
+If you already have an `api-gql`/`gql.sh` command snippet (e.g. from `setup/graphql/.gql_history`), you can generate the report without
+manually rewriting it:
 
 ```bash
 api-gql report-from-cmd '<paste an api-gql/gql.sh command snippet>'
 ```
 
-By default, `api-gql report` includes a copy/pasteable `api-gql` command snippet in the report. Disable with `--no-command` or `GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or `GQL_REPORT_COMMAND_LOG_URL_ENABLED=false`.
+By default, `api-gql report` includes a copy/pasteable `api-gql` command snippet in the report. Disable with `--no-command` or
+`GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`. If the snippet uses `--url`, omit the URL value with `--no-command-url` or
+`GQL_REPORT_COMMAND_LOG_URL_ENABLED=false`.
 
-8) CI / E2E (optional)
+1. CI / E2E (optional)
 
 In CI, use `api-gql call` as the runner and `jq -e` as assertions (exit code is the contract):
 
@@ -282,7 +290,8 @@ Notes:
 ## Notes for stability
 
 - Prefer “files + template command” (or `api-gql`) over ad-hoc one-liners: it reduces drift and quoting mistakes.
-- If the repo commits its GraphQL schema SDL (recommended: `setup/graphql/schema.gql`), LLMs can generate operations/variables without separate API docs. Resolve it with:
+- If the repo commits its GraphQL schema SDL (recommended: `setup/graphql/schema.gql`), LLMs can generate operations/variables without
+  separate API docs. Resolve it with:
   - `api-gql schema --config-dir setup/graphql`
 - `api-gql` keeps a local history file at `setup/graphql/.gql_history` by default; extract the last entry for replay with:
   - `api-gql history --command-only`
@@ -293,7 +302,8 @@ Notes:
   - Omit URL in history entries: `GQL_HISTORY_LOG_URL_ENABLED=false`
   - Size/rotation: `GQL_HISTORY_MAX_MB=10` (default), `GQL_HISTORY_ROTATE_COUNT=5`
 - Variables defaults and controls:
-  - If variables JSON contains numeric `limit` fields (including nested pagination inputs), scripts bump them to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+  - If variables JSON contains numeric `limit` fields (including nested pagination inputs), scripts bump them to at least
+    `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Reports default to redacting common secrets (tokens/password fields). Use `api-gql report --no-redact` only when explicitly needed.
 - Make test inputs deterministic when possible (avoid time-dependent filters unless explicitly testing them).
 - Do not paste tokens/PII into reports; redact sensitive fields before committing.

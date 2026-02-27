@@ -15,4 +15,5 @@ Create a minimal reproduction script that triggers the bug before the fix and pa
 
 ## When not feasible
 
-If the bug depends on UI, external systems, or credentials, document why a repro script is not feasible and provide alternative evidence (logs, unit tests, or mocked steps).
+If the bug depends on UI, external systems, or credentials, document why a repro script is not feasible and provide alternative evidence
+(logs, unit tests, or mocked steps).

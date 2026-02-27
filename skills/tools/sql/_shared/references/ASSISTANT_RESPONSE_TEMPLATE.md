@@ -11,4 +11,3 @@ Use this template for SQL-related skills (Postgres/MySQL/MSSQL) and other query-
 - When exporting CSV, write to `out/skills/<command>/` at repo root and report the file path in the response.
 - Avoid printing secrets or sensitive row-level data; summarize or aggregate when possible.
 - If required schema/table/filters are missing, ask a concise clarification before running SQL.
-

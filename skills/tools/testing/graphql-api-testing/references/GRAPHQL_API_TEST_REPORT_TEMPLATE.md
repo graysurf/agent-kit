@@ -1,30 +1,30 @@
-# API Test Report (<YYYY-MM-DD>)
+# API Test Report (`<YYYY-MM-DD>`)
 
-## Test Case: <TEST_CASE_NAME>
+## Test Case: `<TEST_CASE_NAME>`
 
 ## Command
 
 ```bash
 api-gql call \
-  --env <ENV_NAME> \
-  --jwt <JWT_NAME> \
-  setup/graphql/operations/<OPERATION_NAME>.graphql \
-  setup/graphql/operations/<VARIABLES_NAME>.json \
+  --env `<ENV_NAME>` \
+  --jwt `<JWT_NAME>` \
+  setup/graphql/operations/`<OPERATION_NAME>`.graphql \
+  setup/graphql/operations/`<VARIABLES_NAME>`.json \
 | jq .
 ```
 
-Generated at: <YYYY-MM-DDTHH:MM:SS±ZZZZ>
+Generated at: `<YYYY-MM-DDTHH:MM:SS±ZZZZ>`
 
-Endpoint: --env <ENV_NAME>
+Endpoint: --env `<ENV_NAME>`
 
-Result: <PASS|FAIL|NOT_EXECUTED>
+Result: `<PASS|FAIL|NOT_EXECUTED>`
 
 ### GraphQL Operation
 
 ```graphql
-query <OPERATION_NAME>($input: <INPUT_TYPE>!) {
-  <field>(input: $input) {
-    <selectionSet>
+query `<OPERATION_NAME>`($input: `<INPUT_TYPE>`!) {
+  `<field>`(input: $input) {
+    `<selectionSet>`
   }
 }
 ```
@@ -35,7 +35,7 @@ query <OPERATION_NAME>($input: <INPUT_TYPE>!) {
 {
   "input": {
     "limit": 5,
-    "<INPUT_KEY>": "<INPUT_VALUE>"
+    "`<INPUT_KEY>`": "`<INPUT_VALUE>`"
   }
 }
 ```
@@ -45,7 +45,7 @@ query <OPERATION_NAME>($input: <INPUT_TYPE>!) {
 ```json
 {
   "data": {
-    "<DATA_KEY>": "<DATA_VALUE>"
+    "`<DATA_KEY>`": "`<DATA_VALUE>`"
   }
 }
 ```

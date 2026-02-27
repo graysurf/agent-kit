@@ -1,11 +1,13 @@
 ---
 name: delegate-parallel
-description: Decompose a multi-part goal into parallelizable tasks and execute them via parallel subagents, integrating and validating iteratively.
+description:
+  Decompose a multi-part goal into parallelizable tasks and execute them via parallel subagents, integrating and validating iteratively.
 ---
 
 # Delegate (Parallel)
 
-Execute a multi-part request by delegating independent tasks to parallel subagents, integrating their results, and iterating until acceptance criteria are met.
+Execute a multi-part request by delegating independent tasks to parallel subagents, integrating their results, and iterating until
+acceptance criteria are met.
 
 ## Contract
 
@@ -24,7 +26,7 @@ Inputs:
   - `max_agents`: 3
   - `max_retries_per_task`: 2
   - `mode`: patch-artifacts (subagents deliver `changes.patch`; orchestrator applies + validates)
-  - `artifact_root`: `$AGENT_HOME/out/delegate-parallel/<run-id>/`
+  - `artifact_root`: `$AGENT_HOME/out/delegate-parallel/RUN_ID/`
 
 Outputs:
 
@@ -44,7 +46,8 @@ Failure modes:
 
 ## When to use
 
-Use this workflow when you have a single user goal that naturally splits into independent workstreams (e.g., API + UI + docs, or multiple isolated modules) and you want to keep the main agent context focused on orchestration + acceptance.
+Use this workflow when you have a single user goal that naturally splits into independent workstreams (e.g., API + UI + docs, or multiple
+isolated modules) and you want to keep the main agent context focused on orchestration + acceptance.
 
 Do not use it for small changes or tightly-coupled refactors.
 
@@ -91,12 +94,12 @@ If two cards must edit the same files substantially, merge them or serialize the
 
 Create:
 
-- `artifact_root = $AGENT_HOME/out/delegate-parallel/<run-id>/` (preferred)
-- Fallback (if `AGENT_HOME` is unavailable): `out/delegate-parallel/<run-id>/`
+- `artifact_root = $AGENT_HOME/out/delegate-parallel/RUN_ID/` (preferred)
+- Fallback (if `AGENT_HOME` is unavailable): `out/delegate-parallel/RUN_ID/`
 
 For each task card, allocate a folder:
 
-- `<artifact_root>/<task-id>/`
+- `artifact_root/TASK_ID/`
 
 ### Step 5 — Dispatch parallel subagents (batch by dependency)
 
@@ -159,17 +162,18 @@ Summarize:
 
 You are a subagent implementing exactly ONE task.
 
-Task:
-<paste task card here>
+Task: `<paste task card here>`
 
 Rules:
+
 - Stay strictly within scope and allowed files.
 - Do not paste large diffs into chat.
-- Write artifacts to: <task artifact folder>
+- Write artifacts to: `<task artifact folder>`
 - Deliver:
   - REPORT.md
   - changes.patch
   - commands.txt + logs.txt
 
 Return in chat:
+
 - 3–8 line summary + artifact paths + blockers only.

@@ -51,6 +51,11 @@ jobs:
           HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" tap graysurf/tap
           HOMEBREW_NO_AUTO_UPDATE=1 "$BREW_BIN" install nils-cli
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install zsh (for zsh -n)
         run: |
           if ! command -v zsh >/dev/null 2>&1; then
@@ -66,6 +71,10 @@ jobs:
       - name: Shell lint + syntax (bash + zsh)
         run: |
           $AGENT_HOME/scripts/lint.sh --shell
+
+      - name: Markdown lint
+        run: |
+          $AGENT_HOME/scripts/ci/markdownlint-audit.sh --strict
 
       - name: Env bool audit
         run: |

@@ -1,43 +1,52 @@
-# Plan: <Task name>
+# Plan: `<Task name>`
 
 ## Overview
-<2–5 sentences: what changes, what stays the same, approach>
+
+`<2–5 sentences: what changes, what stays the same, approach>`
 
 ## Scope
+
 - In scope: ...
 - Out of scope: ...
 
 ## Assumptions
+
 1. ...
 
-## Sprint 1: <Name>
-**Goal**: ...
-**Demo/Validation**:
+## Sprint 1: `<Name>`
+
+**Goal**: ... **Demo/Validation**:
+
 - Command(s): ...
 - Verify: ...
 
-### Task 1.1: <Name>
+### Task 1.1: `<Name>`
+
 - **Location**:
   - `<file paths>`
 - **Description**: ...
 - **Dependencies**:
-  - <task IDs or "none">
+  - `<task IDs or "none">`
 - **Complexity**:
 - **Acceptance criteria**:
   - ...
 - **Validation**:
   - ...
 
-## Sprint 2: <Name>
+## Sprint 2: `<Name>`
+
 ...
 
 ## Testing Strategy
+
 - Unit: ...
 - Integration: ...
 - E2E/manual: ...
 
 ## Risks & gotchas
+
 - ...
 
 ## Rollback plan
+
 - ...

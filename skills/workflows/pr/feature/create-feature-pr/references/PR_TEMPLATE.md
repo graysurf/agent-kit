@@ -1,17 +1,21 @@
-# <capitalize the first word; describe the feature outcome; do not use housekeeping commit subjects>
+# `<capitalize the first word; describe the feature outcome; do not use housekeeping commit subjects>`
 
 {{OPTIONAL_SECTIONS}}
 
 ## Summary
-<one paragraph summary of the feature and scope>
+
+`<one paragraph summary of the feature and scope>`
 
 ## Changes
-- <key change>
-- <key change>
+
+- `<key change>`
+- `<key change>`
 
 ## Testing
-- <command> (pass)
+
+- `<command>` (pass)
 - not run (reason)
 
 ## Risk / Notes
-- <optional>
+
+- `<optional>`

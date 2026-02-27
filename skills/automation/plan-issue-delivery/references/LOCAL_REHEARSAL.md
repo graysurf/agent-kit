@@ -29,12 +29,29 @@ Use this playbook only when the user explicitly requests local rehearsal.
 1. Local sprint orchestration (`plan-issue-local`)
    - Validate: `plan-tooling validate --file <plan.md>`
    - Start plan: `plan-issue-local start-plan --plan <plan.md> --pr-grouping group --strategy auto`
-   - Start sprint: `plan-issue-local start-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
-   - Link PR (task scope): `plan-issue-local link-pr --body-file <issue-body.md> --task <task-id> --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run`
-   - Link PR (sprint lane scope): `plan-issue-local link-pr --body-file <issue-body.md> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run`
+   - Start sprint:
+     `plan-issue-local start-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
+   - Link PR (task scope):
+
+     ```bash
+     plan-issue-local link-pr --body-file <issue-body.md> --task <task-id> --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run
+     ```
+
+   - Link PR (sprint lane scope):
+
+     ```bash
+     plan-issue-local link-pr --body-file <issue-body.md> --sprint <n> [--pr-group <group>] --pr <#123|123|pull-url> --status <planned|in-progress|blocked> --dry-run
+     ```
+
    - Status checkpoint (optional): `plan-issue-local status-plan --body-file <issue-body.md> --dry-run`
-   - Ready sprint: `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
-   - Accept sprint: `plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+   - Ready sprint:
+     `plan-issue-local ready-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto`
+   - Accept sprint:
+
+     ```bash
+     plan-issue-local accept-sprint --plan <plan.md> --issue <local-placeholder-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+     ```
+
 2. Plan-level local/offline rehearsal (`plan-issue --dry-run`)
    - Ready plan: `plan-issue ready-plan --dry-run --body-file <ready-plan-comment.md>`
    - Close plan: `plan-issue close-plan --dry-run --approved-comment-url <comment-url> --body-file <close-plan-comment.md>`

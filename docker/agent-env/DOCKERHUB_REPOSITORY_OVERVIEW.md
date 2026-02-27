@@ -1,6 +1,7 @@
 # agent-env
 
-`agent-env` is a development container based on **Ubuntu 24.04**. It is designed to stay close to the `zsh-kit + agent-kit` workflow and works well for AI Agent/Codex-style CLI environments.
+`agent-env` is a development container based on **Ubuntu 24.04**. It is designed to stay close to the `zsh-kit + agent-kit` workflow and
+works well for AI Agent/Codex-style CLI environments.
 
 ## Quick Start
 
@@ -39,6 +40,7 @@ docker build -f Dockerfile -t agent-env:linuxbrew .
 ```
 
 Source checkout policy:
+
 - `zsh-kit` and `agent-kit` are always cloned from the `main` branch during image build.
 - Image defaults: `ZSH_KIT_DIR=~/.config/zsh`, `AGENT_KIT_DIR=~/.agents`.
 - `AGENT_HOME` is runtime-configurable (not pinned via Dockerfile `ENV`).
@@ -54,4 +56,5 @@ Common build args:
 ## Source & Docs
 
 - Source: [https://github.com/graysurf/agent-kit](https://github.com/graysurf/agent-kit)
-- Docker docs: [https://github.com/graysurf/agent-kit/tree/main/docker/agent-env](https://github.com/graysurf/agent-kit/tree/main/docker/agent-env)
+- Docker docs:
+  [https://github.com/graysurf/agent-kit/tree/main/docker/agent-env](https://github.com/graysurf/agent-kit/tree/main/docker/agent-env)

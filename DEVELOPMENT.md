@@ -6,8 +6,8 @@
 2. `.venv/bin/python -m pip install -r requirements-dev.txt`
 3. `scripts/check.sh --all`
 
-`scripts/...` commands are executable directly from the repo root.
-For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the current shell.
+`scripts/...` commands are executable directly from the repo root. For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the
+current shell.
 
 ## Required Before Commit
 
@@ -16,6 +16,7 @@ For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the current
   - `scripts/lint.sh` (shell + python)
     - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
     - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
+  - `scripts/ci/markdownlint-audit.sh --strict`
   - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
   - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
   - `plan-tooling validate` (from `nils-cli`)
@@ -26,6 +27,7 @@ For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the current
 ## Common Commands
 
 - `scripts/check.sh --lint` (lint only; faster loop)
+- `scripts/check.sh --markdown` (markdown lint only)
 - `scripts/check.sh --contracts` (skill contract validation only)
 - `scripts/check.sh --skills-layout` (skill layout audit only)
 - `scripts/check.sh --plans` (plan format validation only)
@@ -37,6 +39,7 @@ For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the current
 Direct entry points:
 
 - `scripts/lint.sh --shell|--python|--all`
+- `scripts/ci/markdownlint-audit.sh --strict`
 - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - `scripts/test.sh -m script_smoke`
@@ -55,13 +58,16 @@ Test artifacts:
   - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
 - System tools
   - `git` (required by lint scripts for tracked-file discovery)
+  - `node`/`npx` (required by markdown lint script)
   - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
   - `nils-cli` (Homebrew: `brew tap graysurf/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
 
 ## Shell Script Conventions (Shell / zsh)
 
-- `stdout`/`stderr`: scripts are non-interactive; keep `stdout` machine/LLM-parseable and send debug/progress/warnings to `stderr` (`print -u2 -r -- ...` in zsh, `echo ... >&2` in bash).
-- Avoid accidental output (`typeset`/`local` in zsh): do not repeatedly declare uninitialized variables inside loops (for example `typeset key file`), because zsh can emit old values to `stdout`.
+- `stdout`/`stderr`: scripts are non-interactive; keep `stdout` machine/LLM-parseable and send debug/progress/warnings to `stderr`
+  (`print -u2 -r -- ...` in zsh, `echo ... >&2` in bash).
+- Avoid accidental output (`typeset`/`local` in zsh): do not repeatedly declare uninitialized variables inside loops (for example
+  `typeset key file`), because zsh can emit old values to `stdout`.
   - Preferred: declare once outside loop (`typeset key='' file=''`) and only assign inside loop.
   - Alternative: if declaring inside loop, always initialize (`typeset key='' file=''`).
 - Quoting rules (zsh; same idea in bash):

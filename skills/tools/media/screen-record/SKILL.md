@@ -66,9 +66,9 @@ Failure modes:
 - Linux runtime missing required dependencies (for example: `ffmpeg`, portal backend, or `pactl` for audio capture).
 - Screen Recording permission missing/denied.
 - Ambiguous `--app` / `--window-name` selection (exit `2` with candidates on stderr).
-- Invalid flag combinations (e.g., `--window-name` without `--app`, `--audio both` with `.mp4`,
-  `--format`/`--image-format` conflicts with `--path` extension, `--portal` with non-`off` audio,
-  display selectors in screenshot mode, or recording-only flags used with `--screenshot`).
+- Invalid flag combinations (e.g., `--window-name` without `--app`, `--audio both` with `.mp4`, `--format`/`--image-format` conflicts with
+  `--path` extension, `--portal` with non-`off` audio, display selectors in screenshot mode, or recording-only flags used with
+  `--screenshot`).
 - `--metadata-out` / `--diagnostics-out` used outside recording mode.
 - `--if-changed-baseline` path does not exist.
 
@@ -86,17 +86,19 @@ Failure modes:
 
 ### Policies (must-follow per request)
 
-1) If underspecified: ask must-have questions first
+1. If underspecified: ask must-have questions first
    - Use: `skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`
-   - Ask 1–5 “Need to know” questions with explicit defaults (mode, selector, duration for recording, audio, output path/format, portal usage on Wayland).
+   - Ask 1–5 “Need to know” questions with explicit defaults (mode, selector, duration for recording, audio, output path/format, portal
+     usage on Wayland).
    - Do not run commands until the user answers or explicitly approves assumptions.
 
-2) Single entrypoint (do not bypass)
+2. Single entrypoint (do not bypass)
    - Only run: `screen-record` (from `PATH`; install via `brew install nils-cli`).
    - Do not call other screen recording tools unless debugging `screen-record` itself.
 
-3) Mode/flag gates (exactly one)
-   - Exactly one mode: `--list-windows` / `--list-apps` / `--list-displays` / `--preflight` / `--request-permission` / `--screenshot` / recording.
+3. Mode/flag gates (exactly one)
+   - Exactly one mode: `--list-windows` / `--list-apps` / `--list-displays` / `--preflight` / `--request-permission` / `--screenshot` /
+     recording.
    - Recording requires:
      - exactly one selector: `--portal` / `--window-id` / `--active-window` / `--app` / `--display` / `--display-id`
      - `--duration <seconds>` and `--path <file>`
@@ -110,7 +112,7 @@ Failure modes:
    - `--portal` is interactive; in recording mode it currently supports `--audio off` only.
    - `--audio both` requires `.mov` (or `--format mov`).
 
-4) Completion response (fixed)
+4. Completion response (fixed)
    - After a successful run, respond using:
      - `skills/tools/media/screen-record/references/ASSISTANT_RESPONSE_TEMPLATE.md`
    - Include clickable output path(s) and a one-sentence “next prompt” that repeats the same capture task with concrete flags/paths.

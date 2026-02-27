@@ -1,4 +1,4 @@
-# skills/_shared
+# skills/\_shared
 
 Purpose: global shared assets reused across multiple skill categories.
 

@@ -8,7 +8,8 @@ Use this contract for the `graphql-api-testing` skill.
 - Reference the exact operation/variables files used (prefer `setup/graphql/operations/*.graphql` + `setup/graphql/operations/*.json`).
 - Include the executed command(s) in fenced `bash` blocks (do not include secrets).
 - When pasting JSON (variables/response), format it in a fenced `json` block (prefer `jq -S .`).
-- Do not produce a “no data” report: ensure the response includes at least one real data record/value, unless an empty/no-data result is the test intent or correct behavior (confirm with the user; use `api-gql report --allow-empty` only in that case).
+- Do not produce a “no data” report: ensure the response includes at least one real data record/value, unless an empty/no-data result is the
+  test intent or correct behavior (confirm with the user; use `api-gql report --allow-empty` only in that case).
 - If generating a test report file, write it under `docs/` and include:
   - GraphQL Operation (`graphql` block)
   - Variables (`json` block, formatted)

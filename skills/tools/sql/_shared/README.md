@@ -1,4 +1,4 @@
-# skills/tools/sql/_shared
+# skills/tools/sql/\_shared
 
 Purpose: shared assets for SQL-related skills under `skills/tools/sql/`.
 
@@ -16,4 +16,3 @@ Forbidden:
 - `tests/`
 
 Keep entrypoints in per-skill `scripts/` directories.
-

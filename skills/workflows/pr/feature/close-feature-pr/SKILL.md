@@ -1,6 +1,8 @@
 ---
 name: close-feature-pr
-description: Merge and close a feature PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with create-feature-pr. Use when the user asks to merge/close a feature PR, delete the remote branch, and do post-merge cleanup.
+description:
+  Merge and close a feature PR with gh after a quick PR hygiene review (title, required sections, testing notes) aligned with
+  create-feature-pr. Use when the user asks to merge/close a feature PR, delete the remote branch, and do post-merge cleanup.
 ---
 
 # Close Feature PR
@@ -49,11 +51,14 @@ Failure modes:
 2. Preflight
    - Ensure working tree is clean: `git status --porcelain=v1` should be empty
    - Ensure checks pass: `gh pr checks <pr>`
-   - Ensure PR is not draft: `gh pr view <pr> --json isDraft -q .isDraft` should be `false`; if `true`, run `gh pr ready <pr>` automatically, then continue to merge.
+   - Ensure PR is not draft: `gh pr view <pr> --json isDraft -q .isDraft` should be `false`; if `true`, run `gh pr ready <pr>`
+     automatically, then continue to merge.
+   - if `true`, run `gh pr ready <pr>` automatically, then continue to merge.
 3. Review PR hygiene (aligned with `create-feature-pr`)
    - Title reflects feature outcome; capitalize the first word.
    - PR body includes: `Summary`, `Changes`, `Testing`, `Risk / Notes`.
-   - If PR body includes `Open Questions` and/or `Next Steps` and they are not already `- None`, update them to the latest status (resolve questions or confirm with the user, check off completed steps, link follow-ups).
+   - If PR body includes `Open Questions` and/or `Next Steps` and they are not already `- None`, update them to the latest status (resolve
+     questions or confirm with the user, check off completed steps, link follow-ups).
    - `Testing` records results (`pass/failed/skipped`) and reasons if not run.
    - If edits are needed: use `gh pr edit <pr> --title ...` / `gh pr edit <pr> --body-file ...`.
 4. Merge and delete branch
@@ -68,5 +73,8 @@ Failure modes:
 
 ## Optional helper script
 
-- Use `$AGENT_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` in this skill folder to run a deterministic merge + cleanup.
-- If `$AGENT_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` fails, attempt to fix the underlying cause (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report whether the fix succeeded.
+- Use `$AGENT_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` in this skill folder to run a deterministic
+  merge + cleanup.
+- If `$AGENT_HOME/skills/workflows/pr/feature/close-feature-pr/scripts/close_feature_pr.sh` fails, attempt to fix the underlying cause
+  (prefer fixing the script when it's a script bug, otherwise fix the documented prerequisites/workflow), re-run it, and explicitly report
+  whether the fix succeeded.

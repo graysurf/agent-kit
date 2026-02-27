@@ -1,6 +1,8 @@
 ---
 name: find-and-fix-bugs
-description: Find, triage, and fix bugs with or without user input. Autonomously scan codebases, produce an issues list, implement a fix, create a fix branch, commit via semantic-commit, and open a PR with gh.
+description:
+  Find, triage, and fix bugs with or without user input. Autonomously scan codebases, produce an issues list, implement a fix, create a fix
+  branch, commit via semantic-commit, and open a PR with gh.
 ---
 
 # Find and Fix Bugs
@@ -34,20 +36,22 @@ Failure modes:
 
 ## Setup
 
-- Record the starting branch/ref (for return after PR creation): `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
+- Record the starting branch/ref (for return after PR creation):
+  `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
 
 ## Trigger
 
-Use this skill when the user asks to find or fix bugs, or when no concrete issue is provided and you are asked to proactively discover issues.
+Use this skill when the user asks to find or fix bugs, or when no concrete issue is provided and you are asked to proactively discover
+issues.
 
 ## Intake rules
 
 - If the user provides a bug report: ensure reproduction steps, expected vs actual, and environment. Ask only for missing details.
 - If the user provides no input: do not ask; proceed autonomously.
-- When using GitHub issues as intake targets, you must read the full issue context before selection:
-  description/body, reproduction steps, expected vs actual behavior, labels, comments/discussion, and linked references.
-- Skip immediately and move to the next issue when either condition is true:
-  the issue has any comments/discussion, or the issue has any opened linked PR (including draft PRs).
+- When using GitHub issues as intake targets, you must read the full issue context before selection: description/body, reproduction steps,
+  expected vs actual behavior, labels, comments/discussion, and linked references.
+- Skip immediately and move to the next issue when either condition is true: the issue has any comments/discussion, or the issue has any
+  opened linked PR (including draft PRs).
 
 ## Discovery
 
@@ -57,7 +61,8 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 - Keep scan rules general; do not add repo-specific patterns.
 - Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
 - Produce an issues list using `references/ISSUES_TEMPLATE.md`.
-- Use the ID format `PR-<number>-BUG-##` (example: `PR-128-BUG-01`). If the PR number is not known yet, use `PR-<number>` as a placeholder and update after PR creation.
+- Use the ID format `PR-<number>-BUG-##` (example: `PR-128-BUG-01`). If the PR number is not known yet, use `PR-<number>` as a placeholder
+  and update after PR creation.
 - For project-specific skills, consider adding a minimal repro script requirement; see `references/REPRO_GUIDE.md`.
 
 ## Context window management
@@ -89,13 +94,15 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 ## High-risk guardrails
 
 - Do not auto-fix changes involving auth, permission/authorization, payment/billing, migration, or infrastructure/deployment.
-- If autonomous and the top issue is high-risk, record it and move to the next eligible issue. If all issues are high-risk, stop after reporting.
+- If autonomous and the top issue is high-risk, record it and move to the next eligible issue. If all issues are high-risk, stop after
+  reporting.
 
 ## Fix workflow
 
 1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
 2. Implement the fix with minimal scope; avoid refactors.
-3. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see Validation commands fallback). Treat validation as a gate: if validation fails, do not commit/open a PR; follow Retry policy.
+3. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see
+   Validation commands fallback). Treat validation as a gate: if validation fails, do not commit/open a PR; follow Retry policy.
 4. Update the issues list with status.
 
 ## Validation commands
@@ -114,7 +121,8 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
 
 ## Commit
 
-- Use `semantic-commit-autostage` for end-to-end automation (it stages changes); use `semantic-commit` only when the user has explicitly staged a reviewed subset.
+- Use `semantic-commit-autostage` for end-to-end automation (it stages changes); use `semantic-commit` only when the user has explicitly
+  staged a reviewed subset.
 - Prefer a single commit unless there is a clear reason to split.
 
 ## PR
@@ -130,7 +138,8 @@ Use this skill when the user asks to find or fix bugs, or when no concrete issue
   - Testing results or "not run"
 - Include the issues list in the PR body.
 - Use `$AGENT_HOME/skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
-- After the PR is created, return to the original branch/ref: `git switch "$start_ref"` (or `git switch -` if you stayed on the fix branch the whole time).
+- After the PR is created, return to the original branch/ref: `git switch "$start_ref"` (or `git switch -` if you stayed on the fix branch
+  the whole time).
 
 ## Output and clarification rules
 

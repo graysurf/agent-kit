@@ -10,13 +10,16 @@
 ## Recommendation
 
 Recommended now:
+
 1. Adopt project-level `AGENT_DOCS.toml` (minimum viable entry for `project-dev` pointing to `BINARY_DEPENDENCIES.md`).
 2. Keep `nils-cli/AGENTS.md` unchanged for now.
 
 Recommended later:
+
 1. Optionally add a concise dispatcher preflight note to `nils-cli/AGENTS.md` when project-local portability becomes a priority.
 
 Rationale:
+
 - pilot shows project-level extension loading works and passes strict checks;
 - immediate value is gained without touching repo-specific engineering policy text;
 - AGENTS refactor can be separated to reduce review scope and risk.
@@ -24,6 +27,7 @@ Rationale:
 ## Evidence
 
 Primary evidence files:
+
 - Gap analysis:
   - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-gap-analysis.md`
 - Baseline snapshot:
@@ -38,6 +42,7 @@ Primary evidence files:
   - `/Users/terry/.config/agent-kit/out/agent-docs-rollout/nils-cli-pilot-status.txt`
 
 Observed facts from evidence:
+
 1. Current project baseline is already passing (`missing_required: 0`) under built-in requirements.
 2. Pilot with project-level `AGENT_DOCS.toml` adds `source=extension-project` for `project-dev`.
 3. Pilot strict baseline still passes with `missing_required: 0`.
@@ -65,6 +70,7 @@ Observed facts from evidence:
 ## Rollback
 
 If pilot behavior is not accepted:
+
 1. Remove project-level `AGENT_DOCS.toml` from pilot branch.
 2. Re-run:
    - `agent-docs --project-path /Users/terry/Project/graysurf/nils-cli baseline --check --target project --strict --format text`

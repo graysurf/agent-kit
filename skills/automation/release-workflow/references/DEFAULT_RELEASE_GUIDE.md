@@ -17,7 +17,11 @@ Use this guide only when the target repository does not provide its own release 
 
 2. Update `CHANGELOG.md`
    - Scaffold a new entry:
-     - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version vX.Y.Z --date YYYY-MM-DD --output "$AGENT_HOME/out/release-entry-vX.Y.Z.md"`
+
+     ```bash
+     $AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version vX.Y.Z --date YYYY-MM-DD --output "$AGENT_HOME/out/release-entry-vX.Y.Z.md"
+     ```
+
    - Insert the scaffolded entry at the top of `CHANGELOG.md`.
    - Remove placeholders and scaffolding:
      - Remove any `...` placeholders and `<!-- ... -->` HTML comments.
@@ -27,7 +31,11 @@ Use this guide only when the target repository does not provide its own release 
      - `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 
 3. Verify prereqs (strict)
-   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict`
+
+   ```bash
+   $AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict
+   ```
+
    - This strict audit still blocks unrelated dirty files; only `CHANGELOG.md` is allowed before the release commit.
 
 4. (Only when code changed) run the repo’s lint/test/build checks and record results

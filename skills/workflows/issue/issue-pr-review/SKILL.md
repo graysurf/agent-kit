@@ -1,6 +1,8 @@
 ---
 name: issue-pr-review
-description: Main-agent PR review workflow that enforces explicit PR comment links, mirrors decisions to the issue timeline, and controls merge/close outcomes.
+description:
+  Main-agent PR review workflow that enforces explicit PR comment links, mirrors decisions to the issue timeline, and controls merge/close
+  outcomes.
 ---
 
 # Issue PR Review
@@ -64,8 +66,10 @@ Failure modes:
 
 ## Notes
 
-- Important review instructions should remain in PR comments; always mirror the exact comment URL into the issue to direct subagents unambiguously.
+- Important review instructions should remain in PR comments; always mirror the exact comment URL into the issue to direct subagents
+  unambiguously.
 - Use `--dry-run` in workflow simulations before touching live GitHub state.
-- Before `merge`/`close-pr`, main-agent runs internal/self-contained PR body hygiene validation (required headings, placeholder rejection, issue bullet check) and must correct invalid content.
+- Before `merge`/`close-pr`, main-agent runs internal/self-contained PR body hygiene validation (required headings, placeholder rejection,
+  issue bullet check) and must correct invalid content.
 - Main-agent performs review/acceptance only; implementation changes belong to subagent-owned task branches/PRs.
 - This skill is the canonical path for main-agent review decisions in issue-delivery loops.

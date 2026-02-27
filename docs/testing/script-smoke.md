@@ -2,13 +2,13 @@
 
 ## TL;DR
 
-1) Install dev deps:
+1. Install dev deps:
 
 ```bash
 .venv/bin/pip install -r requirements-dev.txt
 ```
 
-2) Run smoke:
+1. Run smoke:
 
 ```bash
 $AGENT_HOME/scripts/test.sh -m script_smoke

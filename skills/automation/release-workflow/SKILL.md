@@ -1,6 +1,8 @@
 ---
 name: release-workflow
-description: Execute project release workflows by following a repo-provided release guide when present; otherwise use a changelog-driven fallback flow with helper scripts.
+description:
+  Execute project release workflows by following a repo-provided release guide when present; otherwise use a changelog-driven fallback flow
+  with helper scripts.
 ---
 
 # Release Workflow
@@ -63,18 +65,33 @@ The default fallback guide lives at:
 These scripts are designed to run inside a target repo that uses `CHANGELOG.md` headings like `## vX.Y.Z - YYYY-MM-DD`.
 
 - Locate a project release guide deterministically:
-  - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3`
+
+  ```bash
+  $AGENT_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3
+  ```
+
 - Resolve the guide + template deterministically (preferred entrypoint):
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
 - Scaffold a new entry from a template:
-  - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$AGENT_HOME/out/release-entry-v1.3.2.md"`
+
+  ```bash
+  $AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$AGENT_HOME/out/release-entry-v1.3.2.md"
+  ```
+
   - Selects the repo template when present; otherwise falls back to the bundled template.
 - Audit basic prereqs + changelog format:
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
   - For `### Added` / `### Changed` / `### Fixed`: remove any section that would only contain `None` (do not write `- None.`).
   - During release drafting (before the changelog commit), allow only changelog edits:
-    - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main --allow-dirty-path CHANGELOG.md --strict`
+
+    ```bash
+    $AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main --allow-dirty-path CHANGELOG.md --strict
+    ```
+
 - Audit changelog formatting + placeholder cleanup:
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 - Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
-  - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$AGENT_HOME/out/release-notes-v1.3.2.md"`
+
+  ```bash
+  $AGENT_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$AGENT_HOME/out/release-notes-v1.3.2.md"
+  ```

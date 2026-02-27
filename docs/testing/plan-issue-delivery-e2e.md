@@ -11,23 +11,30 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 
 ## Command Timeline
 
-1. Validate the source plan:
-   `plan-tooling validate --file docs/plans/plan-issue-delivery-e2e-test-plan.md`
+1. Validate the source plan: `plan-tooling validate --file docs/plans/plan-issue-delivery-e2e-test-plan.md`
 2. Start sprint dispatch flow:
-   `plan-issue start-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto`
+
+   ```bash
+   plan-issue start-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto
+   ```
+
 3. Verify dispatch bundle artifacts before implementation handoff:
-   `test -f "$PLAN_SNAPSHOT_PATH" && test -f "$TASK_PROMPT_PATH" && test -f "$SUBAGENT_INIT_SNAPSHOT_PATH" && test -f "$DISPATCH_RECORD_PATH"`
+
+   ```bash
+   test -f "$PLAN_SNAPSHOT_PATH" && test -f "$TASK_PROMPT_PATH" && test -f "$SUBAGENT_INIT_SNAPSHOT_PATH" && test -f "$DISPATCH_RECORD_PATH"
+   ```
+
 4. Subagents implement assigned tasks and open/update lane PRs linked from runtime-truth rows.
 5. Main-agent runs `ready-sprint`, reviews merge evidence, then proceeds to `accept-sprint` with approved comment URL.
 
 ## Runtime Artifact Checklist
 
-| Artifact Path | Verification Method | Expected State |
-| --- | --- | --- |
-| `PLAN_SNAPSHOT_PATH` | `test -f "$PLAN_SNAPSHOT_PATH"` | Present under issue runtime `plan/` and readable before dispatch. |
-| `TASK_PROMPT_PATH` | `test -f "$TASK_PROMPT_PATH"` | Present under sprint `prompts/` and mapped to assigned task ID. |
+| Artifact Path                 | Verification Method                      | Expected State                                                      |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| `PLAN_SNAPSHOT_PATH`          | `test -f "$PLAN_SNAPSHOT_PATH"`          | Present under issue runtime `plan/` and readable before dispatch.   |
+| `TASK_PROMPT_PATH`            | `test -f "$TASK_PROMPT_PATH"`            | Present under sprint `prompts/` and mapped to assigned task ID.     |
 | `SUBAGENT_INIT_SNAPSHOT_PATH` | `test -f "$SUBAGENT_INIT_SNAPSHOT_PATH"` | Present under sprint `prompts/` and immutable for sprint execution. |
-| `DISPATCH_RECORD_PATH` | `test -f "$DISPATCH_RECORD_PATH"` | Present under sprint `manifests/` for each assigned task. |
+| `DISPATCH_RECORD_PATH`        | `test -f "$DISPATCH_RECORD_PATH"`        | Present under sprint `manifests/` for each assigned task.           |
 
 ## Sprint 1 Gate Checks
 
@@ -39,25 +46,48 @@ Sprint anchors: `Prerequisites/Command Timeline/Gate Checks/orchestration-only/r
 ## Sprint 2 Gating Checklist
 
 - [ ] Task-scoped PR link command was used for lane rows:
-  `plan-issue link-pr --task <task-id> --sprint 2 --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr <pr-number-or-url>`
+
+  ```bash
+  plan-issue link-pr --task <task-id> --sprint 2 --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr <pr-number-or-url>
+  ```
+
 - [ ] Sprint-scoped lane sync command was used when grouped lanes need normalization:
-  `plan-issue link-pr --sprint 2 --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-group s2-auto-g1 --pr <pr-number-or-url>`
+
+  ```bash
+  plan-issue link-pr --sprint 2 --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-group s2-auto-g1 --pr <pr-number-or-url>
+  ```
+
   (Use `link-pr --task` for a single task row and `link-pr --sprint` plus `--pr-group` for lane-wide normalization.)
 - [ ] Review handoff command has been run and recorded:
-  `plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto`
+
+  ```bash
+  plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto
+  ```
+
 - [ ] `accept-sprint` precondition: every linked sprint PR is merged before acceptance.
 - [ ] Sprint approval evidence is available as an `approved-comment-url` before acceptance.
 - [ ] Acceptance command includes required approval evidence:
-  `plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+
+  ```bash
+  plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint 2 --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+  ```
 
 ## Sprint 3 Final Plan Review and Close Checklist
 
 Use this final-gate section only after all sprint-level `accept-sprint` loops are complete.
 
 - [ ] Final plan review command has been run and recorded:
-  `plan-issue ready-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto`
+
+  ```bash
+  plan-issue ready-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto
+  ```
+
 - [ ] `ready-plan` evidence confirms every required sprint PR is merged and no required task row is pending.
 - [ ] Final closure command is prepared with plan-level approval evidence:
-  `plan-issue close-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+
+  ```bash
+  plan-issue close-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+  ```
+
 - [ ] `close-plan` is blocked when the merged-PR gate fails for any required lane PR.
 - [ ] `close-plan` is blocked when plan-level approval evidence is missing or invalid.

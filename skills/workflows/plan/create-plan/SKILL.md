@@ -1,11 +1,14 @@
 ---
 name: create-plan
-description: Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make a plan, outline the steps, break down tasks, etc.).
+description:
+  Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make
+  a plan, outline the steps, break down tasks, etc.).
 ---
 
 # Create Plan
 
-Create detailed, phased implementation plans (sprints + atomic tasks) for bugs, features, or refactors. This skill produces a plan document only; it does not implement.
+Create detailed, phased implementation plans (sprints + atomic tasks) for bugs, features, or refactors. This skill produces a plan document
+only; it does not implement.
 
 ## Contract
 
@@ -36,34 +39,35 @@ Failure modes:
 
 ## Workflow
 
-1) Decide whether you must ask questions first
+1. Decide whether you must ask questions first
 
 - If the request is underspecified, ask 1–5 “need to know” questions before writing the plan.
-- Follow the structure from `$AGENT_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md` (numbered questions, short options, explicit defaults).
+- Follow the structure from `$AGENT_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md` (numbered questions, short
+  options, explicit defaults).
 
-2) Research the repo just enough to plan well
+1. Research the repo just enough to plan well
 
 - Identify existing patterns, modules, and similar implementations.
 - Note constraints (runtime, tooling, deployment, CI, test strategy).
 
-3) Write the plan (do not implement)
+1. Write the plan (do not implement)
 
 - Use sprints/phases that each produce a demoable/testable increment.
 - Break work into atomic, independently testable tasks.
 - Include file paths whenever you can be specific.
 - Include a validation step per sprint (commands, checks, expected outcomes).
 
-4) Save the plan file
+1. Save the plan file
 
 - Path: `docs/plans/<slug>-plan.md`
 - Slug rules: lowercase kebab-case, 3–6 words, end with `-plan.md`.
 
-5) Lint the plan (format + executability)
+1. Lint the plan (format + executability)
 
 - Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
 - If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
 
-6) Review “gotchas”
+1. Review “gotchas”
 
 - After saving, add/adjust a “Risks & gotchas” section: ambiguity, dependencies, migrations, rollout, backwards compatibility, and rollback.
 

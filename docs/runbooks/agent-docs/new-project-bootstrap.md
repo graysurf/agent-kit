@@ -19,7 +19,7 @@ $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --project-path "$PROJECT_PATH"
 ```
 
-2. Apply missing baseline docs (safe default: missing-only scaffold):
+1. Apply missing baseline docs (safe default: missing-only scaffold):
 
 ```bash
 $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
@@ -27,13 +27,13 @@ $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
   --project-path "$PROJECT_PATH"
 ```
 
-3. Verify strict baseline coverage:
+1. Verify strict baseline coverage:
 
 ```bash
 agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH" --format text
 ```
 
-4. Continue with normal preflight resolves:
+1. Continue with normal preflight resolves:
 
 ```bash
 agent-docs resolve --context startup --strict --format checklist

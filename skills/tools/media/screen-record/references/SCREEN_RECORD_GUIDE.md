@@ -1,7 +1,7 @@
 # Screen Record guide
 
-This skill uses the `screen-record` CLI (from `nils-cli`) to capture windows/displays on macOS and Linux.
-It supports both recording and screenshot mode.
+This skill uses the `screen-record` CLI (from `nils-cli`) to capture windows/displays on macOS and Linux. It supports both recording and
+screenshot mode.
 
 ## Quick decision tree
 
@@ -37,11 +37,9 @@ If capture fails with a permission error on macOS, the fix is typically:
 ## Mode rules (important)
 
 - Exactly one mode must be selected:
-  - `--list-windows`, `--list-apps`, `--list-displays`, `--preflight`, `--request-permission`,
-    `--screenshot`, or recording (default).
+  - `--list-windows`, `--list-apps`, `--list-displays`, `--preflight`, `--request-permission`, `--screenshot`, or recording (default).
 - Recording mode requires:
-  - exactly one selector: `--portal`, `--window-id`, `--active-window`, `--app`, `--display`,
-    or `--display-id`
+  - exactly one selector: `--portal`, `--window-id`, `--active-window`, `--app`, `--display`, or `--display-id`
   - `--duration <seconds>`
   - `--path <file>`
 - Screenshot mode (`--screenshot`) requires:

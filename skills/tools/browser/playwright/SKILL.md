@@ -18,7 +18,8 @@ Inputs:
 
 - CLI subcommand and args forwarded to Playwright CLI.
 - Optional env: `PLAYWRIGHT_CLI_SESSION` (injected only when `--session` is not already provided).
-- Required env for non-help commands: `PLAYWRIGHT_MCP_OUTPUT_DIR`, and it must point to `out/playwright/` (optionally with a subdirectory, for example `out/playwright/run-001`).
+- Required env for non-help commands: `PLAYWRIGHT_MCP_OUTPUT_DIR`, and it must point to `out/playwright/` (optionally with a subdirectory,
+  for example `out/playwright/run-001`).
 
 Outputs:
 

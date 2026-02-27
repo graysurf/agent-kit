@@ -43,7 +43,7 @@ Prefer read-only queries unless the user explicitly requests data changes.
 
 ## Quick Start
 
-1) Run a query:
+1. Run a query:
 
 ```bash
 $AGENT_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
@@ -52,7 +52,7 @@ $AGENT_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \
   --query "select 1;"
 ```
 
-2) Run a file:
+1. Run a file:
 
 ```bash
 $AGENT_HOME/skills/tools/sql/sql-mysql/scripts/sql-mysql.sh \

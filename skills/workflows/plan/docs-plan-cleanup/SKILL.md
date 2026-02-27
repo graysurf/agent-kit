@@ -16,8 +16,7 @@ Prereqs:
 Inputs:
 
 - Optional:
-  - `--project-path <path>`: target project path override.
-    Default resolution order: `--project-path` > `$PROJECT_PATH` > current directory.
+  - `--project-path <path>`: target project path override. Default resolution order: `--project-path` > `$PROJECT_PATH` > current directory.
   - `--keep-plan <path|name>`: plan to preserve (repeatable). Supports:
     - repo-relative path (for example `docs/plans/foo-plan.md`),
     - filename (`foo-plan.md`),
@@ -68,7 +67,11 @@ Failure modes:
    - `plan_related_md_kept_referenced_elsewhere` are protected from auto-delete.
    - `plan_related_md_to_rehome` should be consolidated before deletion.
 4. Apply cleanup after review:
-   - `bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --project-path /path/to/project --keep-plan active-plan --execute --delete-empty-dirs`
+
+   ```bash
+   bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --project-path /path/to/project --keep-plan active-plan --execute --delete-empty-dirs
+   ```
+
 5. Use `--delete-important` only when you are sure `docs/specs/**` and `docs/runbooks/**` candidates are obsolete.
 
 ## Output and clarification rules

@@ -1,12 +1,18 @@
+<!-- markdownlint-disable-file MD041 -->
+
 ## 🔎 Issues List
-<paste the issues list table here>
+
+`<paste the issues list table here>`
 
 ## 📌 Git Scope
-<paste the `git-scope` output here>
+
+`<paste the`git-scope`output here>`
 
 ## 🧪 Tests Run
-- <command> (pass)
+
+- `<command>` (pass)
 - not run (reason)
 
 ## 🔗 PR Link
-[<org>/<repo>#<number>](https://github.com/<org>/<repo>/pull/<number>)
+
+[`<org>`/`<repo>`#`<number>`](https://github.com/`<org>`/`<repo>`/pull/`<number>`)

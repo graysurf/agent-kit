@@ -55,7 +55,8 @@ Failure modes:
   - `semantic-commit staged-context [--format <bundle|json|patch>] [--json] [--repo <path>]`
 - Commit / validate prepared message:
   - `semantic-commit commit [--message <text>|--message-file <path>] [options]`
-  - Useful options: `--message-out`, `--summary <git-scope|git-show|none>`, `--no-summary`, `--validate-only`, `--dry-run`, `--automation`, `--repo`, `--no-progress`, `--quiet`
+  - Useful options: `--message-out`, `--summary <git-scope|git-show|none>`, `--no-summary`, `--validate-only`, `--dry-run`, `--automation`,
+    `--repo`, `--no-progress`, `--quiet`
 - Do not call internal helpers directly; treat these commands as the only contract surface.
 
 ## Workflow
@@ -86,7 +87,7 @@ Rules:
 
 - Type must be lowercase.
 - Header length must be `<= 100` characters.
-- If body exists: line 2 must be blank, and every body line must start with `- ` followed by an uppercase letter.
+- If body exists: line 2 must be blank, and every body line must start with `-` followed by an uppercase letter.
 - Each body line must be `<= 100` characters.
 
 ## Error handling matrix

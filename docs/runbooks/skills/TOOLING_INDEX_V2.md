@@ -1,9 +1,9 @@
 # Skills Tooling Index v2
 
-This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts).
-Install `nils-cli` via `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
-For skill directory layout/path rules, use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference.
-For create/validate/remove workflows, see `skills/tools/skill-management/README.md`.
+This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts). Install `nils-cli` via
+`brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH. For skill directory layout/path rules, use
+`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
+`skills/tools/skill-management/README.md`.
 
 ## SKILL.md format
 

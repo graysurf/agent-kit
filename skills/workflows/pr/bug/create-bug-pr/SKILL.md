@@ -1,6 +1,7 @@
 ---
 name: create-bug-pr
-description: Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates.
+description:
+  Create a new bugfix branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates.
 ---
 
 # Create Bug PR
@@ -82,7 +83,8 @@ Failure modes:
 
 - Title: capitalize the first word; reflect the bug-fix outcome; never mirror a housekeeping commit subject.
 - Replace the first H1 line in `$AGENT_HOME/skills/automation/find-and-fix-bugs/references/PR_TEMPLATE.md` with the PR title.
-- Body narrative (`Summary`, `Problem`, `Reproduction`, `Issues Found`, `Fix Approach`, `Testing`, `Risk / Notes`) must describe the intended bug-fix outcome even when the first commit is kickoff-only.
+- Body narrative (`Summary`, `Problem`, `Reproduction`, `Issues Found`, `Fix Approach`, `Testing`, `Risk / Notes`) must describe the
+  intended bug-fix outcome even when the first commit is kickoff-only.
 - Always include `Summary`, `Problem`, `Reproduction`, `Issues Found`, `Fix Approach`, `Testing`, and `Risk / Notes`.
 - If tests are not run, state "not run (reason)".
 - Use `$AGENT_HOME/skills/workflows/pr/bug/create-bug-pr/scripts/render_bug_pr.sh --pr` to generate the PR body quickly.

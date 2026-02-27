@@ -2,7 +2,8 @@
 
 This repo treats each `skills/**/SKILL.md` as both human documentation and a machine-validated contract.
 
-The **Contract** is the stable interface. Other sections (Setup/Workflow/References) exist to make the contract executable and easy to follow, without changing the interface.
+The **Contract** is the stable interface. Other sections (Setup/Workflow/References) exist to make the contract executable and easy to
+follow, without changing the interface.
 
 ## Required file structure
 
@@ -27,7 +28,8 @@ Rationale: keep the contract easy to locate and make contract checks determinist
 
 ## Contract
 
-The Contract defines the skill’s stable interface and must be complete enough to use the skill correctly **without reading the rest of the file**.
+The Contract defines the skill’s stable interface and must be complete enough to use the skill correctly **without reading the rest of the
+file**.
 
 Inside `## Contract`, these headings are required, in exact order (validated by tooling):
 
@@ -57,7 +59,7 @@ Rules:
 - Avoid verbatim duplication of the `Prereqs` list. Prefer:
   - a short reference (“See Contract → Prereqs”), then
   - concrete install/verification commands per prerequisite.
-- It is okay to repeat a prereq *name* as an anchor for steps, but keep the canonical requirement statement in Contract.
+- It is okay to repeat a prereq _name_ as an anchor for steps, but keep the canonical requirement statement in Contract.
 
 Practical pattern:
 
@@ -73,7 +75,8 @@ These names are recommended when the meaning matches; they are not all required:
 - `## Workflow` — step-by-step execution instructions and decision points
 - `## References` — longer guides/specs/templates
 
-For content that is neither Setup nor Workflow (for example, assistant-only “policy”, default preferences, or response templates), add a clear post-Contract H2 such as:
+For content that is neither Setup nor Workflow (for example, assistant-only “policy”, default preferences, or response templates), add a
+clear post-Contract H2 such as:
 
 - `## Guidance`
 - `## Policies`
@@ -120,7 +123,7 @@ Failure modes:
 
 ## Workflow
 
-1) ...
+1. ...
 ```
 
 ## Tooling

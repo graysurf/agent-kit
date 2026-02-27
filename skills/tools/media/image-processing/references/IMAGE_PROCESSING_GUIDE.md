@@ -92,4 +92,3 @@ The following legacy subcommands are no longer supported and now return usage er
 - `flip`
 - `flop`
 - `optimize`
-```

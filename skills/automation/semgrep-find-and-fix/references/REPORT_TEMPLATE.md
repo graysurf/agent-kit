@@ -1,24 +1,27 @@
 # Semgrep Findings Report
 
-Generated: <YYYY-MM-DD>
-Repo: <org/repo or local path>
+Generated: `<YYYY-MM-DD>` Repo: `<org/repo or local path>`
 
 ## Scan Details
 
 - Semgrep version: `<semgrep --version>`
-- Config entrypoint: `<path>`
-- Command: `semgrep scan --config "<path>" --json --metrics=off --disable-version-check .`
+- Config entrypoint: `CONFIG_PATH`
+- Command:
+
+```bash
+semgrep scan --config "CONFIG_PATH" --json --metrics=off --disable-version-check .
+```
 
 ## Summary
 
-- Findings: <count>
-- Errors: <count> (parsing / scan failures, if any)
+- Findings: `<count>`
+- Errors: `<count>` (parsing / scan failures, if any)
 
 ## Top Findings
 
-| Rule ID | Severity | Confidence | Location | Message | Suggested Next Step |
-| --- | --- | --- | --- | --- | --- |
-| <rule.id> | error\|warning\|info | high\|medium\|low\|unknown | <path:line> | <short> | <fix or suppress> |
+|Rule ID|Severity|Confidence|Location|Message|Suggested Next Step|
+|---|---|---|---|---|---|
+|`rule.id`|`error/warning/info`|`high/medium/low/unknown`|`path:line`|`short`|`fix or suppress`|
 
 ## Notes
 

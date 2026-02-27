@@ -2,8 +2,8 @@
 
 Status: Canonical reference (v2)
 
-`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` is the canonical source for tracked skill directory anatomy and path rules.
-Use `skills/README.md` as the shorter landing-page summary for repo navigation.
+`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` is the canonical source for tracked skill directory anatomy and path rules. Use
+`skills/README.md` as the shorter landing-page summary for repo navigation.
 
 ## Purpose
 
@@ -26,14 +26,14 @@ Non-tracked directories (`skills/_projects/`, `skills/.system/`) are best-effort
 
 A skill directory contains only the following top-level entries:
 
-| Entry | Required | Purpose |
-| --- | --- | --- |
-| `SKILL.md` | Yes | Contract, usage, and workflow documentation |
-| `scripts/` | Optional | Executable entrypoints only |
-| `lib/` | Optional | Non-entrypoint code (imported/shared helpers) |
-| `tests/` | Yes | Per-skill tests (minimum smoke coverage) |
-| `references/` | Optional | Longer docs, guides, specs |
-| `assets/` | Optional | Templates, fixtures, scaffolds |
+| Entry         | Required | Purpose                                       |
+| ------------- | -------- | --------------------------------------------- |
+| `SKILL.md`    | Yes      | Contract, usage, and workflow documentation   |
+| `scripts/`    | Optional | Executable entrypoints only                   |
+| `lib/`        | Optional | Non-entrypoint code (imported/shared helpers) |
+| `tests/`      | Yes      | Per-skill tests (minimum smoke coverage)      |
+| `references/` | Optional | Longer docs, guides, specs                    |
+| `assets/`     | Optional | Templates, fixtures, scaffolds                |
 
 Notes:
 
@@ -81,7 +81,7 @@ $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skil
 
 New skill:
 
-```
+```text
 skills/tools/devex/example-skill/
   SKILL.md
   scripts/
@@ -93,7 +93,7 @@ skills/tools/devex/example-skill/
 
 Shared reuse (category-level):
 
-```
+```text
 skills/workflows/plan/_shared/
   lib/
   references/

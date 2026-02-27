@@ -2,13 +2,13 @@
 
 ## TL;DR
 
-1) Install dev deps:
+1. Install dev deps:
 
 ```bash
 .venv/bin/pip install -r requirements-dev.txt
 ```
 
-2) Run:
+1. Run:
 
 ```bash
 .venv/bin/python -m pytest
@@ -20,7 +20,7 @@ Or:
 $AGENT_HOME/scripts/test.sh
 ```
 
-3) Run only smoke (deeper coverage for a small subset):
+1. Run only smoke (deeper coverage for a small subset):
 
 ```bash
 $AGENT_HOME/scripts/test.sh -m script_smoke

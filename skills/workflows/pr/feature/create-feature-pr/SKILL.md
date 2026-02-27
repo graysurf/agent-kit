@@ -1,6 +1,8 @@
 ---
 name: create-feature-pr
-description: Create a new feature branch, open a draft implementation PR early, and continue implementation in the same PR using standardized templates.
+description:
+  Create a new feature branch, open a draft implementation PR early, and continue implementation in the same PR using standardized
+  templates.
 ---
 
 # Create Feature PR
@@ -82,7 +84,8 @@ Failure modes:
 
 - Title: capitalize the first word; reflect the feature outcome; never mirror a housekeeping commit subject.
 - Replace the first H1 line in `references/PR_TEMPLATE.md` with the PR title.
-- Body narrative (`Summary`, `Changes`, `Risk / Notes`) must describe the intended feature outcome even when the first commit is kickoff-only.
+- Body narrative (`Summary`, `Changes`, `Risk / Notes`) must describe the intended feature outcome even when the first commit is
+  kickoff-only.
 - Always include Summary, Changes, Testing, and Risk/Notes sections.
 - If tests are not run, state "not run (reason)".
 - Use `$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --pr` to generate the PR body quickly.
@@ -92,4 +95,5 @@ Failure modes:
 ## Output
 
 - Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
-- Use `$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template quickly.
+- Use `$AGENT_HOME/skills/workflows/pr/feature/create-feature-pr/scripts/render_feature_pr.sh --output` to generate the output template
+  quickly.

@@ -20,7 +20,9 @@
 
 - `startup` strict resolve fails:
   - Run strict baseline check to enumerate missing required docs.
-  - For new repositories, run bootstrap: `$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"` (see `docs/runbooks/agent-docs/new-project-bootstrap.md`).
+  - For new repositories, run bootstrap:
+    `$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh --apply --project-path "$PROJECT_PATH"` (see
+    `docs/runbooks/agent-docs/new-project-bootstrap.md`).
   - Block normal task execution.
   - Allow read-only diagnostics only.
   - Report missing files and required remediation.

@@ -1,6 +1,7 @@
 ---
 name: open-changed-files-review
-description: Open files edited by Codex in VSCode after making changes, using the bundled open-changed-files script (silent no-op when unavailable).
+description:
+  Open files edited by Codex in VSCode after making changes, using the bundled open-changed-files script (silent no-op when unavailable).
 ---
 
 # Open Changed Files Review
@@ -47,7 +48,8 @@ Use this skill when Codex has edited files and you want to immediately open the 
    - If there are more files than the cap: open the first N and mention that it was truncated.
 3. Prefer running:
    - `$AGENT_HOME/skills/tools/devex/open-changed-files-review/scripts/open-changed-files.zsh --max-files "$max" --workspace-mode pwd -- <files...>`
-4. If VSCode CLI `code` (or the tool) is unavailable: silent no-op (exit `0`, no errors), but still print a paste-ready manual command plus the file list for the user.
+4. If VSCode CLI `code` (or the tool) is unavailable: silent no-op (exit `0`, no errors), but still print a paste-ready manual command plus
+   the file list for the user.
 
 ## Paste-ready command template
 

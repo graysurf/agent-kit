@@ -1,6 +1,8 @@
 ---
 name: semantic-commit-autostage
-description: Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where Codex owns the full change set and the user should not manually stage files.
+description:
+  Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where Codex owns the full change set and
+  the user should not manually stage files.
 ---
 
 # Semantic Commit (Autostage)
@@ -59,7 +61,8 @@ Failure modes:
   - `semantic-commit staged-context [--format <bundle|json|patch>] [--json] [--repo <path>]`
 - Commit / validate prepared message:
   - `semantic-commit commit [--message <text>|--message-file <path>] [options]`
-  - Useful options: `--automation`, `--validate-only`, `--dry-run`, `--message-out`, `--summary`, `--no-summary`, `--repo`, `--no-progress`, `--quiet`
+  - Useful options: `--automation`, `--validate-only`, `--dry-run`, `--message-out`, `--summary`, `--no-summary`, `--repo`, `--no-progress`,
+    `--quiet`
 
 ## Workflow
 
@@ -90,7 +93,7 @@ Rules:
 
 - Type must be lowercase.
 - Header length must be `<= 100` characters.
-- If body exists: blank line after header, then only `- ` bullets with uppercase first letter.
+- If body exists: blank line after header, then only `-` bullets with uppercase first letter.
 - Body lines must be `<= 100` characters.
 
 ## Error handling matrix

@@ -1,0 +1,24 @@
+{
+  "config": {
+    "default": true,
+
+    // Staged tightening: enforce paragraph readability while keeping
+    // command snippets/tables/headings stable.
+    "MD013": {
+      "line_length": 140,
+      "code_blocks": false,
+      "headings": false,
+      "tables": false
+    },
+    "MD024": {
+      "siblings_only": true
+    },
+    "MD022": true,
+    "MD032": true,
+    "MD033": true,
+    "MD038": true,
+    "MD056": true,
+    "MD058": true,
+    "MD060": true
+  }
+}

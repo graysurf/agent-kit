@@ -22,8 +22,8 @@ Inputs:
 - Feature summary + acceptance criteria (forwarded to `create-feature-pr`).
 - Optional `base` and merge target branch (default: `main` -> `main`).
 - Optional PR number (if omitted, resolve from the current branch PR).
-- Optional ambiguity bypass flag for preflight: `--bypass-ambiguity` (alias: `--proceed-all`).
-  Use only after explicit user confirmation that suspicious files are in scope.
+- Optional ambiguity bypass flag for preflight: `--bypass-ambiguity` (alias: `--proceed-all`). Use only after explicit user confirmation
+  that suspicious files are in scope.
 
 Outputs:
 
@@ -66,8 +66,8 @@ Failure modes:
      - This delivery method starts from `main`, creates `feat/*`, and merges back to `main`.
      - Preflight must classify `staged`/`unstaged`/`untracked` changes and apply the suspicious-signal matrix.
      - If current branch is not `main` (or not the user-confirmed base), stop and ask the user.
-     - `--bypass-ambiguity` only bypasses ambiguity block payloads after explicit user approval.
-       It does not bypass branch guard, auth checks, or later CI gates.
+     - `--bypass-ambiguity` only bypasses ambiguity block payloads after explicit user approval. It does not bypass branch guard, auth
+       checks, or later CI gates.
 2. Create feature PR
    - Use `create-feature-pr` to:
      - create a new `feat/<slug>` branch from confirmed base
@@ -92,16 +92,17 @@ Failure modes:
 
 - If there is no blocking error, this workflow must run end-to-end through `close`.
 - Do not stop after create/open PR and report "next step is wait-ci/close".
-- A stop before `close` is valid only when a real block/failure exists (for example: ambiguity confirmation pending, CI still failing, timeout, auth/permission failure, non-mergeable PR, or explicit user pause).
+- A stop before `close` is valid only when a real block/failure exists (for example: ambiguity confirmation pending, CI still failing,
+  timeout, auth/permission failure, non-mergeable PR, or explicit user pause).
 - When stopping before `close`, report status as `BLOCKED` or `FAILED` with the exact unblock action; do not report partial success.
 
 ## Suspicious-signal matrix
 
-| Signal | Check rule | Risk level | Required handling |
-| --- | --- | --- | --- |
-| Cross-domain path spread | Changed paths span 2+ domains (app/product, infra/CI/tooling, docs/process) for a single-domain request. | medium | Inspect suspicious diffs before deciding scope. |
-| Infra/tooling-only edits unrelated to request | Files are only infra/tooling paths (for example `.github/`, `scripts/`, `skills/tools/`, lockfiles) while user request is feature/product behavior. | high | Inspect diffs; if request linkage is unclear, block and confirm. |
-| Same-file `staged`+`unstaged` overlap | Any identical path appears in both staged and unstaged sets. | high | Always escalate to diff inspection; do not auto-pass filename triage. |
+| Signal                                        | Check rule                                                                                                                                          | Risk level | Required handling                                                     |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| Cross-domain path spread                      | Changed paths span 2+ domains (app/product, infra/CI/tooling, docs/process) for a single-domain request.                                            | medium     | Inspect suspicious diffs before deciding scope.                       |
+| Infra/tooling-only edits unrelated to request | Files are only infra/tooling paths (for example `.github/`, `scripts/`, `skills/tools/`, lockfiles) while user request is feature/product behavior. | high       | Inspect diffs; if request linkage is unclear, block and confirm.      |
+| Same-file `staged`+`unstaged` overlap         | Any identical path appears in both staged and unstaged sets.                                                                                        | high       | Always escalate to diff inspection; do not auto-pass filename triage. |
 
 ## Escalation policy
 
@@ -111,8 +112,8 @@ Failure modes:
   - if any path remains `uncertain`, stop and confirm with the user
 - `uncertain => stop and confirm` is mandatory for both mixed-status and single-status preflight.
 - Explicit bypass exception:
-  - after the user clearly confirms "proceed all" / "all suspicious files are in scope",
-    run preflight again with `--bypass-ambiguity` to continue without blocking.
+  - after the user clearly confirms "proceed all" / "all suspicious files are in scope", run preflight again with `--bypass-ambiguity` to
+    continue without blocking.
   - do not silently bypass; user confirmation is required in the same task context.
 - Do not auto-stage, auto-reset, or silently drop files during escalation.
 

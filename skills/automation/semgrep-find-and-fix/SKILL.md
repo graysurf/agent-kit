@@ -1,6 +1,8 @@
 ---
 name: semgrep-find-and-fix
-description: Scan a repo using its checked-in Semgrep configuration (local rules only), triage findings, and either fix the most severe issues or open a report-style PR. Use when a repo already has Semgrep config and rules committed; stop if no Semgrep config is present.
+description:
+  Scan a repo using its checked-in Semgrep configuration (local rules only), triage findings, and either fix the most severe issues or open
+  a report-style PR. Use when a repo already has Semgrep config and rules committed; stop if no Semgrep config is present.
 ---
 
 # Semgrep Find and Fix
@@ -40,12 +42,14 @@ Failure modes:
 ## Guardrails
 
 - Do not run `semgrep scan --autofix` unless the user explicitly asks (autofix can cause unintended edits).
-- Avoid auto-fixing high-risk domains (auth/authorization, billing, migrations, deployment). If the top finding is in a high-risk area, prefer a report PR instead of code changes.
+- Avoid auto-fixing high-risk domains (auth/authorization, billing, migrations, deployment). If the top finding is in a high-risk area,
+  prefer a report PR instead of code changes.
 - Keep diffs small: fix one root cause (or a tightly related set) per run.
 
 ## Semgrep config requirements
 
-This skill intentionally depends on project-provided Semgrep configuration and rules. Do not use Semgrep Registry entries or `--config auto`.
+This skill intentionally depends on project-provided Semgrep configuration and rules. Do not use Semgrep Registry entries or
+`--config auto`.
 
 Resolve the Semgrep config entrypoint from tracked files in the repo root (deterministic order):
 
@@ -73,7 +77,8 @@ If none exist, stop and report: "No Semgrep config found; add one of the support
    - Pick a single fix target (or one closely related group) for this run.
    - If fixes are unsafe/unclear, choose a report-only PR instead.
 5. Choose one output path:
-   - Fix PR: implement the minimal fix; follow the repo’s testing/build docs to install required tooling/deps and run relevant lint/test/build checks. Ensure they pass before commit/open PR. If checks cannot be run, document why in the PR `## Testing` section.
+   - Fix PR: implement the minimal fix; follow the repo’s testing/build docs to install required tooling/deps and run relevant
+     lint/test/build checks. Ensure they pass before commit/open PR. If checks cannot be run, document why in the PR `## Testing` section.
    - Report-only PR: add a report file summarizing the most severe findings; open PR.
 6. Noise controls (config-layer; use sparingly):
    - Prefer `.semgrepignore`, `paths` include/exclude, and rule disable lists over adding `nosem` to code.

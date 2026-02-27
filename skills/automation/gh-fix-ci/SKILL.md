@@ -1,6 +1,8 @@
 ---
 name: gh-fix-ci
-description: "Fully automated GitHub Actions CI fixer: inspect failing checks, apply fixes, semantic-commit-autostage + push, then watch CI and repeat until green."
+description:
+  "Fully automated GitHub Actions CI fixer: inspect failing checks, apply fixes, semantic-commit-autostage + push, then watch CI and repeat
+  until green."
 ---
 
 # GitHub CI Auto Fix
@@ -61,7 +63,8 @@ $AGENT_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py --ref main 
 
 ## Trigger
 
-Use this skill when the user wants end-to-end CI fixing (no manual review pauses): diagnose, fix, commit, push, and keep iterating until CI is green.
+Use this skill when the user wants end-to-end CI fixing (no manual review pauses): diagnose, fix, commit, push, and keep iterating until CI
+is green.
 
 ## Workflow
 
@@ -69,7 +72,8 @@ Use this skill when the user wants end-to-end CI fixing (no manual review pauses
 2. Resolve the target:
    - If the user provided `--pr`, use it.
    - If the user provided `--ref`/`--branch`/`--commit`, use that.
-   - Otherwise attempt `gh pr view --json number,url` on the current branch; if unavailable, fall back to the current branch name (or `HEAD` commit when detached).
+   - Otherwise attempt `gh pr view --json number,url` on the current branch; if unavailable, fall back to the current branch name (or `HEAD`
+     commit when detached).
 3. Inspect failing checks (GitHub Actions only):
    - For PR targets: run `inspect_ci_checks.py`, which calls `gh pr checks`.
    - For branch/commit targets: run `inspect_ci_checks.py`, which calls `gh run list` + `gh run view`.
@@ -91,4 +95,5 @@ Use this skill when the user wants end-to-end CI fixing (no manual review pauses
 
 - `inspect_ci_checks.py` returns exit code `1` when failures remain so it can be used in automation.
 - Pending logs are reported as `log_pending`; rerun after the workflow completes.
-- Guardrail: if the failure indicates missing secrets, infra outage, or an external provider, stop and report the blocking detail/URL instead of guessing.
+- Guardrail: if the failure indicates missing secrets, infra outage, or an external provider, stop and report the blocking detail/URL
+  instead of guessing.

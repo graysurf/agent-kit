@@ -22,8 +22,7 @@ Notes:
 
 A good “next prompt” should include:
 
-- The selector (`--portal`, `--active-window`, `--window-id`, `--app` + optional `--window-name`,
-  `--display`, or `--display-id`)
+- The selector (`--portal`, `--active-window`, `--window-id`, `--app` + optional `--window-name`, `--display`, or `--display-id`)
 - Mode intent (`recording` vs `screenshot`)
 - `--duration` in seconds for recording
 - `--audio` for recording (only if non-default)

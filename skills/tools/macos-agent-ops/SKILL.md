@@ -59,7 +59,7 @@ Failure modes:
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where
 ```
 
-2. Ensure deterministic input source (default target: `abc`):
+1. Ensure deterministic input source (default target: `abc`):
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source
@@ -67,7 +67,7 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh input-source --id com.apple.keylayout.ABC
 ```
 
-3. Run readiness checks (`preflight` + AX list smoke check):
+1. Run readiness checks (`preflight` + AX list smoke check):
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor
@@ -76,14 +76,14 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor --ax-
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh doctor --ax-bundle-id com.google.Chrome
 ```
 
-4. Inspect unified permission state directly (`screen_recording` / `accessibility` / `automation` / `ready`):
+1. Inspect unified permission state directly (`screen_recording` / `accessibility` / `automation` / `ready`):
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --format json preflight --include-probes
 ```
 
-5. Run quick app foreground check with reopen recovery:
+1. Run quick app foreground check with reopen recovery:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --app Finder
@@ -91,14 +91,14 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh app-check --bundle-id com.google.Chrome
 ```
 
-6. Run AX-only health check (AX tree probe):
+1. Run AX-only health check (AX tree probe):
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXWindow
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh ax-check --app Arc --role AXTextField --title-contains Search
 ```
 
-7. Use AX wait primitives before mutation to stabilize dynamic UI:
+1. Use AX wait primitives before mutation to stabilize dynamic UI:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -110,7 +110,7 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --selector-explain --timeout-ms 2500 --poll-ms 80
 ```
 
-8. Run robust mutating AX actions with gating + postconditions:
+1. Run robust mutating AX actions with gating + postconditions:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -131,7 +131,7 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --postcondition-timeout-ms 2000 --allow-keyboard-fallback
 ```
 
-9. Use selector-frame screenshots for visual proof of target alignment:
+1. Use selector-frame screenshots for visual proof of target alignment:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -140,7 +140,7 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --path "$AGENT_HOME/out/macos-agent-selector-$(date +%Y%m%d-%H%M%S).png"
 ```
 
-10. Use diff-aware screenshots to avoid noisy artifacts when nothing changed:
+1. Use diff-aware screenshots to avoid noisy artifacts when nothing changed:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -149,7 +149,7 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --if-changed --if-changed-threshold 2
 ```
 
-11. Use one-shot debug bundle for triage artifacts:
+1. Use one-shot debug bundle for triage artifacts:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
@@ -157,13 +157,13 @@ $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \
   --output-dir "$AGENT_HOME/out/macos-agent-debug-$(date +%Y%m%d-%H%M%S)"
 ```
 
-12. Run routine scripted scenarios:
+1. Run routine scripted scenarios:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh scenario --file /path/to/scenario.json
 ```
 
-13. Pass through raw macos-agent commands with JSON errors + trace when needed:
+1. Pass through raw macos-agent commands with JSON errors + trace when needed:
 
 ```bash
 $AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh run -- \

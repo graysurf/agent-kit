@@ -13,7 +13,11 @@
 ### `ready-sprint`
 
 - Command:
-  `plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto`
+
+```bash
+plan-issue ready-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto
+```
+
 - Output:
 
 ```text
@@ -23,7 +27,11 @@
 ### `accept-sprint`
 
 - Command:
-  `plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
+
+```bash
+plan-issue accept-sprint --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --sprint <n> --pr-grouping group --strategy auto --approved-comment-url <comment-url>
+```
+
 - Output:
 
 ```text

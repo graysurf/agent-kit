@@ -1,6 +1,7 @@
 ---
 name: issue-subagent-pr
-description: Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked back to the owning issue.
+description:
+  Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked back to the owning issue.
 ---
 
 # Issue Subagent PR
@@ -74,38 +75,47 @@ Failure modes:
 ## Ordered workflow (read requirements first)
 
 1. Determine execution mode and initialize context variables:
+
    - ```bash
      REPO="owner/repo"   # optional when current remote context is correct
      ISSUE=175
      SPRINT=2
      TASK_ID="S2T3"
      ```
+
    - Live mode: `ISSUE` is a real GitHub issue number.
    - Local rehearsal mode: `ISSUE` is placeholder (for example `999`), so use local artifacts only.
+
 2. Collect required context artifacts before edits:
    - Live mode: collect issue artifacts with `gh`:
+
      - ```bash
        gh issue view "$ISSUE" -R "$REPO" --json body --jq '.body' \
        | awk -F'|' -v t="$TASK_ID" '
            /^\|/ { task=$2; gsub(/^ +| +$/, "", task); if (task==t) print $0 }'
        ```
+
      - ```bash
        gh api "repos/$REPO/issues/$ISSUE/comments" --paginate \
          --jq '.[] | select(.body|contains("## Sprint '"$SPRINT"' Start")) | .html_url, .body'
        ```
+
    - Collect main-agent artifacts in both modes:
      - `TASK_PROMPT_PATH`
      - `PLAN_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - `SUBAGENT_INIT_SNAPSHOT_PATH` (required in `plan-issue-delivery` mode)
      - `DISPATCH_RECORD_PATH` (required in `plan-issue-delivery` mode)
      - plan task section snippet/link/path
+
 3. Reconcile context and apply hard start gate:
    - Treat issue artifacts and main-agent artifacts as equal-priority sources in live mode.
    - Confirm assigned task facts align across sources: owner, branch, worktree, execution mode, task scope, and acceptance intent.
-   - In `plan-issue-delivery` mode, confirm `DISPATCH_RECORD_PATH` facts match assigned task row (`Task Decomposition`) and runtime artifact paths.
+   - In `plan-issue-delivery` mode, confirm `DISPATCH_RECORD_PATH` facts match assigned task row (`Task Decomposition`) and runtime artifact
+     paths.
    - In `plan-issue-delivery` mode, enforce `WORKTREE` prefix: `$AGENT_HOME/out/plan-issue-delivery/`.
    - If any required context is missing or conflicting, stop and request clarification from main-agent before implementation.
 4. Create isolated worktree/branch with `git worktree`:
+
    - ```bash
      AGENT_HOME="${AGENT_HOME:?AGENT_HOME is required}"
      ISSUE=123
@@ -121,10 +131,12 @@ Failure modes:
      git branch --show-current
      git worktree list
      ```
+
 5. Implement task scope and run required task-level validation:
    - Prefer validation commands from task context (`TASK_PROMPT_PATH` / sprint task section / Task Decomposition notes).
    - Keep edits inside assigned task scope; escalate before widening scope.
 6. Prepare and validate PR body (required sections + placeholder checks):
+
    - ```bash
      BODY_FILE="$WORKTREE/.tmp/pr-${ISSUE}-${TASK_ID}.md"
      mkdir -p "$(dirname "$BODY_FILE")"
@@ -138,7 +150,9 @@ Failure modes:
      rg -n 'TBD|TODO|<[^>]+>|#<number>|<implemented scope>|<explicitly excluded scope>|<command> \\(pass\\)|not run \\(reason\\)' "$BODY_FILE" \
        && { echo "Placeholder content found in PR body" >&2; exit 1; } || true
      ```
+
 7. Open draft PR with `gh pr create`:
+
    - ```bash
      gh pr create \
        --draft \
@@ -151,7 +165,9 @@ Failure modes:
      PR_URL="$(gh pr view --json url --jq '.url')"
      echo "Opened ${PR_URL}"
      ```
+
 8. Post review response comment with `gh pr comment` (when follow-up requested):
+
    - ```bash
      REVIEW_COMMENT_URL="https://github.com/<owner>/<repo>/pull/<pr>#issuecomment-<id>"
      RESPONSE_FILE="$WORKTREE/.tmp/review-response-${PR_NUMBER}.md"
@@ -160,16 +176,21 @@ Failure modes:
 
      gh pr comment "$PR_NUMBER" --body-file "$RESPONSE_FILE"
      ```
+
 9. Optional issue sync comment with `gh issue comment` (traceability):
+
    - ```bash
      gh issue comment "$ISSUE" \
        --body "Task ${TASK_ID} in progress by subagent. Branch: \`${BRANCH}\`. Worktree: \`${WORKTREE}\`. PR: #${PR_NUMBER}. Review response: ${REVIEW_COMMENT_URL}"
      ```
+
 10. Optional plan-issue artifact sync note:
-   - In plan-issue flows, prefer main-agent `link-pr` updates over manual markdown edits:
-     - `plan-issue link-pr --issue "$ISSUE" --task "$TASK_ID" --pr "#${PR_NUMBER}" --status in-progress`
-   - Subagent should include exact task selector + PR number in handoff comments so main-agent can run `link-pr` deterministically.
-   - Keep Task Decomposition row fields (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`) aligned with actual execution facts so `plan-issue status-plan` / `ready-plan` snapshots remain consistent.
+
+- In plan-issue flows, prefer main-agent `link-pr` updates over manual markdown edits:
+  - `plan-issue link-pr --issue "$ISSUE" --task "$TASK_ID" --pr "#${PR_NUMBER}" --status in-progress`
+- Subagent should include exact task selector + PR number in handoff comments so main-agent can run `link-pr` deterministically.
+- Keep Task Decomposition row fields (`Owner`, `Branch`, `Worktree`, `Execution Mode`, `PR`) aligned with actual execution facts so
+  `plan-issue status-plan` / `ready-plan` snapshots remain consistent.
 
 ## References
 
@@ -179,7 +200,8 @@ Failure modes:
 
 ## Notes
 
-- Subagent may pre-fill `references/SUBAGENT_TASK_PROMPT_TEMPLATE.md` from assigned execution facts to avoid owner/branch/worktree drift during implementation.
+- Subagent may pre-fill `references/SUBAGENT_TASK_PROMPT_TEMPLATE.md` from assigned execution facts to avoid owner/branch/worktree drift
+  during implementation.
 - Treat PR body validation as a required gate, not an optional cleanup step.
 - Keep implementation details and evidence in PR comments; issue comments should summarize status and link back to PR artifacts.
 - Subagent owns implementation execution; main-agent remains orchestration/review-only.

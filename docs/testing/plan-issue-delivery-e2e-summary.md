@@ -5,41 +5,51 @@ Use this template after the final `ready-plan` and `close-plan` flow. Fill each 
 ## Context
 
 - Plan file: `docs/plans/plan-issue-delivery-e2e-test-plan.md`
-- Issue number: `<issue-number>`
-- Execution date window: `<start-date> -> <end-date>`
-- Runtime root: `$AGENT_HOME/out/plan-issue-delivery/.../issue-<issue-number>`
-- Summary owner: `<name-or-handle>`
+- Issue number: `ISSUE_NUMBER`
+- Execution date window: `START_DATE -> END_DATE`
+- Runtime root: `$AGENT_HOME/out/plan-issue-delivery/.../issue-ISSUE_NUMBER`
+- Summary owner: `SUMMARY_OWNER`
 
 ## Issue Closure Evidence
 
 - `close-plan` command used:
-  `plan-issue close-plan --plan docs/plans/plan-issue-delivery-e2e-test-plan.md --issue <issue-number> --pr-grouping group --strategy auto --approved-comment-url <comment-url>`
-- Issue URL: `<issue-url>`
-- Final issue state (`OPEN`/`CLOSED`): `<state>`
-- Close confirmation evidence (comment/log URL): `<evidence-url>`
-- Plan-level approval URL used for close gate: `<approved-comment-url>`
+
+```bash
+plan-issue close-plan \
+  --plan docs/plans/plan-issue-delivery-e2e-test-plan.md \
+  --issue ISSUE_NUMBER \
+  --pr-grouping group \
+  --strategy auto \
+  --approved-comment-url APPROVED_COMMENT_URL
+```
+
+- Issue URL: `ISSUE_URL`
+- Final issue state (`OPEN`/`CLOSED`): `STATE`
+- Close confirmation evidence (comment/log URL): `EVIDENCE_URL`
+- Plan-level approval URL used for close gate: `APPROVED_COMMENT_URL`
 
 ## Merged PRs
 
-| Task ID | PR | Merge Commit | Merge Evidence |
-| --- | --- | --- | --- |
-| S1T* | #<number> | <sha> | <url-or-log-ref> |
-| S2T* | #<number> | <sha> | <url-or-log-ref> |
-| S3T* | #<number> | <sha> | <url-or-log-ref> |
+|Task ID|PR|Merge Commit|Merge Evidence|
+|---|---|---|---|
+|S1T\*|`#PR_NUMBER`|`MERGE_SHA`|`MERGE_EVIDENCE`|
+|S2T\*|`#PR_NUMBER`|`MERGE_SHA`|`MERGE_EVIDENCE`|
+|S3T\*|`#PR_NUMBER`|`MERGE_SHA`|`MERGE_EVIDENCE`|
 
 ## Cleanup Result
 
 - Cleanup command used:
-  `scripts/check_plan_issue_worktree_cleanup.sh "$AGENT_HOME/out/plan-issue-delivery/graysurf-agent-kit/issue-<issue-number>/worktrees"`
-- Cleanup status (`PASS`/`FAIL`): `<status>`
-- Runtime directories checked: `<path-list>`
-- Leftover worktrees (if any): `<none-or-paths>`
+
+```bash
+scripts/check_plan_issue_worktree_cleanup.sh \
+  "$AGENT_HOME/out/plan-issue-delivery/graysurf-agent-kit/issue-ISSUE_NUMBER/worktrees"
+```
+
+- Cleanup status (`PASS`/`FAIL`): `STATUS`
+- Runtime directories checked: `PATH_LIST`
+- Leftover worktrees (if any): `NONE_OR_PATHS`
 
 ## Residual Risks
 
-- Risk 1: `<risk>`
-  Impact: `<impact>`
-  Mitigation/owner: `<mitigation>`
-- Risk 2: `<risk>`
-  Impact: `<impact>`
-  Mitigation/owner: `<mitigation>`
+- Risk 1: `RISK` Impact: `IMPACT` Mitigation/owner: `MITIGATION`
+- Risk 2: `RISK` Impact: `IMPACT` Mitigation/owner: `MITIGATION`

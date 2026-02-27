@@ -60,7 +60,8 @@ $AGENT_HOME/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh \
 
 - `CODEX_DESKTOP_NOTIFY_ENABLED=false`: disable notifications (default: enabled)
 - `CODEX_DESKTOP_NOTIFY_HINTS_ENABLED=true`: print a one-line install hint when backend is missing (default: disabled)
-- `PROJECT_PATH`: used by `$AGENT_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh` to derive the project title (fallback: git root, then `$PWD`)
+- `PROJECT_PATH`: used by `$AGENT_HOME/skills/tools/devex/desktop-notify/scripts/project-notify.sh` to derive the project title (fallback:
+  git root, then `$PWD`)
 
 ## Install hints
 

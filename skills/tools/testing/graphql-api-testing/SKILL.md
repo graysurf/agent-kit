@@ -1,6 +1,9 @@
 ---
 name: graphql-api-testing
-description: Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in setup/graphql/endpoints.env, using the bundled api-gql CLI. Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs, replay requests reliably, and record API test reports.
+description:
+  Test GraphQL APIs with repeatable, file-based operations and variables under <project>/setup/graphql, with per-project endpoint presets in
+  setup/graphql/endpoints.env, using the bundled api-gql CLI. Use when the user asks to manually call GraphQL queries/mutations, fetch JWTs,
+  replay requests reliably, and record API test reports.
 ---
 
 # GraphQL API Testing
@@ -16,8 +19,8 @@ Prereqs:
 Inputs:
 
 - Operation + variables: `setup/graphql/operations/<op>.graphql` and `setup/graphql/operations/<vars>.json`.
-- Optional flags/env: `--env`, `--url`, `--jwt`, `--config-dir`, `--no-history` (plus `GQL_URL`, `ACCESS_TOKEN`,
-  `GQL_JWT_VALIDATE_ENABLED`, `GQL_JWT_VALIDATE_STRICT`, `GQL_JWT_VALIDATE_LEEWAY_SECONDS`).
+- Optional flags/env: `--env`, `--url`, `--jwt`, `--config-dir`, `--no-history` (plus `GQL_URL`, `ACCESS_TOKEN`, `GQL_JWT_VALIDATE_ENABLED`,
+  `GQL_JWT_VALIDATE_STRICT`, `GQL_JWT_VALIDATE_LEEWAY_SECONDS`).
 
 Outputs:
 
@@ -101,7 +104,8 @@ api-gql schema --config-dir setup/graphql
 
 - History is on by default: `setup/graphql/.gql_history` (gitignored); one-off disable with `--no-history` (or `GQL_HISTORY_ENABLED=false`).
 - Reports include `## Command` by default; disable with `--no-command` (or `GQL_REPORT_INCLUDE_COMMAND_ENABLED=false`).
-- Variables: any numeric `limit` fields (including nested pagination inputs) are normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5; set `GQL_VARS_MIN_LIMIT=0` to disable).
+- Variables: any numeric `limit` fields (including nested pagination inputs) are normalized to at least `GQL_VARS_MIN_LIMIT` (default: 5;
+  set `GQL_VARS_MIN_LIMIT=0` to disable).
 - Prefer `--config-dir setup/graphql` in automation for deterministic discovery.
 
 ## CI / E2E (optional)

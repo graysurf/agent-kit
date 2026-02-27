@@ -1,7 +1,7 @@
 # API Test Runner Guide
 
-This guide complements `skills/tools/testing/api-test-runner/SKILL.md` with practical repo layout options and copy/paste commands.
-Install `api-test` via `brew install nils-cli` (also provides `api-rest` and `api-gql`).
+This guide complements `skills/tools/testing/api-test-runner/SKILL.md` with practical repo layout options and copy/paste commands. Install
+`api-test` via `brew install nils-cli` (also provides `api-rest` and `api-gql`).
 
 ## Directory layouts
 
@@ -126,7 +126,8 @@ In CI, prefer explicit env vars (and runtime login) instead of committing real s
 Option B (recommended when JWTs expire): runtime login via a single JSON secret + suite `auth` block:
 
 - Provide a GitHub Secret (default name): `API_TEST_AUTH_JSON`
-- Add `auth` to your suite manifest (typically `tests/api/suites/*.suite.json`; or `setup/api/suites/*.suite.json` if using the `setup/` layout)
+- Add `auth` to your suite manifest (typically `tests/api/suites/*.suite.json`; or `setup/api/suites/*.suite.json` if using the `setup/`
+  layout)
 - The runner logs in once per profile and injects `ACCESS_TOKEN` per case (no token files needed in CI)
 
 ## GitHub Actions

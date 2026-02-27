@@ -1,6 +1,7 @@
 # scripts
 
-Repo-local helpers for agent-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local wrappers under `commands/` should not be required for normal use.
+Repo-local helpers for agent-kit. Binary tools ship with `nils-cli` and are on PATH after `brew install nils-cli`; any legacy repo-local
+wrappers under `commands/` should not be required for normal use.
 
 ## Structure
 
@@ -8,6 +9,8 @@ Repo-local helpers for agent-kit. Binary tools ship with `nils-cli` and are on P
 commands/                                 Legacy repo-local wrappers (not required when using `nils-cli`).
 scripts/
 ├── build/                                Tooling to generate bundled commands.
+├── ci/                                   CI/local audit helpers.
+│   └── markdownlint-audit.sh             Markdown lint audit (`markdownlint-cli2`).
 ├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
@@ -17,15 +20,14 @@ scripts/
 ├── project-resolve                       Deterministic project path resolver (bundled).
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── check.sh                              Runs selected checks (lint/contracts/skills-layout/plans/env-bools/semgrep/tests).
+├── check.sh                              Runs selected checks (lint/markdown/contracts/skills-layout/plans/env-bools/semgrep/tests).
 └── audit-env-bools.zsh                   Audits boolean env var conventions (zsh).
 ```
 
 ## Bundling wrappers
 
-Use `build/bundle-wrapper.zsh` to inline a wrapper (and its `source` files)
-into a single executable script. This is helpful when you want a portable,
-repo-local command without external dependencies on wrapper paths.
+Use `build/bundle-wrapper.zsh` to inline a wrapper (and its `source` files) into a single executable script. This is helpful when you want a
+portable, repo-local command without external dependencies on wrapper paths.
 
 Example (copy mode: project-resolve):
 
@@ -37,11 +39,9 @@ zsh -f $AGENT_HOME/scripts/build/bundle-wrapper.zsh \
 
 Notes:
 
-- Only simple `source` lines and the `typeset -a sources=(...)` / `typeset -a exec_sources=(...)`
-  patterns are supported.
+- Only simple `source` lines and the `typeset -a sources=(...)` / `typeset -a exec_sources=(...)` patterns are supported.
 - The bundler writes a shebang + minimal env exports into the output file.
-- If the wrapper relies on side effects (PATH, cache dirs, etc.), you may
-  need to expand the bundler to inline those sections too.
+- If the wrapper relies on side effects (PATH, cache dirs, etc.), you may need to expand the bundler to inline those sections too.
 
 ## Validation
 
@@ -62,7 +62,8 @@ agent-docs baseline --check --target all --strict --project-path "$PROJECT_PATH"
 
 ### Skill contract lint
 
-`$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format across `skills/**/SKILL.md`.
+`$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh` enforces a minimal skill contract format
+across `skills/**/SKILL.md`.
 
 Requirements (inside `## Contract`, in order):
 
@@ -75,7 +76,8 @@ Requirements (inside `## Contract`, in order):
 Usage:
 
 - Validate all tracked skills: `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-- Validate a specific file: `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
+- Validate a specific file:
+  `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh --file skills/<path>/SKILL.md`
 
 Exit codes:
 
@@ -84,7 +86,8 @@ Exit codes:
 
 ### Skill layout audit
 
-`$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory layout:
+`$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` enforces a consistent tracked skill directory
+layout:
 
 - `SKILL.md` at the skill root
 - Required: `tests/`
@@ -105,6 +108,14 @@ Usage:
 - Shell only: `$AGENT_HOME/scripts/lint.sh --shell`
 - Python only: `$AGENT_HOME/scripts/lint.sh --python`
 
+### Markdown lint checks
+
+`$AGENT_HOME/scripts/ci/markdownlint-audit.sh` runs `markdownlint-cli2` against all tracked Markdown files.
+
+Usage:
+
+- Strict mode (recommended): `$AGENT_HOME/scripts/ci/markdownlint-audit.sh --strict`
+
 ## Semgrep
 
 Use `semgrep-scan.sh` to run `.semgrep.yaml` plus curated Semgrep Registry packs.
@@ -116,8 +127,8 @@ Examples:
 
 ## Plans
 
-Plan tooling helps keep implementation plans concrete (executable + verifiable) and easy to split into parallel subagent tasks.
-Install with `brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
+Plan tooling helps keep implementation plans concrete (executable + verifiable) and easy to split into parallel subagent tasks. Install with
+`brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH.
 
 ### Plan lint
 

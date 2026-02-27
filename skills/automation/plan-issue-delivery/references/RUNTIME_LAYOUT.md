@@ -31,7 +31,8 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
   - `TASK_SPEC_PATH="$SPRINT_ROOT/specs/sprint-task-spec.tsv"`
 - Task-scoped dispatch record:
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
-  - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`, `execution_mode`, `pr_group`
+  - Expected keys: `task_id`, `task_prompt_path`, `subagent_init_snapshot_path`, `plan_snapshot_path`, `worktree`, `branch`,
+    `execution_mode`, `pr_group`
 
 ## Worktree Layout (Assigned Paths)
 
@@ -60,5 +61,4 @@ If these sources conflict, runtime-truth from the issue `Task Decomposition` row
 
 ## Cleanup
 
-`close-plan` must remove issue-assigned task worktrees under `"$ISSUE_ROOT/worktrees"`.
-Any leftover worktree path fails the close gate.
+`close-plan` must remove issue-assigned task worktrees under `"$ISSUE_ROOT/worktrees"`. Any leftover worktree path fails the close gate.

@@ -1,11 +1,17 @@
+<!-- markdownlint-disable-file MD041 -->
+
 ## Summary
-- Implements #<number>.
+
+- Implements #`<number>`.
 
 ## Scope
-- <implemented scope>
+
+- `<implemented scope>`
 
 ## Testing
-- <command> (pass)
+
+- `<command>` (pass)
 
 ## Issue
+
 - #999

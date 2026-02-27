@@ -1,13 +1,19 @@
+<!-- markdownlint-disable-file MD041 -->
+
 ## Summary
-- Implements issue #<number> in an isolated worktree.
+
+- Implements issue #`<number>` in an isolated worktree.
 
 ## Scope
-- <implemented scope>
-- <explicitly excluded scope>
+
+- `<implemented scope>`
+- `<explicitly excluded scope>`
 
 ## Testing
-- <command> (pass)
+
+- `<command>` (pass)
 - not run (reason)
 
 ## Issue
-- #<number>
+
+- #`<number>`

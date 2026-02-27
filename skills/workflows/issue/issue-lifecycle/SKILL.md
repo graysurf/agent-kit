@@ -39,7 +39,8 @@ Failure modes:
 - Missing required subcommand flags (`--title`, `--issue`, `--spec`, etc.).
 - Ambiguous body inputs (`--body` and `--body-file` together).
 - Decomposition spec malformed (wrong TSV shape or empty rows).
-- Template consistency violations (invalid status/execution mode, missing execution metadata for active tasks, duplicated branch/worktree under `pr-isolated` mode).
+- Template consistency violations (invalid status/execution mode, missing execution metadata for active tasks, duplicated branch/worktree
+  under `pr-isolated` mode).
 - Owner policy violations (`Owner` missing, placeholder, or main-agent/non-subagent identity).
 - `gh` auth/permission failures.
 
@@ -73,9 +74,12 @@ Failure modes:
 ## Notes
 
 - Use `--dry-run` whenever composing commands from a higher-level orchestrator.
-- `Task Decomposition` is the only execution-state table in the issue body. `Owner` / `Branch` / `Worktree` / `Execution Mode` / `PR` should start as `TBD` and be updated with actual values during execution.
-- `Execution Mode` values: `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment). Branch/worktree uniqueness is enforced only for `pr-isolated`.
-- `open` / `update` automatically validate template consistency when body contains `## Task Decomposition`; use `--skip-consistency-check` only for exceptional cases.
+- `Task Decomposition` is the only execution-state table in the issue body. `Owner` / `Branch` / `Worktree` / `Execution Mode` / `PR` should
+  start as `TBD` and be updated with actual values during execution.
+- `Execution Mode` values: `per-sprint`, `pr-isolated`, `pr-shared` (or `TBD` before assignment). Branch/worktree uniqueness is enforced
+  only for `pr-isolated`.
+- `open` / `update` automatically validate template consistency when body contains `## Task Decomposition`; use `--skip-consistency-check`
+  only for exceptional cases.
 - `sync` normalizes the task table shape (including `Execution Mode`) and removes any legacy `## Subagent PRs` section.
 - Keep decomposition and status notes in issue comments so execution history remains traceable.
 - In issue-driven implementation loops, `Owner` is for subagents only; main-agent remains orchestration/review-only.

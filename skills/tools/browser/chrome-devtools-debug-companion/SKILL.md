@@ -1,6 +1,9 @@
 ---
 name: chrome-devtools-debug-companion
-description: Use the chrome-devtools MCP server as a debugging companion to Playwright for browser-specific root-cause analysis (console, network, rendering, storage, and performance). Use when Playwright exposes a failure or flaky behavior and deeper Chrome runtime inspection is needed.
+description:
+  Use the chrome-devtools MCP server as a debugging companion to Playwright for browser-specific root-cause analysis (console, network,
+  rendering, storage, and performance). Use when Playwright exposes a failure or flaky behavior and deeper Chrome runtime inspection is
+  needed.
 ---
 
 # Chrome DevTools Debug Companion
@@ -39,12 +42,12 @@ Failure modes:
 
 ## Playwright vs DevTools (Decision Table)
 
-| Situation | Primary tool | Companion tool | Why |
-| --- | --- | --- | --- |
-| Deterministic user-flow regression in CI | Playwright | DevTools only when needed | Playwright gives stable, repeatable end-to-end verification. |
-| Chrome-only bug (rendering, runtime, extension, CSP, cache, service worker) | DevTools | Playwright | DevTools offers deeper Chrome runtime visibility. |
-| Flaky step found in Playwright | Playwright + DevTools | Both required | Use Playwright to isolate failing step and DevTools to inspect live runtime causes. |
-| Performance triage for Chromium path | DevTools | Playwright | DevTools provides network/runtime timing detail; Playwright confirms regression checks. |
+| Situation                                                                   | Primary tool          | Companion tool            | Why                                                                                     |
+| --------------------------------------------------------------------------- | --------------------- | ------------------------- | --------------------------------------------------------------------------------------- |
+| Deterministic user-flow regression in CI                                    | Playwright            | DevTools only when needed | Playwright gives stable, repeatable end-to-end verification.                            |
+| Chrome-only bug (rendering, runtime, extension, CSP, cache, service worker) | DevTools              | Playwright                | DevTools offers deeper Chrome runtime visibility.                                       |
+| Flaky step found in Playwright                                              | Playwright + DevTools | Both required             | Use Playwright to isolate failing step and DevTools to inspect live runtime causes.     |
+| Performance triage for Chromium path                                        | DevTools              | Playwright                | DevTools provides network/runtime timing detail; Playwright confirms regression checks. |
 
 ## Workflow
 
