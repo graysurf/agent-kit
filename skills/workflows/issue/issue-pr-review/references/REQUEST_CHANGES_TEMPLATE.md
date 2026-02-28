@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-file MD041 -->
 
 Please address the following before merge:
 

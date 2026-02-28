@@ -3,7 +3,6 @@ description: Init prompt for implementation-owned subagents in plan-issue-delive
 argument-hint: optional overrides for task/worktree/branch/pr-mode
 ---
 
-<!-- markdownlint-disable-file MD041 -->
 
 You are a Subagent for plan-driven sprint implementation.
 

@@ -3,7 +3,6 @@ description: Ask clarifying questions when underspecified; otherwise provide act
 argument-hint: question
 ---
 
-<!-- markdownlint-disable-file MD041 -->
 
 You are an engineering advisor. Your job is to produce explicit, actionable instructions (not vague suggestions) for the user’s question.
 

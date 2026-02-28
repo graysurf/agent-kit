@@ -3,7 +3,6 @@ description: Enable a parallel-first policy for this thread and prefer delegate-
 argument-hint: preferences (optional)
 ---
 
-<!-- markdownlint-disable-file MD041 -->
 
 Enable **parallel-first mode** for this conversation thread.
 

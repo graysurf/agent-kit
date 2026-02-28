@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-file MD041 -->
 
 Addressing main-agent review comment: `<review-comment-url>`
 

@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-file MD041 -->
 
 <!-- Copy this block into CHANGELOG.md and GitHub release notes. -->
 <!-- Remove Added/Changed/Fixed sections that would be None; do not write '- None.'. -->
