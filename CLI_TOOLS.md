@@ -11,6 +11,7 @@ avoid ad-hoc pipelines that are slow or fragile.
 - Read files: `bat`; preview Markdown: `glow`
 - Review diffs: `delta` (with `git`)
 - API exploration: `xh`/`httpie` + `jq`; use `curl` for minimal-dependency calls
+- Browser research: `agent-browser` for exploratory probing; `playwright` for deterministic verification
 - Structured config/data: `yq`/`jq` (avoid regex parsing for YAML/JSON)
 
 ---
@@ -21,6 +22,7 @@ avoid ad-hoc pipelines that are slow or fragile.
 - Docs: reading files + Markdown/diffs (`bat`, `glow`, `delta`)
 - VCS: version control + PR workflows (`git`, `gh`, `gitui`)
 - API: HTTP/API + structured data (`xh`/`httpie`, `jq`, `yq`)
+- Browser: rendered-page interaction and browser-visible evidence (`agent-browser`, `playwright`)
 - Test: test iteration + feedback loops (`watchexec`, `ruff`)
 - Toolchain: runtimes + CLI installation (`node`, `pnpm`, `pipx`, `direnv`)
 - macOS Automation: UI/input-source automation (`hs`, `im-select`)
@@ -79,6 +81,15 @@ avoid ad-hoc pipelines that are slow or fragile.
 | `websocat`  | WebSocket client             | Testing WS message streams; sending/receiving payloads         | Writing a temporary WS program or relying on browser tooling  |
 | `mitmproxy` | HTTP(S) intercept/inspection | Debugging unclear client behavior by observing real traffic    | Guessing based on partial server logs                         |
 | `hey`       | HTTP load generator          | Quick throughput/latency smoke checks (not full benchmarking)  | Drawing conclusions from a few manual requests                |
+
+---
+
+## Browser automation and rendered-web validation
+
+| Tool | Purpose | Use when | Avoid because this exists |
+| ---- | ------- | -------- | ------------------------- |
+| `agent-browser` (via `skills/tools/browser/agent-browser/scripts/agent-browser.sh`) | Fast browser automation CLI for exploratory research | Navigating live pages quickly, inspecting `snapshot -i`, and iterating on `@ref` interactions | Starting with heavier scripted browser flows for one-off discovery |
+| `playwright` (via `skills/tools/browser/playwright/scripts/playwright_cli.sh`) | Deterministic browser automation for verification | Replaying browser steps with traceable artifacts and reproducible validation checks | Treating exploratory browser findings as final without deterministic replay |
 
 ---
 
