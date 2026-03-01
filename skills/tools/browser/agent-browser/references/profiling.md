@@ -110,7 +110,7 @@ The `metadata.clock-domain` field is set based on the host platform (Linux or ma
 Load the output JSON file in any of these tools:
 
 - **Chrome DevTools**: Performance panel > Load profile (Ctrl+Shift+I > Performance)
-- **Perfetto UI**: https://ui.perfetto.dev/ -- drag and drop the JSON file
+- **Perfetto UI**: [ui.perfetto.dev](https://ui.perfetto.dev/) -- drag and drop the JSON file
 - **Trace Viewer**: `chrome://tracing` in any Chromium browser
 
 ## Limitations

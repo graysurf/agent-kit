@@ -17,12 +17,14 @@ Compact element references that reduce context usage dramatically for AI agents.
 ## How Refs Work
 
 Traditional approach:
-```
+
+```text
 Full DOM/HTML → AI parses → CSS selector → Action (~3000-5000 tokens)
 ```
 
 agent-browser approach:
-```
+
+```text
 Compact snapshot → @refs assigned → Direct interaction (~200-400 tokens)
 ```
 
@@ -38,7 +40,7 @@ agent-browser snapshot -i
 
 ### Snapshot Output Format
 
-```
+```text
 Page: Example Site - Home
 URL: https://example.com
 
@@ -137,7 +139,7 @@ agent-browser snapshot @e9
 
 ## Ref Notation Details
 
-```
+```text
 @e1 [tag type="value"] "text content" placeholder="hint"
 │    │   │             │               │
 │    │   │             │               └─ Additional attributes
@@ -149,7 +151,7 @@ agent-browser snapshot @e9
 
 ### Common Patterns
 
-```
+```text
 @e1 [button] "Submit"                    # Button with text
 @e2 [input type="email"]                 # Email input
 @e3 [input type="password"]              # Password input

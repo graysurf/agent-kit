@@ -176,27 +176,14 @@ fi
 
 ## Security Best Practices
 
-1. **Never commit state files** - They contain session tokens
-   ```bash
-   echo "*.auth-state.json" >> .gitignore
-   ```
+1. **Never commit state files** - They contain session tokens.
+   Example: `echo "*.auth-state.json" >> .gitignore`
 
-2. **Use environment variables for credentials**
-   ```bash
-   agent-browser fill @e1 "$APP_USERNAME"
-   agent-browser fill @e2 "$APP_PASSWORD"
-   ```
+2. **Use environment variables for credentials**.
+   Example: `agent-browser fill @e1 "$APP_USERNAME"` and `agent-browser fill @e2 "$APP_PASSWORD"`
 
-3. **Clean up after automation**
-   ```bash
-   agent-browser cookies clear
-   rm -f ./auth-state.json
-   ```
+3. **Clean up after automation**.
+   Example: `agent-browser cookies clear` and `rm -f ./auth-state.json`
 
-4. **Use short-lived sessions for CI/CD**
-   ```bash
-   # Don't persist state in CI
-   agent-browser open https://app.example.com/login
-   # ... login and perform actions ...
-   agent-browser close  # Session ends, nothing persisted
-   ```
+4. **Use short-lived sessions for CI/CD**.
+   Example: `agent-browser open https://app.example.com/login` -> perform actions -> `agent-browser close`
