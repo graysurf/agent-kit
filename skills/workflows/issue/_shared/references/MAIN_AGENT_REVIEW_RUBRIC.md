@@ -58,6 +58,15 @@ Applies to:
    - Confirm runtime-truth status/PR linkage remains coherent after the
      decision.
 
+6. Record review evidence (mandatory)
+   - Leave a PR comment that maps findings to the review gates above.
+   - Include concrete evidence references (for example: file paths/diff anchors,
+     validation commands/results, check names/status links, lane facts).
+   - Generic approvals/rejections without concrete evidence are invalid.
+   - Use
+     `skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
+     as the canonical shape.
+
 ## Decision Rules
 
 - `merge`
@@ -81,8 +90,12 @@ Applies to:
 
 - Use `issue-pr-review request-followup` when the decision is
   `request-followup`.
-- Use `issue-pr-review merge` when the decision is `merge`.
-- Use `issue-pr-review close-pr` when the decision is `close-pr`.
+- Use `issue-pr-review request-followup --enforce-review-evidence` when the
+  decision is `request-followup`.
+- Use `issue-pr-review merge --enforce-review-evidence` when the decision is
+  `merge`.
+- Use `issue-pr-review close-pr --enforce-review-evidence` when the decision is
+  `close-pr`.
 - Mirror follow-up decisions into the issue timeline with the exact PR comment
   URL so the assigned subagent can continue on the same lane.
 - After the decision is executed, apply the shared post-review outcome handling

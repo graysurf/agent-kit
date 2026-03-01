@@ -29,6 +29,8 @@ Execution context (fill before run)
 - Main-agent init source path: $AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md
 - Main-agent init snapshot path:
   `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
+- Review evidence template path:
+  `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 
 PR grouping policy (scene-based; both are valid)
 
@@ -45,10 +47,13 @@ Required workflow
 4. For each sprint: `start-sprint` -> verify
    `MAIN_AGENT_INIT_SNAPSHOT_PATH` + `TASK_PROMPT_PATH` +
    `PLAN_SNAPSHOT_PATH` + `SUBAGENT_INIT_SNAPSHOT_PATH` +
-   `DISPATCH_RECORD_PATH` artifacts under
+   `DISPATCH_RECORD_PATH` + decision-scoped `REVIEW_EVIDENCE_PATH` artifacts under
    `$AGENT_HOME/out/plan-issue-delivery/...` -> delegate to subagents -> if blocked, clarify and
    continue on the same task lane -> `ready-sprint` -> review each PR using the
-   shared review rubric -> apply shared post-review outcome handling ->
+   shared review rubric -> generate `REVIEW_EVIDENCE_PATH` from
+   `REVIEW_EVIDENCE_TEMPLATE_PATH` -> execute `issue-pr-review`
+   with `--enforce-review-evidence` -> apply shared post-review outcome
+   handling ->
    merge/close as appropriate -> `accept-sprint`.
 5. Enforce previous sprint merged+done gate before starting next sprint.
 6. After final sprint acceptance: `ready-plan` -> `close-plan` with approval URL.
@@ -67,6 +72,10 @@ Mandatory subagent launch rule
 - Follow the shared main-agent review rubric at
   `$AGENT_HOME/skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
   before any `request-followup`, `merge`, or `close-pr` decision.
+- For every `request-followup`, `merge`, or `close-pr` decision, create a
+  decision-scoped review evidence artifact from
+  `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
+  and execute `issue-pr-review` with `--enforce-review-evidence`.
 - Follow the shared post-review outcome handling at
   `$AGENT_HOME/skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md`
   after every `request-followup`, `merge`, or `close-pr` decision.

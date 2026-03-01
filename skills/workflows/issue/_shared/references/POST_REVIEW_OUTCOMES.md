@@ -14,6 +14,8 @@ Applies to:
 ## Core Rule
 
 - GitHub-side review actions and runtime-truth row sync are both required.
+- A decision-scoped PR review evidence comment is required for `request-followup`,
+  `merge`, and `close-pr`.
 - Do not leave the review result only in PR comments.
 - After every `merge`, `request-followup`, or `close-pr` decision, sync the
   issue/task state before more dispatch, acceptance, or close-gate work.
@@ -21,6 +23,8 @@ Applies to:
 ## Request-Followup
 
 - Use `issue-pr-review request-followup`.
+- Use `--enforce-review-evidence` and provide structured evidence mapped to the
+  review rubric.
 - Keep the current task lane active.
 - Mirror the exact PR comment URL into the issue timeline.
 - When using `issue-pr-review`, keep the auto-generated issue headline and pass
@@ -42,6 +46,8 @@ Applies to:
 ### Without replacement
 
 - Use `issue-pr-review close-pr`.
+- Use `--enforce-review-evidence` and provide structured evidence mapped to the
+  review rubric.
 - Treat the current lane as retired immediately after the close decision.
 - Pass issue-side traceability through structured close outcome flags
   (`--close-reason`, optional `--replacement-pr`, `--row-status`,
@@ -64,6 +70,8 @@ Applies to:
 ### With replacement
 
 - Use `issue-pr-review close-pr` on the retired PR.
+- Use `--enforce-review-evidence` and provide structured evidence mapped to the
+  review rubric.
 - Pass issue-side traceability through structured close outcome flags or
   `--issue-comment-file` using
   `skills/workflows/issue/issue-pr-review/references/CLOSE_PR_ISSUE_SYNC_TEMPLATE.md`
@@ -78,6 +86,8 @@ Applies to:
 ## Merge
 
 - Use `issue-pr-review merge`.
+- Use `--enforce-review-evidence` and provide structured evidence mapped to the
+  review rubric.
 - Keep the merged PR as the canonical PR reference for the task row.
 - Let the owning acceptance gate (`accept-sprint`, `close-plan`, or equivalent)
   advance status to `done`; do not invent an earlier done-state transition that

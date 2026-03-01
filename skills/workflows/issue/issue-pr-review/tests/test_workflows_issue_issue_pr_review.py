@@ -40,6 +40,8 @@ def test_issue_pr_review_skill_uses_shared_review_rubric() -> None:
     assert "task-fidelity" in text
     assert "correctness" in text
     assert "integration" in text
+    assert "REVIEW_EVIDENCE_TEMPLATE.md" in text
+    assert "--enforce-review-evidence" in text
 
 
 def test_issue_pr_review_skill_uses_shared_post_review_outcomes() -> None:
@@ -60,6 +62,9 @@ def test_issue_pr_review_script_has_internal_pr_body_validator() -> None:
     assert "validate_pr_body_hygiene_text" in text
     assert "validate_pr_body_hygiene_input" in text
     assert "ensure_pr_body_hygiene_for_close" in text
+    assert "validate_review_evidence_text" in text
+    assert "validate_review_evidence_input" in text
+    assert "post_review_evidence_comment" in text
 
 
 def test_issue_pr_review_script_supports_structured_issue_sync_fields() -> None:
@@ -67,6 +72,9 @@ def test_issue_pr_review_script_supports_structured_issue_sync_fields() -> None:
     text = script_path.read_text(encoding="utf-8")
     assert "--issue-note-file" in text
     assert "--issue-comment-file" in text
+    assert "--review-evidence" in text
+    assert "--review-evidence-file" in text
+    assert "--enforce-review-evidence" in text
     assert "--close-reason" in text
     assert "--next-action" in text
     assert "build_followup_issue_note" in text
@@ -83,8 +91,13 @@ def test_issue_pr_review_templates_include_row_state_guidance() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     issue_sync = (skill_root / "references" / "ISSUE_SYNC_TEMPLATE.md").read_text(encoding="utf-8")
     close_sync = (skill_root / "references" / "CLOSE_PR_ISSUE_SYNC_TEMPLATE.md").read_text(encoding="utf-8")
+    review_evidence = (skill_root / "references" / "REVIEW_EVIDENCE_TEMPLATE.md").read_text(encoding="utf-8")
     assert "Main-agent requested updates in PR" not in issue_sync
     assert "Row status" in issue_sync
     assert "Lane action" in issue_sync
     assert "Lane state: retired" in close_sync
     assert "do not resume the closed lane" in close_sync
+    assert "## Hard Gates" in review_evidence
+    assert "- Scope verdict:" in review_evidence
+    assert "- Correctness verdict:" in review_evidence
+    assert "- Integration verdict:" in review_evidence

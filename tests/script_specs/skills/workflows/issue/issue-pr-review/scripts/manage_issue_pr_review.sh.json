@@ -61,6 +61,45 @@
       }
     },
     {
+      "name": "merge-dry-run-enforce-review-evidence",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_merge_valid.md",
+        "--enforce-review-evidence",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0]
+      }
+    },
+    {
+      "name": "merge-dry-run-enforce-review-evidence-missing",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--enforce-review-evidence",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "requires --review-evidence or --review-evidence-file"
+      }
+    },
+    {
       "name": "merge-dry-run-fail-invalid-pr-body-override",
       "args": [
         "merge",
