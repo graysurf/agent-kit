@@ -83,6 +83,54 @@ def test_script_smoke_release_notes_from_changelog(tmp_path: Path):
 
 
 @pytest.mark.script_smoke
+def test_script_smoke_audit_changelog_rejects_backticked_issue_refs(tmp_path: Path):
+    work_tree = tmp_path / "repo"
+    work_tree.mkdir(parents=True, exist_ok=True)
+
+    changelog = work_tree / "CHANGELOG.md"
+    changelog.write_text(
+        "\n".join(
+            [
+                "# Changelog",
+                "",
+                "All notable changes to this project will be documented in this file.",
+                "",
+                "## v1.2.3 - 2026-01-01",
+                "",
+                "### Fixed",
+                "",
+                "- Fixed release note link formatting (`#199`).",
+                "",
+            ]
+        )
+        + "\n",
+        "utf-8",
+    )
+
+    repo = repo_root()
+    script = "skills/automation/release-workflow/scripts/audit-changelog.zsh"
+    spec = {
+        "args": ["--check", "--no-skip-template", "--repo", ".", "--changelog", "CHANGELOG.md"],
+        "timeout_sec": 10,
+        "expect": {
+            "exit_codes": [1],
+            "stderr_regex": r"backticked issue/PR reference detected",
+        },
+    }
+
+    result = run_smoke_script(script, "audit-changelog-backticked-refs", spec, repo, cwd=work_tree)
+    SCRIPT_SMOKE_RUN_RESULTS.append(result)
+
+    assert result.status == "pass", (
+        f"script smoke (fixture) failed: {script} (exit={result.exit_code})\n"
+        f"argv: {' '.join(result.argv)}\n"
+        f"stdout: {result.stdout_path}\n"
+        f"stderr: {result.stderr_path}\n"
+        f"note: {result.note or 'None'}"
+    )
+
+
+@pytest.mark.script_smoke
 def test_script_smoke_release_audit_strict(tmp_path: Path):
     work_tree = tmp_path / "repo"
     work_tree.mkdir(parents=True, exist_ok=True)

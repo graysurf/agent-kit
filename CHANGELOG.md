@@ -6,29 +6,29 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `issue-pr-review` now ships a reusable review-evidence template to document decision rationale and merge/follow-up outcomes (`#203`).
+- `issue-pr-review` now ships a reusable review-evidence template to document decision rationale and merge/follow-up outcomes (#203).
 
 ### Changed
 
-- Issue delivery workflows now standardize task-lane continuity and post-review sync expectations across main-agent/subagent handoffs (`#200`).
-- `plan-issue-delivery` now requires main-agent init snapshot artifacts before dispatching sprint work (`#202`).
-- `issue-pr-review` merge/request-followup/close flows now require evidence-gated decision inputs and validation hooks (`#203`).
+- Issue delivery workflows now standardize task-lane continuity and post-review sync expectations across main-agent/subagent handoffs (#200).
+- `plan-issue-delivery` now requires main-agent init snapshot artifacts before dispatching sprint work (#202).
+- `issue-pr-review` merge/request-followup/close flows now require evidence-gated decision inputs and validation hooks (#203).
 
 ### Fixed
 
-- `scripts/project-resolve` now fails fast when required option values are missing, with updated smoke coverage (`#201`).
+- `scripts/project-resolve` now fails fast when required option values are missing, with updated smoke coverage (#201).
 
 ## v2.3.2 - 2026-02-27
 
 ### Added
 
-- `plan-issue-delivery` now includes a worktree cleanup helper and associated smoke docs (`#198`).
+- `plan-issue-delivery` now includes a worktree cleanup helper and associated smoke docs (#198).
 - `plan-issue` now requires dispatch snapshot artifacts for run traceability.
-- `plan-issue-delivery` test coverage now includes sprint1/sprint2 fixture artifact and PR normalization checks (`#195`, `#196`).
+- `plan-issue-delivery` test coverage now includes sprint1/sprint2 fixture artifact and PR normalization checks (#195, #196).
 
 ### Changed
 
-- Plan-issue prompt/runbook guidance now clarifies worktree usage, approval flow, and sprint close-gate checklists (`#197`, `#199`).
+- Plan-issue prompt/runbook guidance now clarifies worktree usage, approval flow, and sprint close-gate checklists (#197, #199).
 - `plan-issue-delivery` now documents runtime workspace policy and resolves prompt paths via `AGENT_HOME`.
 - Skill/docs metadata were normalized with strict markdown linting and updated issue-delivery automation slug naming.
 

@@ -20,6 +20,7 @@ print_usage() {
   print -r -- "  - Version headings like: ## vX.Y.Z - YYYY-MM-DD (and blank line / separator after)"
   print -r -- "  - No placeholder leftovers: vX.Y.Z, YYYY-MM-DD, '- ...', '...'"
   print -r -- "  - No HTML comment scaffolding lines (<!-- ... -->)"
+  print -r -- "  - No backticked issue/PR references like \`#123\` (use plain #123)"
   print -r --
   print -r -- "Skip behavior:"
   print -r -- "  - By default, skips when the repo provides its own template (e.g. docs/templates/RELEASE_TEMPLATE.md)."
@@ -150,6 +151,11 @@ audit_changelog_file() {
 
     if [[ "$line" =~ '^[[:space:]]*\.{3}[[:space:]]*$' ]]; then
       report_problem "placeholder line '...' detected: ${changelog}:${i}"
+      continue
+    fi
+
+    if [[ "$line" =~ '`#[0-9]+`' ]]; then
+      report_problem "backticked issue/PR reference detected (use plain #123): ${changelog}:${i}"
       continue
     fi
 

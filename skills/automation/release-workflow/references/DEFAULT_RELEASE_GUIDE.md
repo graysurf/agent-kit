@@ -27,6 +27,7 @@ Use this guide only when the target repository does not provide its own release 
      - Remove any `...` placeholders and `<!-- ... -->` HTML comments.
      - Remove empty sections; keep section order.
      - For `### Added`, `### Changed`, `### Fixed`: if a section is `None`, remove the whole section (do not write `- None.`).
+     - For issue/PR references, use plain `#123` (no backticks) so GitHub auto-links are clickable.
    - Audit the changelog and stop if it fails:
      - `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 

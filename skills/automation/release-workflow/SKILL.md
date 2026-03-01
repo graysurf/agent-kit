@@ -82,6 +82,7 @@ These scripts are designed to run inside a target repo that uses `CHANGELOG.md` 
 - Audit basic prereqs + changelog format:
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
   - For `### Added` / `### Changed` / `### Fixed`: remove any section that would only contain `None` (do not write `- None.`).
+  - For issue/PR references, use plain `#123` (no backticks) so GitHub can auto-link them.
   - During release drafting (before the changelog commit), allow only changelog edits:
 
     ```bash
