@@ -47,6 +47,7 @@ request-followup options:
   --issue <number>               Issue number (required)
   --body <text>                  PR review comment body
   --body-file <path>             PR review comment body file
+  --enforce-review-evidence      Validate review body against review-evidence gate
   --issue-note <text>            Optional extra note appended to issue sync comment
   --issue-note-file <path>       Optional extra note file appended to issue sync comment
   --row-status <in-progress|blocked>
@@ -61,6 +62,9 @@ merge options:
   --delete-branch                Ask gh to delete branch after merge
   --pr-body <text>               Corrected PR body to apply before merge if current body fails validation
   --pr-body-file <path>          Corrected PR body file to apply before merge if current body fails validation
+  --review-evidence <text>       Review evidence comment body for merge decision
+  --review-evidence-file <path>  Review evidence comment body file for merge decision
+  --enforce-review-evidence      Require and validate merge review evidence before merge
   --issue <number>               Related issue number
   --close-issue                  Close the related issue after merge
   --reason <completed|not planned>
@@ -72,6 +76,9 @@ close-pr options:
   --pr <number>                  PR number (required)
   --pr-body <text>               Corrected PR body to apply before close if current body fails validation
   --pr-body-file <path>          Corrected PR body file to apply before close if current body fails validation
+  --review-evidence <text>       Review evidence comment body for close-pr decision
+  --review-evidence-file <path>  Review evidence comment body file for close-pr decision
+  --enforce-review-evidence      Require and validate close-pr review evidence before close
   --comment <text>               Comment to leave on PR close
   --issue <number>               Related issue number (optional)
   --issue-comment <text>         Optional issue comment for traceability
@@ -99,6 +106,180 @@ load_body() {
   fi
 
   printf '%s' "$body_text"
+}
+
+validate_review_evidence_text() {
+  local body_text="${1:-}"
+  local expected_decision="${2:-}"
+  local source_label="${3:-review-evidence}"
+
+  if [[ -z "${body_text//[[:space:]]/}" ]]; then
+    echo "error: ${source_label}: review evidence cannot be empty" >&2
+    return 1
+  fi
+
+  local required_heading_regexes=(
+    '^[[:space:]]*##[[:space:]]+Decision[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Review Scope[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Hard Gates[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Task Fidelity[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Correctness[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Integration Readiness[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Evidence Links[[:space:]]*$'
+  )
+  local required_heading_labels=(
+    '## Decision'
+    '## Review Scope'
+    '## Hard Gates'
+    '## Task Fidelity'
+    '## Correctness'
+    '## Integration Readiness'
+    '## Evidence Links'
+  )
+  local i=0
+  for i in "${!required_heading_regexes[@]}"; do
+    if ! printf '%s\n' "$body_text" | grep -Eq "${required_heading_regexes[$i]}"; then
+      echo "error: ${source_label}: missing required heading '${required_heading_labels[$i]}'" >&2
+      return 1
+    fi
+  done
+
+  local required_line_regexes=(
+    '^[[:space:]]*-[[:space:]]*Decision:[[:space:]]*(merge|request-followup|close-pr)[[:space:]]*$'
+    '^[[:space:]]*-[[:space:]]*Task lane:[[:space:]]+.+$'
+    '^[[:space:]]*-[[:space:]]*Scope verdict:[[:space:]]*(pass|fail|blocked)[[:space:]]*\(evidence:[[:space:]]+.+\)$'
+    '^[[:space:]]*-[[:space:]]*Correctness verdict:[[:space:]]*(pass|fail|blocked)[[:space:]]*\(evidence:[[:space:]]+.+\)$'
+    '^[[:space:]]*-[[:space:]]*Integration verdict:[[:space:]]*(pass|fail|blocked)[[:space:]]*\(evidence:[[:space:]]+.+\)$'
+  )
+  local required_line_labels=(
+    '- Decision: <merge|request-followup|close-pr>'
+    '- Task lane: ...'
+    '- Scope verdict: <pass|fail|blocked> (evidence: ...)'
+    '- Correctness verdict: <pass|fail|blocked> (evidence: ...)'
+    '- Integration verdict: <pass|fail|blocked> (evidence: ...)'
+  )
+  for i in "${!required_line_regexes[@]}"; do
+    if ! printf '%s\n' "$body_text" | grep -Eiq "${required_line_regexes[$i]}"; then
+      echo "error: ${source_label}: missing required evidence line '${required_line_labels[$i]}'" >&2
+      return 1
+    fi
+  done
+
+  local placeholder_regexes=(
+    '<[^>]+>'
+    '(^|[^[:alnum:]_])TO''DO([^[:alnum:]_]|$)'
+    '(^|[^[:alnum:]_])TBD([^[:alnum:]_]|$)'
+    '(^|[^[:alnum:]_])N/A([^[:alnum:]_]|$)'
+  )
+  local placeholder_labels=(
+    '<...>'
+    'TO''DO'
+    'TBD'
+    'N/A'
+  )
+  for i in "${!placeholder_regexes[@]}"; do
+    if printf '%s\n' "$body_text" | grep -Eiq "${placeholder_regexes[$i]}"; then
+      echo "error: ${source_label}: disallowed placeholder found: ${placeholder_labels[$i]}" >&2
+      return 1
+    fi
+  done
+
+  local declared_decision=''
+  declared_decision="$(
+    printf '%s\n' "$body_text" | awk '
+      BEGIN { IGNORECASE=1 }
+      /^[[:space:]]*-[[:space:]]*Decision:[[:space:]]*/ {
+        line=$0
+        sub(/^[[:space:]]*-[[:space:]]*Decision:[[:space:]]*/, "", line)
+        gsub(/[[:space:]]+$/, "", line)
+        print tolower(line)
+        exit
+      }
+    '
+  )"
+  if [[ -z "$declared_decision" ]]; then
+    echo "error: ${source_label}: cannot parse declared decision" >&2
+    return 1
+  fi
+  if [[ -n "$expected_decision" && "$declared_decision" != "$expected_decision" ]]; then
+    echo "error: ${source_label}: decision mismatch (expected=${expected_decision}, found=${declared_decision})" >&2
+    return 1
+  fi
+
+  local evidence_marker_count=0
+  evidence_marker_count="$(printf '%s\n' "$body_text" | grep -Eic 'evidence:[[:space:]]+.+')"
+  if [[ "${evidence_marker_count}" -lt 6 ]]; then
+    echo "error: ${source_label}: insufficient evidence anchors (need >=6 'evidence:' entries, found ${evidence_marker_count})" >&2
+    return 1
+  fi
+
+  local file_ref_count=0
+  file_ref_count="$(printf '%s\n' "$body_text" | grep -Eoc '([[:alnum:]_.-]+/)+[[:alnum:]_.-]+' || true)"
+  if [[ "${file_ref_count}" -lt 2 ]]; then
+    echo "error: ${source_label}: evidence must cite concrete file/path references (need >=2)" >&2
+    return 1
+  fi
+
+  if [[ "$expected_decision" == "merge" ]]; then
+    if printf '%s\n' "$body_text" | grep -Eiq '(scope|correctness|integration)[[:space:]]+verdict:[[:space:]]*(fail|blocked)'; then
+      echo "error: ${source_label}: merge decision cannot include fail/blocked core verdicts" >&2
+      return 1
+    fi
+  fi
+
+  if [[ "$expected_decision" == "request-followup" || "$expected_decision" == "close-pr" ]]; then
+    if ! printf '%s\n' "$body_text" | grep -Eiq '(scope|correctness|integration)[[:space:]]+verdict:[[:space:]]*(fail|blocked)'; then
+      echo "error: ${source_label}: ${expected_decision} must include at least one fail/blocked core verdict" >&2
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+validate_review_evidence_input() {
+  local body_text="${1:-}"
+  local body_file="${2:-}"
+  local expected_decision="${3:-}"
+  local source_label="${4:-review-evidence}"
+
+  local normalized_body=''
+  normalized_body="$(load_body "$body_text" "$body_file")"
+  validate_review_evidence_text "$normalized_body" "$expected_decision" "$source_label"
+}
+
+post_review_evidence_comment() {
+  local pr_number="${1:-}"
+  local evidence_text="${2:-}"
+  local issue_number="${3:-}"
+
+  [[ -n "$pr_number" ]] || die "PR number is required for review evidence comment"
+  [[ -n "$evidence_text" ]] || die "review evidence comment body is required"
+
+  local pr_comment_cmd=(gh pr comment "$pr_number")
+  if [[ -n "$repo_arg" ]]; then
+    pr_comment_cmd+=(-R "$repo_arg")
+  fi
+  pr_comment_cmd+=(--body "$evidence_text")
+  run_cmd "${pr_comment_cmd[@]}" >/dev/null
+
+  local evidence_comment_url=''
+  if [[ "$dry_run" == "1" ]]; then
+    evidence_comment_url="DRY-RUN-PR-COMMENT-URL"
+  else
+    local view_cmd=(gh pr view "$pr_number")
+    if [[ -n "$repo_arg" ]]; then
+      view_cmd+=(-R "$repo_arg")
+    fi
+    view_cmd+=(--json comments -q '.comments[-1].url')
+    evidence_comment_url="$(run_cmd "${view_cmd[@]}")"
+  fi
+
+  if [[ -n "$issue_number" ]]; then
+    printf '%s\n' "Main-agent review evidence for PR #${pr_number}: ${evidence_comment_url}"
+  else
+    printf '%s\n' "${evidence_comment_url}"
+  fi
 }
 
 validate_followup_row_status() {
@@ -324,6 +505,7 @@ case "$subcommand" in
     next_owner=""
     lane_action=""
     requested_by=""
+    enforce_review_evidence="0"
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -367,6 +549,10 @@ case "$subcommand" in
           requested_by="${2:-}"
           shift 2
           ;;
+        --enforce-review-evidence)
+          enforce_review_evidence="1"
+          shift
+          ;;
         --repo)
           repo_arg="${2:-}"
           shift 2
@@ -390,6 +576,9 @@ case "$subcommand" in
 
     review_body="$(load_body "$body" "$body_file")"
     [[ -n "$review_body" ]] || die "review body is required (--body or --body-file)"
+    if [[ "$enforce_review_evidence" == "1" ]]; then
+      validate_review_evidence_text "$review_body" "request-followup" "request-followup-review-evidence"
+    fi
     followup_structured="0"
     if [[ -n "$row_status" || -n "$next_owner" || -n "$lane_action" || -n "$requested_by" ]]; then
       followup_structured="1"
@@ -465,6 +654,9 @@ case "$subcommand" in
     close_reason="completed"
     issue_comment=""
     issue_comment_file=""
+    review_evidence=""
+    review_evidence_file=""
+    enforce_review_evidence="0"
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -508,6 +700,18 @@ case "$subcommand" in
           issue_comment_file="${2:-}"
           shift 2
           ;;
+        --review-evidence)
+          review_evidence="${2:-}"
+          shift 2
+          ;;
+        --review-evidence-file)
+          review_evidence_file="${2:-}"
+          shift 2
+          ;;
+        --enforce-review-evidence)
+          enforce_review_evidence="1"
+          shift
+          ;;
         --repo)
           repo_arg="${2:-}"
           shift 2
@@ -546,8 +750,30 @@ case "$subcommand" in
       die "--reason must be one of: completed, not planned"
     fi
     issue_comment="$(load_body "$issue_comment" "$issue_comment_file")"
-
     require_cmd gh
+
+    if [[ -n "$review_evidence" && -n "$review_evidence_file" ]]; then
+      die "use either --review-evidence or --review-evidence-file, not both"
+    fi
+    if [[ -n "$review_evidence_file" && ! -f "$review_evidence_file" ]]; then
+      die "review evidence file not found: $review_evidence_file"
+    fi
+    if [[ "$enforce_review_evidence" == "1" && -z "$review_evidence" && -z "$review_evidence_file" ]]; then
+      die "merge requires --review-evidence or --review-evidence-file when --enforce-review-evidence is set"
+    fi
+    if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
+      validate_review_evidence_input "$review_evidence" "$review_evidence_file" "merge" "merge-review-evidence"
+      review_evidence="$(load_body "$review_evidence" "$review_evidence_file")"
+      evidence_issue_note="$(post_review_evidence_comment "$pr_number" "$review_evidence" "$issue_number")"
+      if [[ -n "$issue_number" ]]; then
+        if [[ -n "$issue_comment" ]]; then
+          issue_comment+=$'\n'
+          issue_comment+="$evidence_issue_note"
+        else
+          issue_comment="$evidence_issue_note"
+        fi
+      fi
+    fi
     ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "merge"
 
     # `gh pr merge` rejects draft PRs; auto-ready them for deterministic merge flows.
@@ -622,6 +848,9 @@ case "$subcommand" in
     replacement_pr=""
     row_status=""
     next_action=""
+    review_evidence=""
+    review_evidence_file=""
+    enforce_review_evidence="0"
 
     while [[ $# -gt 0 ]]; do
       case "${1:-}" in
@@ -669,6 +898,18 @@ case "$subcommand" in
           next_action="${2:-}"
           shift 2
           ;;
+        --review-evidence)
+          review_evidence="${2:-}"
+          shift 2
+          ;;
+        --review-evidence-file)
+          review_evidence_file="${2:-}"
+          shift 2
+          ;;
+        --enforce-review-evidence)
+          enforce_review_evidence="1"
+          shift
+          ;;
         --repo)
           repo_arg="${2:-}"
           shift 2
@@ -707,8 +948,31 @@ case "$subcommand" in
     else
       issue_comment="$(load_body "$issue_comment" "$issue_comment_file")"
     fi
-
     require_cmd gh
+
+    if [[ -n "$review_evidence" && -n "$review_evidence_file" ]]; then
+      die "use either --review-evidence or --review-evidence-file, not both"
+    fi
+    if [[ -n "$review_evidence_file" && ! -f "$review_evidence_file" ]]; then
+      die "review evidence file not found: $review_evidence_file"
+    fi
+    if [[ "$enforce_review_evidence" == "1" && -z "$review_evidence" && -z "$review_evidence_file" ]]; then
+      die "close-pr requires --review-evidence or --review-evidence-file when --enforce-review-evidence is set"
+    fi
+    if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
+      validate_review_evidence_input "$review_evidence" "$review_evidence_file" "close-pr" "close-pr-review-evidence"
+      review_evidence="$(load_body "$review_evidence" "$review_evidence_file")"
+      evidence_issue_note="$(post_review_evidence_comment "$pr_number" "$review_evidence" "$issue_number")"
+      if [[ -n "$issue_number" ]]; then
+        if [[ -n "$issue_comment" ]]; then
+          issue_comment+=$'\n'
+          issue_comment+="$evidence_issue_note"
+        else
+          issue_comment="$evidence_issue_note"
+        fi
+      fi
+    fi
+
     ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "close-pr"
 
     close_pr_cmd=(gh pr close "$pr_number")

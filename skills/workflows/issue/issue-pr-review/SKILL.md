@@ -22,12 +22,15 @@ Inputs:
 
 - PR number and related issue number.
 - Review feedback body (inline or file).
+- Decision-scoped review evidence body/file mapped to rubric gates.
 - Merge/close strategy (`merge|squash|rebase`, optional issue close metadata).
 - Optional corrected PR body (`--pr-body` / `--pr-body-file`) for hygiene fixes before merge/close.
 
 Outputs:
 
 - PR review comments with explicit follow-up requirements.
+- Decision-scoped PR review evidence comments for `request-followup`, `merge`,
+  and `close-pr`.
 - Follow-up requests routed back to the current subagent-owned task lane.
 - Main-agent review decisions grounded in the shared review rubric before any
   follow-up, merge, or close action.
@@ -48,6 +51,8 @@ Failure modes:
 - Ambiguous comment input (`--body` and `--body-file`).
 - Invalid merge method or issue close reason.
 - PR body fails required-section/placeholder validation before merge/close.
+- `--enforce-review-evidence` is set but required review evidence is missing or
+  fails validation.
 - `gh` auth/permission failures for PR/issue operations.
 
 ## Entrypoint
@@ -73,6 +78,9 @@ Failure modes:
   `skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
 - Run hard-gate, task-fidelity, correctness, and integration review before
   deciding `request-followup`, `merge`, or `close-pr`.
+- For every review decision, provide evidence mapped to rubric gates and enforce
+  it via script evidence validation (`--enforce-review-evidence`).
+- Generic approvals/rejections without concrete evidence are invalid.
 - Treat `issue-pr-review` as the execution path for review decisions, not as a
   replacement for reviewer judgment.
 
@@ -101,19 +109,38 @@ Failure modes:
 
    ```bash
    .../manage_issue_pr_review.sh request-followup --pr 456 --issue 123 \
-     --body-file references/REQUEST_CHANGES_TEMPLATE.md \
+     --body-file references/REVIEW_EVIDENCE_TEMPLATE.md \
+     --enforce-review-evidence \
      --row-status in-progress \
      --next-owner subagent-1
    ```
 
 2. Merge PR and close issue when complete:
-   - `.../manage_issue_pr_review.sh merge --pr 456 --method merge --issue 123 --close-issue --issue-comment "Completed in #456"`
+   - Example:
+
+     ```bash
+     .../manage_issue_pr_review.sh merge --pr 456 --method merge --issue 123 --close-issue \
+       --review-evidence-file references/REVIEW_EVIDENCE_TEMPLATE.md \
+       --enforce-review-evidence \
+       --issue-comment "Completed in #456"
+     ```
+
    - If PR body is stale/placeholder-filled, provide a corrected body:
-   - `.../manage_issue_pr_review.sh merge --pr 456 --issue 123 --pr-body-file /tmp/pr-456-fixed.md --method squash`
+
+     ```bash
+     .../manage_issue_pr_review.sh merge --pr 456 --issue 123 \
+       --pr-body-file /tmp/pr-456-fixed.md \
+       --review-evidence-file references/REVIEW_EVIDENCE_TEMPLATE.md \
+       --enforce-review-evidence \
+       --method squash
+     ```
+
 3. Close PR without merge and preserve issue traceability:
 
    ```bash
    .../manage_issue_pr_review.sh close-pr --pr 456 --comment "Superseded" --issue 123 \
+     --review-evidence-file references/REVIEW_EVIDENCE_TEMPLATE.md \
+     --enforce-review-evidence \
      --close-reason "Superseded by #789" \
      --replacement-pr "#789" \
      --row-status in-progress \
@@ -123,6 +150,7 @@ Failure modes:
 ## References
 
 - Request changes template: `references/REQUEST_CHANGES_TEMPLATE.md`
+- Review evidence template: `references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Follow-up issue-note template (`--issue-note-file`): `references/ISSUE_SYNC_TEMPLATE.md`
 - Close-PR issue sync template (`--issue-comment-file`): `references/CLOSE_PR_ISSUE_SYNC_TEMPLATE.md`
 - Shared task-lane continuity policy (canonical):
@@ -136,6 +164,9 @@ Failure modes:
 
 - Important review instructions should remain in PR comments; always mirror the exact comment URL into the issue to direct subagents
   unambiguously.
+- Review evidence for every decision should start from
+  `references/REVIEW_EVIDENCE_TEMPLATE.md` and be validated with
+  `--enforce-review-evidence`.
 - `request-followup` already generates the issue headline with the PR comment
   URL; use structured follow-up flags by default, or
   `references/ISSUE_SYNC_TEMPLATE.md` for `--issue-note-file` fields without

@@ -32,6 +32,10 @@ Inputs:
   `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`.
 - Issue-scoped `MAIN_AGENT_INIT_SNAPSHOT_PATH` copied from
   `MAIN_AGENT_INIT_SOURCE_PATH` during issue runtime initialization.
+- Review evidence template path (`REVIEW_EVIDENCE_TEMPLATE_PATH`):
+  `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`.
+- Decision-scoped review evidence artifact path (`REVIEW_EVIDENCE_PATH`) per
+  review decision.
 - Mandatory subagent dispatch bundle:
   - rendered `TASK_PROMPT_PATH` from `start-sprint`
   - sprint-scoped `SUBAGENT_INIT_SNAPSHOT_PATH` copied from `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
@@ -54,6 +58,11 @@ Outputs:
 - Issue-scoped main-agent init prompt snapshot
   (`MAIN_AGENT_INIT_SNAPSHOT_PATH`) is generated for deterministic
   orchestration restarts.
+- Decision-scoped review evidence artifacts
+  (`REVIEW_EVIDENCE_PATH`) are generated under sprint runtime for each
+  `request-followup|merge|close-pr` decision.
+- Main-agent posts decision-scoped review-evidence PR comments and keeps those
+  comment URLs traceable in issue-side sync actions.
 - Issue-scoped plan snapshot (`PLAN_SNAPSHOT_PATH`) is generated for dispatch fallback.
 - Sprint-scoped subagent companion prompt snapshot (`SUBAGENT_INIT_SNAPSHOT_PATH`) is generated for immutable dispatch.
 - Task-scoped dispatch records (`DISPATCH_RECORD_PATH`) are generated per assignment for traceability.
@@ -102,9 +111,12 @@ Failure modes:
 - Live mode approval URL invalid.
 - Runtime workspace root missing/unwritable (`$AGENT_HOME/out/plan-issue-delivery`).
 - Issue/sprint runtime artifacts missing (for example
-  `MAIN_AGENT_INIT_SNAPSHOT_PATH`, `TASK_PROMPT_PATH`,
+  `MAIN_AGENT_INIT_SNAPSHOT_PATH`, `REVIEW_EVIDENCE_PATH`, `TASK_PROMPT_PATH`,
   `PLAN_SNAPSHOT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, or
   `DISPATCH_RECORD_PATH` not emitted under runtime root).
+- Main-agent review decision attempted without validated review evidence (for
+  example missing `--enforce-review-evidence`, missing/invalid
+  `REVIEW_EVIDENCE_PATH`, or generic non-evidenced decision text).
 - Subagent dispatch launched without required bundle (`TASK_PROMPT_PATH`, `SUBAGENT_INIT_SNAPSHOT_PATH`, `PLAN_SNAPSHOT_PATH`,
   `DISPATCH_RECORD_PATH`, plan task section snippet/link/path).
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
@@ -121,6 +133,8 @@ Failure modes:
 - Required runtime artifacts:
   - `MAIN_AGENT_INIT_SOURCE_PATH="$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md"`
   - `MAIN_AGENT_INIT_SNAPSHOT_PATH="$ISSUE_ROOT/prompts/plan-issue-delivery-main-agent-init.snapshot.md"`
+  - `REVIEW_EVIDENCE_TEMPLATE_PATH="$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md"`
+  - `REVIEW_EVIDENCE_PATH="$SPRINT_ROOT/reviews/<TASK_ID>-<decision>.md"`
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - `SUBAGENT_INIT_SNAPSHOT_PATH="$SPRINT_ROOT/prompts/plan-issue-delivery-subagent-init.snapshot.md"`
@@ -163,6 +177,8 @@ Failure modes:
 
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`
 - Runtime layout and path rules: `references/RUNTIME_LAYOUT.md`
+- Review evidence template for main-agent decisions:
+  `skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Shared task-lane continuity policy (canonical):
   `skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md`
 - Shared main-agent review rubric (canonical):
@@ -179,7 +195,7 @@ Failure modes:
    `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-<number>/`, and copy
    `MAIN_AGENT_INIT_SOURCE_PATH` into `MAIN_AGENT_INIT_SNAPSHOT_PATH`.
 4. Run `start-sprint`, ensure `MAIN_AGENT_INIT_SNAPSHOT_PATH` +
-   `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
+   `REVIEW_EVIDENCE_PATH` + `TASK_PROMPT_PATH` + `PLAN_SNAPSHOT_PATH` +
    `SUBAGENT_INIT_SNAPSHOT_PATH` + `DISPATCH_RECORD_PATH` artifacts
    exist, dispatch subagents, keep task lanes stable, and keep row state current via `link-pr`.
 5. For each sprint: implement/clarify/follow-up on subagent-owned lanes -> `ready-sprint` -> main-agent review/merge -> `accept-sprint`.
@@ -271,8 +287,12 @@ Failure modes:
 12. When sprint work is ready, run `ready-sprint` to record a sprint review/acceptance request (live comment in live mode).
 13. Main-agent reviews each sprint PR against the shared review rubric
     (`skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`),
-    then records approval and requests follow-up back to the same
-    subagent-owned lanes or merges the PRs.
+    generates `REVIEW_EVIDENCE_PATH` from
+    `REVIEW_EVIDENCE_TEMPLATE_PATH`, and executes `issue-pr-review`
+    decisions with `--enforce-review-evidence` so each
+    `request-followup|merge|close-pr` action is grounded in concrete evidence.
+    Then records approval and requests follow-up back to the same
+    subagent-owned lanes or merges/closes the PRs.
 14. After each review decision, apply
     `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md` to sync
     runtime-truth rows before any further dispatch or acceptance gate.
@@ -339,6 +359,10 @@ gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
 - Main-agent review decisions should follow
   `skills/workflows/issue/_shared/references/MAIN_AGENT_REVIEW_RUBRIC.md`
   before calling `issue-pr-review`.
+- Main-agent review decisions must include decision-scoped evidence artifacts
+  generated from
+  `skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`,
+  and must execute `issue-pr-review` with `--enforce-review-evidence`.
 - After `request-followup` or `close-pr`, main-agent should apply
   `skills/workflows/issue/_shared/references/POST_REVIEW_OUTCOMES.md` before
   any new dispatch, acceptance gate, or next-sprint transition.
