@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.5 - 2026-03-02
+
+### Changed
+
+- `plan-issue-delivery` now enforces plan-branch integration and sync gates across task-lane flows (#204).
+
+### Fixed
+
+- `release-workflow` now enforces plain issue/PR references in release guidance and audits (#204).
+
 ## v2.3.4 - 2026-03-02
 
 ### Added
