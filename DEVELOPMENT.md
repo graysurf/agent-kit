@@ -17,6 +17,7 @@ current shell.
     - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
     - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
   - `scripts/ci/markdownlint-audit.sh --strict`
+  - `scripts/ci/third-party-artifacts-audit.sh --strict`
   - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
   - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
   - `plan-tooling validate` (from `nils-cli`)
@@ -28,6 +29,7 @@ current shell.
 
 - `scripts/check.sh --lint` (lint only; faster loop)
 - `scripts/check.sh --markdown` (markdown lint only)
+- `scripts/check.sh --third-party` (third-party artifacts audit only)
 - `scripts/check.sh --contracts` (skill contract validation only)
 - `scripts/check.sh --skills-layout` (skill layout audit only)
 - `scripts/check.sh --plans` (plan format validation only)
@@ -40,6 +42,9 @@ Direct entry points:
 
 - `scripts/lint.sh --shell|--python|--all`
 - `scripts/ci/markdownlint-audit.sh --strict`
+- `scripts/ci/third-party-artifacts-audit.sh --strict`
+- `scripts/generate-third-party-artifacts.sh --write`
+- `scripts/generate-third-party-artifacts.sh --check`
 - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
 - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - `scripts/test.sh -m script_smoke`

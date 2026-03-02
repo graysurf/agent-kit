@@ -10,17 +10,19 @@ commands/                                 Legacy repo-local wrappers (not requir
 scripts/
 ├── build/                                Tooling to generate bundled commands.
 ├── ci/                                   CI/local audit helpers.
-│   └── markdownlint-audit.sh             Markdown lint audit (`markdownlint-cli2`).
+│   ├── markdownlint-audit.sh             Markdown lint audit (`markdownlint-cli2`).
+│   └── third-party-artifacts-audit.sh    Third-party artifact freshness audit.
 ├── chrome-devtools-mcp.sh                Launcher for the chrome-devtools MCP server.
 ├── env.zsh                               Environment defaults shared by repo scripts.
 ├── fix-typeset-empty-string-quotes.zsh   Normalizes `local/typeset foo=\"\"` to `foo=''`.
 ├── fix-zsh-typeset-initializers.zsh      Adds initializers to bare zsh `typeset/local` declarations.
 ├── fix-shell-style.zsh                   Runs shell style fixers (check/write).
+├── generate-third-party-artifacts.sh     Generates THIRD_PARTY_LICENSES.md + THIRD_PARTY_NOTICES.md.
 ├── lint.sh                               Runs shell + python lint/syntax checks.
 ├── project-resolve                       Deterministic project path resolver (bundled).
 ├── semgrep-scan.sh                       Runs Semgrep with local rules + curated Registry packs.
 ├── test.sh                               Dev test runner (repo-only).
-├── check.sh                              Runs selected checks (lint/markdown/contracts/skills-layout/plans/env-bools/semgrep/tests).
+├── check.sh                              Runs selected checks (lint/markdown/third-party/contracts/skills-layout/plans/env-bools/semgrep/tests).
 └── audit-env-bools.zsh                   Audits boolean env var conventions (zsh).
 ```
 
@@ -115,6 +117,21 @@ Usage:
 Usage:
 
 - Strict mode (recommended): `$AGENT_HOME/scripts/ci/markdownlint-audit.sh --strict`
+
+### Third-party artifact checks
+
+`$AGENT_HOME/scripts/generate-third-party-artifacts.sh` generates deterministic `THIRD_PARTY_LICENSES.md` and `THIRD_PARTY_NOTICES.md`.
+
+Usage:
+
+- Write/update artifacts: `$AGENT_HOME/scripts/generate-third-party-artifacts.sh --write`
+- Check for drift: `$AGENT_HOME/scripts/generate-third-party-artifacts.sh --check`
+
+`$AGENT_HOME/scripts/ci/third-party-artifacts-audit.sh` verifies required third-party artifacts and fails on drift in strict mode.
+
+Usage:
+
+- Strict mode (recommended): `$AGENT_HOME/scripts/ci/third-party-artifacts-audit.sh --strict`
 
 ## Semgrep
 
