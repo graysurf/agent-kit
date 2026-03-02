@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.6 - 2026-03-02
+
+### Added
+
+- Deterministic third-party artifact generation via `scripts/generate-third-party-artifacts.sh` for `THIRD_PARTY_LICENSES.md` and
+  `THIRD_PARTY_NOTICES.md` (#205).
+- Third-party artifact regression coverage, including dedicated pytest cases and smoke-spec entries for generator/audit script help flows
+  (#205).
+
+### Changed
+
+- Local/CI required checks now enforce strict third-party artifact freshness through `scripts/ci/third-party-artifacts-audit.sh` in
+  `scripts/check.sh --all` and the lint workflow (#205).
+- Developer docs (`DEVELOPMENT.md`, `scripts/README.md`) now document the third-party artifact generation/audit workflow and command
+  entrypoints (#205).
+
 ## v2.3.5 - 2026-03-02
 
 ### Changed
