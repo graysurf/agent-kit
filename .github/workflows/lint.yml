@@ -76,6 +76,10 @@ jobs:
         run: |
           $AGENT_HOME/scripts/ci/markdownlint-audit.sh --strict
 
+      - name: Third-party artifacts audit
+        run: |
+          $AGENT_HOME/scripts/ci/third-party-artifacts-audit.sh --strict
+
       - name: Env bool audit
         run: |
           zsh -f $AGENT_HOME/scripts/audit-env-bools.zsh --check
