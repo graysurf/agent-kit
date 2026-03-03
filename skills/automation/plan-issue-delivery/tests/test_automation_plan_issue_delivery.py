@@ -25,6 +25,7 @@ def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     assert "PLAN_BRANCH" in text
     assert "integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`)" in text
     assert "PLAN_INTEGRATION_MENTION_PATH" in text
+    assert "prefer `--squash` when allowed, fallback to `--merge`" in text
     assert "git pull --ff-only" in text
     assert "## Full Skill Flow" in text
     assert "--pr-grouping group --strategy auto" not in text
@@ -142,6 +143,9 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "PLAN_BRANCH_REF_PATH" in main_agent_prompt
     assert "PLAN_INTEGRATION_PR_PATH" in main_agent_prompt
     assert "PLAN_INTEGRATION_MENTION_PATH" in main_agent_prompt
+    assert "prefer `gh pr merge --squash`" in main_agent_prompt
+    assert "fallback to" in main_agent_prompt
+    assert "`gh pr merge --merge`" in main_agent_prompt
     assert "sync local `PLAN_BRANCH`" in main_agent_prompt
     assert "git pull --ff-only" in main_agent_prompt
     assert "$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md" in main_agent_prompt

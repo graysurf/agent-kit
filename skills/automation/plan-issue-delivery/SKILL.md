@@ -30,6 +30,8 @@ Inputs:
 - Plan-close approval comment URL (`PLAN_APPROVED_COMMENT_URL`) for `close-plan`.
 - Approval URL format for both gates: `https://github.com/<owner>/<repo>/(issues|pull)/<n>#issuecomment-<id>`.
 - Final plan integration PR URL/number (`PLAN_INTEGRATION_PR`) for `PLAN_BRANCH -> DEFAULT_BRANCH`.
+- Final integration merge strategy for `PLAN_BRANCH -> DEFAULT_BRANCH`:
+  prefer `--squash` when allowed, fallback to `--merge` when squash merge is unavailable by repo/branch policy.
 - Plan issue mention comment URL for final integration PR
   (`PLAN_INTEGRATION_MENTION_URL`), posted on the single plan issue.
 - Plan conformance review artifact path (`PLAN_CONFORMANCE_REVIEW_PATH`) written by main-agent before final integration merge.
@@ -291,7 +293,8 @@ Failure modes:
    - wait for required checks to pass (`gh pr checks <integration-pr> --required --watch`)
      and write `PLAN_INTEGRATION_CI_PATH`; `no checks reported` is merge-blocking
      unless user explicitly approves override.
-   - merge integration PR only after both gates pass.
+   - merge integration PR only after both gates pass, using squash-first
+     fallback-to-merge strategy.
    - post a plan-issue mention comment for the merged integration PR and persist
      `PLAN_INTEGRATION_MENTION_PATH`.
    - run `close-plan` with plan-level approval URL, then local `DEFAULT_BRANCH`
@@ -554,10 +557,15 @@ comment URL.
      # If output contains "no checks reported", treat as blocking failure unless user explicitly approves override.
      ```
 
-   - Merge integration PR only after conformance + required-check gates pass:
+   - Merge integration PR only after conformance + required-check gates pass
+     (prefer squash, fallback to merge when squash is unavailable):
 
      ```bash
-     gh pr merge "$INTEGRATION_PR_NUMBER" --merge
+     if gh repo view --json squashMergeAllowed --jq '.squashMergeAllowed' | grep -q true; then
+       gh pr merge "$INTEGRATION_PR_NUMBER" --squash || gh pr merge "$INTEGRATION_PR_NUMBER" --merge
+     else
+       gh pr merge "$INTEGRATION_PR_NUMBER" --merge
+     fi
      ```
 
    - Mention integration PR on the plan issue and persist comment URL:

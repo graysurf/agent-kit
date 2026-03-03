@@ -81,6 +81,9 @@ Required workflow
    `PLAN_INTEGRATION_MENTION_PATH` -> `close-plan` with approval URL ->
    sync local `DEFAULT_BRANCH` (`git fetch` + `git switch` +
    `git pull --ff-only`).
+   - final integration merge strategy: prefer `gh pr merge --squash`; if
+     squash merge is unavailable by repo/branch policy, fallback to
+     `gh pr merge --merge`.
 9. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
 
 Mandatory subagent launch rule
