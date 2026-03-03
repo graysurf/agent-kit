@@ -62,37 +62,12 @@ The default fallback guide lives at:
 
 ## Helper scripts (fallback)
 
-These scripts are designed to run inside a target repo that uses `CHANGELOG.md` headings like `## vX.Y.Z - YYYY-MM-DD`.
+Use only these public entrypoints:
 
-- Locate a project release guide deterministically:
-
-  ```bash
-  $AGENT_HOME/skills/automation/release-workflow/scripts/release-find-guide.sh --project-path "$PROJECT_PATH" --search-root "$(pwd)" --max-depth 3
-  ```
-
-- Resolve the guide + template deterministically (preferred entrypoint):
+- Resolve the guide + template deterministically:
   - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
-- Scaffold a new entry from a template:
+- Publish GitHub release from changelog via single entrypoint (extract + audit + create/edit + verify body):
 
   ```bash
-  $AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version v1.3.2 --output "$AGENT_HOME/out/release-entry-v1.3.2.md"
-  ```
-
-  - Selects the repo template when present; otherwise falls back to the bundled template.
-- Audit basic prereqs + changelog format:
-  - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main`
-  - For `### Added` / `### Changed` / `### Fixed`: remove any section that would only contain `None` (do not write `- None.`).
-  - For issue/PR references, use plain `#123` (no backticks) so GitHub can auto-link them.
-  - During release drafting (before the changelog commit), allow only changelog edits:
-
-    ```bash
-    $AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version v1.3.2 --branch main --allow-dirty-path CHANGELOG.md --strict
-    ```
-
-- Audit changelog formatting + placeholder cleanup:
-  - `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
-- Extract release notes from `CHANGELOG.md` into a file for `gh release create -F`:
-
-  ```bash
-  $AGENT_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version v1.3.2 --output "$AGENT_HOME/out/release-notes-v1.3.2.md"
+  $AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version v1.3.2
   ```
