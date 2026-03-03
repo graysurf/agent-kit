@@ -16,45 +16,26 @@ Use this guide only when the target repository does not provide its own release 
    - Date: `YYYY-MM-DD` (e.g. `date +%Y-%m-%d`)
 
 2. Update `CHANGELOG.md`
-   - Scaffold a new entry:
-
-     ```bash
-     $AGENT_HOME/skills/automation/release-workflow/scripts/release-scaffold-entry.sh --repo . --version vX.Y.Z --date YYYY-MM-DD --output "$AGENT_HOME/out/release-entry-vX.Y.Z.md"
-     ```
-
-   - Insert the scaffolded entry at the top of `CHANGELOG.md`.
-   - Remove placeholders and scaffolding:
+   - Add a new heading at the top: `## vX.Y.Z - YYYY-MM-DD`
+   - Ensure release content is complete:
      - Remove any `...` placeholders and `<!-- ... -->` HTML comments.
      - Remove empty sections; keep section order.
      - For `### Added`, `### Changed`, `### Fixed`: if a section is `None`, remove the whole section (do not write `- None.`).
      - For issue/PR references, use plain `#123` (no backticks) so GitHub auto-links are clickable.
-   - Audit the changelog and stop if it fails:
-     - `$AGENT_HOME/skills/automation/release-workflow/scripts/audit-changelog.zsh --repo . --check`
 
-3. Verify prereqs (strict)
+3. (Only when code changed) run the repo’s lint/test/build checks and record results
 
-   ```bash
-   $AGENT_HOME/skills/automation/release-workflow/scripts/release-audit.sh --repo . --version vX.Y.Z --branch main --allow-dirty-path CHANGELOG.md --strict
-   ```
-
-   - This strict audit still blocks unrelated dirty files; only `CHANGELOG.md` is allowed before the release commit.
-
-4. (Only when code changed) run the repo’s lint/test/build checks and record results
-
-5. Commit the changelog
+4. Commit the changelog
    - Commit message should match the repo’s conventions (if any).
 
-6. Publish the GitHub release from the changelog entry
-   - Extract release notes:
-     - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-notes-from-changelog.sh --version vX.Y.Z --output "$AGENT_HOME/out/release-notes-vX.Y.Z.md"`
-   - Create the release:
-     - `gh release create vX.Y.Z -F "$AGENT_HOME/out/release-notes-vX.Y.Z.md" --title "vX.Y.Z"`
+5. Publish the GitHub release from the changelog entry
+   - Use the single entrypoint script (extract notes + audit + create/edit + non-empty body verification):
+     - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version vX.Y.Z`
 
-7. Verify the release
+6. Verify the release
    - `gh release view vX.Y.Z`
 
 ## Stop conditions
 
 - Any step is unclear: stop and ask.
-- `audit-changelog.zsh --check` fails: stop; do not publish.
-- `release-audit.sh --strict` fails: stop; fix issues before publishing.
+- `release-publish-from-changelog.sh` fails: stop; fix issues before publishing.

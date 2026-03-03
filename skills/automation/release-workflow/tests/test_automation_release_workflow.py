@@ -15,11 +15,7 @@ def test_automation_release_workflow_entrypoints_exist() -> None:
     assert_entrypoints_exist(
         skill_root,
         [
-            "scripts/audit-changelog.zsh",
-            "scripts/release-audit.sh",
-            "scripts/release-find-guide.sh",
-            "scripts/release-notes-from-changelog.sh",
+            "scripts/release-publish-from-changelog.sh",
             "scripts/release-resolve.sh",
-            "scripts/release-scaffold-entry.sh",
         ],
     )
