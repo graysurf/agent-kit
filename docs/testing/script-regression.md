@@ -44,6 +44,19 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `out/tests/script-coverage/summary.md`
   - `out/tests/script-coverage/summary.json`
 
+## CI artifact conventions
+
+- Pytest workflow uploads script evidence from `out/tests/**`:
+  - `out/tests/script-regression/summary.json`
+  - `out/tests/script-regression/logs/**`
+  - `out/tests/script-smoke/summary.json`
+  - `out/tests/script-smoke/logs/**`
+  - `out/tests/script-coverage/summary.json`
+  - `out/tests/script-coverage/summary.md`
+- API test runner workflow uploads suite evidence from `out/api-test-runner/<suite>/`.
+- Each API suite directory includes `results.json`, `junit.xml`, and `summary.md` (plus fixture logs when present).
+- API workflow summary steps append each suite `summary.md` to `GITHUB_STEP_SUMMARY` and point to the suite artifact path.
+
 ## Script smoke tests
 
 Smoke tests are a separate pytest marker intended for deeper, hermetic-ish execution of selected scripts.

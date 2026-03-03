@@ -24,6 +24,16 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`
 
+## CI artifact conventions
+
+- Pytest workflow artifacts stay under `out/tests/**`.
+- API workflow artifacts stay under `out/api-test-runner/<suite>/`.
+- For each API suite, CI writes:
+  - `out/api-test-runner/<suite>/results.json`
+  - `out/api-test-runner/<suite>/junit.xml`
+  - `out/api-test-runner/<suite>/summary.md`
+- API workflow summary steps append each `summary.md` to `GITHUB_STEP_SUMMARY`, and the summary includes the artifact directory for fast triage.
+
 ## Plan-issue cleanup gate
 
 Run the cleanup helper before declaring plan completion:
