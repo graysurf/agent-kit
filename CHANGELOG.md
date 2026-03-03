@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.3.7 - 2026-03-04
+
+### Added
+
+- Docs freshness audit coverage, including a dedicated helper and lint/local workflow integration (#214, #215).
+- CI ownership/stale-script guardrails with refreshed regression smoke coverage for script specs (#212, #213).
+- Local pre-commit check wrapper and updated developer command guidance (#219).
+
+### Changed
+
+- CI phase orchestration now centralizes bootstrap/setup and adds parity guardrails for check flows (#210, #211).
+- `plan-issue-delivery` merge behavior now prefers squash, with merge fallback guidance for protected workflows (#220).
+- Repository plan-doc artifacts and related plan checks were pruned as part of CI cleanup/refactor work (#219).
+
+### Fixed
+
+- CI stability issues across docs/ownership/lint/pytest lanes were resolved to unblock runner-safe execution (#217, #218).
+
 ## v2.3.6 - 2026-03-02
 
 ### Added
