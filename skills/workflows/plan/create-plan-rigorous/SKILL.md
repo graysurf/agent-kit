@@ -39,6 +39,10 @@ Failure modes:
 - Plan requires repo access/info you can’t obtain.
 - Subagent review yields conflicting guidance; reconcile and document the decision.
 
+## Entrypoint
+
+- None. This is a workflow-only skill with no `scripts/` entrypoint.
+
 ## Workflow
 
 1. Clarify (if needed)

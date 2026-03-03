@@ -20,6 +20,13 @@ Or via consolidated check wrapper:
 scripts/check.sh --tests -- -m script_smoke
 ```
 
+When entrypoints are added/removed/renamed, run companion ownership checks:
+
+```bash
+bash scripts/ci/stale-skill-scripts-audit.sh --check
+scripts/check.sh --entrypoint-ownership
+```
+
 ## What it does
 
 - Runs selected script entrypoints through deeper smoke cases (beyond `--help`).
@@ -30,6 +37,9 @@ scripts/check.sh --tests -- -m script_smoke
   - `tests/script_specs/scripts/check.sh.json`
   - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh.json`
   - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/project-notify.sh.json`
+- Retained issue-workflow smoke specs:
+  - `tests/script_specs/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh.json`
+  - `tests/script_specs/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh.json`
 - Removed desktop-notify wrappers (for example `codex-notify.sh`) should not keep stale smoke specs.
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`

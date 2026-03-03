@@ -70,6 +70,9 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - `scripts/check.sh --docs`
 - CI parity guardrail:
   - `scripts/check.sh --tests -- -k parity -m script_regression`
+- Skill entrypoint drift guard (required when entrypoint scripts or smoke specs change):
+  - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
+  - `scripts/check.sh --entrypoint-ownership`
 
 ## Script smoke tests
 

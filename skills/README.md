@@ -54,3 +54,13 @@ See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatom
 - Skill directories use kebab-case (e.g., `create-feature-pr`).
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
+
+## Entrypoint Drift Guard (Quick Run)
+
+When adding/removing/renaming workflow or tool entrypoints, run both checks in
+the same change:
+
+```bash
+bash scripts/ci/stale-skill-scripts-audit.sh --check
+scripts/check.sh --entrypoint-ownership
+```
