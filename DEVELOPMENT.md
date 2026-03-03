@@ -1,49 +1,84 @@
 # Development Guide
 
-## Quick Start (Repository Root)
+## Purpose
+
+- Setup local environment for this repository.
+- Provide a clear local testing flow for agents and developers.
+- Define commit-time validation steps that match CI expectations.
+
+## Prerequisites
+
+- Python 3 + venv
+  - `python3 -m venv .venv`
+  - `.venv/bin/python -m pip install -r requirements-dev.txt`
+  - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
+- System tools
+  - `git` (required by lint scripts for tracked-file discovery)
+  - `node`/`npx` (required by markdown lint)
+  - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
+  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
+
+## Quick Setup (Repository Root)
 
 1. `python3 -m venv .venv`
 2. `.venv/bin/python -m pip install -r requirements-dev.txt`
-3. `scripts/check.sh --all`
+3. `export AGENT_HOME="$(pwd)"`
+4. `scripts/check.sh --all`
 
-`scripts/...` commands are executable directly from the repo root. For absolute-path docs/examples, set `export AGENT_HOME="$(pwd)"` in the
-current shell.
+`scripts/...` commands are executable directly from the repo root.
+
+## Local Test Workflow
+
+Use these commands during implementation:
+
+- Fast lint loop: `scripts/check.sh --lint`
+- Docs gate only: `scripts/check.sh --docs`
+- Smoke-only tests: `scripts/check.sh --tests -- -m script_smoke`
+- Direct smoke via repo test entrypoint: `$AGENT_HOME/scripts/test.sh -m script_smoke`
+- Targeted parity guard: `scripts/check.sh --tests -- -k parity -m script_regression`
+- Full local gate: `scripts/check.sh --all`
+
+`scripts/check.sh --all` currently runs:
+
+- `scripts/lint.sh` (shell + python)
+  - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
+  - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
+- `scripts/ci/markdownlint-audit.sh --strict`
+- `scripts/ci/third-party-artifacts-audit.sh --strict`
+- `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
+- `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
+- `zsh -f scripts/audit-env-bools.zsh --check`
+- `bash scripts/ci/docs-freshness-audit.sh --check`
+- `scripts/semgrep-scan.sh`
+- `scripts/test.sh` (full pytest; prefers `.venv/bin/python`)
 
 ## Required Before Commit
 
-- Run: `scripts/check.sh --all`
-- Docs freshness gate (also included by `--all`): `scripts/check.sh --docs`
-- When adding/removing skill entrypoint scripts, also run:
-  - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
-  - `scripts/check.sh --entrypoint-ownership`
-- `scripts/check.sh --all` currently runs:
-  - `scripts/lint.sh` (shell + python)
-    - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
-    - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
-  - `scripts/ci/markdownlint-audit.sh --strict`
-  - `scripts/ci/third-party-artifacts-audit.sh --strict`
-  - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-  - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-  - `zsh -f scripts/audit-env-bools.zsh --check`
-  - `bash scripts/ci/docs-freshness-audit.sh --check`
-  - `scripts/semgrep-scan.sh`
-  - `scripts/test.sh` (pytest; prefers `.venv/bin/python`)
+Canonical minimum gate:
 
-## Common Commands
+- `scripts/check.sh --all`
 
-- `scripts/check.sh --lint` (lint only; faster loop)
-- `scripts/check.sh --markdown` (markdown lint only)
-- `scripts/check.sh --third-party` (third-party artifacts audit only)
-- `scripts/check.sh --contracts` (skill contract validation only)
-- `scripts/check.sh --skills-layout` (skill layout audit only)
-- `scripts/check.sh --env-bools` (boolean env naming/value audit only)
-- `scripts/check.sh --docs` (docs command/path freshness audit only)
-- `scripts/check.sh --entrypoint-ownership` (skill script ownership parity gate)
-- `scripts/check.sh --tests -- -m script_smoke` (passes args through to pytest)
-- `scripts/check.sh --semgrep` (Semgrep only)
-- `scripts/check.sh --all` (full check suite)
+Recommended one-command wrapper (canonical gate + skill entrypoint checks):
 
-Direct entry points:
+- `scripts/check-pre-commit.sh`
+
+Manual equivalent:
+
+- `bash scripts/ci/stale-skill-scripts-audit.sh --check`
+- `scripts/check.sh --entrypoint-ownership`
+
+Notes:
+
+- `scripts/check-pre-commit.sh` always includes skill entrypoint checks to avoid conditional misses.
+- If you run only the canonical minimum gate (`scripts/check.sh --all`), remember that `stale-skill-scripts-audit` and
+  `--entrypoint-ownership` are still required whenever skill entrypoint scripts are added/removed.
+
+## CI Notes
+
+- Lint/test checks are split in `.github/workflows/lint.yml` using `scripts/check.sh` modes.
+- Additional API demo suites run in `.github/workflows/api-test-runner.yml` and are CI coverage, not required for standard local commits.
+
+## Direct Entrypoints
 
 - `scripts/lint.sh --shell|--python|--all`
 - `scripts/ci/markdownlint-audit.sh --strict`
@@ -62,17 +97,16 @@ Test artifacts:
 
 - `scripts/test.sh` writes script coverage summaries under `out/tests/script-coverage/` when available.
 
-## Prerequisites
+## Agent-Docs Preflight (Write Actions)
 
-- Python 3 + venv
-  - `python3 -m venv .venv`
-  - `.venv/bin/python -m pip install -r requirements-dev.txt`
-  - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
-- System tools
-  - `git` (required by lint scripts for tracked-file discovery)
-  - `node`/`npx` (required by markdown lint script)
-  - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
-  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
+Before implementation work that edits files, resolve required docs:
+
+- `agent-docs resolve --context startup --strict --format checklist`
+- `agent-docs resolve --context project-dev --strict --format checklist`
+
+If strict resolve fails, run:
+
+- `agent-docs baseline --check --target all --strict --format text`
 
 ## Shell Script Conventions (Shell / zsh)
 
