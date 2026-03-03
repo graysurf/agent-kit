@@ -32,6 +32,14 @@ Inputs:
 - Final plan integration PR URL/number (`PLAN_INTEGRATION_PR`) for `PLAN_BRANCH -> DEFAULT_BRANCH`.
 - Plan issue mention comment URL for final integration PR
   (`PLAN_INTEGRATION_MENTION_URL`), posted on the single plan issue.
+- Plan conformance review artifact path (`PLAN_CONFORMANCE_REVIEW_PATH`) written by main-agent before final integration merge.
+- Final integration required-check verification artifact path (`PLAN_INTEGRATION_CI_PATH`) written by main-agent before final integration merge.
+- Final integration CI policy:
+  - main-agent must require all required checks to pass before merge
+  - `no checks reported` is treated as a merge-blocking failure unless the user explicitly approves override in-thread
+- Corrective implementation exception policy:
+  - default: main-agent requests follow-up back to the assigned lane
+  - exception: main-agent may apply a minimal corrective fix only when explicitly justified and documented in review evidence
 - Local sync policy:
   - after each `accept-sprint`: sync local `PLAN_BRANCH` to latest remote state
   - after final integration merge + `close-plan`: sync local `DEFAULT_BRANCH`
@@ -93,6 +101,8 @@ Outputs:
 - `start-plan` initializes and persists `PLAN_BRANCH` (created from `DEFAULT_BRANCH`) at `PLAN_BRANCH_REF_PATH`.
 - Final close path includes one main-agent integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) and persists traceability at
   `PLAN_INTEGRATION_PR_PATH`.
+- Main-agent must emit `PLAN_CONFORMANCE_REVIEW_PATH` proving final merged scope matches plan task intent before merging integration PR.
+- Main-agent must emit `PLAN_INTEGRATION_CI_PATH` proving required checks are green for the integration PR before merging integration PR.
 - Main-agent must post one plan-issue comment that mentions the final
   integration PR (`#<number>`) and persist its URL at
   `PLAN_INTEGRATION_MENTION_PATH`.
@@ -114,7 +124,8 @@ Outputs:
 - Final issue close only after plan-level acceptance, merged-PR close gate, and integration mention gate.
 - `close-plan` enforces integration mention + cleanup of all issue-assigned task worktrees before completion.
 - Definition of done: execution is complete only when `close-plan` succeeds, the plan issue is closed (live mode), integration mention gate
-  passes, worktree cleanup passes, and required local sync commands succeed.
+  passes, plan-conformance gate passes, integration required-check gate passes, worktree cleanup passes, and required local sync commands
+  succeed.
 - Error contract: if any gate/command fails, stop forward progress and report the failing command plus key stderr/stdout gate errors.
 - Runtime task lanes stay stable across implementation, clarification, CI, and review follow-up unless main-agent explicitly reassigns them.
 
@@ -150,8 +161,12 @@ Failure modes:
 - Assigned task `Worktree` is outside `$AGENT_HOME/out/plan-issue-delivery/...`.
 - Final plan close gate fails (task status/PR merge not satisfied in live mode).
 - Final plan close gate fails because the integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) is missing or unmerged.
+- Final plan close gate fails because `PLAN_CONFORMANCE_REVIEW_PATH` is missing, incomplete, or reports unresolved plan mismatches.
+- Final plan close gate fails because `PLAN_INTEGRATION_CI_PATH` is missing/invalid, required checks are not green, or checks return
+  `no checks reported` without explicit user-approved override.
 - Final plan close gate fails because integration PR mention comment on the plan
   issue is missing/invalid/untraceable.
+- Main-agent applies corrective implementation without explicit exception rationale and verification evidence.
 - Local sync command fails after `accept-sprint` or after final `close-plan`.
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
@@ -170,6 +185,8 @@ Failure modes:
   - `PLAN_SNAPSHOT_PATH="$ISSUE_ROOT/plan/plan.snapshot.md"`
   - `PLAN_BRANCH_REF_PATH="$ISSUE_ROOT/plan/plan-branch.ref"` (contains canonical `PLAN_BRANCH` name)
   - `PLAN_INTEGRATION_PR_PATH="$ISSUE_ROOT/plan/plan-integration-pr.md"` (tracks final `PLAN_BRANCH -> DEFAULT_BRANCH` PR)
+  - `PLAN_CONFORMANCE_REVIEW_PATH="$ISSUE_ROOT/plan/plan-conformance-review.md"` (final plan-task conformance verdict + evidence)
+  - `PLAN_INTEGRATION_CI_PATH="$ISSUE_ROOT/plan/plan-integration-ci.md"` (required-check verification for final integration PR)
   - `PLAN_INTEGRATION_MENTION_PATH="$ISSUE_ROOT/plan/plan-integration-mention.url"` (tracks issue-comment URL that mentions final
     integration PR)
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
@@ -204,6 +221,9 @@ Failure modes:
   - `git pull --ff-only`
 - `close-plan` must enforce final integration PR merged (`PLAN_BRANCH -> DEFAULT_BRANCH`), integration PR mention comment on plan issue, and
   worktree cleanup under `"$ISSUE_ROOT/worktrees"`; leftovers fail the close gate.
+- `close-plan` must also enforce final conformance + integration CI artifacts:
+  - `PLAN_CONFORMANCE_REVIEW_PATH` present with pass verdict
+  - `PLAN_INTEGRATION_CI_PATH` present with required checks green (or explicit user-approved override)
 - After successful `close-plan`, main-agent must sync local `DEFAULT_BRANCH`:
   - `git fetch origin --prune`
   - `git switch "$DEFAULT_BRANCH"` (or create tracking branch from
@@ -259,12 +279,23 @@ Failure modes:
    main-agent review decisions + merge into `PLAN_BRANCH` -> `accept-sprint` ->
    local `PLAN_BRANCH` sync (`git fetch` + `git switch` + `git pull --ff-only`).
 6. Repeat step 5 for each next sprint (`start-sprint` is blocked until prior sprint is merged+done).
-7. After final sprint acceptance, run `ready-plan`, then open/merge the final
-   integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`), persist
-   `PLAN_INTEGRATION_PR_PATH`, post a plan-issue mention comment for that PR and
-   persist `PLAN_INTEGRATION_MENTION_PATH`, run `close-plan` with plan-level
-   approval URL, then local `DEFAULT_BRANCH` sync (`git fetch` + `git switch` +
-   `git pull --ff-only`).
+7. After final sprint acceptance, run `ready-plan`, then execute final integration gates in order:
+   - main-agent performs full plan conformance review against plan tasks, runtime
+     rows, merged sprint PRs, and current `PLAN_BRANCH` diff; writes
+     `PLAN_CONFORMANCE_REVIEW_PATH`.
+   - if conformance review finds mismatch, default action is lane follow-up
+     dispatch on the original lane; main-agent corrective implementation is a
+     documented exception only.
+   - open the final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) and persist
+     `PLAN_INTEGRATION_PR_PATH`.
+   - wait for required checks to pass (`gh pr checks <integration-pr> --required --watch`)
+     and write `PLAN_INTEGRATION_CI_PATH`; `no checks reported` is merge-blocking
+     unless user explicitly approves override.
+   - merge integration PR only after both gates pass.
+   - post a plan-issue mention comment for the merged integration PR and persist
+     `PLAN_INTEGRATION_MENTION_PATH`.
+   - run `close-plan` with plan-level approval URL, then local `DEFAULT_BRANCH`
+     sync (`git fetch` + `git switch` + `git pull --ff-only`).
 8. If rehearsal is explicitly requested, switch to `references/LOCAL_REHEARSAL.md`.
 
 ## PR Grouping Steps (Mandatory)
@@ -287,6 +318,8 @@ Failure modes:
 - A successful run must terminate at `close-plan` with:
   - issue state `CLOSED`
   - merged-PR close gate satisfied
+  - `PLAN_CONFORMANCE_REVIEW_PATH` present with pass verdict and traceable evidence
+  - `PLAN_INTEGRATION_CI_PATH` present with required checks green (or explicit user override recorded)
   - final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) merged
   - plan issue mention comment exists for final integration PR
   - local `PLAN_BRANCH` sync succeeded after each sprint acceptance
@@ -294,7 +327,8 @@ Failure modes:
   - worktree cleanup gate passing
 - If any close gate fails, treat the run as unfinished and report:
   - failing command
-  - gate errors (task status, PR merge, integration PR, integration mention, local sync, approval URL, worktree cleanup)
+  - gate errors (task status, PR merge, plan conformance, integration CI, integration PR, integration mention, local sync, approval URL,
+    worktree cleanup)
   - next required unblock action
 
 ## Full Skill Flow
@@ -333,6 +367,10 @@ Failure modes:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-branch.ref`
    - Plan integration PR record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-integration-pr.md`
+   - Plan conformance review path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-conformance-review.md`
+   - Plan integration CI verification path:
+     `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-integration-ci.md`
    - Plan integration mention record path:
      `$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-$ISSUE_NUMBER/plan/plan-integration-mention.url`
    - Resolve and persist branch contract:
@@ -396,17 +434,31 @@ Failure modes:
 18. After the final sprint is implemented and accepted, run `ready-plan` for
     final review:
     `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
-19. Main-agent opens and merges exactly one integration PR from `PLAN_BRANCH`
-    into `DEFAULT_BRANCH`, then records the PR reference in
+19. Main-agent executes full plan-conformance review before integration merge,
+    then writes `PLAN_CONFORMANCE_REVIEW_PATH`:
+    - verify each plan task is fully satisfied by merged sprint PRs + current
+      `PLAN_BRANCH` diff
+    - if mismatch exists, default action is lane follow-up on the original lane
+    - main-agent corrective implementation is exceptional and must include
+      explicit rationale + verification evidence
+20. Main-agent opens exactly one integration PR from `PLAN_BRANCH` into
+    `DEFAULT_BRANCH`, then records the PR reference in
     `PLAN_INTEGRATION_PR_PATH`.
-20. Main-agent posts one plan-issue comment that mentions the merged
+21. Main-agent verifies integration PR required checks are green before merge,
+    writes `PLAN_INTEGRATION_CI_PATH`, and blocks merge when checks are not
+    green:
+    - `gh pr checks <integration-pr> --required --watch`
+    - `no checks reported` is merge-blocking unless user explicitly approves
+      override in-thread
+22. Merge integration PR only after steps 19 and 21 pass.
+23. Main-agent posts one plan-issue comment that mentions the merged
     integration PR (`#<number>`) and records the comment URL in
     `PLAN_INTEGRATION_MENTION_PATH`.
-21. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce
+24. Run `close-plan` with `PLAN_APPROVED_COMMENT_URL` in live mode to enforce
     merged-PR/task + integration-PR + integration-mention gates, close the
     single plan issue, and force cleanup of task worktrees:
     `plan-issue close-plan --issue <number> --approved-comment-url <comment-url> [--repo <owner/repo>]`
-22. Sync local `DEFAULT_BRANCH` after successful final close:
+25. Sync local `DEFAULT_BRANCH` after successful final close:
     - `git fetch origin --prune`
     - `git switch "$DEFAULT_BRANCH"` (or create tracking branch from
       `origin/$DEFAULT_BRANCH` if missing)
@@ -422,8 +474,9 @@ once, then reuse it in all `--issue` flags. Keep approval URLs explicit per
 gate: `SPRINT_APPROVED_COMMENT_URL` for `accept-sprint`,
 `PLAN_APPROVED_COMMENT_URL` for `close-plan`. Sprint PRs target `PLAN_BRANCH`;
 only the final integration PR targets `DEFAULT_BRANCH`. Before `close-plan`,
-main-agent must post an issue comment that mentions the integration PR and keep
-that comment URL.
+main-agent must complete conformance + required-check gates for the integration
+PR, then post an issue comment that mentions the integration PR and keep that
+comment URL.
 
 1. Live mode (`plan-issue`)
    - Validate: `plan-tooling validate --file <plan.md>`
@@ -462,6 +515,7 @@ that comment URL.
      ```
 
      - Expected: `state=OPEN`, `baseRefName=$PLAN_BRANCH`, required checks green.
+     - Treat `no checks reported` as blocking failure unless user explicitly approves override.
    - Accept sprint:
 
      ```bash
@@ -477,10 +531,33 @@ that comment URL.
      ```
 
    - Ready plan: `plan-issue ready-plan --issue <number> [--repo <owner/repo>]`
+   - Write final plan conformance review (`PLAN_CONFORMANCE_REVIEW_PATH`):
+
+     ```bash
+     PLAN_CONFORMANCE_REVIEW_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-conformance-review.md"
+     # Record per-task conformance verdicts and blocking mismatches before integration merge.
+     ```
+
    - Final integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`):
 
      ```bash
      gh pr create --base "$DEFAULT_BRANCH" --head "$PLAN_BRANCH" --title "plan(issue-${ISSUE_NUMBER}): merge ${PLAN_BRANCH} into ${DEFAULT_BRANCH}" --body "<summary>"
+     ```
+
+   - Verify integration required checks before merge and write `PLAN_INTEGRATION_CI_PATH`:
+
+     ```bash
+     INTEGRATION_PR_NUMBER="<number>"
+     PLAN_INTEGRATION_CI_PATH="$AGENT_HOME/out/plan-issue-delivery/<repo-slug>/issue-${ISSUE_NUMBER}/plan/plan-integration-ci.md"
+
+     gh pr checks "$INTEGRATION_PR_NUMBER" --required --watch
+     # If output contains "no checks reported", treat as blocking failure unless user explicitly approves override.
+     ```
+
+   - Merge integration PR only after conformance + required-check gates pass:
+
+     ```bash
+     gh pr merge "$INTEGRATION_PR_NUMBER" --merge
      ```
 
    - Mention integration PR on the plan issue and persist comment URL:
@@ -517,8 +594,17 @@ that comment URL.
 - Main-agent does not implement sprint tasks directly.
 - Sprint implementation must be delegated to subagent-owned PRs.
 - Sprint comments and plan close actions are main-agent orchestration artifacts; implementation remains subagent-owned.
-- Allowed exception: main-agent may open/manage exactly one non-implementation
-  integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all sprints are accepted.
+- Allowed baseline exception: main-agent may open/manage exactly one
+  non-implementation integration PR (`PLAN_BRANCH -> DEFAULT_BRANCH`) after all
+  sprints are accepted.
+- Main-agent owns final plan-conformance review and integration required-check
+  gates before merging to `DEFAULT_BRANCH`.
+- Default correction path for plan mismatches is follow-up on the original lane,
+  not main-agent coding.
+- Exceptional correction path (main-agent coding) is allowed only when:
+  - lane follow-up is unavailable or too risky for delivery timing
+  - fix scope is minimal and directly tied to plan conformance
+  - rationale, test evidence, and scope justification are recorded in review evidence
 - Main-agent must post the integration PR mention comment on the plan issue
   before `close-plan`.
 - Main-agent owns required local sync commands after sprint acceptance and final
