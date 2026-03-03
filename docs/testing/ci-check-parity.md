@@ -16,7 +16,6 @@ Lint workflow phases must run these `scripts/check.sh` modes:
 - `--third-party`
 - `--contracts`
 - `--skills-layout`
-- `--plans`
 - `--env-bools`
 - `--tests`
 
@@ -41,7 +40,6 @@ This command is also required in lint CI (parity guard step) and is included by
 
 ```bash
 scripts/check.sh --lint
-scripts/check.sh --plans
 scripts/check.sh --env-bools
 scripts/check.sh --docs
 scripts/check.sh --tests -- -k parity -m script_regression

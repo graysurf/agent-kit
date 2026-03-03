@@ -31,6 +31,6 @@ Third-party notice obligations are tracked by linking each component to its upst
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/chrome-devtools-mcp.sh` SHA256: `cf92382116a78c6d1a3dc5a1ac5d9be8498bdb17187cf26b26dae098718f8cd8`
 - `scripts/lint.sh` SHA256: `9e682a5c6046e3f2848b722793f0b80d8733e669162226bccdda16022eb631a8`
-- `.github/workflows/lint.yml` SHA256: `729bf317677272a024bea634a7e1853132fa3f8485c81392cb8757afa874575b`
+- `.github/workflows/lint.yml` SHA256: `57446b432e02deb53553f72531006e6a10aff8bc0b23b91b6d88846a4069d3bb`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `36a7b5a9cb00a5ff2ab682171fe5a17a7985babe3e8dc3a5153f5748fd6265c7`
 - `Dockerfile` SHA256: `e6a9092fcaf4747e11da0e7150a9761af3fc8cbc6b3009f1949577cdc6bd1686`

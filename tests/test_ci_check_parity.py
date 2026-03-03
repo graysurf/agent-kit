@@ -12,7 +12,6 @@ REQUIRED_WORKFLOW_MODES = {
     "--third-party",
     "--contracts",
     "--skills-layout",
-    "--plans",
     "--env-bools",
     "--tests",
 }

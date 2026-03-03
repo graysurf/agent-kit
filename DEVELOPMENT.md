@@ -24,7 +24,6 @@ current shell.
   - `scripts/ci/third-party-artifacts-audit.sh --strict`
   - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
   - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-  - `plan-tooling validate` (from `nils-cli`)
   - `zsh -f scripts/audit-env-bools.zsh --check`
   - `bash scripts/ci/docs-freshness-audit.sh --check`
   - `scripts/semgrep-scan.sh`
@@ -37,7 +36,6 @@ current shell.
 - `scripts/check.sh --third-party` (third-party artifacts audit only)
 - `scripts/check.sh --contracts` (skill contract validation only)
 - `scripts/check.sh --skills-layout` (skill layout audit only)
-- `scripts/check.sh --plans` (plan format validation only)
 - `scripts/check.sh --env-bools` (boolean env naming/value audit only)
 - `scripts/check.sh --docs` (docs command/path freshness audit only)
 - `scripts/check.sh --entrypoint-ownership` (skill script ownership parity gate)
