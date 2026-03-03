@@ -73,10 +73,6 @@ jobs:
         run: |
           bash $AGENT_HOME/scripts/ci/stale-skill-scripts-audit.sh --check
 
-      - name: Validate plans
-        run: |
-          $AGENT_HOME/scripts/check.sh --plans
-
       - name: Smoke test (negative fixture)
         run: |
           set -euo pipefail

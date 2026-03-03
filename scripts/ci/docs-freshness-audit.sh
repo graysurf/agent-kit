@@ -7,7 +7,7 @@ Usage:
   scripts/ci/docs-freshness-audit.sh [--check] [--rules <path>]
 
 Audits docs command/path freshness using rules from:
-  docs/plans/artifacts/repo-refactor-ci-skills-docs/docs-freshness-rules.md
+  docs/testing/docs-freshness-rules.md
 
 Rules block format (between marker comments):
   DOC|<doc path>
@@ -29,7 +29,7 @@ USAGE
 }
 
 check_mode=0
-rules_file="docs/plans/artifacts/repo-refactor-ci-skills-docs/docs-freshness-rules.md"
+rules_file="docs/testing/docs-freshness-rules.md"
 
 while [[ $# -gt 0 ]]; do
   case "${1:-}" in

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-RULES_PATH = "docs/plans/artifacts/repo-refactor-ci-skills-docs/docs-freshness-rules.md"
+RULES_PATH = "docs/testing/docs-freshness-rules.md"
 
 
 def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
