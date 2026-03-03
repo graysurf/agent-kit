@@ -94,7 +94,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | Planning     | [docs-plan-cleanup](./skills/workflows/plan/docs-plan-cleanup/)                                     | Prune outdated docs/plans markdown with dry-run-first safeguards and related-doc reconciliation                                           |
 | Planning     | [execute-plan-parallel](./skills/workflows/plan/execute-plan-parallel/)                             | Execute a markdown plan by spawning parallel subagents for unblocked tasks, then validate                                                 |
 | Issue        | [issue-lifecycle](./skills/workflows/issue/issue-lifecycle/)                                        | Main-agent workflow for opening, maintaining, decomposing, and closing GitHub Issues as the planning source of truth                      |
-| Issue        | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/)                                    | Subagent workflow for isolated worktree implementation, draft PR creation, and review-response updates linked to the owning issue         |
+| Issue        | [issue-subagent-pr](./skills/workflows/issue/issue-subagent-pr/)                                    | Subagent workflow for assigned task-lane implementation (pr-shared/per-sprint/pr-isolated), draft PR creation, and review-response updates linked to the owning issue |
 | Issue        | [issue-pr-review](./skills/workflows/issue/issue-pr-review/)                                        | Main-agent PR review workflow with explicit PR comment links mirrored to the issue timeline                                               |
 | PR / Feature | [create-feature-pr](./skills/workflows/pr/feature/create-feature-pr/)                               | Create feature branches and open a PR with a standard template                                                                            |
 | PR / Feature | [close-feature-pr](./skills/workflows/pr/feature/close-feature-pr/)                                 | Merge and close PRs after a quick PR hygiene review; delete the feature branch                                                            |
@@ -156,6 +156,8 @@ Common focused runs:
 scripts/check.sh --docs
 scripts/check.sh --markdown
 scripts/check.sh --tests -- -m script_smoke
+bash scripts/ci/stale-skill-scripts-audit.sh --check
+scripts/check.sh --entrypoint-ownership
 ```
 
 Lint CI (`.github/workflows/lint.yml`) maps its phases to `scripts/check.sh` modes. Keep docs and CI guidance aligned with these modes
