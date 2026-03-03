@@ -3,7 +3,6 @@
 <!-- markdownlint-disable-file MD060 -->
 
 agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling.
-Secrets and session data are intentionally excluded via `.gitignore`.
 
 ## 🗂️ Project Structure
 
