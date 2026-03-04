@@ -5,6 +5,14 @@ setopt pipe_fail err_exit nounset
 typeset -gr SCRIPT_PATH="${0:A}"
 typeset -gr SCRIPT_NAME="${SCRIPT_PATH:t}"
 typeset -gr SCRIPT_HINT="scripts/$SCRIPT_NAME"
+typeset -gr SCRIPT_DIR="${SCRIPT_PATH:h}"
+typeset -gr COMMON_LIB="${SCRIPT_DIR}/lib/zsh-common.zsh"
+
+[[ -f "$COMMON_LIB" ]] || {
+  print -u2 -r -- "error: missing shared zsh library: $COMMON_LIB"
+  exit 2
+}
+source "$COMMON_LIB"
 
 # print_usage: Print CLI usage/help.
 print_usage() {
@@ -18,26 +26,6 @@ print_usage() {
   print -r -- "Modes:"
   print -r -- "  --check: Exit 1 if any fixer would change files (default)"
   print -r -- "  --write: Apply changes in-place"
-}
-
-# repo_root_from_script: Resolve repo root directory from this script path.
-repo_root_from_script() {
-  emulate -L zsh
-  setopt pipe_fail nounset
-
-  typeset script_dir='' root_dir='' git_root=''
-  script_dir="${SCRIPT_PATH:h}"
-  root_dir="${script_dir:h}"
-
-  if command -v git >/dev/null 2>&1; then
-    git_root="$(command git -C "$root_dir" rev-parse --show-toplevel 2>/dev/null || true)"
-    if [[ -n "$git_root" ]]; then
-      print -r -- "$git_root"
-      return 0
-    fi
-  fi
-
-  print -r -- "$root_dir"
 }
 
 # main [args...]
@@ -61,7 +49,7 @@ main() {
   fi
 
   typeset root_dir=''
-  root_dir="$(repo_root_from_script)"
+  root_dir="$(repo_root_from_script_path "$SCRIPT_PATH")"
   builtin cd "$root_dir" || return 1
 
   typeset quotes_fixer="$root_dir/scripts/fix-typeset-empty-string-quotes.zsh"
@@ -92,4 +80,3 @@ main() {
 }
 
 main "$@"
-

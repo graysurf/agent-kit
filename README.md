@@ -153,6 +153,7 @@ scripts/check.sh --all
 Common focused runs:
 
 ```bash
+scripts/check.sh --pre-commit
 scripts/check.sh --docs
 scripts/check.sh --markdown
 scripts/check.sh --tests -- -m script_smoke

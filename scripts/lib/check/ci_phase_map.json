@@ -1,0 +1,51 @@
+{
+  "shell-and-contracts": [
+    {
+      "name": "Shell lint + syntax (bash + zsh)",
+      "mode": "lint-shell"
+    },
+    {
+      "name": "Markdown lint",
+      "mode": "markdown"
+    },
+    {
+      "name": "Third-party artifacts audit",
+      "mode": "third-party"
+    },
+    {
+      "name": "Env bool audit",
+      "mode": "env-bools"
+    },
+    {
+      "name": "Docs freshness audit",
+      "mode": "docs"
+    },
+    {
+      "name": "Validate skill contract sections",
+      "mode": "contracts"
+    },
+    {
+      "name": "Validate skill directory layout",
+      "mode": "skills-layout"
+    }
+  ],
+  "pytest": [
+    {
+      "name": "Python lint + typecheck (ruff + mypy + pyright)",
+      "mode": "lint-python"
+    },
+    {
+      "name": "CI check parity guardrail",
+      "mode": "tests",
+      "pytest_args": "-k parity -m script_regression"
+    },
+    {
+      "name": "Skill script entrypoint ownership gate",
+      "mode": "entrypoint-ownership"
+    },
+    {
+      "name": "Pytest",
+      "mode": "tests"
+    }
+  ]
+}

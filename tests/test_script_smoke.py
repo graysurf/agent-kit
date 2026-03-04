@@ -17,6 +17,8 @@ from .conftest import SCRIPT_SMOKE_RUN_RESULTS, ScriptRunResult, default_smoke_e
 
 CRITICAL_SMOKE_ENTRYPOINTS = {
     "scripts/check.sh",
+    "scripts/check_plan_issue_worktree_cleanup.sh",
+    "scripts/install-homebrew-nils-cli.sh",
     "skills/tools/devex/desktop-notify/scripts/desktop-notify.sh",
     "skills/tools/devex/desktop-notify/scripts/project-notify.sh",
 }

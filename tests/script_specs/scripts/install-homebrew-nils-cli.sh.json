@@ -1,0 +1,27 @@
+{
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "Usage: install-homebrew-nils-cli\\.sh"
+  },
+  "smoke": [
+    {
+      "name": "stub-install",
+      "args": [],
+      "timeout_sec": 10,
+      "env": {
+        "CODEX_BREW_STUB_MODE_ENABLED": "true",
+        "CODEX_BREW_STUB_LOG_DIR": "out/tests/script-smoke/install-homebrew-nils-cli",
+        "CODEX_BREW_STUB_STATE_DIR": "out/tests/script-smoke/install-homebrew-nils-cli/state"
+      },
+      "expect": {
+        "exit_codes": [0]
+      },
+      "artifacts": [
+        "out/tests/script-smoke/install-homebrew-nils-cli/brew.calls.txt",
+        "out/tests/script-smoke/install-homebrew-nils-cli/state/installed.txt"
+      ]
+    }
+  ]
+}

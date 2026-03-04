@@ -58,18 +58,19 @@ Canonical minimum gate:
 
 - `scripts/check.sh --all`
 
-Recommended one-command wrapper (canonical gate + skill entrypoint checks):
+Recommended pre-commit gate (canonical gate + skill entrypoint checks):
 
-- `scripts/check-pre-commit.sh`
+- `scripts/check.sh --pre-commit`
 
 Manual equivalent:
 
+- `scripts/check.sh --all`
 - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
 - `scripts/check.sh --entrypoint-ownership`
 
 Notes:
 
-- `scripts/check-pre-commit.sh` always includes skill entrypoint checks to avoid conditional misses.
+- `scripts/check.sh --pre-commit` always includes skill entrypoint checks to avoid conditional misses.
 - If you run only the canonical minimum gate (`scripts/check.sh --all`), remember that `stale-skill-scripts-audit` and
   `--entrypoint-ownership` are still required whenever skill entrypoint scripts are added/removed.
 - When workflow/tool entrypoint scripts change, update the matching
@@ -83,6 +84,7 @@ Notes:
 
 ## Direct Entrypoints
 
+- `scripts/check.sh --pre-commit`
 - `scripts/lint.sh --shell|--python|--all`
 - `scripts/ci/markdownlint-audit.sh --strict`
 - `scripts/ci/third-party-artifacts-audit.sh --strict`

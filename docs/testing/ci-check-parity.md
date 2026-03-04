@@ -6,22 +6,28 @@
 
 The guardrail is designed to fail fast when a required `scripts/check.sh` mode is removed, renamed, or no longer invoked by lint workflow phases.
 
+Source of truth:
+
+- `scripts/lib/check/modes.sh` (`CHECK_MODES`)
+- `scripts/lib/check/ci_phase_map.json` (phase -> `check.sh` mode mapping)
+- Generated workflow blocks in `.github/workflows/lint.yml` (`# BEGIN GENERATED: check-phase-map ...`)
+
 ## Required phase mapping
 
-Lint workflow phases must run these `scripts/check.sh` modes:
+Lint workflow check phases are generated from `scripts/lib/check/ci_phase_map.json`.
+Do not hand-edit generated phase blocks in `.github/workflows/lint.yml`.
 
-- `--lint-shell`
-- `--lint-python`
-- `--markdown`
-- `--third-party`
-- `--contracts`
-- `--skills-layout`
-- `--env-bools`
-- `--tests`
+Regenerate phase mapping:
 
-Lint workflow also runs the docs freshness gate:
+```bash
+python3 scripts/ci/generate-lint-workflow-phases.py --write
+```
 
-- `--docs`
+Check phase mapping drift:
+
+```bash
+python3 scripts/ci/generate-lint-workflow-phases.py --check
+```
 
 ## Run parity checks
 
@@ -34,11 +40,14 @@ This command is also required in lint CI (parity guard step) and is included by
 
 ## Remediation workflow
 
-1. If a parity test fails for a missing workflow mode, update `.github/workflows/lint.yml` so that phase calls `scripts/check.sh <mode>` directly.
-2. If a check mode is renamed, update both `scripts/check.sh` and `tests/test_ci_check_parity.py` in the same change.
+1. If a parity test fails for stale generated phase mapping, run `python3 scripts/ci/generate-lint-workflow-phases.py --write`.
+2. If a check mode is renamed/added/removed, update:
+   `scripts/lib/check/modes.sh` and `scripts/lib/check/ci_phase_map.json`,
+   then regenerate workflow phases.
 3. Re-run:
 
 ```bash
+python3 scripts/ci/generate-lint-workflow-phases.py --check
 scripts/check.sh --lint
 scripts/check.sh --env-bools
 scripts/check.sh --docs

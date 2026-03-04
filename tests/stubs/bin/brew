@@ -1,5 +1,104 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "error: brew is blocked by script tests" >&2
-exit 90
+trim() {
+  local s="${1:-}"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf "%s" "$s"
+}
+
+to_lower() {
+  printf "%s" "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+bool_from_env() {
+  local raw="${1:-}"
+  local name="${2:-}"
+  local default="${3:-false}"
+
+  raw="$(trim "$raw")"
+  if [[ -z "$raw" ]]; then
+    [[ "$default" == "true" ]]
+    return $?
+  fi
+
+  local lowered
+  lowered="$(to_lower "$raw")"
+  case "$lowered" in
+    true) return 0 ;;
+    false) return 1 ;;
+    *)
+      echo "brew-stub: warning: ${name} must be true|false (got: ${raw}); treating as false" >&2
+      return 1
+      ;;
+  esac
+}
+
+if ! bool_from_env "${CODEX_BREW_STUB_MODE_ENABLED:-}" "CODEX_BREW_STUB_MODE_ENABLED" "false"; then
+  echo "error: brew is blocked by script tests" >&2
+  exit 90
+fi
+
+log_dir="${CODEX_BREW_STUB_LOG_DIR:-}"
+if [[ -n "$log_dir" ]]; then
+  mkdir -p "$log_dir"
+  printf "%s\n" "brew $*" >>"${log_dir%/}/brew.calls.txt"
+fi
+
+state_dir="${CODEX_BREW_STUB_STATE_DIR:-}"
+if [[ -n "$state_dir" ]]; then
+  mkdir -p "$state_dir"
+fi
+installed_file="${state_dir%/}/installed.txt"
+
+prefix="${CODEX_BREW_STUB_PREFIX:-/opt/homebrew}"
+cellar="${CODEX_BREW_STUB_CELLAR:-${prefix}/Cellar}"
+repository="${CODEX_BREW_STUB_REPOSITORY:-${prefix}/Homebrew}"
+
+command="${1:-}"
+case "$command" in
+  --prefix)
+    printf "%s\n" "$prefix"
+    exit 0
+    ;;
+  --cellar)
+    printf "%s\n" "$cellar"
+    exit 0
+    ;;
+  --repository)
+    printf "%s\n" "$repository"
+    exit 0
+    ;;
+  tap)
+    exit "${CODEX_BREW_STUB_TAP_EXIT_CODE:-0}"
+    ;;
+  list)
+    package="${2:-}"
+    if [[ "$package" == "nils-cli" && -n "${CODEX_BREW_STUB_LIST_NILS_CLI_STATUS:-}" ]]; then
+      exit "${CODEX_BREW_STUB_LIST_NILS_CLI_STATUS}"
+    fi
+    if [[ -n "$state_dir" && -f "$installed_file" ]] && grep -Fxq "$package" "$installed_file"; then
+      exit 0
+    fi
+    exit 1
+    ;;
+  install)
+    package="${2:-}"
+    [[ -n "$package" ]] || {
+      echo "brew-stub: missing package name for install" >&2
+      exit 2
+    }
+    if [[ -n "$state_dir" ]]; then
+      touch "$installed_file"
+      if ! grep -Fxq "$package" "$installed_file"; then
+        printf "%s\n" "$package" >>"$installed_file"
+      fi
+    fi
+    exit "${CODEX_BREW_STUB_INSTALL_EXIT_CODE:-0}"
+    ;;
+  *)
+    echo "brew-stub: unsupported arguments: $*" >&2
+    exit 2
+    ;;
+esac

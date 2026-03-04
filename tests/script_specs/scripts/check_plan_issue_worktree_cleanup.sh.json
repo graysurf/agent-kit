@@ -1,0 +1,36 @@
+{
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "Usage:"
+  },
+  "smoke": [
+    {
+      "name": "pass-no-leftovers",
+      "command": [
+        "bash",
+        "-lc",
+        "set -euo pipefail; root='out/tests/script-smoke/check-plan-issue-worktree-cleanup/pass'; rm -rf \"$root\"; mkdir -p \"$root/worktrees/issue-123\"; scripts/check_plan_issue_worktree_cleanup.sh \"$root\""
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "cleanup-check: pass"
+      }
+    },
+    {
+      "name": "fail-leftovers",
+      "command": [
+        "bash",
+        "-lc",
+        "set -euo pipefail; root='out/tests/script-smoke/check-plan-issue-worktree-cleanup/fail'; rm -rf \"$root\"; mkdir -p \"$root/worktrees/issue-123/worktree-a\"; scripts/check_plan_issue_worktree_cleanup.sh \"$root\""
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "leftover worktree directories detected"
+      }
+    }
+  ]
+}

@@ -164,6 +164,8 @@ def discover_scripts() -> list[str]:
             continue
         if not (repo / p).is_file():
             continue
+        if p.startswith("scripts/lib/"):
+            continue
         if p.startswith("scripts/") or (p.startswith("skills/") and "/scripts/" in p):
             scripts.append(p)
     return sorted(set(scripts))

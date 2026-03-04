@@ -55,6 +55,14 @@ See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatom
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
 
+## Full Gate (Repository)
+
+Run the full repository validation gate before commit:
+
+```bash
+scripts/check.sh --pre-commit
+```
+
 ## Entrypoint Drift Guard (Quick Run)
 
 When adding/removing/renaming workflow or tool entrypoints, run both checks in

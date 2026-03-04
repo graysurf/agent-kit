@@ -20,6 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate generated lint workflow phase mapping
+        run: |
+          python3 $AGENT_HOME/scripts/ci/generate-lint-workflow-phases.py --check
+
       - name: Install Homebrew + nils-cli
         run: |
           scripts/install-homebrew-nils-cli.sh
@@ -41,33 +45,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
+      # BEGIN GENERATED: check-phase-map shell-and-contracts
       - name: Shell lint + syntax (bash + zsh)
         run: |
           $AGENT_HOME/scripts/check.sh --lint-shell
-
       - name: Markdown lint
         run: |
           $AGENT_HOME/scripts/check.sh --markdown
-
       - name: Third-party artifacts audit
         run: |
           $AGENT_HOME/scripts/check.sh --third-party
-
       - name: Env bool audit
         run: |
           $AGENT_HOME/scripts/check.sh --env-bools
-
       - name: Docs freshness audit
         run: |
           $AGENT_HOME/scripts/check.sh --docs
-
       - name: Validate skill contract sections
         run: |
           $AGENT_HOME/scripts/check.sh --contracts
-
       - name: Validate skill directory layout
         run: |
           $AGENT_HOME/scripts/check.sh --skills-layout
+      # END GENERATED: check-phase-map shell-and-contracts
 
       - name: Stale skill scripts audit
         run: |
@@ -137,21 +137,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      # BEGIN GENERATED: check-phase-map pytest
       - name: Python lint + typecheck (ruff + mypy + pyright)
         run: |
           $AGENT_HOME/scripts/check.sh --lint-python
-
       - name: CI check parity guardrail
         run: |
           $AGENT_HOME/scripts/check.sh --tests -- -k parity -m script_regression
-
       - name: Skill script entrypoint ownership gate
         run: |
           $AGENT_HOME/scripts/check.sh --entrypoint-ownership
-
       - name: Pytest
         run: |
           $AGENT_HOME/scripts/check.sh --tests
+      # END GENERATED: check-phase-map pytest
 
       - name: Script coverage summary
         if: always()

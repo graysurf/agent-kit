@@ -3,6 +3,6 @@
   "timeout_sec": 10,
   "expect": {
     "exit_codes": [0],
-    "stdout_regex": "Usage:"
+    "stdout_regex": "Generate scripts/check\\.sh phase steps"
   }
 }

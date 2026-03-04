@@ -14,10 +14,14 @@ def test_fix_zsh_typeset_initializers_preserves_executable_bit(tmp_path: Path) -
     fixture_root.mkdir(parents=True, exist_ok=True)
     (fixture_root / "commands").mkdir(parents=True, exist_ok=True)
     (fixture_root / "scripts").mkdir(parents=True, exist_ok=True)
+    (fixture_root / "scripts" / "lib").mkdir(parents=True, exist_ok=True)
 
     source_script = repo_root() / "scripts" / "fix-zsh-typeset-initializers.zsh"
+    source_lib = repo_root() / "scripts" / "lib" / "zsh-common.zsh"
     fixer = fixture_root / "scripts" / "fix-zsh-typeset-initializers.zsh"
+    fixer_lib = fixture_root / "scripts" / "lib" / "zsh-common.zsh"
     fixer.write_text(source_script.read_text("utf-8"), "utf-8")
+    fixer_lib.write_text(source_lib.read_text("utf-8"), "utf-8")
     fixer.chmod(0o755)
 
     target = fixture_root / "commands" / "example"
@@ -44,7 +48,7 @@ def test_fix_zsh_typeset_initializers_preserves_executable_bit(tmp_path: Path) -
     run(["git", "init"])
     run(["git", "config", "user.email", "fixture@example.com"])
     run(["git", "config", "user.name", "Fixture User"])
-    run(["git", "add", "scripts/fix-zsh-typeset-initializers.zsh", "commands/example"])
+    run(["git", "add", "scripts/fix-zsh-typeset-initializers.zsh", "scripts/lib/zsh-common.zsh", "commands/example"])
     run(["git", "commit", "-m", "init"])
 
     completed = subprocess.run(
