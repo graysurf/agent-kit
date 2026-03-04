@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
   in `PROJECT_DEV_WORKFLOW.md`.
 - `README.md` structure notes now reflect current tracked directories and remove stale progress-log wording.
 - `docs/testing/script-smoke.md` plan-issue cleanup example now uses the current `<owner__repo>` workspace slug convention.
+- Obsolete `docs/plans` artifacts were removed, and legacy simplification notes were dropped from issue workflow script help text.
+- `scripts/README.md` was refreshed to match the current script inventory and remove outdated sections.
 
 ## v2.3.7 - 2026-03-04
 
