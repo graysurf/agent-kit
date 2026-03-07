@@ -16,7 +16,8 @@ Prereqs:
 
 - User is asking for an implementation plan (not asking you to build it yet).
 - You can read enough repo context to plan safely (or the user provides constraints).
-- `plan-tooling` available on `PATH` for linting (install via `brew install nils-cli`).
+- `plan-tooling` available on `PATH` for linting/parsing/splitting (`validate`, `to-json`, `batches`, `split-prs`; install via
+  `brew install nils-cli`).
 
 Inputs:
 
@@ -57,9 +58,12 @@ Failure modes:
 1. Write the plan (do not implement)
 
 - Use sprints/phases that each produce a demoable/testable increment.
-- Break work into atomic, independently testable tasks.
+- Treat sprints as sequential integration gates; do not imply cross-sprint execution parallelism.
+- Break work into atomic, independently testable tasks with explicit dependencies when execution order matters.
+- Prefer within-sprint parallel lanes only when file overlap and validation scope stay manageable.
 - Include file paths whenever you can be specific.
 - Include a validation step per sprint (commands, checks, expected outcomes).
+- Fill `Complexity` when it materially affects batching/splitting or when a task looks oversized.
 
 1. Save the plan file
 
@@ -71,15 +75,58 @@ Failure modes:
 - Run: `plan-tooling validate --file docs/plans/<slug>-plan.md`
 - If it fails: tighten tasks (missing fields, placeholders, unclear validations) until it passes.
 
+1. Run an executability + grouping pass (mandatory)
+
+- Default grouping policy for this skill:
+  - If the user did not explicitly request grouping behavior, validate with metadata-first auto
+    (`--strategy auto --default-pr-grouping group`).
+- For each sprint, run:
+
+  ```bash
+  plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>
+  plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>
+  plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint \
+    --sprint <n> --strategy auto --default-pr-grouping group --format json
+  ```
+
+- If the user explicitly requests deterministic/manual grouping:
+  - Provide explicit mapping for every task: `--pr-group <task-id>=<group>` (repeatable).
+  - Validate with:
+
+    ```bash
+    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json
+    ```
+
+- If the user explicitly requests one shared lane per sprint:
+  - Validate with:
+
+    ```bash
+    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json
+    ```
+
+- When you add sprint metadata for grouping/parallelism, use exact case-sensitive labels:
+  - `**PR grouping intent**: per-sprint|group`
+  - `**Execution Profile**: serial|parallel-xN`
+- Keep metadata coherent:
+  - If `PR grouping intent` is `per-sprint`, do not declare parallel width `>1`.
+  - If planning multi-lane parallel execution, set `PR grouping intent` to `group`.
+- After each adjustment, rerun `plan-tooling validate` and the relevant `split-prs` command until the plan is stable and executable.
+
 1. Review “gotchas”
 
-- After saving, add/adjust a “Risks & gotchas” section: ambiguity, dependencies, migrations, rollout, backwards compatibility, and rollback.
+- After saving, add/adjust a “Risks & gotchas” section: ambiguity, dependency bottlenecks, same-batch overlap hotspots, migrations, rollout,
+  backwards compatibility, and rollback.
 
 ## Plan Template
 
 Shared template (single source of truth):
 
 - `skills/workflows/plan/_shared/assets/plan-template.md`
+
+When a plan needs explicit grouping/parallelism metadata, extend each sprint with these exact labels:
+
+- `**PR grouping intent**: per-sprint|group`
+- `**Execution Profile**: serial|parallel-xN`
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
