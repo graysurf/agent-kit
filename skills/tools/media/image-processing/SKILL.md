@@ -1,6 +1,6 @@
 ---
 name: image-processing
-description: Validate SVG inputs and convert trusted SVG to png/webp/svg
+description: Validate SVG inputs and convert svg/png/jpg/jpeg/webp inputs to png/webp/jpg
 ---
 
 # Image Processing
@@ -19,7 +19,7 @@ Inputs:
 
 - Natural-language user intent (assistant translates into a command).
 - Exactly one operation:
-  - `convert`: `--from-svg <path>` + `--to png|webp|svg` + `--out <file>`
+  - `convert`: `--in <path>` + `--to png|webp|jpg` + `--out <file>`; accepts `svg|png|jpg|jpeg|webp` inputs
   - `svg-validate`: exactly one `--in <path>` + `--out <file.svg>`
 - Optional sizing for raster convert output: `--width` / `--height`.
 - Optional output controls: `--overwrite`, `--dry-run`, `--json`, `--report`.
@@ -31,7 +31,7 @@ Outputs:
   - `summary.json` (when `--json` or `--report` is used)
   - `report.md` (when `--report` is used)
 - Assistant response (outside the script) must include:
-  - Output file/folder paths as clickable links (inline code)
+  - Output file/folder paths as clickable markdown file links
   - A suggested “next time” prompt to repeat the same task
 
 Exit codes:
@@ -46,10 +46,12 @@ Failure modes:
 - Invalid or ambiguous flags (missing required params, unsupported combinations).
 - Output already exists without `--overwrite`.
 - Invalid convert contract:
-  - missing `--from-svg` / `--to` / `--out`
-  - `--in` used with `convert`
-  - `--out` extension mismatch vs `--to`
-  - `--to svg` with `--width`/`--height`
+  - missing `--in` / `--to` / `--out`
+  - repeated `--in`
+  - `--out` extension mismatch vs `--to` (`.jpeg` is valid for `--to jpg`)
+  - unsupported target format
+  - unsupported input format
+  - invalid `--width` / `--height` values
 - Invalid `svg-validate` contract:
   - missing or repeated `--in`
   - missing `--out`
@@ -60,9 +62,11 @@ Failure modes:
 ### Preferences (optional; honor when provided)
 
 - Operation: `convert` or `svg-validate`.
-- Target format (for `convert`): `png` / `webp` / `svg`.
-- Raster sizing (for `convert --to png|webp`): `--width`, `--height`.
+- Target format (for `convert`): `png` / `webp` / `jpg`.
+- Raster sizing (for `convert`): `--width`, `--height`.
 - Reproducibility/audit flags: `--dry-run`, `--json`, `--report`, `--overwrite`.
+- Output extension detail (for `--to jpg`): `.jpg` or `.jpeg`.
+- JPG background behavior: transparent pixels are flattened onto white.
 
 ### Policies (must-follow per request)
 
@@ -76,13 +80,14 @@ Failure modes:
    - Do not call ImageMagick binaries directly unless debugging the `image-processing` CLI itself.
 
 3. Contract gate (exactly one operation path)
-   - `convert`: require `--from-svg`, `--to`, `--out`; forbid `--in`.
+   - `convert`: require exactly one `--in`, plus `--to` and `--out`.
+   - `convert`: accept `svg|png|jpg|jpeg|webp` inputs; require `--out` extension to match `--to` (`.jpeg` allowed for `--to jpg`).
    - `svg-validate`: require exactly one `--in` and `--out`; forbid `--to`/`--width`/`--height`.
 
 4. Completion response (fixed)
    - After a successful run, respond using:
      - `skills/tools/media/image-processing/references/ASSISTANT_RESPONSE_TEMPLATE.md`
-   - Include clickable output path(s) and a one-sentence “next prompt” that repeats the same task with concrete paths/options.
+   - Include clickable markdown file links and a one-sentence “next prompt” that repeats the same task with concrete paths/options.
 
 ## References
 

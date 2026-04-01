@@ -88,7 +88,7 @@ def test_image_processing_help() -> None:
 
 @pytest.mark.parametrize(
     "removed",
-    ["info", "auto-orient", "resize", "rotate", "crop", "pad", "flip", "flop", "optimize"],
+    ["generate", "info", "auto-orient", "resize", "rotate", "crop", "pad", "flip", "flop", "optimize"],
 )
 def test_removed_subcommands_are_usage_errors(removed: str) -> None:
     proc = _run([removed])
@@ -97,16 +97,16 @@ def test_removed_subcommands_are_usage_errors(removed: str) -> None:
     assert "invalid value" in stderr or "unrecognized subcommand" in stderr or "unknown subcommand" in stderr
 
 
-def test_convert_from_svg_to_supported_outputs() -> None:
+def test_convert_from_svg_input_to_supported_outputs() -> None:
     out_dir = _unique_out_dir("convert-supported-outputs")
     input_svg = _write_svg(out_dir / "icon.svg")
 
-    for to, expected_format in [("png", "PNG"), ("webp", "WEBP"), ("svg", "SVG")]:
+    for to, expected_format in [("png", "PNG"), ("webp", "WEBP"), ("jpg", "JPEG")]:
         output = out_dir / f"icon-converted.{to}"
         j = _run_json(
             [
                 "convert",
-                "--from-svg",
+                "--in",
                 str(input_svg),
                 "--to",
                 to,
@@ -115,11 +115,126 @@ def test_convert_from_svg_to_supported_outputs() -> None:
             ]
         )
         assert j["operation"] == "convert"
-        assert j["source"]["mode"] == "from_svg"
+        assert j["source"]["mode"] == "svg"
+        assert j["source"]["input_format"] == "svg"
         item = j["items"][0]
         assert item["status"] == "ok"
         assert output.is_file()
         assert item["output_info"]["format"] == expected_format
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "expected_input_format", "to", "out_name", "expected_output_format"),
+    [
+        ("fixture_80x60.png", "png", "webp", "from-png.webp", "WEBP"),
+        ("fixture_80x60.jpg", "jpg", "png", "from-jpg.png", "PNG"),
+        ("fixture_80x60.webp", "webp", "jpg", "from-webp.jpeg", "JPEG"),
+    ],
+)
+def test_convert_supports_raster_inputs(
+    fixture_name: str,
+    expected_input_format: str,
+    to: str,
+    out_name: str,
+    expected_output_format: str,
+) -> None:
+    out_dir = _unique_out_dir("convert-raster-inputs")
+    input_path = _fixtures_dir() / fixture_name
+    output = out_dir / out_name
+
+    j = _run_json(
+        [
+            "convert",
+            "--in",
+            str(input_path),
+            "--to",
+            to,
+            "--out",
+            str(output),
+        ]
+    )
+
+    assert j["operation"] == "convert"
+    assert j["source"]["mode"] == "raster"
+    assert j["source"]["input_format"] == expected_input_format
+    item = j["items"][0]
+    assert item["status"] == "ok"
+    assert output.is_file()
+    assert item["output_info"]["format"] == expected_output_format
+
+
+def test_convert_jpg_output_flattens_alpha_and_accepts_jpeg_extension() -> None:
+    out_dir = _unique_out_dir("convert-jpg-background")
+    input_png = _fixtures_dir() / "fixture_80x60_alpha.png"
+    output = out_dir / "flattened.jpeg"
+
+    j = _run_json(
+        [
+            "convert",
+            "--in",
+            str(input_png),
+            "--to",
+            "jpg",
+            "--out",
+            str(output),
+        ]
+    )
+
+    assert j["options"]["background"] == "white"
+    item = j["items"][0]
+    assert item["status"] == "ok"
+    assert item["output_info"]["format"] == "JPEG"
+    assert item["output_info"]["alpha"] is False
+    assert output.is_file()
+
+
+def test_convert_json_writes_summary_artifact_without_report() -> None:
+    out_dir = _unique_out_dir("convert-json-summary")
+    input_png = _fixtures_dir() / "fixture_80x60.png"
+    output = out_dir / "summary.webp"
+
+    j = _run_json(
+        [
+            "convert",
+            "--in",
+            str(input_png),
+            "--to",
+            "webp",
+            "--out",
+            str(output),
+        ]
+    )
+
+    summary_path = _repo_root() / "out" / "image-processing" / "runs" / j["run_id"] / "summary.json"
+    assert j["report_path"] is None
+    assert summary_path.is_file()
+    assert output.is_file()
+
+
+def test_convert_dry_run_does_not_write_output_file() -> None:
+    out_dir = _unique_out_dir("convert-dry-run")
+    input_png = _fixtures_dir() / "fixture_80x60.png"
+    output = out_dir / "dry-run.webp"
+
+    j = _run_json(
+        [
+            "convert",
+            "--in",
+            str(input_png),
+            "--to",
+            "webp",
+            "--out",
+            str(output),
+            "--dry-run",
+        ]
+    )
+
+    summary_path = _repo_root() / "out" / "image-processing" / "runs" / j["run_id"] / "summary.json"
+    assert j["dry_run"] is True
+    assert j["items"][0]["status"] == "ok"
+    assert j["items"][0]["output_info"] is None
+    assert not output.exists()
+    assert summary_path.is_file()
 
 
 def test_convert_supports_raster_dimension_override() -> None:
@@ -129,7 +244,7 @@ def test_convert_supports_raster_dimension_override() -> None:
     width_only = _run_json(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -145,7 +260,7 @@ def test_convert_supports_raster_dimension_override() -> None:
     exact_box = _run_json(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -161,21 +276,21 @@ def test_convert_supports_raster_dimension_override() -> None:
     assert exact_box["items"][0]["output_info"]["height"] == 512
 
 
-def test_convert_requires_from_svg() -> None:
+def test_convert_requires_in() -> None:
     fixture = _fixtures_dir() / "fixture_80x60.png"
-    proc = _run(["convert", "--in", str(fixture), "--to", "png", "--out", str(fixture), "--json"])
+    proc = _run(["convert", "--to", "png", "--out", str(fixture), "--json"])
     assert proc.returncode == 2
-    assert "convert requires --from-svg" in proc.stderr
+    assert "convert requires exactly one --in" in proc.stderr
 
 
-def test_convert_rejects_in_flag_and_invalid_target() -> None:
+def test_convert_rejects_multiple_inputs_and_invalid_target() -> None:
     out_dir = _unique_out_dir("convert-invalid-flags")
     input_svg = _write_svg(out_dir / "icon.svg")
 
-    with_in = _run(
+    with_multiple_inputs = _run(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--in",
             str(input_svg),
@@ -186,37 +301,37 @@ def test_convert_rejects_in_flag_and_invalid_target() -> None:
             "--json",
         ]
     )
-    assert with_in.returncode == 2
-    assert "does not support --in" in with_in.stderr
+    assert with_multiple_inputs.returncode == 2
+    assert "convert requires exactly one --in" in with_multiple_inputs.stderr
 
     invalid_target = _run(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
-            "jpg",
+            "gif",
             "--out",
-            str(out_dir / "icon.jpg"),
+            str(out_dir / "icon.gif"),
             "--json",
         ]
     )
     assert invalid_target.returncode == 2
-    assert "png|webp|svg" in invalid_target.stderr
+    assert "png|webp|jpg" in invalid_target.stderr
 
 
 def test_convert_rejects_missing_out_and_extension_mismatch() -> None:
     out_dir = _unique_out_dir("convert-out-contract")
     input_svg = _write_svg(out_dir / "icon.svg")
 
-    missing_out = _run(["convert", "--from-svg", str(input_svg), "--to", "png", "--json"])
+    missing_out = _run(["convert", "--in", str(input_svg), "--to", "png", "--json"])
     assert missing_out.returncode == 2
     assert "requires --out" in missing_out.stderr
 
     mismatch = _run(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -233,27 +348,10 @@ def test_convert_rejects_invalid_dimension_contracts() -> None:
     out_dir = _unique_out_dir("convert-dimension-contracts")
     input_svg = _write_svg(out_dir / "icon.svg")
 
-    svg_with_width = _run(
-        [
-            "convert",
-            "--from-svg",
-            str(input_svg),
-            "--to",
-            "svg",
-            "--out",
-            str(out_dir / "icon.svg"),
-            "--width",
-            "256",
-            "--json",
-        ]
-    )
-    assert svg_with_width.returncode == 2
-    assert "does not support --width/--height" in svg_with_width.stderr
-
     width_zero = _run(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -267,6 +365,23 @@ def test_convert_rejects_invalid_dimension_contracts() -> None:
     assert width_zero.returncode == 2
     assert "--width must be > 0" in width_zero.stderr
 
+    height_zero = _run(
+        [
+            "convert",
+            "--in",
+            str(input_svg),
+            "--to",
+            "png",
+            "--out",
+            str(out_dir / "icon.png"),
+            "--height",
+            "0",
+            "--json",
+        ]
+    )
+    assert height_zero.returncode == 2
+    assert "--height must be > 0" in height_zero.stderr
+
 
 def test_convert_overwrite_flag_controls_output_replacement() -> None:
     out_dir = _unique_out_dir("convert-overwrite")
@@ -277,7 +392,7 @@ def test_convert_overwrite_flag_controls_output_replacement() -> None:
     blocked = _run(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -292,7 +407,7 @@ def test_convert_overwrite_flag_controls_output_replacement() -> None:
     replaced = _run_json(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "png",
@@ -313,7 +428,8 @@ def test_svg_validate_success() -> None:
 
     j = _run_json(["svg-validate", "--in", str(input_svg), "--out", str(output_svg)])
     assert j["operation"] == "svg-validate"
-    assert j["source"]["mode"] == "svg_validate"
+    assert j["source"]["mode"] == "svg"
+    assert j["source"]["input_format"] == "svg"
     assert output_svg.is_file()
     assert j["items"][0]["status"] == "ok"
     assert j["items"][0]["output_info"]["format"] == "SVG"
@@ -341,6 +457,15 @@ def test_svg_validate_requires_single_input_and_out() -> None:
     )
     assert many_inputs.returncode == 2
     assert "requires exactly one --in" in many_inputs.stderr
+
+
+def test_svg_validate_requires_svg_output_extension() -> None:
+    out_dir = _unique_out_dir("svg-validate-out-extension")
+    input_svg = _write_svg(out_dir / "valid.svg")
+
+    proc = _run(["svg-validate", "--in", str(input_svg), "--out", str(out_dir / "valid.txt"), "--json"])
+    assert proc.returncode == 2
+    assert "svg-validate --out must end with .svg" in proc.stderr
 
 
 def test_svg_validate_rejects_convert_only_flags() -> None:
@@ -389,7 +514,7 @@ def test_report_written() -> None:
     j = _run_json(
         [
             "convert",
-            "--from-svg",
+            "--in",
             str(input_svg),
             "--to",
             "webp",
@@ -399,5 +524,7 @@ def test_report_written() -> None:
         ]
     )
     report_path = j.get("report_path")
+    summary_path = _repo_root() / "out" / "image-processing" / "runs" / j["run_id"] / "summary.json"
     assert isinstance(report_path, str) and report_path
     assert _as_path_in_repo(report_path).is_file()
+    assert summary_path.is_file()
