@@ -2,16 +2,16 @@
 
 Use this template after a successful image-processing run.
 
-```text
+```md
 Output:
-- `<output file or folder path>`
+- [<output file or folder name>](/absolute/path/to/output)
 
 Next prompt:
 - "<a single-sentence prompt that repeats the same task with concrete paths/options>"
 
 Notes:
-- Report (if used): `<out/image-processing/runs/<run_id>/report.md>`
-- Summary (if `--json`/`--report` used): `<out/image-processing/runs/<run_id>/summary.json>`
+- Report (if used): [report.md](/absolute/path/to/out/image-processing/runs/<run_id>/report.md)
+- Summary (if `--json`/`--report` used): [summary.json](/absolute/path/to/out/image-processing/runs/<run_id>/summary.json)
 - Warnings (if any): <short list>
 ```
 
@@ -20,8 +20,9 @@ Notes:
 A good “next prompt” should include:
 
 - The subcommand (`convert` or `svg-validate`)
-- Exact input path(s) (`--from-svg` for convert, `--in` for svg-validate)
+- Exact input path (`--in`)
 - Exact output path (`--out`)
+- Exact convert target (`--to png|webp|jpg`) when using `convert`
 - Any non-default flags (e.g., `--width`, `--height`, `--overwrite`, `--report`, `--dry-run`)
 
 Example:
