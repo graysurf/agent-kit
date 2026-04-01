@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.4.0 - 2026-04-01
+
+### Added
+
+- `plan-issue-delivery` now ships explicit runtime adapter install/sync/status tooling plus adapter templates for Codex, Claude Code,
+  and OpenCode via `scripts/plan-issue-adapter` (#233).
+
+### Changed
+
+- Markdown linting now uses `rumdl` behind the existing audit/check entrypoints, with related prompt/docs cleanup and refreshed
+  third-party artifact metadata (#234).
+- The `image-processing` skill/docs now align with the current multi-format `convert --in` CLI, including raster inputs, `jpg` output,
+  and current report artifacts (#235).
+
+### Fixed
+
+- `plan-issue-delivery` now tracks the Codex adapter config template as part of the runtime adapter rollout (#233).
+
 ## v2.3.9 - 2026-03-08
 
 ### Added
