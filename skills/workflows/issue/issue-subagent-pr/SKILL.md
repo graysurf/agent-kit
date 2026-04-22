@@ -192,7 +192,7 @@ Failure modes:
    - ```bash
      BODY_FILE="$WORKTREE/.tmp/pr-${ISSUE}-${TASK_ID}.md"
      mkdir -p "$(dirname "$BODY_FILE")"
-     cp /Users/terry/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/PR_BODY_TEMPLATE.md "$BODY_FILE"
+     cp $HOME/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/PR_BODY_TEMPLATE.md "$BODY_FILE"
      # Edit BODY_FILE and replace all template placeholders before continuing.
 
      for section in "## Summary" "## Scope" "## Testing" "## Issue"; do
@@ -229,7 +229,7 @@ Failure modes:
    - ```bash
      REVIEW_COMMENT_URL="https://github.com/<owner>/<repo>/pull/<pr>#issuecomment-<id>"
      RESPONSE_FILE="$WORKTREE/.tmp/review-response-${PR_NUMBER}.md"
-     cp /Users/terry/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/REVIEW_RESPONSE_TEMPLATE.md "$RESPONSE_FILE"
+     cp $HOME/.config/agent-kit/skills/workflows/issue/issue-subagent-pr/references/REVIEW_RESPONSE_TEMPLATE.md "$RESPONSE_FILE"
      # Edit RESPONSE_FILE: include REVIEW_COMMENT_URL and concrete change/testing notes.
 
      gh pr comment "$PR_NUMBER" --body-file "$RESPONSE_FILE"
