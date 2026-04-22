@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from skills._shared.python.skill_testing.assertions import assert_skill_script_entrypoint_ownership
+from skills._shared.python.skill_testing.assertions import (
+    assert_skill_script_entrypoint_ownership,
+    discover_skill_scripts,
+)
 
 # Keep exclusions explicit and minimal. Candidate entries are used only when the
 # referenced script exists in the current checkout.
@@ -19,7 +22,8 @@ CANDIDATE_UNOWNED_SKILL_SCRIPTS: tuple[str, ...] = (
 
 
 def _existing_candidate_exclusions(repo: Path) -> tuple[str, ...]:
-    return tuple(path for path in CANDIDATE_UNOWNED_SKILL_SCRIPTS if (repo / path).is_file())
+    discovered = set(discover_skill_scripts(repo))
+    return tuple(path for path in CANDIDATE_UNOWNED_SKILL_SCRIPTS if path in discovered)
 
 
 @pytest.mark.script_regression

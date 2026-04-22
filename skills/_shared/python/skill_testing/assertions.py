@@ -57,10 +57,23 @@ def assert_entrypoints_exist(skill_root: Path, rel_paths: Iterable[str]) -> None
         raise AssertionError(f"missing entrypoints: {', '.join(missing)}")
 
 
+def _git_ls_files(root: Path, *patterns: str) -> list[Path]:
+    if not patterns:
+        return []
+
+    proc = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "--", *patterns],
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return [root / line for line in proc.stdout.splitlines() if line.strip()]
+
+
 def discover_skill_scripts(repo: Path | None = None) -> list[str]:
     root = (repo or repo_root()).resolve()
     scripts: list[str] = []
-    for path in root.glob("skills/**/scripts/*"):
+    for path in _git_ls_files(root, "skills/**/scripts/*"):
         if path.is_file():
             scripts.append(path.relative_to(root).as_posix())
     return sorted(set(scripts))
@@ -106,7 +119,7 @@ def discover_owned_skill_entrypoints(repo: Path | None = None) -> set[str]:
     root = (repo or repo_root()).resolve()
     owned: set[str] = set()
 
-    for test_file in root.glob("skills/**/tests/test_*.py"):
+    for test_file in _git_ls_files(root, "skills/**/tests/test_*.py"):
         skill_root = test_file.parent.parent
         for rel in _extract_entrypoint_literals(test_file):
             owned.add((skill_root / rel).relative_to(root).as_posix())

@@ -1,6 +1,8 @@
 ---
 name: google-sheets-cell-edit
-description: Use when a user wants to edit cells in Google Sheets from a browser, especially when the task needs stable cell targeting, multiline values, exact partial-text hyperlinks inside one cell, and post-run skill improvement suggestions.
+description:
+  Use when a user wants to edit cells in Google Sheets from a browser, especially when the task needs stable cell targeting, multiline
+  values, exact partial-text hyperlinks inside one cell, and post-run skill improvement suggestions.
 ---
 
 # Google Sheets Cell Edit
@@ -9,7 +11,8 @@ description: Use when a user wants to edit cells in Google Sheets from a browser
 
 Prereqs:
 
-- Browser automation access that can inspect app/browser state and target Google Sheets controls. Prefer accessibility-aware tooling over pixel-only clicking.
+- Browser automation access that can inspect app/browser state and target Google Sheets controls.
+  Prefer accessibility-aware tooling over pixel-only clicking.
 - A Google Sheets tab is already open and editable.
 - The target spreadsheet, worksheet tab, and target cells are either known or can be discovered safely before editing.
 - Validation must stay inside the sheet unless the user explicitly asks to open the linked destination.
