@@ -12,7 +12,7 @@ Use the SKILL.md workflow for:
 - stable Google Sheets cell targeting
 - multiline cell edits
 - multiple rich-text hyperlinks inside one cell
-- post-run skill improvement suggestions
+- in-app validation before leaving the sheet
 USAGE
 }
 

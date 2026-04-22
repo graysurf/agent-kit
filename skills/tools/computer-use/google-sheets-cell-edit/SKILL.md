@@ -1,8 +1,8 @@
 ---
 name: google-sheets-cell-edit
 description:
-  Use when a user wants to edit cells in Google Sheets from a browser, especially when the task needs stable cell targeting, multiline
-  values, exact partial-text hyperlinks inside one cell, and post-run skill improvement suggestions.
+  Use when a user wants to edit cells in Google Sheets through Computer Use/browser automation, especially when the task needs stable cell
+  targeting, multiline values, exact partial-text hyperlinks inside one cell, and in-app validation.
 ---
 
 # Google Sheets Cell Edit
@@ -51,7 +51,7 @@ Failure modes:
 
 ## Scripts (only entrypoints)
 
-- `$AGENT_HOME/skills/tools/google-workspace/google-sheets-cell-edit/scripts/google-sheets-cell-edit.sh`
+- `$AGENT_HOME/skills/tools/computer-use/google-sheets-cell-edit/scripts/google-sheets-cell-edit.sh`
 
 This entrypoint is help-only. The skill is instruction-first and does not own a standalone browser automation runtime.
 
@@ -81,10 +81,6 @@ This entrypoint is help-only. The skill is instruction-first and does not own a 
    - If in-cell dragging is unstable, switch to text selection in the formula bar.
    - If a hyperlink lands on the wrong substring, restore the plain text baseline if necessary, then rebuild links one by one.
    - If neighboring text is accidentally mixed into the target cell, restore the target cell first and only then retry link edits.
-7. Close with self-evolution.
-   - After the task is complete, compare the actual run against this skill's assumptions and recovery rules.
-   - If the run exposed a reusable improvement, add a short `Skill Improvement Suggestions` section with:
-     - `Observation`: what was awkward, fragile, or unexpectedly expensive.
-     - `Proposed rule`: the smallest durable change to the skill.
-     - `Expected benefit`: why it should speed up or stabilize future runs.
-   - Suggest only durable, reusable improvements. Do not rewrite the skill automatically unless the user explicitly asks.
+7. Close with reusable improvements.
+   - Follow the global Computer Use improvement rule in `AGENTS.md` for whether to emit `Skill Improvement Suggestions`.
+   - When suggestions are specific to Google Sheets cell editing, keep them concrete: name the fragile step, the safer replacement, and the expected benefit.
