@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v2.4.1 - 2026-04-23
+
+### Added
+
+- Repository-level `AGENTS.md` policy and `AGENT_DOCS.toml` configuration now make repo-local agent-docs startup and development
+  preflights explicit.
+- New `google-sheets-cell-edit` skill under `skills/tools/computer-use/`, including its helper script and regression coverage.
+- Agent-docs now includes a canonical zsh shell environment contract runbook.
+
+### Changed
+
+- `release-workflow` publish tooling now guards against unsynced upstream state and supports pushing the current branch through the
+  fallback release publish entrypoint (#236).
+- Agent-docs and issue-workflow documentation now use environment-resolved home paths instead of hardcoded local paths.
+
+### Fixed
+
+- Skill entrypoint ownership checks now scope parity validation to tracked files.
+- Markdown lint wrapping was corrected for the Google Sheets cell-edit skill guidance and zsh shell environment contract.
+
 ## v2.4.0 - 2026-04-01
 
 ### Added
