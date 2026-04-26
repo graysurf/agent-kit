@@ -108,7 +108,7 @@ Notes:
   and delegates the GitHub release publish to
   `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`.
   GitHub release bodies start with the release date only (`YYYY-MM-DD`); the
-  publish script strips the `## [X.Y.Z] - ` prefix from the changelog heading.
+  publish script strips the changelog heading prefix (`## [X.Y.Z] -`).
 
 ## Direct Entrypoints
 
