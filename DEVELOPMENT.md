@@ -102,6 +102,11 @@ Notes:
   Keep `(#NNN)` PR references (no backticks); do not include commit hashes.
 - Authors must keep `[Unreleased]` non-empty before a release cut; the publish
   script fails fast if it is empty.
+- Release entrypoint: `.agents/scripts/release.sh --version X.Y.Z`. It runs
+  preflight + `scripts/check.sh --all`, promotes `[Unreleased]` into the
+  versioned heading, updates the footer compare-links, commits, pushes main,
+  and delegates the GitHub release publish to
+  `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`.
 
 ## Direct Entrypoints
 
@@ -118,6 +123,7 @@ Notes:
 - `scripts/test.sh -m script_smoke`
 - `scripts/test.sh -m script_regression`
 - `scripts/semgrep-scan.sh --profile shell`
+- `.agents/scripts/release.sh --version X.Y.Z` (curator-only release flow)
 
 Test artifacts:
 

@@ -4,8 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **release**: new curator-only release entrypoint at
+  `.agents/scripts/release.sh`. Runs preflight + `scripts/check.sh --all`,
+  promotes `## [Unreleased]` into the versioned heading, updates the footer
+  compare-link block, commits via `semantic-commit`, pushes main, and
+  delegates the GitHub release publish to
+  `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`.
+
 ### Changed
 
+- **release-workflow**: align `CHANGELOG.md` to Keep a Changelog format —
+  bracketed headings (`## [X.Y.Z] - YYYY-MM-DD` and `## [Unreleased]`),
+  per-version footer compare-links, and removal of empty `- None.` placeholder
+  bullets across the historical record (37 versions).
+- **release-workflow**: `release-publish-from-changelog.sh` now accepts both
+  legacy `## vX.Y.Z` and new bracketed `## [X.Y.Z]` headings, and stops at
+  footer link references so trailing compare-links never leak into release
+  notes. `RELEASE_TEMPLATE.md` and `DEFAULT_RELEASE_GUIDE.md` updated to match.
+- **DEVELOPMENT.md**: document the CHANGELOG curator contract — authors keep
+  `## [Unreleased]` populated as work lands, release tooling only promotes,
+  and `.agents/scripts/release.sh` is the canonical release entrypoint.
 - **Breaking — requires `nils-cli` ≥ 0.8.0.** `agent-docs` and `plan-issue` no
   longer auto-read `AGENT_HOME`. agent-docs runbooks (`AGENTS.md`,
   `DEVELOPMENT.md`, `RESEARCH_WORKFLOW.md`, `README.md`,
