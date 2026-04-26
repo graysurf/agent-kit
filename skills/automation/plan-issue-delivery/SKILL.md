@@ -309,6 +309,10 @@ Failure modes:
 - Codex adapter guide + templates: `references/CODEX_ADAPTER.md`
 - Claude Code adapter guide + templates: `references/CLAUDE_CODE_ADAPTER.md`
 - OpenCode adapter guide + templates: `references/OPENCODE_ADAPTER.md`
+- Sprint PR body template (canonical schema for plan-issue lanes):
+  `references/SPRINT_PR_TEMPLATE.md`
+- Close-plan final-mile checklist (five-artifact production order):
+  `references/CLOSE_PLAN_FINAL_MILE.md`
 - Review evidence template for main-agent decisions:
   `skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Shared task-lane continuity policy (canonical):

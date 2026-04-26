@@ -131,6 +131,195 @@
       }
     },
     {
+      "name": "merge-dry-run-fail-invalid-pr-body-names-sprint-template",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "schema:\\s*sprint-pr.*SPRINT_PR_TEMPLATE\\.md"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-invalid-pr-body-prints-line-number",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "first match at line [0-9]+:"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-pr-body-missing-section-names-template",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_missing_section.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "missing required heading '## Issue' \\(schema: sprint-pr"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-pr-body-missing-issue-bullet",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_missing_issue_bullet.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "missing required issue bullet '- #999' \\(schema: sprint-pr"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-review-evidence-no-comment-posted",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_merge_with_fail_verdict.md",
+        "--enforce-review-evidence",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_valid.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "merge decision cannot include fail/blocked core verdicts"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-pr-body-no-comment-posted",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_merge_valid.md",
+        "--enforce-review-evidence",
+        "--pr-body-file",
+        "tests/fixtures/issue/pr_body_invalid_placeholder.md",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "disallowed placeholder found"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-review-evidence-missing-heading",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_missing_heading.md",
+        "--enforce-review-evidence",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "missing required heading '## Integration Readiness' \\(schema: review-evidence"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-review-evidence-missing-required-line",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_missing_required_line.md",
+        "--enforce-review-evidence",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "missing required evidence line '- Correctness verdict"
+      }
+    },
+    {
+      "name": "merge-dry-run-fail-review-evidence-decision-mismatch",
+      "args": [
+        "merge",
+        "--pr",
+        "456",
+        "--method",
+        "merge",
+        "--issue",
+        "999",
+        "--review-evidence-file",
+        "tests/fixtures/issue/review_evidence_decision_mismatch.md",
+        "--enforce-review-evidence",
+        "--dry-run"
+      ],
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [1],
+        "stderr_regex": "decision mismatch \\(expected=merge, found=request-followup\\)"
+      }
+    },
+    {
       "name": "close-pr-dry-run-structured-outcome",
       "args": [
         "close-pr",

@@ -111,6 +111,26 @@ load_body() {
   printf '%s' "$body_text"
 }
 
+# Print the first line in $body_text matching the extended regex $pattern
+# as "<line_number>:<line_content>" (no trailing newline). Empty when no
+# match. Pattern is treated case-insensitive to match the validator's
+# `grep -Ei` defaults.
+first_matching_line() {
+  local body_text="${1:-}"
+  local pattern="${2:-}"
+
+  if [[ -z "$pattern" ]]; then
+    return 0
+  fi
+  printf '%s\n' "$body_text" | awk -v pat="$pattern" '
+    BEGIN { IGNORECASE = 1 }
+    $0 ~ pat {
+      printf("%d:%s", NR, $0)
+      exit
+    }
+  '
+}
+
 validate_review_evidence_text() {
   local body_text="${1:-}"
   local expected_decision="${2:-}"
@@ -121,6 +141,7 @@ validate_review_evidence_text() {
     return 1
   fi
 
+  local template_hint='see references/REVIEW_EVIDENCE_TEMPLATE.md'
   local required_heading_regexes=(
     '^[[:space:]]*##[[:space:]]+Decision[[:space:]]*$'
     '^[[:space:]]*##[[:space:]]+Review Scope[[:space:]]*$'
@@ -142,7 +163,10 @@ validate_review_evidence_text() {
   local i=0
   for i in "${!required_heading_regexes[@]}"; do
     if ! printf '%s\n' "$body_text" | grep -Eq "${required_heading_regexes[$i]}"; then
-      echo "error: ${source_label}: missing required heading '${required_heading_labels[$i]}'" >&2
+      printf 'error: %s: missing required heading %s (schema: review-evidence; %s)\n' \
+        "${source_label}" "'${required_heading_labels[$i]}'" "${template_hint}" >&2
+      printf 'error: %s:   expected line shape: %s\n' \
+        "${source_label}" "${required_heading_labels[$i]}" >&2
       return 1
     fi
   done
@@ -161,9 +185,19 @@ validate_review_evidence_text() {
     '- Correctness verdict: <pass|fail|blocked> (evidence: ...)'
     '- Integration verdict: <pass|fail|blocked> (evidence: ...)'
   )
+  local required_line_examples=(
+    '- Decision: merge'
+    '- Task lane: owner=subagent-1, branch=feat/x, worktree=/tmp/wt, mode=pr-isolated, pr=#456'
+    '- Scope verdict: pass (evidence: docs/plans/foo-plan.md#S1T1)'
+    '- Correctness verdict: pass (evidence: tests/test_foo.py)'
+    '- Integration verdict: pass (evidence: gh pr checks 456)'
+  )
   for i in "${!required_line_regexes[@]}"; do
     if ! printf '%s\n' "$body_text" | grep -Eiq "${required_line_regexes[$i]}"; then
-      echo "error: ${source_label}: missing required evidence line '${required_line_labels[$i]}'" >&2
+      printf 'error: %s: missing required evidence line %s (schema: review-evidence; %s)\n' \
+        "${source_label}" "'${required_line_labels[$i]}'" "${template_hint}" >&2
+      printf 'error: %s:   expected line shape: %s\n' \
+        "${source_label}" "${required_line_examples[$i]}" >&2
       return 1
     fi
   done
@@ -182,7 +216,18 @@ validate_review_evidence_text() {
   )
   for i in "${!placeholder_regexes[@]}"; do
     if printf '%s\n' "$body_text" | grep -Eiq "${placeholder_regexes[$i]}"; then
-      echo "error: ${source_label}: disallowed placeholder found: ${placeholder_labels[$i]}" >&2
+      local match_pair
+      match_pair="$(first_matching_line "$body_text" "${placeholder_regexes[$i]}")"
+      printf 'error: %s: disallowed placeholder found: %s (schema: review-evidence; %s)\n' \
+        "${source_label}" "${placeholder_labels[$i]}" "${template_hint}" >&2
+      if [[ -n "$match_pair" ]]; then
+        local match_line_no="${match_pair%%:*}"
+        local match_line_content="${match_pair#*:}"
+        printf 'error: %s:   first match at line %s: %s\n' \
+          "${source_label}" "${match_line_no}" "${match_line_content}" >&2
+      fi
+      printf 'error: %s:   replace placeholder text with concrete evidence (file path, command, URL, etc.)\n' \
+        "${source_label}" >&2
       return 1
     fi
   done
@@ -201,38 +246,73 @@ validate_review_evidence_text() {
     '
   )"
   if [[ -z "$declared_decision" ]]; then
-    echo "error: ${source_label}: cannot parse declared decision" >&2
+    printf 'error: %s: cannot parse declared decision (schema: review-evidence; %s)\n' \
+      "${source_label}" "${template_hint}" >&2
+    printf 'error: %s:   expected line shape: - Decision: <merge|request-followup|close-pr>\n' \
+      "${source_label}" >&2
     return 1
   fi
   if [[ -n "$expected_decision" && "$declared_decision" != "$expected_decision" ]]; then
-    echo "error: ${source_label}: decision mismatch (expected=${expected_decision}, found=${declared_decision})" >&2
+    local decision_pair
+    decision_pair="$(first_matching_line "$body_text" '^[[:space:]]*-[[:space:]]*Decision:')"
+    printf 'error: %s: decision mismatch (expected=%s, found=%s) (schema: review-evidence; %s)\n' \
+      "${source_label}" "${expected_decision}" "${declared_decision}" "${template_hint}" >&2
+    if [[ -n "$decision_pair" ]]; then
+      local d_line_no="${decision_pair%%:*}"
+      local d_line_content="${decision_pair#*:}"
+      printf 'error: %s:   declared at line %s: %s\n' \
+        "${source_label}" "${d_line_no}" "${d_line_content}" >&2
+    fi
+    printf 'error: %s:   expected line shape: - Decision: %s\n' \
+      "${source_label}" "${expected_decision}" >&2
     return 1
   fi
 
   local evidence_marker_count=0
   evidence_marker_count="$(printf '%s\n' "$body_text" | grep -Eic 'evidence:[[:space:]]+.+')"
   if [[ "${evidence_marker_count}" -lt 6 ]]; then
-    echo "error: ${source_label}: insufficient evidence anchors (need >=6 'evidence:' entries, found ${evidence_marker_count})" >&2
+    printf 'error: %s: insufficient evidence anchors (need >=6 '\''evidence:'\'' entries, found %s) (schema: review-evidence; %s)\n' \
+      "${source_label}" "${evidence_marker_count}" "${template_hint}" >&2
+    # shellcheck disable=SC2016  # backticked literal is intentional documentation
+    printf 'error: %s:   each Hard Gates / verdict bullet must end with `(evidence: <file or URL>)`\n' \
+      "${source_label}" >&2
     return 1
   fi
 
   local file_ref_count=0
   file_ref_count="$(printf '%s\n' "$body_text" | grep -Eoc '([[:alnum:]_.-]+/)+[[:alnum:]_.-]+' || true)"
   if [[ "${file_ref_count}" -lt 2 ]]; then
-    echo "error: ${source_label}: evidence must cite concrete file/path references (need >=2)" >&2
+    printf 'error: %s: evidence must cite concrete file/path references (need >=2, found %s) (schema: review-evidence; %s)\n' \
+      "${source_label}" "${file_ref_count}" "${template_hint}" >&2
+    printf 'error: %s:   example: docs/plans/foo-plan.md#S1T1 or skills/automation/.../SKILL.md\n' \
+      "${source_label}" >&2
     return 1
   fi
 
   if [[ "$expected_decision" == "merge" ]]; then
     if printf '%s\n' "$body_text" | grep -Eiq '(scope|correctness|integration)[[:space:]]+verdict:[[:space:]]*(fail|blocked)'; then
-      echo "error: ${source_label}: merge decision cannot include fail/blocked core verdicts" >&2
+      local verdict_pair
+      verdict_pair="$(first_matching_line "$body_text" '(scope|correctness|integration)[[:space:]]+verdict:[[:space:]]*(fail|blocked)')"
+      printf 'error: %s: merge decision cannot include fail/blocked core verdicts (schema: review-evidence; %s)\n' \
+        "${source_label}" "${template_hint}" >&2
+      if [[ -n "$verdict_pair" ]]; then
+        local v_line_no="${verdict_pair%%:*}"
+        local v_line_content="${verdict_pair#*:}"
+        printf 'error: %s:   first failing verdict at line %s: %s\n' \
+          "${source_label}" "${v_line_no}" "${v_line_content}" >&2
+      fi
+      printf 'error: %s:   expected line shape: - Scope verdict: pass (evidence: ...)\n' \
+        "${source_label}" >&2
       return 1
     fi
   fi
 
   if [[ "$expected_decision" == "request-followup" || "$expected_decision" == "close-pr" ]]; then
     if ! printf '%s\n' "$body_text" | grep -Eiq '(scope|correctness|integration)[[:space:]]+verdict:[[:space:]]*(fail|blocked)'; then
-      echo "error: ${source_label}: ${expected_decision} must include at least one fail/blocked core verdict" >&2
+      printf 'error: %s: %s must include at least one fail/blocked core verdict (schema: review-evidence; %s)\n' \
+        "${source_label}" "${expected_decision}" "${template_hint}" >&2
+      printf 'error: %s:   expected line shape: - Scope verdict: fail (evidence: ...)\n' \
+        "${source_label}" >&2
       return 1
     fi
   fi
@@ -366,8 +446,19 @@ validate_pr_body_hygiene_text() {
   local issue_number="${2:-}"
   local source_label="${3:-pr-body-check}"
 
+  # Plan-issue sprint PRs use the four-section schema documented in
+  # `references/SPRINT_PR_TEMPLATE.md` under
+  # `skills/automation/plan-issue-delivery/`. This validator names that
+  # schema so the operator knows which template to switch to when the PR
+  # body was authored against a different shape (e.g. claude-kit's
+  # feature-PR template at `references/PR_TEMPLATE.md`, which uses
+  # Summary / Changes / Testing / Risk / Notes instead).
+  local schema_label='sprint-pr (Summary / Scope / Testing / Issue)'
+  local template_hint='see skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md'
+
   if [[ -z "${body_text//[[:space:]]/}" ]]; then
-    echo "error: ${source_label}: PR body cannot be empty" >&2
+    printf 'error: %s: PR body cannot be empty (schema: %s; %s)\n' \
+      "${source_label}" "${schema_label}" "${template_hint}" >&2
     return 1
   fi
 
@@ -386,7 +477,10 @@ validate_pr_body_hygiene_text() {
   local i=0
   for i in "${!required_heading_regexes[@]}"; do
     if ! printf '%s\n' "$body_text" | grep -Eq "${required_heading_regexes[$i]}"; then
-      echo "error: ${source_label}: missing required heading '${required_heading_labels[$i]}'" >&2
+      printf 'error: %s: missing required heading %s (schema: %s; %s)\n' \
+        "${source_label}" "'${required_heading_labels[$i]}'" "${schema_label}" "${template_hint}" >&2
+      printf 'error: %s:   expected line shape: %s\n' \
+        "${source_label}" "${required_heading_labels[$i]}" >&2
       return 1
     fi
   done
@@ -409,14 +503,28 @@ validate_pr_body_hygiene_text() {
   )
   for i in "${!placeholder_regexes[@]}"; do
     if printf '%s\n' "$body_text" | grep -Eiq "${placeholder_regexes[$i]}"; then
-      echo "error: ${source_label}: disallowed placeholder found: ${placeholder_labels[$i]}" >&2
+      local match_pair
+      match_pair="$(first_matching_line "$body_text" "${placeholder_regexes[$i]}")"
+      printf 'error: %s: disallowed placeholder found: %s (schema: %s; %s)\n' \
+        "${source_label}" "${placeholder_labels[$i]}" "${schema_label}" "${template_hint}" >&2
+      if [[ -n "$match_pair" ]]; then
+        local match_line_no="${match_pair%%:*}"
+        local match_line_content="${match_pair#*:}"
+        printf 'error: %s:   first match at line %s: %s\n' \
+          "${source_label}" "${match_line_no}" "${match_line_content}" >&2
+      fi
+      printf 'error: %s:   replace placeholder text with concrete content (one-line summary, file path, command, etc.)\n' \
+        "${source_label}" >&2
       return 1
     fi
   done
 
   if [[ -n "$issue_number" ]]; then
     if ! printf '%s\n' "$body_text" | grep -Eq "^[[:space:]]*-[[:space:]]*#${issue_number}([^0-9]|$)"; then
-      echo "error: ${source_label}: missing required issue bullet '- #${issue_number}'" >&2
+      printf 'error: %s: missing required issue bullet %s (schema: %s; %s)\n' \
+        "${source_label}" "'- #${issue_number}'" "${schema_label}" "${template_hint}" >&2
+      printf 'error: %s:   expected line shape (under ## Issue): - #%s\n' \
+        "${source_label}" "${issue_number}" >&2
       return 1
     fi
   fi
@@ -764,8 +872,19 @@ case "$subcommand" in
     if [[ "$enforce_review_evidence" == "1" && -z "$review_evidence" && -z "$review_evidence_file" ]]; then
       die "merge requires --review-evidence or --review-evidence-file when --enforce-review-evidence is set"
     fi
+
+    # Validate inputs (review evidence body shape and PR body hygiene) BEFORE
+    # any side-effecting GitHub API calls so a failed validation never leaks a
+    # stale review-evidence comment onto the PR. Failed retries used to post
+    # one comment per attempt; the gate now runs cleanly before posting.
     if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
       validate_review_evidence_input "$review_evidence" "$review_evidence_file" "merge" "merge-review-evidence"
+    fi
+    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "merge"
+
+    # Inputs validated -> post the review-evidence comment exactly once and
+    # mirror the comment URL into the issue-side note when applicable.
+    if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
       review_evidence="$(load_body "$review_evidence" "$review_evidence_file")"
       evidence_issue_note="$(post_review_evidence_comment "$pr_number" "$review_evidence" "$issue_number")"
       if [[ -n "$issue_number" ]]; then
@@ -777,7 +896,6 @@ case "$subcommand" in
         fi
       fi
     fi
-    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "merge"
 
     # `gh pr merge` rejects draft PRs; auto-ready them for deterministic merge flows.
     pr_is_draft="false"
@@ -962,8 +1080,19 @@ case "$subcommand" in
     if [[ "$enforce_review_evidence" == "1" && -z "$review_evidence" && -z "$review_evidence_file" ]]; then
       die "close-pr requires --review-evidence or --review-evidence-file when --enforce-review-evidence is set"
     fi
+
+    # Mirror the merge ordering: validate inputs (review evidence body shape
+    # and PR body hygiene) BEFORE any side-effecting GitHub API calls so a
+    # failed validation never leaks a stale review-evidence comment onto
+    # the PR.
     if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
       validate_review_evidence_input "$review_evidence" "$review_evidence_file" "close-pr" "close-pr-review-evidence"
+    fi
+    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "close-pr"
+
+    # Inputs validated -> post the review-evidence comment exactly once and
+    # mirror the comment URL into the issue-side note when applicable.
+    if [[ -n "$review_evidence" || -n "$review_evidence_file" ]]; then
       review_evidence="$(load_body "$review_evidence" "$review_evidence_file")"
       evidence_issue_note="$(post_review_evidence_comment "$pr_number" "$review_evidence" "$issue_number")"
       if [[ -n "$issue_number" ]]; then
@@ -975,8 +1104,6 @@ case "$subcommand" in
         fi
       fi
     fi
-
-    ensure_pr_body_hygiene_for_close "$pr_number" "$issue_number" "$pr_body" "$pr_body_file" "close-pr"
 
     close_pr_cmd=(gh pr close "$pr_number")
     if [[ -n "$repo_arg" ]]; then

@@ -33,6 +33,10 @@ Execution context (fill before run)
   `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/prompts/plan-issue-delivery-main-agent-init.snapshot.md`
 - Review evidence template path:
   `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
+- Sprint PR body template path (canonical schema for plan-issue sprint PRs):
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md`
+- Close-plan final-mile checklist:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/CLOSE_PLAN_FINAL_MILE.md`
 - Plan-branch ref path:
   `$AGENT_HOME/out/plan-issue-delivery/{repo-slug}/issue-<ISSUE_NUMBER>/plan/plan-branch.ref`
 - Plan integration PR record path:
@@ -96,6 +100,11 @@ Required workflow
    - final integration merge strategy: prefer `gh pr merge --squash`; if
      squash merge is unavailable by repo/branch policy, fallback to
      `gh pr merge --merge`.
+   - follow the close-plan final-mile checklist at
+     `$AGENT_HOME/skills/automation/plan-issue-delivery/references/CLOSE_PLAN_FINAL_MILE.md`
+     for the exact production order of the five close-plan artifacts
+     (plan-conformance-review.md, plan-integration-pr.md,
+     plan-integration-ci.md, mention comment, plan-integration-mention.url).
 9. Treat any gate failure as unfinished work; stop forward progress and report unblock actions.
 
 Mandatory subagent launch rule
