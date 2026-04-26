@@ -59,6 +59,8 @@ Required inputs from main-agent (must be attached)
 - Plan task context for assigned IDs:
   - exact task section snippet and/or
   - direct link/path to the source plan task section.
+- Sprint PR body template (canonical schema for the PR you open / update):
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md`
 - If any required item is missing, stop and request the missing context before implementation.
 - If `WORKTREE` is outside `$AGENT_HOME/out/plan-issue-delivery/...`, stop and request corrected assignment.
 

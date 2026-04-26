@@ -292,3 +292,117 @@ def test_plan_issue_delivery_e2e_sprint2_invariants() -> None:
         assert "| #201 |" in row, f"Grouped Sprint 2 lane rows must keep canonical shared PR #201: {row}"
 
     assert "https://github.com/" not in text, "Sprint 2 fixture should not drift to URL-only PR references."
+
+
+# -- Sprint 3 references (Task 3.3 + Task 3.4) ----------------------------
+
+
+SPRINT_PR_TEMPLATE_REL = "skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
+CLOSE_PLAN_FINAL_MILE_REL = "skills/automation/plan-issue-delivery/references/CLOSE_PLAN_FINAL_MILE.md"
+VALIDATOR_REL = "skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh"
+
+
+def test_sprint_pr_template_reference_exists_and_documents_required_schema() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    template = repo_root / SPRINT_PR_TEMPLATE_REL
+    assert template.is_file(), (
+        f"Task 3.3: canonical sprint PR template must live at {SPRINT_PR_TEMPLATE_REL}; "
+        f"missing at {template}"
+    )
+
+    text = template.read_text(encoding="utf-8")
+    # Schema sections (the four-heading shape)
+    assert "## Summary" in text
+    assert "## Scope" in text
+    assert "## Testing" in text
+    assert "## Issue" in text
+    # Issue bullet shape
+    assert "- #<ISSUE_NUMBER>" in text
+    # Cross-reference to feature template (so authors know which one to use)
+    assert "skills/create-feature-pr/references/PR_TEMPLATE.md" in text
+    # Sprint 4 follow-up TODO trail
+    assert "claude-kit Sprint 4 Task 4.2" in text
+
+
+def test_sprint_pr_template_named_in_canonical_skill_references() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "references/SPRINT_PR_TEMPLATE.md" in text, (
+        "Task 3.3: canonical SKILL.md must list the new sprint PR template "
+        "under ## References so the implementation lane finds it."
+    )
+
+
+def test_sprint_pr_template_named_by_pr_body_validator_error_message() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    validator_text = (repo_root / VALIDATOR_REL).read_text(encoding="utf-8")
+    # The PR-body hygiene validator must NAME the schema and the template
+    # path so the operator knows which template to switch to (vs.
+    # claude-kit's create-feature-pr template, which uses
+    # Summary/Changes/Testing/Risk/Notes).
+    assert "schema_label='sprint-pr (Summary / Scope / Testing / Issue)'" in validator_text
+    assert (
+        "skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
+        in validator_text
+    )
+
+
+def test_sprint_pr_template_named_in_subagent_init_prompt() -> None:
+    """Implementation lanes need the template path in their init bundle so
+    the PR they open passes the validator on the first attempt.
+    """
+    repo_root = Path(__file__).resolve().parents[4]
+    text = (repo_root / "prompts" / "plan-issue-delivery-subagent-init.md").read_text(encoding="utf-8")
+    assert (
+        "$AGENT_HOME/skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
+        in text
+    )
+
+
+def test_close_plan_final_mile_reference_exists_and_lists_five_artifacts() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    ref = repo_root / CLOSE_PLAN_FINAL_MILE_REL
+    assert ref.is_file(), (
+        f"Task 3.4: close-plan final-mile reference must live at "
+        f"{CLOSE_PLAN_FINAL_MILE_REL}; missing at {ref}"
+    )
+
+    text = ref.read_text(encoding="utf-8")
+    # Numbered checklist for the five close-plan artifacts in production order
+    for marker in (
+        "1. **`plan-conformance-review.md`**",
+        "2. **`plan-integration-pr.md`**",
+        "3. **`plan-integration-ci.md`**",
+        "4. **Mention comment posted on the plan issue.**",
+        "5. **`plan-integration-mention.url`**",
+    ):
+        assert marker in text, f"Task 3.4: missing checklist marker {marker!r}"
+    # Cross-references to canonical runtime path constants
+    for var in (
+        "PLAN_CONFORMANCE_REVIEW_PATH",
+        "PLAN_INTEGRATION_PR_PATH",
+        "PLAN_INTEGRATION_CI_PATH",
+        "PLAN_INTEGRATION_MENTION_PATH",
+    ):
+        assert var in text, f"Task 3.4: missing path-constant reference {var!r}"
+    # Final-call snippet for plan-issue close-plan
+    assert "plan-issue close-plan" in text
+    # Sprint 4 follow-up trail (helper subcommand is out of scope here)
+    assert "claude-kit Sprint 4 Task 4.2" in text
+
+
+def test_close_plan_final_mile_linked_from_main_agent_init_prompt() -> None:
+    repo_root = Path(__file__).resolve().parents[4]
+    text = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
+    assert (
+        "$AGENT_HOME/skills/automation/plan-issue-delivery/references/CLOSE_PLAN_FINAL_MILE.md"
+        in text
+    ), "Task 3.4: main-agent init prompt must link to CLOSE_PLAN_FINAL_MILE.md near the close-plan section."
+    # The link should appear in the close-plan-related instructions, not at random.
+    assert "close-plan final-mile checklist" in text
+
+
+def test_close_plan_final_mile_linked_in_canonical_skill_references() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    assert "references/CLOSE_PLAN_FINAL_MILE.md" in text
