@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
   `DEVELOPMENT.md`, `RESEARCH_WORKFLOW.md`, `README.md`,
   `docs/runbooks/agent-docs/*`) now invoke
   `agent-docs --docs-home "$AGENT_HOME" ...`; the `plan-issue-delivery` skill
-  + main/subagent init prompts require `plan-issue --state-dir "$AGENT_HOME"`
+  and the main/subagent init prompts require `plan-issue --state-dir "$AGENT_HOME"`
   (or `PLAN_ISSUE_HOME="$AGENT_HOME"`) to keep runtime artefacts under
   `$AGENT_HOME/out/plan-issue-delivery/...`.
 - `skills/tools/agent-doc-init/scripts/agent_doc_init.sh`: renamed
