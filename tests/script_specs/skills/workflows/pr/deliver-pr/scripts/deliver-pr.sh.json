@@ -1,0 +1,19 @@
+{
+  "args": ["--help"],
+  "timeout_sec": 5,
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "deliver-pr\\.sh --kind <bug\\|feature> <command>"
+  },
+  "smoke": [
+    {
+      "name": "help-surface",
+      "args": ["--help"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "deliver-pr\\.sh --kind <bug\\|feature> <command>"
+      }
+    }
+  ]
+}

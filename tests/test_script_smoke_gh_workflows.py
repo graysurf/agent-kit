@@ -264,8 +264,8 @@ def test_script_smoke_fixture_deliver_feature_pr_close_worktree_safe_cleanup_whe
     work_tree, _ = _prepare_locked_main_worktree_fixture(tmp_path)
 
     repo = repo_root()
-    script = "skills/workflows/pr/feature/deliver-feature-pr/scripts/deliver-feature-pr.sh"
-    log_dir = gh_stub_log_dir(tmp_path, "deliver-feature-pr-close-worktree-safe-cleanup")
+    script = "skills/workflows/pr/deliver-pr/scripts/deliver-pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "deliver-pr-feature-close-worktree-safe-cleanup")
     pr_body = "\n".join(
         [
             "# Fixture PR",
@@ -285,7 +285,7 @@ def test_script_smoke_fixture_deliver_feature_pr_close_worktree_safe_cleanup_whe
         ]
     )
     spec = {
-        "args": ["close", "--pr", "129", "--skip-checks"],
+        "args": ["--kind", "feature", "close", "--pr", "129", "--skip-checks"],
         "timeout_sec": 20,
         "env": {
             "CODEX_GH_STUB_MODE_ENABLED": "true",
@@ -312,8 +312,8 @@ def test_script_smoke_fixture_deliver_feature_pr_close_treats_merged_helper_fail
     work_tree, _ = init_fixture_repo(tmp_path)
 
     repo = repo_root()
-    script = "skills/workflows/pr/feature/deliver-feature-pr/scripts/deliver-feature-pr.sh"
-    log_dir = gh_stub_log_dir(tmp_path, "deliver-feature-pr-close-merged-helper-failure")
+    script = "skills/workflows/pr/deliver-pr/scripts/deliver-pr.sh"
+    log_dir = gh_stub_log_dir(tmp_path, "deliver-pr-feature-close-merged-helper-failure")
     pr_body = "\n".join(
         [
             "# Fixture PR",
@@ -333,7 +333,7 @@ def test_script_smoke_fixture_deliver_feature_pr_close_treats_merged_helper_fail
         ]
     )
     spec = {
-        "args": ["close", "--pr", "130", "--skip-checks"],
+        "args": ["--kind", "feature", "close", "--pr", "130", "--skip-checks"],
         "timeout_sec": 20,
         "env": {
             "CODEX_GH_STUB_MODE_ENABLED": "true",

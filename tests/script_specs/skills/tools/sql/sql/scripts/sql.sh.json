@@ -1,0 +1,52 @@
+{
+  "smoke": [
+    {
+      "name": "postgres-query",
+      "args": ["postgres", "--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
+      "env": {
+        "TEST_PGHOST": "127.0.0.1",
+        "TEST_PGPORT": "5432",
+        "TEST_PGUSER": "user",
+        "TEST_PGPASSWORD": "password",
+        "TEST_PGDATABASE": "db"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "psql stub ok"
+      }
+    },
+    {
+      "name": "mysql-query",
+      "args": ["mysql", "--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
+      "env": {
+        "TEST_MYSQL_HOST": "127.0.0.1",
+        "TEST_MYSQL_PORT": "3306",
+        "TEST_MYSQL_USER": "user",
+        "TEST_MYSQL_PASSWORD": "password",
+        "TEST_MYSQL_DB": "db"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "mysql stub ok"
+      }
+    },
+    {
+      "name": "mssql-query",
+      "args": ["mssql", "--prefix", "TEST", "--env-file", "/dev/null", "--query", "select 1;"],
+      "env": {
+        "TEST_MSSQL_HOST": "127.0.0.1",
+        "TEST_MSSQL_PORT": "1433",
+        "TEST_MSSQL_USER": "user",
+        "TEST_MSSQL_PASSWORD": "password",
+        "TEST_MSSQL_DB": "db"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "sqlcmd stub ok"
+      }
+    }
+  ]
+}

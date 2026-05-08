@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   retaining the native Codex role mapping guide.
 - **conversation skills**: rename `ask-questions-if-underspecified` to
   `requirements-gap-scan` and make the explicit gap-scan behavior clearer.
+- **PR workflows**: replace separate bug/feature delivery skills with one
+  `deliver-pr` workflow selected by `kind=bug|feature`.
+- **SQL tooling**: replace per-dialect SQL skills with one `sql` skill using
+  `postgres|mysql|mssql` subcommands.
+- **API testing**: make `api-test-runner` the canonical REST/GraphQL testing
+  skill, with focused protocol calls documented inside it.
 
 ### Removed
 
@@ -19,6 +25,9 @@ All notable changes to this project will be documented in this file.
   `chrome-devtools-debug-companion` skill in favor of native Chrome tooling.
 - **google-sheets-cell-edit**: remove the help-only script entrypoint and keep
   the skill instruction-only.
+- **skill catalog**: remove the old explicit skill names `deliver-bug-pr`,
+  `deliver-feature-pr`, `sql-postgres`, `sql-mysql`, `sql-mssql`,
+  `rest-api-testing`, and `graphql-api-testing`.
 
 ## [2.4.2] - 2026-05-08
 

@@ -1,9 +1,9 @@
 rules:
   - id: agent-kit.comment.todo
     languages: [generic]
-    message: TODO marker (unfinished work or missing edge cases).
+    message: TODO comment marker (unfinished work or missing edge cases).
     severity: INFO
-    pattern-regex: "\\bTODO\\b"
+    pattern-regex: "(?m)^[[:space:]]*#.*\\bTODO\\b"
     paths:
       include:
         - "*.py"

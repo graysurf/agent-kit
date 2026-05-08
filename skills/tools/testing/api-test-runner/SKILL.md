@@ -1,9 +1,8 @@
 ---
 name: api-test-runner
 description:
-  Run CI-friendly API test suites (REST + GraphQL) from a single manifest, using the bundled api-test CLI and emitting JSON (+ optional
-  JUnit) results. Use when the user asks to reduce CI boilerplate and provide a simple, composable suite runner for other tools
-  (pytest/node/LLM) to call.
+  Canonical API testing skill for REST and GraphQL. Run CI-friendly suites from one manifest via api-test, or use api-rest/api-gql for
+  focused protocol calls when a suite is unnecessary.
 ---
 
 # API Test Runner (REST + GraphQL)
@@ -14,6 +13,7 @@ Prereqs:
 
 - `api-test`, `api-rest`, and `api-gql` available on `PATH` (install via `brew install nils-cli`).
 - `jq` recommended for ad-hoc assertions/formatting (optional).
+- For focused protocol calls, use the same `setup/rest` and `setup/graphql` scaffold conventions documented here.
 
 Inputs:
 
@@ -47,7 +47,10 @@ Failure modes:
 
 ## Goal
 
-Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing callers:
+Provide one canonical API testing entrypoint for both REST and GraphQL. Prefer `api-test run` for repeatable suites and CI. Use
+`api-rest` or `api-gql` directly only for quick focused calls, then graduate repeated checks into an `api-test` suite.
+
+Run a suite of API checks in CI (and locally) via a single manifest file, reusing existing protocol callers:
 
 - REST: `api-rest`
 - GraphQL: `api-gql`
@@ -67,7 +70,8 @@ mkdir -p setup
 cp -R "$AGENT_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup/api" setup/
 ```
 
-Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, plus a tiny REST + GraphQL fixture):
+Bootstrap a runnable local-fixture smoke suite (includes `setup/api`, `setup/rest`, `setup/graphql`, protocol presets, plus a tiny REST +
+GraphQL fixture):
 
 ```bash
 cp -R "$AGENT_HOME/skills/tools/testing/api-test-runner/assets/scaffold/setup" .
@@ -132,6 +136,34 @@ Notes:
   `allowWrite=true` on the case.
 - GraphQL default validation: when `allowErrors=false` and `expect.jq` is omitted, the runner requires `.data` to be a non-null object.
 - Auth safety: `.auth.*.credentialsJq` must yield exactly one object (multiple matches fail fast).
+
+## Focused REST Calls
+
+Use `api-rest` for one-off REST calls when a full suite is unnecessary:
+
+```bash
+api-rest call \
+  --env local \
+  setup/rest/requests/<request>.request.json \
+| jq .
+```
+
+When the call becomes a repeated smoke/regression check, add it to `setup/api/suites/*.suite.json` and run it with `api-test run`.
+
+## Focused GraphQL Calls
+
+Use `api-gql` for one-off GraphQL calls when a full suite is unnecessary:
+
+```bash
+api-gql call \
+  --env local \
+  --jwt default \
+  setup/graphql/operations/<operation>.graphql \
+  setup/graphql/operations/<variables>.json \
+| jq .
+```
+
+When the operation becomes a repeated smoke/regression check, add it to `setup/api/suites/*.suite.json` and run it with `api-test run`.
 
 ### Suite schema v1
 
@@ -495,3 +527,11 @@ Exit codes:
 ## References
 
 - Guide: `skills/tools/testing/api-test-runner/references/API_TEST_RUNNER_GUIDE.md`
+- REST protocol reference: `skills/tools/testing/api-test-runner/references/REST_API_TESTING_GUIDE.md`
+- REST report contract/template:
+  - `skills/tools/testing/api-test-runner/references/REST_API_TEST_REPORT_CONTRACT.md`
+  - `skills/tools/testing/api-test-runner/references/REST_API_TEST_REPORT_TEMPLATE.md`
+- GraphQL protocol reference: `skills/tools/testing/api-test-runner/references/GRAPHQL_API_TESTING_GUIDE.md`
+- GraphQL report contract/template:
+  - `skills/tools/testing/api-test-runner/references/GRAPHQL_API_TEST_REPORT_CONTRACT.md`
+  - `skills/tools/testing/api-test-runner/references/GRAPHQL_API_TEST_REPORT_TEMPLATE.md`

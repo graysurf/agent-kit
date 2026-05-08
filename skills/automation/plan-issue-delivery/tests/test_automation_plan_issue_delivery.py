@@ -333,7 +333,7 @@ def test_sprint_pr_template_reference_exists_and_documents_required_schema() -> 
     assert "- #<ISSUE_NUMBER>" in text
     # Cross-reference to feature template (so authors know which one to use)
     assert "skills/create-feature-pr/references/PR_TEMPLATE.md" in text
-    # Sprint 4 follow-up TODO trail
+    # Sprint 4 follow-up reference trail
     assert "claude-kit Sprint 4 Task 4.2" in text
 
 

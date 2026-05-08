@@ -10,6 +10,39 @@ from typing import Any, cast
 from .conftest import repo_root
 
 
+def _semgrep_bin() -> Path:
+    semgrep_bin = Path(sys.executable).with_name("semgrep")
+    if semgrep_bin.exists():
+        return semgrep_bin
+
+    semgrep_on_path = which("semgrep")
+    assert semgrep_on_path, "semgrep not found; install dev dependencies from requirements-dev.txt"
+    return Path(semgrep_on_path)
+
+
+def _run_semgrep_json(config: Path, target: Path) -> dict[str, Any]:
+    completed = subprocess.run(
+        [
+            str(_semgrep_bin()),
+            "scan",
+            "--config",
+            str(config),
+            "--json",
+            "--metrics=off",
+            "--disable-version-check",
+            str(target),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 0, f"semgrep scan failed:\n{completed.stderr}"
+
+    payload_raw: Any = json.loads(completed.stdout)
+    assert isinstance(payload_raw, dict), "unexpected semgrep JSON: expected an object payload"
+    return payload_raw
+
+
 def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
     repo = repo_root()
     config = repo / ".semgrep.yaml"
@@ -60,32 +93,7 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
         "utf-8",
     )
 
-    semgrep_bin = Path(sys.executable).with_name("semgrep")
-    if not semgrep_bin.exists():
-        semgrep_on_path = which("semgrep")
-        assert semgrep_on_path, "semgrep not found; install dev dependencies from requirements-dev.txt"
-        semgrep_bin = Path(semgrep_on_path)
-
-    completed = subprocess.run(
-        [
-            str(semgrep_bin),
-            "scan",
-            "--config",
-            str(config),
-            "--json",
-            "--metrics=off",
-            "--disable-version-check",
-            str(fixture),
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    assert completed.returncode == 0, f"semgrep scan failed:\n{completed.stderr}"
-
-    payload_raw: Any = json.loads(completed.stdout)
-    assert isinstance(payload_raw, dict), "unexpected semgrep JSON: expected an object payload"
-    payload = cast(dict[str, Any], payload_raw)
+    payload = _run_semgrep_json(config, fixture)
 
     results_raw = cast(list[Any], payload.get("results", []))
     assert isinstance(results_raw, list), "unexpected semgrep JSON: missing results list"
@@ -111,3 +119,35 @@ def test_semgrep_config_scans_shell_and_python(tmp_path: Path) -> None:
     }
     missing = expected - rule_ids
     assert not missing, f"expected Semgrep rules not triggered: {sorted(missing)}"
+
+
+def test_todo_comment_rule_ignores_non_comment_literals(tmp_path: Path) -> None:
+    repo = repo_root()
+    config = repo / ".semgrep.yaml"
+    assert config.is_file(), "missing .semgrep.yaml"
+
+    fixture = tmp_path / "fixture"
+    fixture.mkdir(parents=True, exist_ok=True)
+
+    (fixture / "literal_todo.py").write_text(
+        "\n".join(
+            [
+                'REJECTED_PLACEHOLDERS = ("TODO", "TBD")',
+                'message = "TODO: fill this later."',
+                'assert "TODO" in message',
+                "",
+            ]
+        ),
+        "utf-8",
+    )
+
+    payload = _run_semgrep_json(config, fixture)
+    results_raw = cast(list[Any], payload.get("results", []))
+    assert isinstance(results_raw, list), "unexpected semgrep JSON: missing results list"
+
+    todo_hits = [
+        result
+        for result in results_raw
+        if isinstance(result, dict) and result.get("check_id") == "agent-kit.comment.todo"
+    ]
+    assert not todo_hits

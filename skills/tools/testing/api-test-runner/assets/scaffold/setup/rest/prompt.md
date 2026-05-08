@@ -1,6 +1,6 @@
 # REST API Testing Prompt (Project Context)
 
-This file is optional. If present, the `rest-api-testing` skill will read it for project-specific context.
+This file is optional. If present, the `api-test-runner` skill will read it for REST project-specific context.
 
 Keep it short, factual, and non-secret (do not paste real tokens, passwords, API keys, or customer data).
 
@@ -19,3 +19,22 @@ Keep it short, factual, and non-secret (do not paste real tokens, passwords, API
 
 - How to obtain tokens (if any):
 - Required roles / permissions:
+
+## DB / data tools (optional)
+
+- DB type (Postgres/MySQL/MSSQL/etc):
+- LLM-usable DB tool(s) (e.g., `tun-psql`, `qb-mysql`, `mb-mssql`):
+- Key schemas / tables / relations to verify:
+- Common verification queries / checks:
+
+## Other test utilities
+
+- GUI clients / saved collections (Insomnia/Postman/Bruno):
+- Admin UI (URLs + what to check):
+- Logs / tracing (where + what to look for):
+- Other scripts / commands:
+
+## Notes
+
+- Known edge cases / flaky areas:
+- Any constraints (rate limits, async eventual consistency, etc.):

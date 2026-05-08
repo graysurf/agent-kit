@@ -9,7 +9,7 @@ This guide complements `skills/tools/testing/api-test-runner/SKILL.md` with prac
 
 Why:
 
-- Matches existing `rest-api-testing` / `graphql-api-testing` conventions
+- Matches the `setup/rest` and `setup/graphql` conventions used by focused protocol calls
 - Avoids coupling to any particular test framework’s directory structure
 
 Note:
