@@ -61,6 +61,14 @@ agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --pr
 
 See [docs/runbooks/agent-docs/new-project-bootstrap.md](./docs/runbooks/agent-docs/new-project-bootstrap.md) for the full sequence.
 
+Codex hooks are tracked under `hooks/codex/`, but the full
+`$HOME/.codex/config.toml` file stays local-only. Sync the managed hook block
+into the local config with:
+
+```zsh
+$AGENT_HOME/scripts/codex-hooks-sync sync --apply
+```
+
 ## 🐳 Docker environment
 
 See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.

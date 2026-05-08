@@ -112,6 +112,18 @@
   decision artifacts only when the user asks, project rules require it, or the
   result is clearly reusable.
 
+## Hook-Enforced Guardrails
+
+- Codex hooks may enforce mechanical guardrails such as direct `git commit`,
+  PR/MR creation, `.mcp.json` secret scanning, project-memory write boundaries,
+  lightweight `agent-docs` reminders, and PR-readiness reminders.
+- Treat hooks as enforcement support, not the only source of policy. If hooks
+  are unavailable, follow the policy summaries here and the linked runbooks.
+- Hook source and the managed config block live under `$AGENT_HOME/hooks/codex/`.
+  Use `$AGENT_HOME/scripts/codex-hooks-sync sync --apply` to write that block
+  into local `$HOME/.codex/config.toml`; do not track or symlink the whole
+  Codex config file.
+
 ## Canonical references
 
 - Home dispatch and bootstrap:

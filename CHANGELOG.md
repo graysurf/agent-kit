@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **codex-hooks**: add Codex-compatible hook scripts for direct commit/PR
+  guards, `.mcp.json` scanning, project-memory write blocking, agent-docs
+  reminders, session health checks, and PR-readiness reminders, with focused
+  pytest coverage plus a tracked config block and sync script for local Codex
+  hook wiring.
 - **plan-issue**: add `create-plan-issue-sprint-pr`, a tracked PR workflow
   skill that renders the canonical sprint PR body from a dispatch record and
   can open draft sprint PRs against `PLAN_BRANCH`.
@@ -18,6 +23,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **AGENTS.md**: add a concise hook-enforced guardrails pointer while keeping
+  policy fallback text in place for sessions where hooks are unavailable, and
+  clarify that local Codex config is synced from a managed block rather than
+  tracked wholesale.
 - **plan-issue**: align the canonical delivery/runtime contracts with
   `plan-issue` 0.8.0 by removing main/subagent init snapshot artifacts from
   required runtime state and treating prompt files as static adapter sources.
