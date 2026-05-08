@@ -75,31 +75,25 @@
 
 ## `agent-docs` policy
 
-- `agent-docs` is mandatory for home-scope dispatch before implementation,
-  external lookup, or skill lifecycle work.
-- Always pin home-scope resolution to this toolchain root by passing
-  `--docs-home "$AGENT_HOME"`; nils-cli >= 0.8.0 no longer reads `AGENT_HOME`
-  implicitly. The equivalent environment variable is `AGENT_DOCS_HOME`.
-- Canonical dispatch contract:
-  `$AGENT_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`.
-- Minimum preflight:
-  - New session or new task:
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
-  - Repository implementation, edits, tests, or commits:
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
-    and
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context project-dev --strict --format checklist`
-  - Technical research or external verification:
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
-    and
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context task-tools --strict --format checklist`
-  - Skill lifecycle work:
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`
-    and
-    `agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --format checklist`
-- If a required strict resolve fails, stop write actions and delivery claims, run
+- `agent-docs` is the mandatory home-scope dispatch contract before
+  implementation, external lookup, or skill lifecycle work.
+- The canonical dispatch matrix is
+  `$AGENT_HOME/docs/runbooks/agent-docs/context-dispatch-matrix.md`; keep
+  detailed trigger rules there instead of duplicating them here.
+- Always pin resolution with `--docs-home "$AGENT_HOME"`; nils-cli >= 0.8.0 no
+  longer reads `AGENT_HOME` implicitly.
+- Required context sequence:
+  - new session or task: `startup`
+  - repository edits, tests, commits, or delivery: `startup` -> `project-dev`
+  - technical research or external verification: `startup` -> `task-tools`
+  - skill lifecycle work: `startup` -> `skill-dev`
+- Resolve each required context in strict checklist mode:
+  `agent-docs --docs-home "$AGENT_HOME" resolve --context <context> --strict --format checklist`.
+- If a hard-gate strict resolve fails, stop write actions and delivery claims, run
   `agent-docs --docs-home "$AGENT_HOME" baseline --check --target all --strict --format text`,
   then report the missing docs or degraded mode explicitly.
+- Codex hooks may inject lightweight `agent-docs` reminders, but hooks are
+  enforcement support and do not replace this policy.
 
 ## Files and artifacts
 
