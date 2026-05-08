@@ -1,0 +1,64 @@
+# BEGIN agent-kit managed codex hooks
+[[hooks.PreToolUse]]
+matcher = "Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/block-direct-git-commit.py"
+timeout = 10
+statusMessage = "Checking commit command..."
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/semantic-commit-body-gate.py"
+timeout = 10
+statusMessage = "Checking semantic commit message body..."
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/block-direct-pr-create.py"
+timeout = 10
+statusMessage = "Checking PR/MR create command..."
+
+[[hooks.PreToolUse]]
+matcher = "Write|Edit|NotebookEdit|apply_patch"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/block-project-memory-write.py"
+timeout = 10
+statusMessage = "Checking memory write..."
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/mcp-secret-scan.py"
+timeout = 10
+statusMessage = "Scanning .mcp.json changes..."
+
+[[hooks.UserPromptSubmit]]
+matcher = ""
+
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/user-prompt-agent-docs.sh"
+timeout = 10
+statusMessage = "Checking agent-docs preflight trigger..."
+
+[[hooks.SessionStart]]
+matcher = "startup|resume|clear"
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/session-start-healthcheck.sh"
+timeout = 20
+statusMessage = "Checking agent-kit health..."
+
+[[hooks.Stop]]
+matcher = ""
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/stop-pre-pr-reminder.sh"
+timeout = 10
+statusMessage = "Checking PR readiness reminder..."
+# END agent-kit managed codex hooks

@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""Install, sync, or inspect the agent-kit managed Codex hook config block."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+SCRIPT_NAME = "codex-hooks-sync"
+BEGIN_MARKER = "# BEGIN agent-kit managed codex hooks"
+END_MARKER = "# END agent-kit managed codex hooks"
+
+HOOK_SCRIPT_NAMES = (
+    "block-direct-git-commit.py",
+    "semantic-commit-body-gate.py",
+    "block-direct-pr-create.py",
+    "block-project-memory-write.py",
+    "mcp-secret-scan.py",
+    "user-prompt-agent-docs.sh",
+    "session-start-healthcheck.sh",
+    "stop-pre-pr-reminder.sh",
+)
+
+
+@dataclass(frozen=True)
+class Report:
+    target: Path
+    status: str
+    detail: str
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=SCRIPT_NAME,
+        description="Manage the agent-kit Codex hooks block in ~/.codex/config.toml.",
+    )
+    parser.add_argument(
+        "action",
+        choices=("status", "sync", "install"),
+        help="status prints drift; sync/install update the managed block when --apply is set.",
+    )
+    parser.add_argument(
+        "--home-path",
+        help="Home directory containing .codex/config.toml (default: $HOME).",
+    )
+    parser.add_argument(
+        "--agent-home",
+        help="agent-kit root used in hook command paths (default: $AGENT_HOME or this repository root).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview changes only (default).",
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write changes to disk.",
+    )
+    return parser
+
+
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def normalize_text(text: str) -> str:
+    return text.replace("\r\n", "\n").rstrip() + "\n"
+
+
+def resolve_home_path(raw: str | None) -> Path:
+    return Path(raw).expanduser().resolve() if raw else Path.home().resolve()
+
+
+def resolve_agent_home(raw: str | None) -> Path:
+    source = raw or os.environ.get("AGENT_HOME")
+    if not source:
+        return repo_root().resolve()
+    path = Path(source).expanduser()
+    return path if path.is_absolute() else (Path.cwd() / path).resolve()
+
+
+def template_path() -> Path:
+    return repo_root() / "hooks" / "codex" / "config.block.toml"
+
+
+def render_template(agent_home: Path) -> str:
+    template = template_path().read_text(encoding="utf-8")
+    return normalize_text(template.replace("{{AGENT_HOME}}", agent_home.as_posix()))
+
+
+def marker_pattern() -> re.Pattern[str]:
+    return re.compile(
+        rf"(?ms)^[ \t]*{re.escape(BEGIN_MARKER)}[ \t]*\n.*?^[ \t]*{re.escape(END_MARKER)}[ \t]*(?:\n|$)"
+    )
+
+
+def existing_managed_block(config_text: str) -> str | None:
+    match = marker_pattern().search(config_text)
+    return match.group(0) if match else None
+
+
+def looks_like_agent_kit_hook_block(block: str) -> bool:
+    return all(name in block for name in HOOK_SCRIPT_NAMES)
+
+
+def legacy_unmarked_hook_pattern() -> re.Pattern[str]:
+    # First-generation migration wrote the hook arrays directly before
+    # [features]. Replace only when all agent-kit hook script names are present.
+    return re.compile(r"(?ms)^[ \t]*\[\[hooks\.[^\n]+\]\].*?(?=^[ \t]*\[features\][ \t]*$)")
+
+
+def replace_legacy_unmarked_block(config_text: str, rendered_block: str) -> tuple[str, bool]:
+    for match in legacy_unmarked_hook_pattern().finditer(config_text):
+        block = match.group(0)
+        if looks_like_agent_kit_hook_block(block):
+            replacement = rendered_block.rstrip() + "\n\n"
+            return config_text[: match.start()] + replacement + config_text[match.end() :], True
+    return config_text, False
+
+
+def insert_before_features(config_text: str, rendered_block: str) -> str:
+    features_match = re.search(r"(?m)^[ \t]*\[features\][ \t]*$", config_text)
+    block = rendered_block.rstrip() + "\n\n"
+    if features_match:
+        return config_text[: features_match.start()] + block + config_text[features_match.start() :]
+    stripped = config_text.rstrip()
+    return f"{stripped}\n\n{rendered_block}" if stripped else rendered_block
+
+
+def desired_config_text(config_text: str, rendered_block: str) -> tuple[str, str]:
+    pattern = marker_pattern()
+    if pattern.search(config_text):
+        updated = pattern.sub(rendered_block.rstrip() + "\n", config_text, count=1)
+        return normalize_text(updated), "update-managed-block"
+
+    updated, replaced_legacy = replace_legacy_unmarked_block(config_text, rendered_block)
+    if replaced_legacy:
+        return normalize_text(updated), "replace-unmarked-agent-kit-hook-block"
+
+    return normalize_text(insert_before_features(config_text, rendered_block)), "insert-managed-block"
+
+
+def manage_config(
+    *,
+    action: str,
+    apply: bool,
+    home_path: Path,
+    agent_home: Path,
+) -> Report:
+    config_path = home_path / ".codex" / "config.toml"
+    rendered_block = render_template(agent_home)
+
+    if not config_path.exists():
+        if action == "status":
+            return Report(config_path, "missing", "Codex config file")
+        updated = rendered_block
+        if apply:
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(updated, encoding="utf-8")
+        return Report(config_path, "create" if apply else "would-create", "managed hook block")
+
+    original = normalize_text(config_path.read_text(encoding="utf-8"))
+    managed = existing_managed_block(original)
+    if managed is not None and normalize_text(managed) == rendered_block:
+        return Report(config_path, "synced", "managed hook block")
+
+    updated, operation = desired_config_text(original, rendered_block)
+    if normalize_text(updated) == original:
+        return Report(config_path, "synced", "managed hook block")
+
+    if action == "status":
+        return Report(config_path, "drifted", operation)
+
+    if apply:
+        config_path.write_text(updated, encoding="utf-8")
+    return Report(config_path, "update" if apply else "would-update", operation)
+
+
+def print_report(report: Report) -> None:
+    print(f"{report.status}\t{report.target}\t{report.detail}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    apply = bool(args.apply)
+    if args.dry_run:
+        apply = False
+
+    report = manage_config(
+        action=args.action,
+        apply=apply,
+        home_path=resolve_home_path(args.home_path),
+        agent_home=resolve_agent_home(args.agent_home),
+    )
+    print_report(report)
+    if args.action == "status" and report.status in {"missing", "drifted"}:
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
