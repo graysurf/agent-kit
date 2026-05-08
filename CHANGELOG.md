@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **codex-hooks**: add a repo-aware Python environment guard that blocks direct
+  `python`/`python3` Bash invocations in uv or local-venv workspaces and points
+  agents to the managed interpreter.
+
 ### Changed
 
 - **python tooling**: migrate local and CI development dependencies from

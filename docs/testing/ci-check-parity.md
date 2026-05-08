@@ -20,13 +20,13 @@ Do not hand-edit generated phase blocks in `.github/workflows/lint.yml`.
 Regenerate phase mapping:
 
 ```bash
-python3 scripts/ci/generate-lint-workflow-phases.py --write
+uv run --locked python scripts/ci/generate-lint-workflow-phases.py --write
 ```
 
 Check phase mapping drift:
 
 ```bash
-python3 scripts/ci/generate-lint-workflow-phases.py --check
+uv run --locked python scripts/ci/generate-lint-workflow-phases.py --check
 ```
 
 ## Run parity checks
@@ -40,14 +40,14 @@ This command is also required in lint CI (parity guard step) and is included by
 
 ## Remediation workflow
 
-1. If a parity test fails for stale generated phase mapping, run `python3 scripts/ci/generate-lint-workflow-phases.py --write`.
+1. If a parity test fails for stale generated phase mapping, run `uv run --locked python scripts/ci/generate-lint-workflow-phases.py --write`.
 2. If a check mode is renamed/added/removed, update:
    `scripts/lib/check/modes.sh` and `scripts/lib/check/ci_phase_map.json`,
    then regenerate workflow phases.
 3. Re-run:
 
 ```bash
-python3 scripts/ci/generate-lint-workflow-phases.py --check
+uv run --locked python scripts/ci/generate-lint-workflow-phases.py --check
 scripts/check.sh --lint
 scripts/check.sh --env-bools
 scripts/check.sh --docs

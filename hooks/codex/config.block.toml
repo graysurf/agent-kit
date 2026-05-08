@@ -16,6 +16,12 @@ statusMessage = "Checking semantic commit message body..."
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/block-direct-python.py"
+timeout = 10
+statusMessage = "Checking Python environment command..."
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/block-direct-pr-create.py"
 timeout = 10
 statusMessage = "Checking PR/MR create command..."

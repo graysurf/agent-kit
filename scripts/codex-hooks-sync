@@ -14,7 +14,9 @@ SCRIPT_NAME = "codex-hooks-sync"
 BEGIN_MARKER = "# BEGIN agent-kit managed codex hooks"
 END_MARKER = "# END agent-kit managed codex hooks"
 
-HOOK_SCRIPT_NAMES = (
+# Keep the legacy required subset stable so first-generation unmarked installs
+# can still be recognized and replaced after new managed hooks are added.
+LEGACY_AGENT_KIT_HOOK_SCRIPT_NAMES = (
     "block-direct-git-commit.py",
     "semantic-commit-body-gate.py",
     "block-direct-pr-create.py",
@@ -105,7 +107,7 @@ def existing_managed_block(config_text: str) -> str | None:
 
 
 def looks_like_agent_kit_hook_block(block: str) -> bool:
-    return all(name in block for name in HOOK_SCRIPT_NAMES)
+    return all(name in block for name in LEGACY_AGENT_KIT_HOOK_SCRIPT_NAMES)
 
 
 def legacy_unmarked_hook_pattern() -> re.Pattern[str]:

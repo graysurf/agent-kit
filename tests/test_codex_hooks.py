@@ -25,6 +25,7 @@ def run_python_hook(
     script_name: str,
     payload: dict[str, Any],
     *,
+    cwd: Path | None = None,
     env: dict[str, str] | None = None,
 ) -> tuple[int, dict[str, object] | None, str]:
     completed = subprocess.run(
@@ -32,6 +33,7 @@ def run_python_hook(
         input=json.dumps(payload),
         capture_output=True,
         text=True,
+        cwd=cwd,
         env=env,
         check=False,
     )
@@ -154,6 +156,75 @@ class TestSemanticCommitBodyGate:
             )
             assert code == 0
             assert_allowed(decision)
+
+
+class TestDirectPythonHook:
+    def test_blocks_bare_python_in_uv_project(self, tmp_path: Path) -> None:
+        (tmp_path / "uv.lock").write_text("# fixture\n", "utf-8")
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload("python3 -m pytest"),
+            cwd=tmp_path,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv run --locked python")
+
+    def test_blocks_bare_python_after_shell_separator(self, tmp_path: Path) -> None:
+        (tmp_path / "pyproject.toml").write_text("[tool.uv.sources] # fixture\n", "utf-8")
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload("echo ready && python -m scripts.tool"),
+            cwd=tmp_path,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv")
+
+    def test_blocks_env_python_in_virtualenv_project(self, tmp_path: Path) -> None:
+        pyvenv_cfg = tmp_path / ".venv" / "pyvenv.cfg"
+        pyvenv_cfg.parent.mkdir()
+        pyvenv_cfg.write_text("home = /usr/bin\n", "utf-8")
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload("env PYTHONPATH=. python3 scripts/tool.py"),
+            cwd=tmp_path,
+        )
+
+        assert code == 0
+        assert_blocked(decision, ".venv/bin/python")
+
+    def test_allows_managed_python_and_diagnostics(self, tmp_path: Path) -> None:
+        (tmp_path / "uv.lock").write_text("# fixture\n", "utf-8")
+        commands = (
+            "uv run --locked python -m pytest",
+            ".venv/bin/python -m pytest",
+            "command -v python3",
+            "echo python3",
+            "AGENT_KIT_ALLOW_SYSTEM_PYTHON=1 python3 -m ensurepip",
+        )
+
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-python.py",
+                command_payload(command),
+                cwd=tmp_path,
+            )
+            assert code == 0, command
+            assert_allowed(decision)
+
+    def test_allows_python_without_repo_markers(self, tmp_path: Path) -> None:
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload("python3 -m pytest"),
+            cwd=tmp_path,
+        )
+
+        assert code == 0
+        assert_allowed(decision)
 
 
 class TestDirectPrCreateHook:
@@ -512,6 +583,7 @@ unified_exec = true
         updated = config_path.read_text("utf-8")
         assert "# BEGIN agent-kit managed codex hooks" in updated
         assert 'command = "/opt/agent-kit/hooks/codex/block-direct-git-commit.py"' in updated
+        assert 'command = "/opt/agent-kit/hooks/codex/block-direct-python.py"' in updated
         assert updated.count("[[hooks.PreToolUse]]") == 2
         assert "[features]" in updated
 
