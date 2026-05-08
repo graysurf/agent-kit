@@ -57,11 +57,11 @@ All notable changes to this project will be documented in this file.
 - **Breaking — requires `nils-cli` ≥ 0.8.0.** `agent-docs` and `plan-issue` no
   longer auto-read `AGENT_HOME`. agent-docs runbooks (`AGENTS.md`,
   `DEVELOPMENT.md`, `RESEARCH_WORKFLOW.md`, `README.md`,
-  `docs/runbooks/agent-docs/*`) now invoke
-  `agent-docs --docs-home "$AGENT_HOME" ...`; the `plan-issue-delivery` skill
+  `docs/runbooks/agent-docs/*`) now invoke `agent-docs` with
+  `--docs-home "$AGENT_HOME"`; the `plan-issue-delivery` skill
   and the main/subagent init prompts require `plan-issue --state-dir "$AGENT_HOME"`
   (or `PLAN_ISSUE_HOME="$AGENT_HOME"`) to keep runtime artefacts under
-  `$AGENT_HOME/out/plan-issue-delivery/...`.
+  `$AGENT_HOME/out/plan-issue-delivery/`.
 - `skills/tools/agent-doc-init/scripts/agent_doc_init.sh`: renamed
   `--agent-home` to `--docs-home` and now propagates `--docs-home` to
   `agent-docs`. Resolution precedence is `--docs-home` ->
