@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-05-09
+
 ### Changed
 
 - **browser tooling**: downgrade `agent-browser` to an optional legacy CLI
@@ -716,7 +718,8 @@ All notable changes to this project will be documented in this file.
 - Initial release of agent-kit (prompts, skills, scripts, and docs).
 - Release workflow fallback template and helper scripts for changelog-driven GitHub releases.
 
-[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.2...HEAD
+[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.3...HEAD
+[2.4.3]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.3
 [2.4.2]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.2
 [2.4.1]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.1
 [2.4.0]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.0
