@@ -122,6 +122,13 @@ def version_policy_from_npm(spec: str) -> str:
     return f"pinned ({version})"
 
 
+def version_policy_from_github_action(spec: str) -> str:
+    _, version = spec.rsplit("@", 1)
+    if re.fullmatch(r"v?\d+(?:\.\d+){1,2}", version):
+        return f"pinned (action {version})"
+    return f"floating (action {version})"
+
+
 def extract_once(path: Path, pattern: str, label: str) -> str:
     text = path.read_text("utf-8")
     match = re.search(pattern, text)
@@ -249,12 +256,17 @@ for dependency_spec in dependency_specs:
     )
 
 uv_meta = python_meta["uv"]
+setup_uv_spec = extract_once(
+    workflow_lint,
+    r"uses:\s+(astral-sh/setup-uv@[0-9A-Za-z._-]+)",
+    "setup-uv action spec",
+)
 rows.append(
     {
         "component": uv_meta["component"],
         "ecosystem": uv_meta["ecosystem"],
-        "declared_spec": "astral-sh/setup-uv@v8 / brew install uv",
-        "version_policy": "floating (action major tag and formula latest)",
+        "declared_spec": f"{setup_uv_spec} / brew install uv",
+        "version_policy": f"{version_policy_from_github_action(setup_uv_spec)} + floating (formula latest)",
         "license": uv_meta["license"],
         "upstream": uv_meta["upstream"],
         "source": ".github/workflows/lint.yml, Dockerfile",

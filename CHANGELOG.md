@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **ci**: pin `astral-sh/setup-uv` to an existing release tag so the pytest
+  workflow can resolve the uv setup action.
 - **python tooling**: migrate local and CI development dependencies from
   `requirements-dev.txt`/manual venv setup to uv-managed `pyproject.toml` and
   `uv.lock`, with validation scripts invoking tools through `uv run --locked`.

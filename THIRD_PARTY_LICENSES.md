@@ -31,7 +31,7 @@ Not included:
 | `mypy` | PyPI | `mypy>=1.0` | floating (mypy>=1.0) | `MIT` | [python/mypy](https://github.com/python/mypy) |
 | `ruff` | PyPI | `ruff>=0.1.0` | floating (ruff>=0.1.0) | `MIT` | [astral-sh/ruff](https://github.com/astral-sh/ruff) |
 | `pyright (Python wrapper)` | PyPI | `pyright>=1.1.0` | floating (pyright>=1.1.0) | `MIT` | [RobertCraigie/pyright-python](https://github.com/RobertCraigie/pyright-python) |
-| `uv` | GitHub Action / Homebrew formula | `astral-sh/setup-uv@v8 / brew install uv` | floating (action major tag and formula latest) | `MIT OR Apache-2.0` | [astral-sh/uv](https://github.com/astral-sh/uv) |
+| `uv` | GitHub Action / Homebrew formula | `astral-sh/setup-uv@v8.1.0 / brew install uv` | pinned (action v8.1.0) + floating (formula latest) | `MIT OR Apache-2.0` | [astral-sh/uv](https://github.com/astral-sh/uv) |
 | `@playwright/cli` | npm via npx --package | `@playwright/cli@latest` | floating (@latest) | `Apache-2.0` | [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) |
 | `agent-browser` | npm via npx --package | `agent-browser@latest` | floating (@latest) | `Apache-2.0` | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) |
 | `rumdl` | npm via npx | `rumdl@0.1.62` | pinned (0.1.62) | `MIT` | [rvben/rumdl](https://github.com/rvben/rumdl) |
@@ -60,6 +60,6 @@ Not included:
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`
-- `.github/workflows/lint.yml` SHA256: `841dce3aaf6ae0771e34e43852783005b9dad90c159c147e09a254e684252513`
+- `.github/workflows/lint.yml` SHA256: `3375c624066e97fd42dd0037fb04de299656a90a8b87bf8d32ba7df6dc5b97e6`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `60a844d5bc666bf54d9f91ead661cd76c98e432ecc6ec00e6f50fd2456fe0748`
 - `Dockerfile` SHA256: `a8428c82a33ec79f21cc2aba757349c9b6bf3377eb2dd513601314787e6294cd`
