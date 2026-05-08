@@ -41,35 +41,17 @@ def test_plan_issue_adapter_claude_install_dry_run_does_not_write_files(tmp_path
     assert not (project / ".claude").exists()
 
 
-def test_plan_issue_adapter_codex_install_merges_managed_sections(tmp_path: Path) -> None:
-    home = tmp_path / "home"
-    codex_root = home / ".codex"
-    codex_root.mkdir(parents=True)
-    config_path = codex_root / "config.toml"
-    config_path.write_text(
-        'model = "gpt-5.4"\n\n[agents.existing]\ndescription = "keep-me"\n',
-        encoding="utf-8",
-    )
-
+def test_plan_issue_adapter_rejects_removed_codex_runtime(tmp_path: Path) -> None:
     completed = _run_adapter(
         "install",
         "--runtime",
         "codex",
-        "--home-path",
-        str(home),
-        "--apply",
+        "--project-path",
+        str(tmp_path),
     )
 
-    assert completed.returncode == 0, completed.stderr
-    config_text = config_path.read_text(encoding="utf-8")
-    assert 'model = "gpt-5.4"' in config_text
-    assert '[agents.existing]' in config_text
-    assert "[agents.plan_issue_worker]" in config_text
-    assert "[agents.plan_issue_reviewer]" in config_text
-    assert "[agents.plan_issue_monitor]" in config_text
-    assert (codex_root / "agents" / "plan-issue-worker.toml").exists()
-    assert (codex_root / "agents" / "plan-issue-reviewer.toml").exists()
-    assert (codex_root / "agents" / "plan-issue-monitor.toml").exists()
+    assert completed.returncode == 2
+    assert "invalid choice: 'codex'" in completed.stderr
 
 
 def test_plan_issue_adapter_opencode_sync_merges_existing_json(tmp_path: Path) -> None:

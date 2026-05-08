@@ -119,12 +119,12 @@ Each smoke case supports the same fields as regression (`args`, `env`, `timeout_
 
 Example:
 
-`tests/script_specs/scripts/chrome-devtools-mcp.sh.json`
+`tests/script_specs/scripts/plan-issue-adapter.json`
 
 ## Debugging failures
 
 - Run a single script case:
-  - `.venv/bin/python -m pytest -k chrome-devtools-mcp -m script_regression`
+  - `.venv/bin/python -m pytest -k plan-issue-adapter -m script_regression`
 - Inspect evidence:
   - `out/tests/script-regression/logs/<script>.stderr.txt`
   - `out/tests/script-regression/logs/<script>.stdout.txt`

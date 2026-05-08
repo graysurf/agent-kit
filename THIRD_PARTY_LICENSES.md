@@ -33,7 +33,6 @@ Not included:
 | `pyright (Python wrapper)` | PyPI | `pyright>=1.1.0` | floating (pyright>=1.1.0) | `MIT` | [RobertCraigie/pyright-python](https://github.com/RobertCraigie/pyright-python) |
 | `@playwright/cli` | npm via npx --package | `@playwright/cli@latest` | floating (@latest) | `Apache-2.0` | [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) |
 | `agent-browser` | npm via npx --package | `agent-browser@latest` | floating (@latest) | `Apache-2.0` | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) |
-| `chrome-devtools-mcp` | npm via npx | `chrome-devtools-mcp@latest` | floating (@latest) | `Unknown (check npm package metadata)` | [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) |
 | `rumdl` | npm via npx | `rumdl@0.1.62` | pinned (0.1.62) | `MIT` | [rvben/rumdl](https://github.com/rvben/rumdl) |
 | `shellcheck` | Homebrew / apt | `brew install shellcheck / apt-get install -y shellcheck` | floating (package-manager resolved) | `GPL-3.0-or-later` | [koalaman/shellcheck](https://github.com/koalaman/shellcheck) |
 | `nils-cli` | Homebrew formula | `brew install nils-cli` | floating (formula latest) | `MIT OR Apache-2.0` | [graysurf/nils-cli](https://github.com/graysurf/nils-cli) |
@@ -45,7 +44,6 @@ Not included:
 - `scripts/ci/markdownlint-audit.sh`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh`
-- `scripts/chrome-devtools-mcp.sh`
 - `scripts/lint.sh`
 - `.github/workflows/lint.yml`
 - `scripts/install-homebrew-nils-cli.sh`
@@ -58,7 +56,6 @@ Not included:
 - `scripts/ci/markdownlint-audit.sh` SHA256: `2f7a9fbabc675f3f7db2ce5930dd1d144f614d01b094d468e05619ae063189a1`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
-- `scripts/chrome-devtools-mcp.sh` SHA256: `cf92382116a78c6d1a3dc5a1ac5d9be8498bdb17187cf26b26dae098718f8cd8`
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`
 - `.github/workflows/lint.yml` SHA256: `5b7af21569334407afa7bfba538d9d9b1816e278e1a532d0ebb5262aa1af0774`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `60a844d5bc666bf54d9f91ead661cd76c98e432ecc6ec00e6f50fd2456fe0748`

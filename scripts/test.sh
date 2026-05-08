@@ -13,7 +13,7 @@ Setup:
 
 Examples:
   scripts/test.sh
-  scripts/test.sh -m script_regression -k chrome-devtools-mcp
+  scripts/test.sh -m script_regression -k plan-issue-adapter
 
 Defaults:
   - Ignores repo-local worktree mirrors (`worktrees/`, `.worktrees/`) to avoid

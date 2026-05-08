@@ -29,7 +29,7 @@
 4. Choose the most direct source for the classified target.
    Do not require `Context7 -> Web -> gh -> clone` when the earlier source types are not relevant.
 5. Use browser CLI wrappers for their specific strengths, not as the default web lookup path:
-   - `agent-browser`: CLI-driven exploratory probing, `snapshot -i`, and `@ref` interaction loops.
+   - `agent-browser`: optional legacy fallback for CLI-driven exploratory probing, `snapshot -i`, and `@ref` interaction loops.
    - `playwright`: deterministic replay, explicit step logs, and artifact-oriented verification.
 6. When jumping directly to a heavier source, especially a new local clone of
    an external repository, state why lighter-weight sources are insufficient.
@@ -46,7 +46,8 @@
 - Prefer `Context7` when the main question is "what does the official library/framework documentation say?" and coverage is current enough.
 - Prefer `gh` when GitHub-hosted facts are enough and a full checkout would add cost without improving confidence.
 - Prefer native/browser tooling for rendered pages before browser CLI wrappers.
-- Prefer `agent-browser` when the browser step specifically benefits from fast CLI `snapshot -i` and `@ref` interaction.
+- Prefer native Browser/Chrome tools before `agent-browser`; use `agent-browser` only when the browser step specifically benefits from a
+  CLI `snapshot -i` and `@ref` interaction loop.
 - Prefer `playwright` when browser findings need deterministic replay, explicit step logs, or artifact-oriented verification.
 - Prefer a local checkout when repository implementation details, broad text search, or command execution are central to the task.
 
@@ -54,7 +55,7 @@
 
 | Research situation | Preferred tool | Why |
 | --- | --- | --- |
-| Early-page exploration where a CLI loop is useful (`snapshot -i` + `@ref`) | `agent-browser` | Fast element discovery and lower overhead for ad hoc CLI probing |
+| Early-page exploration where native Browser/Chrome tools are unavailable and a CLI loop is useful (`snapshot -i` + `@ref`) | `agent-browser` | Legacy fallback for fast element discovery and ad hoc CLI probing |
 | Need to capture deterministic replay evidence (repeatable step flow with explicit command history) | `playwright` | Better fit for reproducible, verification-oriented browser checks |
 | One-off public content lookup where rendered interaction is not required | Native web/search source | Avoids unnecessary browser automation overhead |
 | Browser findings that will be handed off as verification artifacts for implementation follow-up | `playwright` | Aligns better with artifact-driven validation and follow-up checks |

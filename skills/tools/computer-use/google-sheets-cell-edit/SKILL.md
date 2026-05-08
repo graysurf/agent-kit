@@ -31,9 +31,7 @@ Outputs:
 
 Exit codes:
 
-- `0`: success, or help output from the entrypoint script
-- `1`: workflow or validation failure
-- `2`: usage error or missing required inputs
+- N/A (instruction-only Computer Use/browser workflow; no repo script entrypoint)
 
 Failure modes:
 
@@ -49,11 +47,9 @@ Failure modes:
 - It does not decide report content, Jira issue selection, or business wording.
 - Use sibling skills for broader Google Workspace tasks when they exist. This skill should remain focused on reliable cell-level editing mechanics.
 
-## Scripts (only entrypoints)
+## Entrypoints
 
-- `$AGENT_HOME/skills/tools/computer-use/google-sheets-cell-edit/scripts/google-sheets-cell-edit.sh`
-
-This entrypoint is help-only. The skill is instruction-first and does not own a standalone browser automation runtime.
+- None. This skill is instruction-first and relies on active Computer Use or browser automation tools instead of a standalone repo CLI.
 
 ## Workflow
 

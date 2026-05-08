@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **browser tooling**: downgrade `agent-browser` to an optional legacy CLI
+  fallback after native Browser/Chrome tooling.
+- **plan-issue**: remove repo-managed Codex runtime adapter installation while
+  retaining the native Codex role mapping guide.
+- **conversation skills**: rename `ask-questions-if-underspecified` to
+  `requirements-gap-scan` and make the explicit gap-scan behavior clearer.
+
+### Removed
+
+- **browser tooling**: remove the `chrome-devtools-mcp` launcher and
+  `chrome-devtools-debug-companion` skill in favor of native Chrome tooling.
+- **google-sheets-cell-edit**: remove the help-only script entrypoint and keep
+  the skill instruction-only.
+
 ## [2.4.2] - 2026-05-08
 
 ### Added

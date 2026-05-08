@@ -196,9 +196,10 @@ def test_plan_issue_delivery_runtime_adapter_docs_and_templates_exist() -> None:
     opencode_doc = (skill_root / "references" / "OPENCODE_ADAPTER.md").read_text(encoding="utf-8")
     role_mapping = (skill_root / "references" / "AGENT_ROLE_MAPPING.md").read_text(encoding="utf-8")
 
-    assert "~/.codex/config.toml" in codex_doc
+    assert "Codex no longer needs repo-managed `plan-issue-delivery` adapter files" in codex_doc
     assert "plan_issue_worker" in codex_doc
-    assert "No runtime adapter is the repo default" in codex_doc
+    assert "Repo-maintained Codex adapter templates were retired" in codex_doc
+    assert "supports only retained" in codex_doc
 
     assert ".claude/agents/" in claude_doc
     assert "plan-issue-orchestrator" in claude_doc
@@ -208,20 +209,16 @@ def test_plan_issue_delivery_runtime_adapter_docs_and_templates_exist() -> None:
     assert ".opencode/agents/" in opencode_doc
     assert "permission.task" in opencode_doc
 
-    assert "Codex" in role_mapping
+    assert "Codex native roles" in role_mapping
     assert "Claude Code" in role_mapping
     assert "OpenCode" in role_mapping
     assert "No runtime adapter is the repo default." in role_mapping
 
-    codex_config = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "config.toml"
-    codex_worker = skill_root / "assets" / "runtime-adapters" / "codex" / "home" / ".codex" / "agents" / "plan-issue-worker.toml"
     claude_template = skill_root / "assets" / "runtime-adapters" / "claude-code" / "project" / ".claude" / "agents" / "plan-issue-orchestrator.md"
     claude_impl = skill_root / "assets" / "runtime-adapters" / "claude-code" / "project" / ".claude" / "agents" / "plan-issue-implementation.md"
     opencode_config = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / "opencode.json"
     opencode_prompt = skill_root / "assets" / "runtime-adapters" / "opencode" / "project" / ".opencode" / "prompts" / "plan-issue-orchestrator.txt"
 
-    assert codex_config.exists()
-    assert codex_worker.exists()
     assert claude_template.exists()
     assert "Required Dispatch Bundle" in claude_template.read_text(encoding="utf-8")
     assert "create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh" in claude_impl.read_text(encoding="utf-8")

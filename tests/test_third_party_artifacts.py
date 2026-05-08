@@ -35,7 +35,6 @@ def _prepare_third_party_fixture(tmp_path: Path) -> Path:
         "scripts/ci/markdownlint-audit.sh",
         "skills/tools/browser/playwright/scripts/playwright_cli.sh",
         "skills/tools/browser/agent-browser/scripts/agent-browser.sh",
-        "scripts/chrome-devtools-mcp.sh",
         "scripts/lint.sh",
         "scripts/install-homebrew-nils-cli.sh",
         ".github/workflows/lint.yml",
@@ -73,7 +72,7 @@ def test_generate_third_party_artifacts_write_and_check(tmp_path: Path) -> None:
     notices_text = notices_file.read_text("utf-8")
 
     assert "# THIRD_PARTY_LICENSES" in licenses_text
-    assert "chrome-devtools-mcp" in licenses_text
+    assert "agent-browser" in licenses_text
     assert "# THIRD_PARTY_NOTICES" in notices_text
     assert "Component Notice References" in notices_text
 

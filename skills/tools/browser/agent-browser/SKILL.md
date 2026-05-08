@@ -1,9 +1,9 @@
 ---
 name: agent-browser
-description: Automate a real browser via agent-browser CLI using the wrapper script.
+description: Optional legacy fallback for agent-browser CLI automation when native Browser/Chrome tools are unavailable or insufficient.
 ---
 
-# Agent Browser CLI
+# Agent Browser CLI Legacy Fallback
 
 ## Contract
 
@@ -41,6 +41,8 @@ Failure modes:
 
 ## Scope
 
+- Optional legacy fallback only. Prefer native Browser/Chrome tools first; use this wrapper only when the CLI `snapshot -i` / `@ref`
+  loop is specifically needed or native tooling is unavailable.
 - Thin wrapper only: runtime command is `npx --yes --package agent-browser@latest agent-browser ...`.
 - This skill does not own website-specific automation logic or Playwright test architecture.
 
@@ -62,8 +64,9 @@ export ABCLI="$AGENT_HOME/skills/tools/browser/agent-browser/scripts/agent-brows
 
 ## Guardrails
 
+- Try native Browser/Chrome tools before using this CLI wrapper unless the task explicitly requires `agent-browser` semantics.
 - Before non-help commands, verify `npx` exists: `command -v npx >/dev/null 2>&1`.
-- Prefer the wrapper entrypoint instead of relying on a globally installed `agent-browser` binary.
+- When this fallback is used, prefer the wrapper entrypoint instead of relying on a globally installed `agent-browser` binary.
 - Run `snapshot -i` before using `@eN` refs and re-snapshot after navigation or major DOM changes.
 - For screenshots/PDF/downloads/state files, write outputs under `out/agent-browser/` for traceable artifacts.
 - Close sessions when done (`agent-browser close`) to avoid leaked processes.

@@ -73,11 +73,11 @@ Inputs:
 - Runtime role adapters:
   - canonical workflow roles are repo truth; runtime-specific named roles are optional adapters
   - reference mapping lives in `references/AGENT_ROLE_MAPPING.md`
-  - runtime examples such as Codex `[agents.<role>]`, Claude Code
-    `.claude/agents/`, and OpenCode `opencode.json` belong to adapters, not
-    repo contract
+  - Codex uses native child-agent roles and does not require a repo-managed adapter install
+  - runtime adapter examples such as Claude Code `.claude/agents/` and OpenCode
+    `opencode.json` belong to adapters, not repo contract
   - optional explicit installer/sync entrypoint:
-    `$AGENT_HOME/scripts/plan-issue-adapter <install|sync|status> --runtime <codex|claude|opencode> [--apply]`
+    `$AGENT_HOME/scripts/plan-issue-adapter <install|sync|status> --runtime <claude|opencode> [--apply]`
 - Dispatch role traceability:
   - prompt manifest rows must record `workflow_role`
   - `DISPATCH_RECORD_PATH` must record `workflow_role`
@@ -307,8 +307,8 @@ Failure modes:
 - Local rehearsal playbook (`plan-issue-local` and `plan-issue --dry-run`): `references/LOCAL_REHEARSAL.md`
 - Runtime layout and path rules: `references/RUNTIME_LAYOUT.md`
 - Workflow-role to runtime-adapter mapping: `references/AGENT_ROLE_MAPPING.md`
-- Runtime adapter installer/sync entrypoint: `$AGENT_HOME/scripts/plan-issue-adapter`
-- Codex adapter guide + templates: `references/CODEX_ADAPTER.md`
+- Runtime adapter installer/sync entrypoint for Claude Code/OpenCode: `$AGENT_HOME/scripts/plan-issue-adapter`
+- Codex native role guide (no adapter install required): `references/CODEX_ADAPTER.md`
 - Claude Code adapter guide + templates: `references/CLAUDE_CODE_ADAPTER.md`
 - OpenCode adapter guide + templates: `references/OPENCODE_ADAPTER.md`
 - Sprint PR body template (canonical schema for plan-issue lanes):

@@ -86,9 +86,9 @@ Failure modes:
 
 ### Policies (must-follow per request)
 
-1. If underspecified: ask must-have questions first
-   - Use: `skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`
-   - Ask 1–5 “Need to know” questions with explicit defaults (mode, selector, duration for recording, audio, output path/format, portal
+1. If underspecified enough to block a valid `screen-record` command: ask must-have questions first
+   - Follow the blocking-question format in `skills/workflows/conversation/requirements-gap-scan/SKILL.md`.
+   - Ask 1-5 "Need to know" questions with explicit defaults (mode, selector, duration for recording, audio, output path/format, portal
      usage on Wayland).
    - Do not run commands until the user answers or explicitly approves assumptions.
 

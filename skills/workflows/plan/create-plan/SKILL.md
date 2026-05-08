@@ -46,9 +46,9 @@ Failure modes:
 
 1. Decide whether you must ask questions first
 
-- If the request is underspecified, ask 1–5 “need to know” questions before writing the plan.
-- Follow the structure from `$AGENT_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md` (numbered questions, short
-  options, explicit defaults).
+- If the request is underspecified enough to block a useful plan, ask 1-5 "need to know" questions before writing the plan.
+- Follow the blocking-question structure from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`
+  (numbered questions, short options, explicit defaults).
 
 1. Research the repo just enough to plan well
 

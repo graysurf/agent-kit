@@ -47,8 +47,8 @@ Failure modes:
 
 1. Clarify (if needed)
 
-- If underspecified, ask 1–5 “need to know” questions first.
-- Use the format from `$AGENT_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
+- If underspecified enough to block a useful rigorous plan, ask 1-5 "need to know" questions first.
+- Use the blocking-question format from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`.
 
 1. Research
 

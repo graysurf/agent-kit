@@ -72,9 +72,9 @@ If not, stop and execute sequentially without subagents.
 
 ### Step 2 — Clarify must-haves (when needed)
 
-If objective/scope/constraints/done criteria are unclear, ask 1–5 “Need to know” questions before dispatch.
+If objective/scope/constraints/done criteria are unclear enough to make delegation risky, ask 1-5 "Need to know" questions before dispatch.
 
-Use the format from `$AGENT_HOME/skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`.
+Use the blocking-question format from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`.
 
 ### Step 3 — Decompose into task cards
 

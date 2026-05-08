@@ -133,7 +133,6 @@ rumdl_config = repo_root / ".rumdl.toml"
 markdown_script = repo_root / "scripts" / "ci" / "markdownlint-audit.sh"
 playwright_script = repo_root / "skills" / "tools" / "browser" / "playwright" / "scripts" / "playwright_cli.sh"
 agent_browser_script = repo_root / "skills" / "tools" / "browser" / "agent-browser" / "scripts" / "agent-browser.sh"
-chrome_devtools_script = repo_root / "scripts" / "chrome-devtools-mcp.sh"
 lint_script = repo_root / "scripts" / "lint.sh"
 install_script = repo_root / "scripts" / "install-homebrew-nils-cli.sh"
 workflow_lint = repo_root / ".github" / "workflows" / "lint.yml"
@@ -145,7 +144,6 @@ required_inputs = [
     markdown_script,
     playwright_script,
     agent_browser_script,
-    chrome_devtools_script,
     lint_script,
     install_script,
     workflow_lint,
@@ -201,12 +199,6 @@ npm_meta = {
         "license": "Apache-2.0",
         "upstream": "https://github.com/vercel-labs/agent-browser",
     },
-    "chrome-devtools-mcp": {
-        "component": "chrome-devtools-mcp",
-        "ecosystem": "npm via npx",
-        "license": "Unknown (check npm package metadata)",
-        "upstream": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
-    },
     "rumdl": {
         "component": "rumdl",
         "ecosystem": "npm via npx",
@@ -249,11 +241,6 @@ agent_browser_spec = extract_once(
     r"--package\s+(agent-browser@[^\s\)\"]+)",
     "agent-browser spec",
 )
-chrome_devtools_spec = extract_once(
-    chrome_devtools_script,
-    r"cmd=\(npx -y (chrome-devtools-mcp@[^\s\)]+)\)",
-    "chrome-devtools-mcp spec",
-)
 rumdl_spec = extract_once(
     markdown_script,
     r"npx --yes (rumdl@[0-9A-Za-z._-]+)\s+check",
@@ -263,7 +250,6 @@ rumdl_spec = extract_once(
 npm_specs = [
     ("@playwright/cli", playwright_spec, "skills/tools/browser/playwright/scripts/playwright_cli.sh"),
     ("agent-browser", agent_browser_spec, "skills/tools/browser/agent-browser/scripts/agent-browser.sh"),
-    ("chrome-devtools-mcp", chrome_devtools_spec, "scripts/chrome-devtools-mcp.sh"),
     ("rumdl", rumdl_spec, "scripts/ci/markdownlint-audit.sh"),
 ]
 
@@ -311,7 +297,6 @@ source_paths = [
     "scripts/ci/markdownlint-audit.sh",
     "skills/tools/browser/playwright/scripts/playwright_cli.sh",
     "skills/tools/browser/agent-browser/scripts/agent-browser.sh",
-    "scripts/chrome-devtools-mcp.sh",
     "scripts/lint.sh",
     ".github/workflows/lint.yml",
     "scripts/install-homebrew-nils-cli.sh",

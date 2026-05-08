@@ -2,18 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from skills._shared.python.skill_testing import assert_entrypoints_exist, assert_skill_contract
+from skills._shared.python.skill_testing import assert_skill_contract
 from skills._shared.python.skill_testing.assertions import repo_root
 
 
 def test_tools_computer_use_google_sheets_cell_edit_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     assert_skill_contract(skill_root)
-
-
-def test_tools_computer_use_google_sheets_cell_edit_entrypoints_exist() -> None:
-    skill_root = Path(__file__).resolve().parents[1]
-    assert_entrypoints_exist(skill_root, ["scripts/google-sheets-cell-edit.sh"])
 
 
 def test_tools_computer_use_google_sheets_cell_edit_readme_catalog_entry_present() -> None:

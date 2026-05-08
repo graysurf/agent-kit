@@ -29,7 +29,6 @@ scripts/
 │   └── third-party-artifacts-audit.sh
 ├── check.sh
 ├── check_plan_issue_worktree_cleanup.sh
-├── chrome-devtools-mcp.sh
 ├── fix-shell-style.zsh
 ├── fix-typeset-empty-string-quotes.zsh
 ├── fix-zsh-typeset-initializers.zsh
@@ -106,9 +105,7 @@ scripts/
   - Checks leftover `plan-issue-delivery` worktree directories.
 - `scripts/plan-issue-adapter`
   - Explicit installer/sync/status entrypoint for optional `plan-issue-delivery`
-    runtime adapters (`codex|claude|opencode`).
-- `scripts/chrome-devtools-mcp.sh`
-  - Launcher for chrome-devtools MCP server with repo env handling.
+    runtime adapters (`claude|opencode`).
 - `scripts/project-resolve`
   - Bundled deterministic project path resolver.
 

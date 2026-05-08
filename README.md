@@ -101,7 +101,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| Conversation | [ask-questions-if-underspecified](./skills/workflows/conversation/ask-questions-if-underspecified/) | Clarify requirements with minimal must-have questions before starting work when a request is underspecified                               |
+| Conversation | [requirements-gap-scan](./skills/workflows/conversation/requirements-gap-scan/) | Explicit requirements gap scan and blocking-clarification question format with suggested defaults                                         |
 | Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/)                             | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate                                              |
 | Conversation | [handoff-session-prompt](./skills/workflows/conversation/handoff-session-prompt/) | Generate a generic next-session initialization prompt from the user request, conversation context, and any user-specified reference files without embedding project-specific details. |
 | Planning     | [create-plan](./skills/workflows/plan/create-plan/)                                                 | Create a comprehensive, phased implementation plan and save it under docs/plans/                                                          |
@@ -125,9 +125,8 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | --- | --- | --- |
 | Agent Docs       | [agent-doc-init](./skills/tools/agent-doc-init/)                                           | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries         |
 | App Ops          | [macos-agent-ops](./skills/tools/macos-agent-ops/)                                         | Run repeatable macOS app checks/scenarios with `macos-agent`                                                    |
-| Browser          | [chrome-devtools-debug-companion](./skills/tools/browser/chrome-devtools-debug-companion/) | Diagnose browser-level issues via chrome-devtools MCP with evidence-driven root-cause analysis                  |
 | Browser          | [playwright](./skills/tools/browser/playwright/)                                           | Automate a real browser via Playwright CLI using the wrapper script                                             |
-| Browser          | [agent-browser](./skills/tools/browser/agent-browser/)                                        | Automate a real browser via agent-browser CLI using the wrapper script                                          |
+| Browser          | [agent-browser](./skills/tools/browser/agent-browser/)                                     | Optional legacy fallback for agent-browser CLI automation when native Browser/Chrome tools are unavailable      |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/)                      | Audit skill layout and validate SKILL.md contracts                                                              |
 | Skill Management | [create-skill](./skills/tools/skill-management/create-skill/)                              | Scaffold a new skill directory that passes skill-governance audit and contract validation                       |
 | Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/)              | Scaffold a project-local skill under `<project>/.agents/skills/` with contract/layout validation                |
