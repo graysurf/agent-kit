@@ -8,10 +8,10 @@
 
 ## Prerequisites
 
-- Python 3 + venv
-  - `python3 -m venv .venv`
-  - `.venv/bin/python -m pip install -r requirements-dev.txt`
-  - `requirements-dev.txt` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright`
+- Python 3.11 + uv
+  - `uv python install 3.11`
+  - `uv sync --locked`
+  - `pyproject.toml` includes `pytest`, `semgrep`, `ruff`, `mypy`, and `pyright` in the dev dependency group
 - System tools
   - `git` (required by lint scripts for tracked-file discovery)
   - `node`/`npx` (required by `rumdl` markdown lint)
@@ -20,8 +20,8 @@
 
 ## Quick Setup (Repository Root)
 
-1. `python3 -m venv .venv`
-2. `.venv/bin/python -m pip install -r requirements-dev.txt`
+1. `uv python install 3.11`
+2. `uv sync --locked`
 3. `export AGENT_HOME="$(pwd)"`
 4. `scripts/check.sh --all`
 
@@ -50,7 +50,7 @@ Use these commands during implementation:
 - `zsh -f scripts/audit-env-bools.zsh --check`
 - `bash scripts/ci/docs-freshness-audit.sh --check`
 - `scripts/semgrep-scan.sh`
-- `scripts/test.sh` (full pytest; prefers `.venv/bin/python`)
+- `scripts/test.sh` (full pytest via the uv-managed project environment)
 
 ## Required Before Commit
 

@@ -23,7 +23,7 @@ Usage:
 Runs repo-local checks (shell/python lint, markdown lint, skill contracts, env-bools, optional Semgrep, pytest).
 
 Setup:
-  .venv/bin/pip install -r requirements-dev.txt
+  uv sync --locked
 
 Examples:
   scripts/check.sh all
@@ -193,4 +193,3 @@ check_main() {
   check_prepare_runtime_env || return $?
   check_run_selected
 }
-

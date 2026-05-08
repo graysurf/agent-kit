@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **python tooling**: migrate local and CI development dependencies from
+  `requirements-dev.txt`/manual venv setup to uv-managed `pyproject.toml` and
+  `uv.lock`, with validation scripts invoking tools through `uv run --locked`.
+
 ## [2.4.3] - 2026-05-09
 
 ### Changed

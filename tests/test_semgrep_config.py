@@ -16,7 +16,7 @@ def _semgrep_bin() -> Path:
         return semgrep_bin
 
     semgrep_on_path = which("semgrep")
-    assert semgrep_on_path, "semgrep not found; install dev dependencies from requirements-dev.txt"
+    assert semgrep_on_path, "semgrep not found; install dev dependencies with uv sync --locked"
     return Path(semgrep_on_path)
 
 

@@ -5,13 +5,13 @@
 1. Install dev deps:
 
 ```bash
-.venv/bin/pip install -r requirements-dev.txt
+uv sync --locked
 ```
 
 1. Run:
 
 ```bash
-.venv/bin/python -m pytest
+uv run pytest
 ```
 
 Or:
@@ -124,7 +124,7 @@ Example:
 ## Debugging failures
 
 - Run a single script case:
-  - `.venv/bin/python -m pytest -k plan-issue-adapter -m script_regression`
+  - `uv run pytest -k plan-issue-adapter -m script_regression`
 - Inspect evidence:
   - `out/tests/script-regression/logs/<script>.stderr.txt`
   - `out/tests/script-regression/logs/<script>.stdout.txt`

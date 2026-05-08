@@ -1,0 +1,17 @@
+[project]
+name = "agent-kit"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=7.0",
+  "semgrep==1.148.0",
+  "mypy>=1.0",
+  "ruff>=0.1.0",
+  "pyright>=1.1.0",
+]
+
+[tool.uv]
+package = false

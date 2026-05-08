@@ -121,12 +121,15 @@ jobs:
             brew install zsh
           fi
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
         with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements-dev.txt
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install Python
+        run: |
+          uv python install 3.11
 
       - name: Install image processing deps (ImageMagick + WebP + JPEG tools)
         run: |
@@ -134,8 +137,7 @@ jobs:
 
       - name: Install pytest deps
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt
+          uv sync --locked --dev
 
       # BEGIN GENERATED: check-phase-map pytest
       - name: Python lint + typecheck (ruff + mypy + pyright)

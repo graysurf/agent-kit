@@ -3,22 +3,19 @@
 check_semgrep_summary() {
   local json_path="${1:-}"
   local limit="${CHECK_SEMGREP_SUMMARY_LIMIT:-5}"
-  local repo_root="${CHECK_REPO_ROOT:-}"
-  local python_bin="${repo_root}/.venv/bin/python"
 
   if [[ -z "$json_path" ]]; then
     return 0
   fi
 
-  if [[ ! -x "$python_bin" ]]; then
-    python_bin="$(command -v python3 || true)"
-  fi
-  if [[ -z "$python_bin" ]]; then
-    echo "warning: python3 not found; skipping semgrep summary" >&2
+  local uv_bin=''
+  uv_bin="$(command -v uv || true)"
+  if [[ -z "$uv_bin" ]]; then
+    echo "warning: uv not found; skipping semgrep summary" >&2
     return 0
   fi
 
-  "$python_bin" - "$json_path" "$limit" <<'PY'
+  "$uv_bin" run --locked python - "$json_path" "$limit" <<'PY'
 import json
 import sys
 

@@ -30,7 +30,8 @@ def _prepare_third_party_fixture(tmp_path: Path) -> Path:
     required_files = [
         "scripts/generate-third-party-artifacts.sh",
         "scripts/ci/third-party-artifacts-audit.sh",
-        "requirements-dev.txt",
+        "pyproject.toml",
+        "uv.lock",
         ".rumdl.toml",
         "scripts/ci/markdownlint-audit.sh",
         "skills/tools/browser/playwright/scripts/playwright_cli.sh",

@@ -5,7 +5,7 @@
 1. Install dev deps:
 
 ```bash
-.venv/bin/pip install -r requirements-dev.txt
+uv sync --locked
 ```
 
 1. Run smoke:

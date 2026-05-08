@@ -14,7 +14,7 @@ Subcommands:
   python:        run python checks only (ruff + mypy + pyright)
 
 Setup:
-  .venv/bin/pip install -r requirements-dev.txt
+  uv sync --locked
 
 Examples:
   scripts/lint.sh

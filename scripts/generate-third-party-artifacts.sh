@@ -72,6 +72,7 @@ from __future__ import annotations
 import hashlib
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 repo_root = Path(sys.argv[1])
@@ -83,12 +84,20 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def parse_requirements(path: Path) -> list[str]:
+def parse_dev_dependencies(path: Path) -> list[str]:
+    data = tomllib.loads(path.read_text("utf-8"))
+    dependency_groups = data.get("dependency-groups")
+    if not isinstance(dependency_groups, dict):
+        raise SystemExit(f"missing [dependency-groups] in {path}")
+    dev_dependencies = dependency_groups.get("dev")
+    if not isinstance(dev_dependencies, list):
+        raise SystemExit(f"missing [dependency-groups].dev in {path}")
+
     specs: list[str] = []
-    for raw in path.read_text("utf-8").splitlines():
-        line = raw.split("#", 1)[0].strip()
-        if line:
-            specs.append(line)
+    for item in dev_dependencies:
+        if not isinstance(item, str):
+            raise SystemExit(f"unsupported non-string dev dependency in {path}: {item!r}")
+        specs.append(item)
     return specs
 
 
@@ -128,7 +137,8 @@ def upstream_label(url: str) -> str:
     return url
 
 
-requirements_path = repo_root / "requirements-dev.txt"
+pyproject_path = repo_root / "pyproject.toml"
+uv_lock_path = repo_root / "uv.lock"
 rumdl_config = repo_root / ".rumdl.toml"
 markdown_script = repo_root / "scripts" / "ci" / "markdownlint-audit.sh"
 playwright_script = repo_root / "skills" / "tools" / "browser" / "playwright" / "scripts" / "playwright_cli.sh"
@@ -139,7 +149,8 @@ workflow_lint = repo_root / ".github" / "workflows" / "lint.yml"
 dockerfile = repo_root / "Dockerfile"
 
 required_inputs = [
-    requirements_path,
+    pyproject_path,
+    uv_lock_path,
     rumdl_config,
     markdown_script,
     playwright_script,
@@ -184,6 +195,12 @@ python_meta = {
         "license": "MIT",
         "upstream": "https://github.com/RobertCraigie/pyright-python",
     },
+    "uv": {
+        "component": "uv",
+        "ecosystem": "GitHub Action / Homebrew formula",
+        "license": "MIT OR Apache-2.0",
+        "upstream": "https://github.com/astral-sh/uv",
+    },
 }
 
 npm_meta = {
@@ -209,27 +226,40 @@ npm_meta = {
 
 rows: list[dict[str, str]] = []
 
-requirement_specs = parse_requirements(requirements_path)
-for requirement_spec in requirement_specs:
-    requirement_name = parse_requirement_name(requirement_spec)
-    metadata = python_meta.get(requirement_name)
+dependency_specs = parse_dev_dependencies(pyproject_path)
+for dependency_spec in dependency_specs:
+    dependency_name = parse_requirement_name(dependency_spec)
+    metadata = python_meta.get(dependency_name)
     if metadata is None:
         raise SystemExit(
-            "unmapped Python requirement in requirements-dev.txt: "
-            f"{requirement_spec} (name={requirement_name})"
+            "unmapped Python dev dependency in pyproject.toml: "
+            f"{dependency_spec} (name={dependency_name})"
         )
 
     rows.append(
         {
             "component": metadata["component"],
             "ecosystem": metadata["ecosystem"],
-            "declared_spec": requirement_spec,
-            "version_policy": version_policy_from_requirement(requirement_spec),
+            "declared_spec": dependency_spec,
+            "version_policy": version_policy_from_requirement(dependency_spec),
             "license": metadata["license"],
             "upstream": metadata["upstream"],
-            "source": "requirements-dev.txt",
+            "source": "pyproject.toml [dependency-groups].dev",
         }
     )
+
+uv_meta = python_meta["uv"]
+rows.append(
+    {
+        "component": uv_meta["component"],
+        "ecosystem": uv_meta["ecosystem"],
+        "declared_spec": "astral-sh/setup-uv@v8 / brew install uv",
+        "version_policy": "floating (action major tag and formula latest)",
+        "license": uv_meta["license"],
+        "upstream": uv_meta["upstream"],
+        "source": ".github/workflows/lint.yml, Dockerfile",
+    }
+)
 
 playwright_spec = extract_once(
     playwright_script,
@@ -292,7 +322,8 @@ rows.append(
 )
 
 source_paths = [
-    "requirements-dev.txt",
+    "pyproject.toml",
+    "uv.lock",
     ".rumdl.toml",
     "scripts/ci/markdownlint-audit.sh",
     "skills/tools/browser/playwright/scripts/playwright_cli.sh",
@@ -314,9 +345,9 @@ licenses_lines: list[str] = [
     "",
     "Included:",
     "",
-    "- Python dependencies declared in `requirements-dev.txt`.",
+    "- Python development dependencies declared in `pyproject.toml`.",
     "- npm packages invoked via `npx` from repository scripts.",
-    "- Required tooling explicitly installed by repo checks/CI (`shellcheck`, `nils-cli`).",
+    "- Required tooling explicitly installed by repo checks/CI (`uv`, `shellcheck`, `nils-cli`).",
     "",
     "Not included:",
     "",

@@ -63,12 +63,9 @@ cd "$repo_root"
 agent_home="${AGENT_HOME:-$repo_root}"
 export AGENT_HOME="$agent_home"
 
-semgrep_bin="${repo_root}/.venv/bin/semgrep"
-if [[ ! -x "$semgrep_bin" ]]; then
-  semgrep_bin="$(command -v semgrep || true)"
-fi
-if [[ -z "$semgrep_bin" ]]; then
-  echo "error: semgrep not found; install dev dependencies from requirements-dev.txt" >&2
+uv_bin="$(command -v uv || true)"
+if [[ -z "$uv_bin" ]]; then
+  echo "error: uv not found; install uv and run: uv sync --locked" >&2
   exit 1
 fi
 
@@ -132,7 +129,7 @@ out_json="$out_dir/semgrep-$(basename "$repo_root")-$(date +%Y%m%d-%H%M%S).json"
 
 set +e
 if ((${#pass_args[@]})); then
-  "$semgrep_bin" scan \
+  "$uv_bin" run --locked semgrep scan \
     "${configs[@]}" \
     --json \
     --metrics=off \
@@ -140,7 +137,7 @@ if ((${#pass_args[@]})); then
     "${pass_args[@]}" \
     "$target" >"$out_json"
 else
-  "$semgrep_bin" scan \
+  "$uv_bin" run --locked semgrep scan \
     "${configs[@]}" \
     --json \
     --metrics=off \

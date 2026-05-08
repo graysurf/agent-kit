@@ -6,10 +6,10 @@ usage() {
 Usage:
   scripts/test.sh [pytest args...]
 
-Runs the local pytest suite using the repo venv when available.
+Runs the local pytest suite using the uv-managed project environment.
 
 Setup:
-  .venv/bin/pip install -r requirements-dev.txt
+  uv sync --locked
 
 Examples:
   scripts/test.sh
@@ -28,19 +28,11 @@ if [[ "${1-}" == "-h" || "${1-}" == "--help" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+cd "$repo_root"
 
-python="${repo_root}/.venv/bin/python"
-if [[ ! -x "$python" ]]; then
-  python="$(command -v python3 || true)"
-fi
-if [[ -z "$python" ]]; then
-  echo "error: python not found; create a venv at .venv/ and install requirements-dev.txt" >&2
-  exit 1
-fi
-
-if ! "$python" -c "import pytest" >/dev/null 2>&1; then
-  echo "error: pytest not installed for: $python" >&2
-  echo "hint: run: .venv/bin/pip install -r requirements-dev.txt" >&2
+uv_bin="$(command -v uv || true)"
+if [[ -z "$uv_bin" ]]; then
+  echo "error: uv not found; install uv and run: uv sync --locked" >&2
   exit 1
 fi
 
@@ -52,7 +44,7 @@ if [[ "${CODEX_PYTEST_INCLUDE_WORKTREES:-}" != "1" ]]; then
 fi
 
 set +e
-"$python" -m pytest "${ignore_args[@]}" "$@"
+"$uv_bin" run --locked pytest "${ignore_args[@]}" "$@"
 status=$?
 set -e
 

@@ -10,48 +10,19 @@ lint_run_python() {
   fi
 
   local rc=0
-  local python_bin="${repo_root}/.venv/bin/python"
-  if [[ ! -x "$python_bin" ]]; then
-    python_bin="$(command -v python3 || true)"
-  fi
-  if [[ -z "$python_bin" ]]; then
-    echo "error: python3 not found; create a venv at .venv/ and install requirements-dev.txt" >&2
+  local uv_bin=''
+  uv_bin="$(command -v uv || true)"
+  if [[ -z "$uv_bin" ]]; then
+    echo "error: uv not found; install uv and run: uv sync --locked" >&2
     return 1
   fi
 
-  local ruff_bin="${repo_root}/.venv/bin/ruff"
-  if [[ ! -x "$ruff_bin" ]]; then
-    ruff_bin="$(command -v ruff || true)"
-  fi
-  if [[ -z "$ruff_bin" ]]; then
-    echo "error: ruff not found" >&2
-    echo "hint: run: .venv/bin/pip install -r requirements-dev.txt" >&2
-    return 1
-  fi
-
-  local mypy_bin="${repo_root}/.venv/bin/mypy"
-  if [[ ! -x "$mypy_bin" ]]; then
-    mypy_bin="$(command -v mypy || true)"
-  fi
-  if [[ -z "$mypy_bin" ]]; then
-    echo "error: mypy not found" >&2
-    echo "hint: run: .venv/bin/pip install -r requirements-dev.txt" >&2
-    return 1
-  fi
-
-  local pyright_bin="${repo_root}/.venv/bin/pyright"
-  if [[ ! -x "$pyright_bin" ]]; then
-    pyright_bin="$(command -v pyright || true)"
-  fi
-  if [[ -z "$pyright_bin" ]]; then
-    echo "error: pyright not found" >&2
-    echo "hint: run: .venv/bin/pip install -r requirements-dev.txt" >&2
-    return 1
-  fi
+  local python_bin=''
+  python_bin="$("$uv_bin" run --locked python -c 'import sys; print(sys.executable)')" || return 1
 
   echo "lint: ruff check" >&2
   set +e
-  "$ruff_bin" check --output-format concise tests
+  "$uv_bin" run --locked ruff check --output-format concise tests
   local ruff_rc=$?
   set -e
   if [[ "$ruff_rc" -ne 0 ]]; then
@@ -62,9 +33,9 @@ lint_run_python() {
   local mypy_cfg="${repo_root}/mypy.ini"
   set +e
   if [[ -f "$mypy_cfg" ]]; then
-    "$mypy_bin" --no-color-output --config-file "$mypy_cfg" tests
+    "$uv_bin" run --locked mypy --no-color-output --config-file "$mypy_cfg" tests
   else
-    "$mypy_bin" --no-color-output tests
+    "$uv_bin" run --locked mypy --no-color-output tests
   fi
   local mypy_rc=$?
   set -e
@@ -76,9 +47,9 @@ lint_run_python() {
   local pyright_cfg="${repo_root}/pyrightconfig.json"
   set +e
   if [[ -f "$pyright_cfg" ]]; then
-    "$pyright_bin" --warnings --pythonpath "$python_bin" --project "$pyright_cfg"
+    "$uv_bin" run --locked pyright --warnings --pythonpath "$python_bin" --project "$pyright_cfg"
   else
-    "$pyright_bin" --warnings --pythonpath "$python_bin" tests
+    "$uv_bin" run --locked pyright --warnings --pythonpath "$python_bin" tests
   fi
   local pyright_rc=$?
   set -e
@@ -88,7 +59,7 @@ lint_run_python() {
 
   echo "lint: python -c compile()" >&2
   set +e
-  PYTHONDONTWRITEBYTECODE=1 "$python_bin" - <<'PY'
+  PYTHONDONTWRITEBYTECODE=1 "$uv_bin" run --locked python - <<'PY'
 import subprocess
 import sys
 from pathlib import Path

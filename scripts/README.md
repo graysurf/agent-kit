@@ -63,7 +63,7 @@ scripts/
 - `scripts/lint.sh`
   - Shell + Python lint/type/syntax checks via subcommand dispatch (`all|shell|python`).
 - `scripts/test.sh`
-  - Pytest runner (uses `.venv` python when available).
+  - Pytest runner using the uv-managed project environment.
 - `scripts/semgrep-scan.sh`
   - Semgrep scan with local rules and curated profiles.
 

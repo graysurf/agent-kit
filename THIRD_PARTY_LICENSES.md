@@ -8,9 +8,9 @@ This file lists third-party components directly referenced by this repository fo
 
 Included:
 
-- Python dependencies declared in `requirements-dev.txt`.
+- Python development dependencies declared in `pyproject.toml`.
 - npm packages invoked via `npx` from repository scripts.
-- Required tooling explicitly installed by repo checks/CI (`shellcheck`, `nils-cli`).
+- Required tooling explicitly installed by repo checks/CI (`uv`, `shellcheck`, `nils-cli`).
 
 Not included:
 
@@ -31,6 +31,7 @@ Not included:
 | `mypy` | PyPI | `mypy>=1.0` | floating (mypy>=1.0) | `MIT` | [python/mypy](https://github.com/python/mypy) |
 | `ruff` | PyPI | `ruff>=0.1.0` | floating (ruff>=0.1.0) | `MIT` | [astral-sh/ruff](https://github.com/astral-sh/ruff) |
 | `pyright (Python wrapper)` | PyPI | `pyright>=1.1.0` | floating (pyright>=1.1.0) | `MIT` | [RobertCraigie/pyright-python](https://github.com/RobertCraigie/pyright-python) |
+| `uv` | GitHub Action / Homebrew formula | `astral-sh/setup-uv@v8 / brew install uv` | floating (action major tag and formula latest) | `MIT OR Apache-2.0` | [astral-sh/uv](https://github.com/astral-sh/uv) |
 | `@playwright/cli` | npm via npx --package | `@playwright/cli@latest` | floating (@latest) | `Apache-2.0` | [microsoft/playwright-cli](https://github.com/microsoft/playwright-cli) |
 | `agent-browser` | npm via npx --package | `agent-browser@latest` | floating (@latest) | `Apache-2.0` | [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser) |
 | `rumdl` | npm via npx | `rumdl@0.1.62` | pinned (0.1.62) | `MIT` | [rvben/rumdl](https://github.com/rvben/rumdl) |
@@ -39,7 +40,8 @@ Not included:
 
 ## Declaration Sources
 
-- `requirements-dev.txt`
+- `pyproject.toml`
+- `uv.lock`
 - `.rumdl.toml`
 - `scripts/ci/markdownlint-audit.sh`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh`
@@ -51,12 +53,13 @@ Not included:
 
 ## Deterministic Input Fingerprints
 
-- `requirements-dev.txt` SHA256: `3ec1558abe1f337577861f60fd6824af6ad1b68436187819dedcd184b3548f2e`
+- `pyproject.toml` SHA256: `c8995d3b200c0b5d883507d998f4bea580aa4f8724616d1e0814b5eae519353c`
+- `uv.lock` SHA256: `45e0d855107d21d51a75c6a9f6e794d7429578b7ae6328dd6a0f7d002c66681e`
 - `.rumdl.toml` SHA256: `31667aa68116c0811cc8afcfa726ab5b6da25deb47cf737e54c51a7910a9cf5d`
 - `scripts/ci/markdownlint-audit.sh` SHA256: `2f7a9fbabc675f3f7db2ce5930dd1d144f614d01b094d468e05619ae063189a1`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`
-- `.github/workflows/lint.yml` SHA256: `5b7af21569334407afa7bfba538d9d9b1816e278e1a532d0ebb5262aa1af0774`
+- `.github/workflows/lint.yml` SHA256: `841dce3aaf6ae0771e34e43852783005b9dad90c159c147e09a254e684252513`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `60a844d5bc666bf54d9f91ead661cd76c98e432ecc6ec00e6f50fd2456fe0748`
-- `Dockerfile` SHA256: `e6a9092fcaf4747e11da0e7150a9761af3fc8cbc6b3009f1949577cdc6bd1686`
+- `Dockerfile` SHA256: `a8428c82a33ec79f21cc2aba757349c9b6bf3377eb2dd513601314787e6294cd`
