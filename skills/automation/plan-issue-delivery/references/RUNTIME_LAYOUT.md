@@ -44,13 +44,14 @@ This document defines the canonical runtime path layout for `plan-issue-delivery
     `execution_mode`, `pr_group`, `base_branch`, `workflow_role`, optional `runtime_name`, optional `runtime_role`,
     optional `runtime_role_fallback_reason`
 
-## Static Prompt Sources
+## Skill-Local Static Prompt Sources
 
 `plan-issue` 0.8.0 does not emit main/subagent init snapshot files. These
-prompts remain static agent-kit sources used by humans or runtime adapters:
+prompts remain static `plan-issue-delivery` sources used by humans or runtime
+adapters:
 
-- `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
-- `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+- `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md`
+- `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md`
 
 ## Worktree Layout (Assigned Paths)
 

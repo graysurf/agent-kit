@@ -30,7 +30,7 @@
 
 ## Evidence Links
 
-- Diff refs: skills/automation/plan-issue-delivery/SKILL.md, prompts/plan-issue-delivery-main-agent-init.md
+- Diff refs: skills/automation/plan-issue-delivery/SKILL.md, skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md
 - Validation refs: `scripts/check.sh --all` + `pytest ...issue_pr_review...`
 - CI refs: Analyze (actions) pass, pytest pass
 - Residual risk: low; behavior change is constrained to review-evidence gate enforcement

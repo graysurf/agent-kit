@@ -6,6 +6,16 @@ from pathlib import Path
 from skills._shared.python.skill_testing import assert_skill_contract
 
 
+MAIN_AGENT_PROMPT_REL = Path("references") / "prompts" / "main-agent-init.md"
+SUBAGENT_PROMPT_REL = Path("references") / "prompts" / "subagent-init.md"
+MAIN_AGENT_PROMPT_ENV = (
+    "$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md"
+)
+SUBAGENT_PROMPT_ENV = (
+    "$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md"
+)
+
+
 def test_automation_plan_issue_delivery_contract() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     assert_skill_contract(skill_root)
@@ -86,7 +96,10 @@ def test_plan_issue_delivery_skill_defines_runtime_workspace_policy() -> None:
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
     assert "$AGENT_HOME/out/plan-issue-delivery" in text
     assert "Runtime Workspace Policy (Mandatory)" in text
-    assert "Static main-agent prompt source" in text
+    assert "Skill-local static main-agent prompt source" in text
+    assert "Skill-local static subagent companion prompt source" in text
+    assert MAIN_AGENT_PROMPT_ENV in text
+    assert SUBAGENT_PROMPT_ENV in text
     assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" not in text
     assert "REVIEW_EVIDENCE_TEMPLATE_PATH" in text
     assert "REVIEW_EVIDENCE_PATH" in text
@@ -141,10 +154,9 @@ def test_plan_issue_delivery_skill_uses_shared_post_review_outcomes() -> None:
 
 def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None:
     skill_root = Path(__file__).resolve().parents[1]
-    repo_root = skill_root.parents[2]
 
-    subagent_prompt = (repo_root / "prompts" / "plan-issue-delivery-subagent-init.md").read_text(encoding="utf-8")
-    main_agent_prompt = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
+    subagent_prompt = (skill_root / SUBAGENT_PROMPT_REL).read_text(encoding="utf-8")
+    main_agent_prompt = (skill_root / MAIN_AGENT_PROMPT_REL).read_text(encoding="utf-8")
     role_mapping = (skill_root / "references" / "AGENT_ROLE_MAPPING.md").read_text(encoding="utf-8")
 
     assert "PLAN_SNAPSHOT_PATH" in subagent_prompt
@@ -173,8 +185,8 @@ def test_plan_issue_delivery_prompts_align_runtime_and_dispatch_bundle() -> None
     assert "`gh pr merge --merge`" in main_agent_prompt
     assert "sync local `PLAN_BRANCH`" in main_agent_prompt
     assert "git pull --ff-only" in main_agent_prompt
-    assert "$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md" in main_agent_prompt
-    assert "$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md" in main_agent_prompt
+    assert MAIN_AGENT_PROMPT_ENV in main_agent_prompt
+    assert SUBAGENT_PROMPT_ENV in main_agent_prompt
     assert "$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md" in main_agent_prompt
     assert "$AGENT_HOME/out/plan-issue-delivery" in main_agent_prompt
     assert "$AGENT_HOME/skills/workflows/issue/_shared/references/TASK_LANE_CONTINUITY.md" in subagent_prompt
@@ -229,7 +241,8 @@ def test_plan_issue_delivery_runtime_adapter_docs_and_templates_exist() -> None:
 def test_plan_issue_delivery_runtime_layout_tracks_plan_issue_0_8_artifacts() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "references" / "RUNTIME_LAYOUT.md").read_text(encoding="utf-8")
-    assert "plan-issue-delivery-main-agent-init.md" in text
+    assert "references/prompts/main-agent-init.md" in text
+    assert "references/prompts/subagent-init.md" in text
     assert "does not emit main/subagent init snapshot files" in text
     assert "MAIN_AGENT_INIT_SNAPSHOT_PATH" not in text
     assert "SUBAGENT_INIT_SNAPSHOT_PATH" not in text
@@ -364,8 +377,8 @@ def test_sprint_pr_template_named_in_subagent_init_prompt() -> None:
     """Implementation lanes need the template path in their init bundle so
     the PR they open passes the validator on the first attempt.
     """
-    repo_root = Path(__file__).resolve().parents[4]
-    text = (repo_root / "prompts" / "plan-issue-delivery-subagent-init.md").read_text(encoding="utf-8")
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / SUBAGENT_PROMPT_REL).read_text(encoding="utf-8")
     assert (
         "$AGENT_HOME/skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
         in text
@@ -405,8 +418,8 @@ def test_close_plan_final_mile_reference_exists_and_lists_five_artifacts() -> No
 
 
 def test_close_plan_final_mile_linked_from_main_agent_init_prompt() -> None:
-    repo_root = Path(__file__).resolve().parents[4]
-    text = (repo_root / "prompts" / "plan-issue-delivery-main-agent-init.md").read_text(encoding="utf-8")
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / MAIN_AGENT_PROMPT_REL).read_text(encoding="utf-8")
     assert (
         "$AGENT_HOME/skills/automation/plan-issue-delivery/references/CLOSE_PLAN_FINAL_MILE.md"
         in text

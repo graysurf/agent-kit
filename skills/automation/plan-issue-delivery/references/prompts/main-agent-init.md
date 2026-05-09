@@ -33,8 +33,10 @@ Execution context (fill before run)
   `plan-issue` writes to `${XDG_STATE_HOME:-$HOME/.local/state}/plan-issue/...`
   and breaks the runtime workspace contract below.
 - Runtime workspace root: $AGENT_HOME/out/plan-issue-delivery
-- Main-agent init source path: $AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md
-- Subagent companion prompt source path: $AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md
+- Main-agent init source path:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md`
+- Subagent companion prompt source path:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md`
 - Review evidence template path:
   `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`
 - Sprint PR body template path (canonical schema for plan-issue sprint PRs):
@@ -120,7 +122,9 @@ Mandatory subagent launch rule
 - If a named-role runtime falls back to a generic child agent, record
   `runtime_role=generic` plus `runtime_role_fallback_reason` before spawning
   the child agent.
-- Attach `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md` as static companion context when the active runtime needs the shared
+- Attach
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md`
+  as static companion context when the active runtime needs the shared
   subagent protocol in addition to `TASK_PROMPT_PATH`.
 - Always attach `PLAN_SNAPSHOT_PATH` from issue runtime workspace as fallback plan context.
 - Always attach `DISPATCH_RECORD_PATH` from sprint manifests for execution-fact traceability.

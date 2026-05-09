@@ -8,8 +8,8 @@ This document shows how to map the canonical `plan-issue-delivery`
 - The repo contract remains:
   - `workflow_role=implementation|review|monitor`
   - dispatch bundle and runtime artifacts
-  - `plan-issue-delivery-main-agent-init.md`
-  - `plan-issue-delivery-subagent-init.md`
+  - `references/prompts/main-agent-init.md`
+  - `references/prompts/subagent-init.md`
 - OpenCode config and agent files are an adapter layer only.
 
 ## OpenCode Features Used

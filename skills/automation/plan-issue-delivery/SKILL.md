@@ -52,10 +52,10 @@ Inputs:
     to latest remote state
 - Optional repository override (`--repo <owner/repo>`) in live mode.
 - Typed subcommands: `start-plan`, `start-sprint`, `link-pr`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`.
-- Static main-agent prompt source:
-  `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`.
-- Static subagent companion prompt source:
-  `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`.
+- Skill-local static main-agent prompt source:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md`.
+- Skill-local static subagent companion prompt source:
+  `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md`.
 - Review evidence template path (`REVIEW_EVIDENCE_TEMPLATE_PATH`):
   `$AGENT_HOME/skills/workflows/issue/issue-pr-review/references/REVIEW_EVIDENCE_TEMPLATE.md`.
 - Decision-scoped review evidence artifact path (`REVIEW_EVIDENCE_PATH`) per
@@ -223,10 +223,10 @@ Failure modes:
   - `TASK_PROMPT_PATH="$SPRINT_ROOT/prompts/<TASK_ID>.md"`
   - prompt manifest under `"$SPRINT_ROOT/manifests/"`
   - `DISPATCH_RECORD_PATH="$SPRINT_ROOT/manifests/dispatch-<TASK_ID>.json"`
-- Static prompt sources used by humans/runtimes, not emitted by `plan-issue`
-  0.8.0 as runtime snapshots:
-  - `$AGENT_HOME/prompts/plan-issue-delivery-main-agent-init.md`
-  - `$AGENT_HOME/prompts/plan-issue-delivery-subagent-init.md`
+- Skill-local static prompt sources used by humans/runtimes, not emitted by
+  `plan-issue` 0.8.0 as runtime snapshots:
+  - `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md`
+  - `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/subagent-init.md`
 - Worktree path rules (must be absolute paths under `"$ISSUE_ROOT/worktrees"`):
   - `pr-isolated`: `.../worktrees/pr-isolated/<TASK_ID>`
   - `pr-shared`: `.../worktrees/pr-shared/<PR_GROUP>`

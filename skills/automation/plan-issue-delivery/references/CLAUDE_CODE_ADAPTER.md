@@ -8,8 +8,8 @@ This document shows how to map the canonical `plan-issue-delivery`
 - The repo contract remains:
   - `workflow_role=implementation|review|monitor`
   - dispatch bundle and runtime artifacts
-  - `plan-issue-delivery-main-agent-init.md`
-  - `plan-issue-delivery-subagent-init.md`
+  - `references/prompts/main-agent-init.md`
+  - `references/prompts/subagent-init.md`
   - `create-plan-issue-sprint-pr` helper for sprint PR body/render/create flow
 - Claude-specific agent files are an adapter layer only.
 
@@ -59,8 +59,9 @@ Optional installer/sync entrypoint:
    `PLAN_SNAPSHOT_PATH`, and `DISPATCH_RECORD_PATH`, not in the Claude
    subagent files.
 2. `plan-issue` 0.8.0 does not emit init prompt snapshots. Treat the
-   main/subagent prompt files under `$AGENT_HOME/prompts/` as static source
-   material for runtime adapters.
+   main/subagent prompt files under
+   `$AGENT_HOME/skills/automation/plan-issue-delivery/references/prompts/` as
+   static source material for runtime adapters.
 3. The implementation subagent should stay write-capable; review and monitor
    templates stay read-only by tool restrictions.
 4. Implementation lanes should use
