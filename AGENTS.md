@@ -31,6 +31,18 @@
 - When conclusions depend on uncertainty, explicitly separate known facts,
   assumptions, inferences, and open questions.
 
+## Delegation defaults
+
+- Prefer delegating independent sidecar work to subagents when a task has clear
+  parallel lanes, limited file overlap, concrete validation, and a
+  straightforward integration path.
+- The main agent owns scope, critical path, integration, validation, and the
+  final answer.
+- Do not delegate small changes, tightly coupled refactors, unclear requirements,
+  destructive actions, or work whose next step blocks on the subagent result.
+- Keep subagent outputs concise and artifact-based when practical; summarize only
+  decisions, changed paths, blockers, and validation.
+
 ## Operating defaults
 
 - Ask only the minimum clarification needed when objective, done criteria, scope,
