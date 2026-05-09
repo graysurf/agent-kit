@@ -59,8 +59,8 @@ def run_shell_hook(
     return completed.returncode, parse_stdout(completed.stdout), completed.stderr
 
 
-def command_payload(command: str) -> dict[str, Any]:
-    return {"tool_name": "Bash", "tool_input": {"command": command}}
+def command_payload(command: str, **tool_input: str) -> dict[str, Any]:
+    return {"tool_name": "Bash", "tool_input": {"command": command, **tool_input}}
 
 
 def assert_blocked(decision: dict[str, object] | None, fragment: str) -> None:
@@ -114,17 +114,35 @@ def init_repo_with_main(repo: Path) -> str:
 
 class TestDirectGitCommitHook:
     def test_blocks_git_commit(self) -> None:
-        code, decision, _ = run_python_hook(
-            "block-direct-git-commit.py",
-            command_payload("git commit -m test"),
-        )
-        assert code == 0
-        assert_blocked(decision, "semantic-commit")
+        for command in (
+            "git commit -m test",
+            "git -c user.name=Codex commit -m test",
+            "env GIT_AUTHOR_NAME=Codex git commit -m test",
+            "command git commit -m test",
+        ):
+            code, decision, _ = run_python_hook(
+                "block-direct-git-commit.py",
+                command_payload(command),
+            )
+            assert code == 0, command
+            assert_blocked(decision, "semantic-commit")
 
     def test_allows_semantic_commit_and_commit_tree(self) -> None:
         for command in (
             "semantic-commit commit --message 'fix: thing\n\n- explain scope'",
             "git commit-tree HEAD^{tree}",
+        ):
+            code, decision, _ = run_python_hook(
+                "block-direct-git-commit.py",
+                command_payload(command),
+            )
+            assert code == 0, command
+            assert_allowed(decision)
+
+    def test_allows_searching_for_git_commit_text(self) -> None:
+        for command in (
+            "rg -n 'git commit' MEMORY.md",
+            "printf '%s\\n' 'git commit'",
         ):
             code, decision, _ = run_python_hook(
                 "block-direct-git-commit.py",
@@ -166,6 +184,97 @@ class TestDirectPythonHook:
             "block-direct-python.py",
             command_payload("python3 -m pytest"),
             cwd=tmp_path,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv run --locked python")
+
+    def test_blocks_bare_python_using_payload_workdir(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        outside = tmp_path / "outside"
+        repo.mkdir()
+        outside.mkdir()
+        (repo / "uv.lock").write_text("# fixture\n", "utf-8")
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload("python3 -m pytest", workdir=str(repo)),
+            cwd=outside,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv run --locked python")
+
+    def test_blocks_bare_python_using_top_level_cwd(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        outside = tmp_path / "outside"
+        repo.mkdir()
+        outside.mkdir()
+        (repo / "uv.lock").write_text("# fixture\n", "utf-8")
+        payload = command_payload("python3 -m pytest")
+        payload["cwd"] = str(repo)
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            payload,
+            cwd=outside,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv run --locked python")
+
+    def test_blocks_bare_python_using_transcript_workdir(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        outside = tmp_path / "outside"
+        repo.mkdir()
+        outside.mkdir()
+        (repo / "uv.lock").write_text("# fixture\n", "utf-8")
+        transcript = tmp_path / "rollout.jsonl"
+        call_id = "call_python"
+        transcript.write_text(
+            json.dumps(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "function_call",
+                        "name": "exec_command",
+                        "call_id": call_id,
+                        "arguments": json.dumps(
+                            {
+                                "cmd": "python3 -m pytest",
+                                "workdir": str(repo),
+                            }
+                        ),
+                    },
+                }
+            )
+            + "\n",
+            "utf-8",
+        )
+        payload = command_payload("python3 -m pytest")
+        payload["tool_use_id"] = call_id
+        payload["transcript_path"] = str(transcript)
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            payload,
+            cwd=outside,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "uv run --locked python")
+
+    def test_blocks_bare_python_after_cd(self, tmp_path: Path) -> None:
+        repo = tmp_path / "repo"
+        outside = tmp_path / "outside"
+        repo.mkdir()
+        outside.mkdir()
+        (repo / "uv.lock").write_text("# fixture\n", "utf-8")
+
+        code, decision, _ = run_python_hook(
+            "block-direct-python.py",
+            command_payload(f"cd {repo} && python3 -m pytest"),
+            cwd=outside,
         )
 
         assert code == 0

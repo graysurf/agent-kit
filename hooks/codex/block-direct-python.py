@@ -3,20 +3,24 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shlex
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from typing import Any
 
-from hook_common import ALLOW, command_from, emit_block, read_payload
+from hook_common import ALLOW, command_from, emit_block, read_payload, tool_input_dict
 
 BYPASS_ENV = "AGENT_KIT_ALLOW_SYSTEM_PYTHON"
 
 ASSIGNMENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=.*")
 PYTHON_NAME_RE = re.compile(r"^python(?:3(?:\.\d+)?)?$")
 SEPARATOR_TOKENS = {";", "&&", "||", "|", "(", ")"}
+WORKDIR_KEYS = {"cwd", "current_working_directory", "workdir", "working_directory"}
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,12 @@ class PythonManager:
     root: Path
     marker: Path
     venv_name: str | None = None
+
+
+@dataclass(frozen=True)
+class PythonInvocation:
+    executable: str
+    cwd: Path
 
 
 def has_bypass(command: str) -> bool:
@@ -156,17 +166,111 @@ def command_python_token(simple_command: list[str]) -> str | None:
     return simple_command[index] if is_direct_python_token(simple_command[index]) else None
 
 
-def direct_python_token(command: str) -> str | None:
+def cd_target(simple_command: list[str], cwd: Path) -> Path | None:
+    index = 0
+    while index < len(simple_command) and is_assignment(simple_command[index]):
+        index += 1
+    if index >= len(simple_command) or basename(simple_command[index]) != "cd":
+        return None
+
+    index += 1
+    while index < len(simple_command) and simple_command[index] in {"-L", "-P", "-e"}:
+        index += 1
+    if index < len(simple_command) and simple_command[index] == "--":
+        index += 1
+
+    if index >= len(simple_command):
+        target = Path.home()
+    else:
+        raw_target = simple_command[index]
+        if raw_target == "-":
+            return None
+        target = Path(raw_target).expanduser()
+
+    if not target.is_absolute():
+        target = cwd / target
+    return target
+
+
+def iter_workdir_values(value: Any) -> list[str]:
+    values: list[str] = []
+    if not isinstance(value, Mapping):
+        return values
+    for key, nested in value.items():
+        if key in WORKDIR_KEYS and isinstance(nested, str) and nested:
+            values.append(nested)
+        elif isinstance(nested, Mapping):
+            values.extend(iter_workdir_values(nested))
+    return values
+
+
+def path_from_payload(payload: dict[str, object]) -> Path:
+    tool_input = tool_input_dict(payload)
+    for value in iter_workdir_values(tool_input):
+        path = Path(value).expanduser()
+        return path if path.is_absolute() else Path.cwd() / path
+    transcript_workdir = path_from_transcript(payload)
+    if transcript_workdir is not None:
+        return transcript_workdir
+    for value in iter_workdir_values(payload):
+        path = Path(value).expanduser()
+        return path if path.is_absolute() else Path.cwd() / path
+    return Path.cwd()
+
+
+def path_from_transcript(payload: dict[str, object]) -> Path | None:
+    tool_use_id = payload.get("tool_use_id")
+    transcript_path = payload.get("transcript_path")
+    if not isinstance(tool_use_id, str) or not isinstance(transcript_path, str):
+        return None
+
+    path = Path(transcript_path).expanduser()
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return None
+
+    for line in reversed(lines):
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        event_payload = event.get("payload") if isinstance(event, Mapping) else None
+        if not isinstance(event_payload, Mapping):
+            continue
+        if event_payload.get("call_id") != tool_use_id:
+            continue
+        arguments = event_payload.get("arguments")
+        if not isinstance(arguments, str):
+            return None
+        try:
+            parsed_arguments = json.loads(arguments)
+        except json.JSONDecodeError:
+            return None
+        for value in iter_workdir_values(parsed_arguments):
+            workdir = Path(value).expanduser()
+            return workdir if workdir.is_absolute() else Path.cwd() / workdir
+        return None
+    return None
+
+
+def direct_python_invocation(command: str, start_cwd: Path) -> PythonInvocation | None:
     simple_command: list[str] = []
+    current_cwd = start_cwd
     for token in shell_tokens(command):
         if is_separator(token):
             found = command_python_token(simple_command)
             if found:
-                return found
+                return PythonInvocation(found, current_cwd)
+            if token in {";", "&&"}:
+                current_cwd = cd_target(simple_command, current_cwd) or current_cwd
             simple_command = []
             continue
         simple_command.append(token)
-    return command_python_token(simple_command)
+    found = command_python_token(simple_command)
+    if found:
+        return PythonInvocation(found, current_cwd)
+    return None
 
 
 def block_reason(executable: str, manager: PythonManager) -> str:
@@ -192,13 +296,13 @@ def main() -> int:
     if not command or has_bypass(command):
         return ALLOW
 
-    executable = direct_python_token(command)
-    if not executable:
+    invocation = direct_python_invocation(command, path_from_payload(payload))
+    if not invocation:
         return ALLOW
 
-    manager = find_python_manager(Path.cwd())
+    manager = find_python_manager(invocation.cwd)
     if manager is not None:
-        emit_block(block_reason(executable, manager))
+        emit_block(block_reason(invocation.executable, manager))
     return ALLOW
 
 

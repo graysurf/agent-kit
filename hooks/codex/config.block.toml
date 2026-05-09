@@ -6,25 +6,25 @@ matcher = "Bash"
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/block-direct-git-commit.py"
 timeout = 10
-statusMessage = "Checking commit command..."
+statusMessage = "agent-kit: Block direct git commit"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/semantic-commit-body-gate.py"
 timeout = 10
-statusMessage = "Checking semantic commit message body..."
+statusMessage = "agent-kit: Require semantic-commit body"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/block-direct-python.py"
 timeout = 10
-statusMessage = "Checking Python environment command..."
+statusMessage = "agent-kit: Block bare Python in managed repos"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/block-direct-pr-create.py"
 timeout = 10
-statusMessage = "Checking PR/MR create command..."
+statusMessage = "agent-kit: Block direct PR/MR creation"
 
 [[hooks.PreToolUse]]
 matcher = "Write|Edit|NotebookEdit|apply_patch"
@@ -33,13 +33,13 @@ matcher = "Write|Edit|NotebookEdit|apply_patch"
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/block-project-memory-write.py"
 timeout = 10
-statusMessage = "Checking memory write..."
+statusMessage = "agent-kit: Protect project memory writes"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/mcp-secret-scan.py"
 timeout = 10
-statusMessage = "Scanning .mcp.json changes..."
+statusMessage = "agent-kit: Scan .mcp.json for secrets"
 
 [[hooks.UserPromptSubmit]]
 matcher = ""
@@ -48,7 +48,7 @@ matcher = ""
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/user-prompt-agent-docs.sh"
 timeout = 10
-statusMessage = "Checking agent-docs preflight trigger..."
+statusMessage = "agent-kit: Remind agent-docs preflight"
 
 [[hooks.SessionStart]]
 matcher = "startup|resume|clear"
@@ -57,7 +57,7 @@ matcher = "startup|resume|clear"
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/session-start-healthcheck.sh"
 timeout = 20
-statusMessage = "Checking agent-kit health..."
+statusMessage = "agent-kit: Check baseline health"
 
 [[hooks.Stop]]
 matcher = ""
@@ -66,5 +66,5 @@ matcher = ""
 type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/stop-pre-pr-reminder.sh"
 timeout = 10
-statusMessage = "Checking PR readiness reminder..."
+statusMessage = "agent-kit: Remind PR readiness"
 # END agent-kit managed codex hooks
