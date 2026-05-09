@@ -26,7 +26,7 @@ Inputs:
 
 Outputs:
 
-- One output file per invocation.
+- One requested output file per successful non-dry-run invocation.
 - Optional artifacts under `out/image-processing/runs/<run_id>/`:
   - `summary.json` (when `--json` or `--report` is used)
   - `report.md` (when `--report` is used)
