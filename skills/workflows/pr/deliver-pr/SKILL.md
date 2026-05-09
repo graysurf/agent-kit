@@ -1,8 +1,8 @@
 ---
 name: deliver-pr
 description:
-  Deliver bug or feature PRs end to end with one workflow: preflight, create PR, wait/fix CI until green, then close. Use `kind=bug` or
-  `kind=feature` to select branch prefix and PR templates.
+  "Deliver bug or feature PRs end to end with one workflow: preflight, create PR, wait/fix CI until green, then close. Use `kind=bug` or
+  `kind=feature` to select branch prefix and PR templates."
 ---
 
 # Deliver PR

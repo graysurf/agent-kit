@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -10,6 +11,8 @@ from pathlib import Path
 
 
 MAX_PREAMBLE_DEFAULT = 2
+FRONT_MATTER_REQUIRED_KEYS = ("name", "description")
+FRONT_MATTER_KEY_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):(?:[ \t]*(.*))?$")
 
 
 def eprint(msg: str) -> None:
@@ -54,6 +57,136 @@ class FileResult:
     has_setup: bool
 
 
+def _looks_like_front_matter_key(line: str) -> bool:
+    return FRONT_MATTER_KEY_RE.match(line) is not None
+
+
+def _is_quoted_scalar(value: str) -> bool:
+    return value.startswith(('"', "'"))
+
+
+def _quote_is_closed(lines: list[str], quote: str) -> bool:
+    for line in reversed(lines):
+        stripped = line.strip()
+        if stripped:
+            return len(stripped) > 1 and stripped.endswith(quote)
+    return False
+
+
+def _validate_scalar_value(value: str, line_no: int, violations: list[Violation]) -> None:
+    if not value:
+        violations.append(Violation("frontmatter_empty_value", f"empty front matter value at line {line_no}"))
+        return
+    if _is_quoted_scalar(value):
+        quote = value[0]
+        if not _quote_is_closed([value], quote):
+            violations.append(Violation("frontmatter_unclosed_quote", f"unclosed quoted front matter value at line {line_no}"))
+        return
+    if value.startswith(("|", ">")):
+        return
+    if ": " in value:
+        violations.append(
+            Violation(
+                "frontmatter_plain_scalar_colon",
+                f"plain front matter scalar contains ': ' at line {line_no}; quote the value",
+            )
+        )
+
+
+def _validate_multiline_scalar(lines: list[tuple[int, str]], violations: list[Violation]) -> None:
+    nonempty = [(line_no, line.strip()) for line_no, line in lines if line.strip()]
+    if not nonempty:
+        first_line = lines[0][0] if lines else "?"
+        violations.append(Violation("frontmatter_empty_value", f"empty front matter value at line {first_line}"))
+        return
+
+    first_line_no, first_value = nonempty[0]
+    if _is_quoted_scalar(first_value):
+        quote = first_value[0]
+        if not _quote_is_closed([value for _, value in nonempty], quote):
+            violations.append(
+                Violation("frontmatter_unclosed_quote", f"unclosed quoted front matter value at line {first_line_no}")
+            )
+        return
+    if first_value.startswith(("|", ">")):
+        return
+
+    for line_no, value in nonempty:
+        if ": " in value:
+            violations.append(
+                Violation(
+                    "frontmatter_plain_scalar_colon",
+                    f"plain front matter scalar contains ': ' at line {line_no}; quote the multiline value",
+                )
+            )
+            return
+
+
+def validate_front_matter(raw: list[str]) -> list[Violation]:
+    violations: list[Violation] = []
+    if not raw or raw[0].strip() != "---":
+        return [Violation("frontmatter_missing_start", "missing YAML front matter start marker (`---`)")]
+
+    end_idx: int | None = None
+    for i in range(1, len(raw)):
+        if raw[i].strip() == "---":
+            end_idx = i
+            break
+    if end_idx is None:
+        return [Violation("frontmatter_missing_end", "missing YAML front matter end marker (`---`)")]
+
+    seen_keys: set[str] = set()
+    lines = raw[1:end_idx]
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        line_no = i + 2
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+
+        if line[:1].isspace():
+            violations.append(
+                Violation("frontmatter_unexpected_continuation", f"unexpected front matter continuation at line {line_no}")
+            )
+            i += 1
+            continue
+
+        match = FRONT_MATTER_KEY_RE.match(line)
+        if match is None:
+            violations.append(Violation("frontmatter_invalid_line", f"invalid front matter line at line {line_no}"))
+            i += 1
+            continue
+
+        key, value = match.group(1), (match.group(2) or "")
+        if key in seen_keys:
+            violations.append(Violation("frontmatter_duplicate_key", f"duplicate front matter key `{key}` at line {line_no}"))
+        seen_keys.add(key)
+
+        if value:
+            _validate_scalar_value(value, line_no, violations)
+            i += 1
+            continue
+
+        block: list[tuple[int, str]] = []
+        j = i + 1
+        while j < len(lines):
+            next_line = lines[j]
+            if next_line.strip() and not next_line[:1].isspace() and _looks_like_front_matter_key(next_line):
+                break
+            block.append((j + 2, next_line))
+            j += 1
+        _validate_multiline_scalar(block, violations)
+        i = j
+
+    for key in FRONT_MATTER_REQUIRED_KEYS:
+        if key not in seen_keys:
+            violations.append(Violation("frontmatter_missing_required_key", f"missing front matter key `{key}`"))
+
+    return violations
+
+
 def is_heading(line: str) -> bool:
     s = line.lstrip()
     if not s.startswith("#"):
@@ -86,13 +219,14 @@ def audit_file(path: Path, root: Path, max_preamble_lines: int) -> FileResult:
     display = display_path(path, root)
     raw = path.read_text("utf-8", errors="replace").splitlines()
 
+    violations: list[Violation] = validate_front_matter(raw)
+
     h1_idx: int | None = None
     for i, line in enumerate(raw):
         if is_h1(line):
             h1_idx = i
             break
 
-    violations: list[Violation] = []
     if h1_idx is None:
         violations.append(Violation("missing_h1", "missing H1 title (`# <Title>`)"))
         return FileResult(

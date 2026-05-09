@@ -15,6 +15,12 @@ Order (strict):
 4. `## Contract` (required; must be the **first H2**)
 5. Any other sections (optional)
 
+### Front matter rules
+
+- Required keys: `name`, `description`
+- Keep `description` as a single YAML scalar.
+- Quote `description` when it spans multiple lines or contains YAML-sensitive text such as colon-space.
+
 ### Preamble rules
 
 Preamble is the content between the first H1 (`# ...`) and `## Contract`.
