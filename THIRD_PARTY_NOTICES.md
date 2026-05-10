@@ -34,4 +34,4 @@ Third-party notice obligations are tracked by linking each component to its upst
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`
 - `.github/workflows/lint.yml` SHA256: `3375c624066e97fd42dd0037fb04de299656a90a8b87bf8d32ba7df6dc5b97e6`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `60a844d5bc666bf54d9f91ead661cd76c98e432ecc6ec00e6f50fd2456fe0748`
-- `Dockerfile` SHA256: `a8428c82a33ec79f21cc2aba757349c9b6bf3377eb2dd513601314787e6294cd`
+- `Dockerfile` SHA256: `501ef821ce5b5a018819f50b10d222904130158237868bd95b3f9ad786ba92c0`

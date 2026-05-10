@@ -45,8 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -s /usr/bin/zsh agent \
   && echo "agent ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/agent \
   && chmod 0440 /etc/sudoers.d/agent \
-  && mkdir -p /opt/agent-env /home/agent/.config/zsh /home/agent/.agents /home/linuxbrew/.linuxbrew \
-  && chown -R agent:agent /opt/agent-env /home/agent /home/linuxbrew
+  && mkdir -p /opt/agent-env /opt/agent-kit /home/agent/.config/zsh /home/agent/.agents /home/linuxbrew/.linuxbrew \
+  && chown -R agent:agent /opt/agent-env /opt/agent-kit /home/agent /home/linuxbrew
 
 USER agent
 
@@ -69,13 +69,19 @@ RUN if [[ "${INSTALL_NILS_CLI}" == "1" ]]; then \
 
 ARG ZSH_KIT_REPO="https://github.com/graysurf/zsh-kit.git"
 ARG AGENT_KIT_REPO="https://github.com/graysurf/agent-kit.git"
+ARG AGENT_KIT_REF="main"
 
 RUN git clone --branch main --single-branch "${ZSH_KIT_REPO}" /home/agent/.config/zsh
 
-RUN git clone --branch main --single-branch "${AGENT_KIT_REPO}" /home/agent/.agents
+RUN git init -q /opt/agent-kit \
+  && git -C /opt/agent-kit remote add origin "${AGENT_KIT_REPO}" \
+  && git -C /opt/agent-kit fetch --depth 1 origin "${AGENT_KIT_REF}" \
+  && git -C /opt/agent-kit checkout --detach FETCH_HEAD \
+  && git -C /opt/agent-kit rev-parse HEAD > /opt/agent-kit/.agent-kit-revision \
+  && rm -rf /opt/agent-kit/.git
 
-ENV ZSH_KIT_DIR="~/.config/zsh"
-ENV AGENT_KIT_DIR="~/.agents"
+ENV ZSH_KIT_DIR="/home/agent/.config/zsh"
+ENV AGENT_KIT_DIR="/opt/agent-kit"
 ENV ZDOTDIR="/home/agent/.config/zsh"
 ENV ZSH_FEATURES="opencode"
 ENV ZSH_BOOT_WEATHER_ENABLED=false

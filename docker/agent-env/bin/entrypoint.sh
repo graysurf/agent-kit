@@ -10,7 +10,7 @@ expand_home_path() {
     printf '%s\n' "$home_dir"
     return 0
   fi
-  if [[ "$path" == "~/"* ]]; then
+  if [[ "$path" == \~/* ]]; then
     printf '%s/%s\n' "${home_dir%/}" "${path#~/}"
     return 0
   fi
@@ -18,7 +18,7 @@ expand_home_path() {
 }
 
 AGENT_HOME="$(expand_home_path "${AGENT_HOME:-${home_dir%/}/.agents}")"
-codex_src="$(expand_home_path "${AGENT_KIT_DIR:-${home_dir%/}/.agents}")"
+codex_src="$(expand_home_path "${AGENT_KIT_DIR:-/opt/agent-kit}")"
 CODEX_HOME="$(expand_home_path "${CODEX_HOME:-${home_dir%/}/.codex}")"
 
 export CODEX_HOME

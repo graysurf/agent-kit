@@ -13,15 +13,32 @@ docker build -f Dockerfile -t agent-env:linuxbrew .
 
 Source checkout policy:
 
-- `zsh-kit` and `agent-kit` are always cloned from the `main` branch during image build.
-- Image defaults: `ZSH_KIT_DIR=~/.config/zsh`, `AGENT_KIT_DIR=~/.agents`.
+- `zsh-kit` is cloned from the `main` branch during image build.
+- `agent-kit` is fetched from `AGENT_KIT_REF` (default: `main`) and bundled at `/opt/agent-kit`.
+- Image defaults: `ZSH_KIT_DIR=/home/agent/.config/zsh`, `AGENT_KIT_DIR=/opt/agent-kit`.
 - `AGENT_HOME` is intentionally runtime-configurable (not pinned via Dockerfile `ENV`).
+
+Build with a pinned agent-kit ref:
+
+```sh
+docker build -f Dockerfile -t agent-env:linuxbrew \
+  --build-arg AGENT_KIT_REF=<ref-or-sha> \
+  .
+```
 
 Build without installing tools (fast path):
 
 ```sh
 docker build -f Dockerfile -t agent-env:linuxbrew \
   --build-arg INSTALL_TOOLS=0 \
+  .
+```
+
+Skip nils-cli install:
+
+```sh
+docker build -f Dockerfile -t agent-env:linuxbrew \
+  --build-arg INSTALL_NILS_CLI=0 \
   .
 ```
 

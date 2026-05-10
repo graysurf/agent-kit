@@ -6,21 +6,24 @@ services:
       dockerfile: Dockerfile
       args:
         INSTALL_TOOLS: ${INSTALL_TOOLS:-1}
+        INSTALL_NILS_CLI: ${INSTALL_NILS_CLI:-1}
         INSTALL_OPTIONAL_TOOLS: ${INSTALL_OPTIONAL_TOOLS:-1}
         INSTALL_VSCODE: ${INSTALL_VSCODE:-1}
+        PREFETCH_ZSH_PLUGINS: ${PREFETCH_ZSH_PLUGINS:-1}
+        ZSH_PLUGIN_FETCH_RETRIES: ${ZSH_PLUGIN_FETCH_RETRIES:-5}
+        AGENT_KIT_REF: ${AGENT_KIT_REF:-main}
     environment:
       HOME: /home/agent
       AGENT_HOME: /home/agent/.agents
+      AGENT_KIT_DIR: /opt/agent-kit
       CODEX_AUTH_FILE: /home/agent/.codex/auth.json
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ${WORKSPACE_DIR:-.}:/work
       - agent-home:/home/agent
-      - agent-kit-home:/home/agent/.agents
     working_dir: /work
     tty: true
     stdin_open: true
 
 volumes:
   agent-home:
-  agent-kit-home:

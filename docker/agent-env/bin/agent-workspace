@@ -177,7 +177,7 @@ tunnel_default_name() {
   local container="${1:-}"
   [[ -n "$container" ]] || die "missing container for tunnel name"
 
-  local base="${container#${WORKSPACE_PREFIX}-}"
+  local base="${container#"${WORKSPACE_PREFIX}"-}"
   local candidate="$base"
 
   # Common pattern: <owner>-<repo>-YYYYMMDD-HHMMSS
@@ -360,7 +360,8 @@ workspace_up() {
   local use_secrets="1"
   local secrets_dir="$DEFAULT_SECRETS_DIR"
   local secrets_dir_explicit="0"
-  local secrets_mount="$(normalize_secrets_mount "$DEFAULT_SECRETS_MOUNT")"
+  local secrets_mount=""
+  secrets_mount="$(normalize_secrets_mount "$DEFAULT_SECRETS_MOUNT")"
   local secrets_mount_explicit="0"
   if [[ "$DEFAULT_SECRETS_MOUNT" != "/home/agent/codex_secrets" ]]; then
     secrets_mount_explicit="1"
@@ -509,8 +510,8 @@ workspace_up() {
     warn "container name too long for hostname; using: $hostname"
   fi
 
-  local vol_work vol_home vol_codex
-  read -r vol_work vol_home vol_codex < <(volume_names "$container")
+  local vol_work vol_home _
+  read -r vol_work vol_home _ < <(volume_names "$container")
 
   local gh_token="${GH_TOKEN:-}"
   local github_token="${GITHUB_TOKEN:-}"
@@ -534,10 +535,10 @@ workspace_up() {
 	      --label "agent-kit.created-at=$ts"
 	      -e "HOME=/home/agent"
 	      -e "AGENT_HOME=/home/agent/.agents"
+	      -e "AGENT_KIT_DIR=/opt/agent-kit"
 	      -e "CODEX_AUTH_FILE=/home/agent/.codex/auth.json"
       -v "${vol_work}:/work"
       -v "${vol_home}:/home/agent"
-      -v "${vol_codex}:/home/agent/.agents"
 	      -w /work
 	    )
 		    if [[ -n "$owner_repo" ]]; then
@@ -558,7 +559,7 @@ workspace_up() {
   fi
 
   # Ensure /work is writable for the default user even when backed by a fresh named volume.
-  docker exec -u root "$container" bash -lc 'mkdir -p /work && chown -R codex:codex /work' >/dev/null
+  docker exec -u root "$container" bash -lc 'mkdir -p /work && chown -R agent:agent /work' >/dev/null
 
   if [[ -z "$repo_dir" ]]; then
     if [[ -n "$owner_repo" ]]; then
