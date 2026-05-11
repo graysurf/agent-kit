@@ -31,9 +31,9 @@ A good “next prompt” should include:
 Example:
 
 ```text
-Record the active window for 8 seconds with system audio to `out/screen-record/active-8s.mov`.
+Record the active window for 8 seconds with system audio to `<agent-out run dir>/active-8s.mov`.
 ```
 
 ```text
-Capture a screenshot of the active window to `out/screen-record/active.png`.
+Capture a screenshot of the active window to `<agent-out run dir>/active.png`.
 ```

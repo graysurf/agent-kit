@@ -12,6 +12,7 @@ Goal: mirror core behavior from Finder scenario in `e2e_real_apps`.
 ```bash
 OPS="$AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
 BIN="$($OPS where)"
+ARTIFACT_DIR="$(agent-out project --topic macos-agent-finder --mkdir)"
 
 # 1) Ensure input source + app foreground readiness
 "$OPS" input-source --id abc
@@ -27,7 +28,7 @@ BIN="$($OPS where)"
 
 # 4) Capture evidence
 "$BIN" --format json observe screenshot --active-window \
-  --path "$AGENT_HOME/out/finder-routine-active-window.png"
+  --path "$ARTIFACT_DIR/finder-routine-active-window.png"
 ```
 
 ## What this catches

@@ -24,7 +24,8 @@ Outputs:
 
 - Stdout/stderr from upstream `agent-browser`.
 - Any artifacts produced by CLI commands (for example screenshot/PDF/download/state files).
-- For deterministic project output, prefer explicit artifact paths under `out/agent-browser/`.
+- For deterministic project output, prefer explicit paths under a run directory from
+  `agent-out project --topic agent-browser --mkdir`.
 
 Exit codes:
 
@@ -68,7 +69,8 @@ export ABCLI="$AGENT_HOME/skills/tools/browser/agent-browser/scripts/agent-brows
 - Before non-help commands, verify `npx` exists: `command -v npx >/dev/null 2>&1`.
 - When this fallback is used, prefer the wrapper entrypoint instead of relying on a globally installed `agent-browser` binary.
 - Run `snapshot -i` before using `@eN` refs and re-snapshot after navigation or major DOM changes.
-- For screenshots/PDF/downloads/state files, write outputs under `out/agent-browser/` for traceable artifacts.
+- For screenshots/PDF/downloads/state files, resolve a run directory with
+  `agent-out project --topic agent-browser --mkdir` and write outputs there.
 - Close sessions when done (`agent-browser close`) to avoid leaked processes.
 
 ## References

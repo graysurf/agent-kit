@@ -1,8 +1,8 @@
 # Skills Tooling Index v2
 
 This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts). Install `nils-cli` via
-`brew install nils-cli` to get `plan-tooling`, `api-*`, and `semantic-commit` on PATH. For skill directory layout/path rules, use
-`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
+`brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out` on PATH. For skill directory layout/path rules,
+use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
 
 ## SKILL.md format
@@ -56,3 +56,10 @@ This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and
   - `plan-issue-local <subcommand> --dry-run`
 - Key subcommands:
   - `start-plan`, `start-sprint`, `ready-sprint`, `accept-sprint`, `status-plan`, `ready-plan`, `close-plan`
+
+## Artifact output paths
+
+- Create a project-scoped ad hoc artifact run directory:
+  - `agent-out project --topic <topic> --mkdir`
+- Audit `$AGENT_HOME/out/` for noncanonical top-level entries:
+  - `agent-out audit --agent-home "$AGENT_HOME"`

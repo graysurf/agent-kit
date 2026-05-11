@@ -12,6 +12,7 @@ Capture screenshots through `screen-record` (macOS/Linux) and optional desktop c
 Prereqs:
 
 - `screen-record` available on `PATH` (install via `brew install nils-cli`).
+- `agent-out` available on `PATH` for canonical default artifact directories (also from `nils-cli`).
 - macOS: Screen Recording permission granted (use `screen-record --preflight` / `--request-permission`).
 - Linux: follow `screen-record` runtime prerequisites (X11 selectors or Wayland `--portal`, plus required dependencies).
 - `screencapture` (built-in on macOS) only when using `--desktop`.
@@ -65,22 +66,28 @@ Failure modes:
 
 ## Usage
 
-- Screenshot (active window) to `$AGENT_HOME/out/` (recommended):
+- Resolve a canonical project artifact directory:
 
 ```bash
-$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$AGENT_HOME/out/screenshot.png"
+artifact_dir="$(agent-out project --topic screenshot --mkdir)"
+```
+
+- Screenshot active window:
+
+```bash
+$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --active-window --path "$artifact_dir/active-window.png"
 ```
 
 - Screenshot via portal picker (Linux Wayland):
 
 ```bash
-$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --portal --path "$AGENT_HOME/out/screenshot-portal.png"
+$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --portal --path "$artifact_dir/portal.png"
 ```
 
 - Screenshot the desktop (main display helper, macOS only):
 
 ```bash
-$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$AGENT_HOME/out/desktop.png"
+$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --desktop --path "$artifact_dir/desktop.png"
 ```
 
 - List windows to find a `--window-id`:
@@ -98,7 +105,7 @@ $AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --list-displays
 - Screenshot by app/window title:
 
 ```bash
-$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --app "Terminal" --window-name "Docs" --path "$AGENT_HOME/out/terminal-docs.png"
+$AGENT_HOME/skills/tools/media/screenshot/scripts/screenshot.sh --app "Terminal" --window-name "Docs" --path "$artifact_dir/terminal-docs.png"
 ```
 
 - Permission preflight / request (if blocked):
@@ -110,5 +117,5 @@ screen-record --request-permission
 
 ## Notes
 
-- Prefer writing under `"$AGENT_HOME/out/"` so outputs are easy to attach/inspect.
+- Prefer `agent-out project --topic screenshot --mkdir` for ad hoc screenshot paths so outputs are grouped by project/run.
 - For non-window video capture, use `screen-record --display` / `--display-id` (recording mode).

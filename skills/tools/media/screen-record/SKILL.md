@@ -12,6 +12,7 @@ Translate a user’s natural-language request into a safe invocation of the `scr
 Prereqs:
 
 - `screen-record` available on `PATH` (install via `brew install nils-cli`).
+- `agent-out` available on `PATH` for canonical project-scoped artifact directories (also from `nils-cli`).
 - macOS 12+ for native capture (ScreenCaptureKit + AVFoundation).
 - Linux (X11/Xorg or XWayland) for deterministic selectors/listing; `ffmpeg` required on `PATH`.
 - Linux Wayland-only sessions can use `--portal` (requires xdg-desktop-portal + backend + PipeWire).
@@ -78,7 +79,7 @@ Failure modes:
 
 - Selector: `--active-window` for “capture what I’m looking at”; otherwise prefer `--window-id` for deterministic selection.
 - For desktop/non-window capture, prefer `--display` (or `--display-id` for deterministic target).
-- Output path: prefer writing under `"$AGENT_HOME/out/screen-record/"` with a timestamped filename.
+- Output path: prefer a canonical run directory from `agent-out project --topic screen-record --mkdir`.
 - Recording container: default `.mov`; use `.mp4` only when compatible with requested audio.
 - Screenshot format: default `.png`; use `.jpg`/`.webp` only when explicitly requested.
 - Audio: default `off`; use `system`/`mic`/`both` only when explicitly requested (recording only).

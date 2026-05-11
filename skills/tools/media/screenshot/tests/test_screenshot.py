@@ -32,3 +32,10 @@ def test_screenshot_entrypoint_uses_screen_record() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     entrypoint = (skill_root / "scripts" / "screenshot.sh").read_text("utf-8")
     assert "screen-record" in entrypoint
+
+
+def test_screenshot_entrypoint_prefers_agent_out_default_dir() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    entrypoint = (skill_root / "scripts" / "screenshot.sh").read_text("utf-8")
+    assert "agent-out project --topic \"$topic\" --mkdir" in entrypoint
+    assert "out/projects/local__screenshot" in entrypoint

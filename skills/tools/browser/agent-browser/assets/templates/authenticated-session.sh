@@ -93,7 +93,8 @@ exit 0
 # FINAL_URL=$(agent-browser get url)
 # if [[ "$FINAL_URL" == *"login"* ]] || [[ "$FINAL_URL" == *"signin"* ]]; then
 #     echo "Login failed - still on login page"
-#     agent-browser screenshot "${AGENT_HOME:-$HOME/.agents}/out/agent-browser/login-failed.png"
+#     artifact_dir="$(agent-out project --topic agent-browser --mkdir)"
+#     agent-browser screenshot "$artifact_dir/login-failed.png"
 #     agent-browser close
 #     exit 1
 # fi

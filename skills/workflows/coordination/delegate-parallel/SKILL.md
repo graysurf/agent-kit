@@ -17,7 +17,7 @@ Prereqs:
 - The request can be decomposed into 2+ tasks with limited file overlap.
 - You can spawn and monitor multiple subagents.
 - There is a way to validate changes (tests/lint/build or a concrete manual checklist).
-- You can write artifacts to `$AGENT_HOME/out/` (fallback: repo `out/` if needed).
+- You can write artifacts to a canonical run directory from `agent-out project --topic delegate-parallel --mkdir`.
 
 Inputs:
 
@@ -26,7 +26,7 @@ Inputs:
   - `max_agents`: 3
   - `max_retries_per_task`: 2
   - `mode`: patch-artifacts (subagents deliver `changes.patch`; orchestrator applies + validates)
-  - `artifact_root`: `$AGENT_HOME/out/delegate-parallel/RUN_ID/`
+  - `artifact_root`: output from `agent-out project --topic delegate-parallel --mkdir`
 
 Outputs:
 
@@ -94,8 +94,9 @@ If two cards must edit the same files substantially, merge them or serialize the
 
 Create:
 
-- `artifact_root = $AGENT_HOME/out/delegate-parallel/RUN_ID/` (preferred)
-- Fallback (if `AGENT_HOME` is unavailable): `out/delegate-parallel/RUN_ID/`
+- `artifact_root = $(agent-out project --topic delegate-parallel --mkdir)` (preferred)
+- Fallback only if `agent-out` is unavailable:
+  `$AGENT_HOME/out/projects/local__delegate-parallel/<YYYYMMDD-HHMMSS>-delegate-parallel/`
 
 For each task card, allocate a folder:
 

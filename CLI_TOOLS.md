@@ -17,6 +17,7 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 - Browser tooling: native Browser/Chrome tools first; `playwright` for deterministic verification; `agent-browser` only as an optional
   legacy CLI fallback
 - Structured config/data: `yq`/`jq` (avoid regex parsing for YAML/JSON)
+- Agent artifacts: `agent-out` for canonical `$AGENT_HOME/out/` project run directories and layout audits
 
 ---
 
@@ -28,6 +29,7 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 - API: HTTP/API + structured data (`xh`/`httpie`, `jq`, `yq`)
 - Browser tooling: rendered-page interaction and browser-visible evidence (native Browser/Chrome tools, `playwright`, optional
   `agent-browser` fallback)
+- Agent workflow: policy docs, semantic commits, and artifact paths (`agent-docs`, `semantic-commit`, `agent-out`)
 - Test: test iteration + feedback loops (`watchexec`, `ruff`)
 - Toolchain: runtimes + CLI installation (`node`, `pnpm`, `pipx`, `direnv`)
 - macOS Automation: UI/input-source automation (`hs`, `im-select`)
@@ -95,6 +97,16 @@ Licensing scope note: this is a usage/reference catalog, not a licensing invento
 | ---- | ------- | -------- | ------------------------- |
 | `agent-browser` (via `skills/tools/browser/agent-browser/scripts/agent-browser.sh`) | Optional legacy browser automation CLI fallback | Native Browser/Chrome tools are unavailable or insufficient and the task specifically benefits from `snapshot -i` plus `@ref` interactions | Starting with CLI browser automation for simple public web lookup |
 | `playwright` (via `skills/tools/browser/playwright/scripts/playwright_cli.sh`) | Deterministic browser automation for verification | Replaying browser steps with traceable artifacts and reproducible validation checks | Treating exploratory browser findings as final without deterministic replay |
+
+---
+
+## Agent workflow helpers
+
+| Tool              | Purpose                                               | Use when                                                                 | Avoid because this exists                                         |
+| ----------------- | ----------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `agent-out`       | Canonical `$AGENT_HOME/out/` path generation + audit  | Creating ad hoc project-scoped logs, screenshots, bundles, or run output | Hand-building flat top-level `out/<topic>` artifact directories   |
+| `agent-docs`      | Deterministic agent policy document resolution        | Checking required startup/project/skill/tool docs before implementation  | Guessing which `AGENTS.md` / runbook applies                     |
+| `semantic-commit` | Semantic commit validation and staged-context commits | Committing agent-owned changes with auditable message and diff context   | Calling `git commit` directly from agent workflows                |
 
 ---
 

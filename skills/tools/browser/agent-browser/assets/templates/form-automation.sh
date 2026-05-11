@@ -54,8 +54,7 @@ agent-browser get url
 agent-browser snapshot -i
 
 # Optional: Capture evidence
-OUT_DIR="${AGENT_HOME:-$HOME/.agents}/out/agent-browser"
-mkdir -p "$OUT_DIR"
+OUT_DIR="$(agent-out project --topic agent-browser --mkdir)"
 agent-browser screenshot "$OUT_DIR/form-result.png"
 echo "Screenshot saved: $OUT_DIR/form-result.png"
 

@@ -36,8 +36,9 @@ OPS="$AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh"
 
 ```bash
 BIN="$($AGENT_HOME/skills/tools/macos-agent-ops/scripts/macos-agent-ops.sh where)"
+ARTIFACT_DIR="$(agent-out project --topic macos-agent-matrix --mkdir)"
 "$BIN" --format json observe screenshot --active-window \
-  --path "$AGENT_HOME/out/macos-agent-matrix-failure.png"
+  --path "$ARTIFACT_DIR/macos-agent-matrix-failure.png"
 ```
 
 ## Common stabilization notes

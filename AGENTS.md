@@ -83,14 +83,10 @@
 ## Files, Hooks, And Validation
 
 - Follow the active project's conventions for deliverables and generated files.
-- Put temporary debug or test artifacts under `$AGENT_HOME/out/` when practical.
-- Preserve established tool/workflow artifact contracts such as `out/tests/**`,
-  `out/api-test-runner/**`, `out/semgrep/**`, and `out/plan-issue-delivery/**`.
-- For ad hoc project-scoped artifacts, prefer
-  `$AGENT_HOME/out/projects/<project-slug>/<YYYYMMDD-HHMMSS>-<topic>/...`.
-- Use timestamped run directories for repeatable logs, screenshots, generated
-  bundles, and investigation evidence; keep stable canonical outputs at their
-  tool-defined paths.
+- For temporary/debug artifacts without a project-defined output path, create a
+  project run directory with `agent-out project --topic <topic> --mkdir`.
+- Do not override established tool/workflow artifact contracts; use
+  `agent-out audit` before cleaning or enforcing `$AGENT_HOME/out/`.
 - Do not create durable discussion or decision artifacts unless asked, required by
   project rules, or clearly reusable.
 - Codex hooks may enforce mechanical guardrails, but hooks do not replace policy.

@@ -79,65 +79,71 @@ List displays:
 screen-record --list-displays
 ```
 
+Resolve a canonical project artifact directory:
+
+```bash
+artifact_dir="$(agent-out project --topic screen-record --mkdir)"
+```
+
 Record the active window (no audio):
 
 ```bash
-screen-record --active-window --duration 5 --audio off --path "$AGENT_HOME/out/screen-record/active-5s.mov"
+screen-record --active-window --duration 5 --audio off --path "$artifact_dir/active-5s.mov"
 ```
 
 Record the main display:
 
 ```bash
-screen-record --display --duration 5 --audio off --path "$AGENT_HOME/out/screen-record/display-5s.mov"
+screen-record --display --duration 5 --audio off --path "$artifact_dir/display-5s.mov"
 ```
 
 Record by app name (system audio):
 
 ```bash
-screen-record --app Terminal --duration 3 --audio system --path "$AGENT_HOME/out/screen-record/terminal-3s.mov"
+screen-record --app Terminal --duration 3 --audio system --path "$artifact_dir/terminal-3s.mov"
 ```
 
 Record with metadata + diagnostics artifacts:
 
 ```bash
-screen-record --app Terminal --duration 3 --audio off --path "$AGENT_HOME/out/screen-record/terminal-3s.mov" \
-  --metadata-out "$AGENT_HOME/out/screen-record/terminal-3s.metadata.json" \
-  --diagnostics-out "$AGENT_HOME/out/screen-record/terminal-3s.diagnostics.json"
+screen-record --app Terminal --duration 3 --audio off --path "$artifact_dir/terminal-3s.mov" \
+  --metadata-out "$artifact_dir/terminal-3s.metadata.json" \
+  --diagnostics-out "$artifact_dir/terminal-3s.diagnostics.json"
 ```
 
 If `--app` is ambiguous, pick an id and retry:
 
 ```bash
-screen-record --window-id 4811 --duration 5 --audio off --path "$AGENT_HOME/out/screen-record/window-4811.mov"
+screen-record --window-id 4811 --duration 5 --audio off --path "$artifact_dir/window-4811.mov"
 ```
 
 Wayland-only Linux interactive capture:
 
 ```bash
-screen-record --portal --duration 5 --audio off --path "$AGENT_HOME/out/screen-record/portal-5s.mov"
+screen-record --portal --duration 5 --audio off --path "$artifact_dir/portal-5s.mov"
 ```
 
 Screenshot active window:
 
 ```bash
-screen-record --screenshot --active-window --path "$AGENT_HOME/out/screen-record/active.png"
+screen-record --screenshot --active-window --path "$artifact_dir/active.png"
 ```
 
 Screenshot via app + window title:
 
 ```bash
-screen-record --screenshot --app Terminal --window-name Inbox --path "$AGENT_HOME/out/screen-record/terminal-inbox.jpg"
+screen-record --screenshot --app Terminal --window-name Inbox --path "$artifact_dir/terminal-inbox.jpg"
 ```
 
 Screenshot via portal picker (Wayland):
 
 ```bash
-screen-record --screenshot --portal --path "$AGENT_HOME/out/screen-record/portal.png"
+screen-record --screenshot --portal --path "$artifact_dir/portal.png"
 ```
 
 Skip screenshot publish when unchanged:
 
 ```bash
-screen-record --screenshot --active-window --path "$AGENT_HOME/out/screen-record/active.png" \
+screen-record --screenshot --active-window --path "$artifact_dir/active.png" \
   --if-changed --if-changed-threshold 2
 ```

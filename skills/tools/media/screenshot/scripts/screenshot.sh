@@ -19,12 +19,13 @@ Options:
   --help         Show this help text.
 
 Examples:
-  screenshot.sh --desktop --path "$AGENT_HOME/out/desktop.png"
+  artifact_dir="$(agent-out project --topic screenshot --mkdir)"
+  screenshot.sh --desktop --path "$artifact_dir/desktop.png"
   screenshot.sh --list-windows
   screenshot.sh --list-displays
-  screenshot.sh --active-window --path "$AGENT_HOME/out/screenshot.png"
-  screenshot.sh --portal --path "$AGENT_HOME/out/screenshot-portal.png"
-  screenshot.sh --app "Terminal" --window-name "Docs" --path "$AGENT_HOME/out/terminal-docs.png"
+  screenshot.sh --active-window --path "$artifact_dir/active-window.png"
+  screenshot.sh --portal --path "$artifact_dir/portal.png"
+  screenshot.sh --app "Terminal" --window-name "Docs" --path "$artifact_dir/terminal-docs.png"
 
 For full flags, run:
   screen-record --help
@@ -46,6 +47,27 @@ for arg in "$@"; do
   args+=("$arg")
 done
 agent_home="${AGENT_HOME:-}"
+
+default_artifact_dir() {
+  local topic="$1"
+  if [[ -z "$agent_home" || ! -d "$agent_home" ]]; then
+    return 1
+  fi
+
+  if command -v agent-out >/dev/null 2>&1; then
+    local resolved
+    if resolved="$(AGENT_HOME="$agent_home" agent-out project --topic "$topic" --mkdir 2>/dev/null)"; then
+      printf '%s\n' "$resolved"
+      return 0
+    fi
+  fi
+
+  local ts
+  ts="$(date +%Y%m%d-%H%M%S)"
+  local dir="${agent_home}/out/projects/local__screenshot/${ts}-${topic}"
+  mkdir -p "$dir" 2>/dev/null || true
+  printf '%s\n' "$dir"
+}
 
 if [[ "$desktop_mode" == "1" ]]; then
   os="$(uname -s 2>/dev/null || true)"
@@ -141,8 +163,10 @@ if [[ "$desktop_mode" == "1" ]]; then
     path=""
   fi
   if [[ -z "$path" ]]; then
-    if [[ -z "$dir" && -n "$agent_home" && -d "$agent_home" ]]; then
-      dir="${agent_home}/out/screenshot"
+    if [[ -z "$dir" ]]; then
+      if default_dir="$(default_artifact_dir screenshot)"; then
+        dir="$default_dir"
+      fi
     fi
     if [[ -z "$dir" ]]; then
       dir="."
@@ -218,10 +242,10 @@ if [[ "$has_selector" == "0" ]]; then
   final_args+=(--active-window)
 fi
 
-if [[ "$has_output" == "0" && -n "$agent_home" && -d "$agent_home" ]]; then
-  out_dir="${agent_home}/out/screenshot"
-  mkdir -p "$out_dir" 2>/dev/null || true
-  final_args+=(--dir "$out_dir")
+if [[ "$has_output" == "0" ]]; then
+  if out_dir="$(default_artifact_dir screenshot)"; then
+    final_args+=(--dir "$out_dir")
+  fi
 fi
 
 final_args+=("${args[@]}")
