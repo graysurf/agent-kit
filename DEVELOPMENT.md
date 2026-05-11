@@ -16,7 +16,8 @@
   - `git` (required by lint scripts for tracked-file discovery)
   - `node`/`npx` (required by `rumdl` markdown lint)
   - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
-  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `plan-tooling`, `api-*`, `semantic-commit`)
+  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `agent-docs`, `plan-issue`,
+    `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out`)
 
 ## Quick Setup (Repository Root)
 
@@ -32,47 +33,25 @@
 Use these commands during implementation:
 
 - Fast lint loop: `scripts/check.sh --lint`
-- Docs gate only: `scripts/check.sh --docs`
+- Docs freshness only: `scripts/check.sh --docs`
+- Markdown lint only: `scripts/check.sh --markdown`
 - Smoke-only tests: `scripts/check.sh --tests -- -m script_smoke`
 - Direct smoke via repo test entrypoint: `$AGENT_HOME/scripts/test.sh -m script_smoke`
 - Targeted parity guard: `scripts/check.sh --tests -- -k parity -m script_regression`
 - Full local gate: `scripts/check.sh --all`
 
-`scripts/check.sh --all` currently runs:
-
-- `scripts/lint.sh` (shell + python)
-  - shell: shebang-based routing, `shellcheck` (bash) + `bash -n` + `zsh -n`
-  - python: `ruff check tests` + `mypy` + `pyright` + syntax-compile for tracked `.py`
-- `scripts/ci/markdownlint-audit.sh --strict`
-- `scripts/ci/third-party-artifacts-audit.sh --strict`
-- `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
-- `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-- `zsh -f scripts/audit-env-bools.zsh --check`
-- `bash scripts/ci/docs-freshness-audit.sh --check`
-- `scripts/semgrep-scan.sh`
-- `scripts/test.sh` (full pytest via the uv-managed project environment)
+`scripts/check.sh --all` is the aggregate local gate. For exact dispatch, use
+`scripts/check.sh --help` or read `scripts/lib/check/dispatch.sh` and
+`scripts/lib/check/tasks.sh`; CI mirrors selected modes through generated
+blocks in `.github/workflows/lint.yml`.
 
 ## Required Before Commit
 
-Canonical minimum gate:
-
-- `scripts/check.sh --all`
-
-Recommended pre-commit gate (canonical gate + skill entrypoint checks):
-
-- `scripts/check.sh --pre-commit`
-
-Manual equivalent:
-
-- `scripts/check.sh --all`
-- `bash scripts/ci/stale-skill-scripts-audit.sh --check`
-- `scripts/check.sh --entrypoint-ownership`
-
-Notes:
-
-- `scripts/check.sh --pre-commit` always includes skill entrypoint checks to avoid conditional misses.
-- If you run only the canonical minimum gate (`scripts/check.sh --all`), remember that `stale-skill-scripts-audit` and
-  `--entrypoint-ownership` are still required whenever skill entrypoint scripts are added/removed.
+- Preferred gate: `scripts/check.sh --pre-commit`
+- Minimum gate when skill entrypoints are untouched: `scripts/check.sh --all`
+- `--pre-commit` expands `--all` plus:
+  - `bash scripts/ci/stale-skill-scripts-audit.sh --check`
+  - `scripts/check.sh --entrypoint-ownership`
 - When workflow/tool entrypoint scripts change, update the matching
   `tests/script_specs/skills/**/scripts/*.json` smoke specs in the same PR to
   keep spec coverage aligned with retained entrypoints.

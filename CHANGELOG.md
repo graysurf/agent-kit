@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file.
 - **GitLab MR workflows**: add `create-gitlab-mr` and allow-list audited
   GitLab MR creation commands while preserving the direct creation guard.
 
+### Changed
+
+- **development docs**: streamline `DEVELOPMENT.md` validation guidance around
+  `scripts/check.sh` modes and current `nils-cli` tooling.
+
 ## [2.4.4] - 2026-05-10
 
 ### Added
