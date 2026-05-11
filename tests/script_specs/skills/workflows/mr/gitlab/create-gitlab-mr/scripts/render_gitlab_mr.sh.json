@@ -1,0 +1,22 @@
+{
+  "smoke": [
+    {
+      "name": "mr-template",
+      "args": ["--mr"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Source Branch Policy"
+      }
+    },
+    {
+      "name": "output-template",
+      "args": ["--output"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## MR Summary"
+      }
+    }
+  ]
+}

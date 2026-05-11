@@ -338,12 +338,17 @@ class TestDirectPythonHook:
 
 class TestDirectPrCreateHook:
     def test_blocks_bare_gh_pr_create(self) -> None:
-        code, decision, _ = run_python_hook(
-            "block-direct-pr-create.py",
-            command_payload("gh pr create --draft"),
+        commands = (
+            "gh pr create --draft",
+            "env FOO=1 gh -R owner/repo pr create --draft",
         )
-        assert code == 0
-        assert_blocked(decision, "AGENT_KIT_PR_SKILL")
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-pr-create.py",
+                command_payload(command),
+            )
+            assert code == 0
+            assert_blocked(decision, "AGENT_KIT_PR_SKILL")
 
     def test_allows_exact_agent_kit_pr_marker(self) -> None:
         code, decision, _ = run_python_hook(
@@ -367,10 +372,11 @@ class TestDirectPrCreateHook:
             assert code == 0
             assert_blocked(decision, "AGENT_KIT_PR_SKILL")
 
-    def test_blocks_glab_until_mr_skill_is_allowed(self) -> None:
+    def test_blocks_glab_mr_create_without_mr_skill_marker(self) -> None:
         commands = (
             "glab mr create --draft",
             "AGENT_KIT_PR_SKILL=create-feature-pr glab mr create --draft",
+            "env AGENT_KIT_PR_SKILL=evil-skill glab -R group/project mr create --draft",
         )
         for command in commands:
             code, decision, _ = run_python_hook(
@@ -378,7 +384,46 @@ class TestDirectPrCreateHook:
                 command_payload(command),
             )
             assert code == 0
-            assert_blocked(decision, "MR workflow")
+            assert_blocked(decision, "create-gitlab-mr")
+
+    def test_allows_exact_agent_kit_mr_marker(self) -> None:
+        commands = (
+            "AGENT_KIT_PR_SKILL=create-gitlab-mr glab mr create --draft",
+            "env AGENT_KIT_PR_SKILL=create-gitlab-mr glab -R group/project mr create --draft",
+        )
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-pr-create.py",
+                command_payload(command),
+            )
+            assert code == 0
+            assert_allowed(decision)
+
+    def test_blocks_glab_api_mr_create_without_mr_skill_marker(self) -> None:
+        commands = (
+            "glab api --method POST projects/:fullpath/merge_requests -F source_branch=feat/demo",
+            "glab api projects/123/merge_requests --field source_branch=feat/demo",
+            "AGENT_KIT_PR_SKILL=create-feature-pr glab api -X POST projects/123/merge_requests",
+        )
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-pr-create.py",
+                command_payload(command),
+            )
+            assert code == 0
+            assert_blocked(decision, "create-gitlab-mr")
+
+    def test_allows_exact_agent_kit_mr_marker_for_glab_api_create(self) -> None:
+        code, decision, _ = run_python_hook(
+            "block-direct-pr-create.py",
+            command_payload(
+                "AGENT_KIT_PR_SKILL=create-gitlab-mr "
+                "glab api --method POST projects/:fullpath/merge_requests "
+                "-F source_branch=feat/demo"
+            ),
+        )
+        assert code == 0
+        assert_allowed(decision)
 
     def test_allows_pr_view(self) -> None:
         code, decision, _ = run_python_hook(
@@ -387,6 +432,19 @@ class TestDirectPrCreateHook:
         )
         assert code == 0
         assert_allowed(decision)
+
+    def test_allows_searching_for_pr_mr_create_text(self) -> None:
+        commands = (
+            "rg -n 'gh pr create|glab mr create' hooks tests",
+            "printf '%s\\n' 'glab mr create --draft'",
+        )
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-pr-create.py",
+                command_payload(command),
+            )
+            assert code == 0
+            assert_allowed(decision)
 
 
 class TestProjectMemoryWriteHook:

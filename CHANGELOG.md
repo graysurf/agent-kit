@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **GitLab MR workflows**: add `create-gitlab-mr` and allow-list audited
+  GitLab MR creation commands while preserving the direct creation guard.
+
 ## [2.4.4] - 2026-05-10
 
 ### Added
