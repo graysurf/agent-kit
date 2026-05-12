@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.4.5] - 2026-05-12
+
 ### Added
 
 - **GitLab MR workflows**: add `create-gitlab-mr` and allow-list audited
@@ -761,7 +763,8 @@ All notable changes to this project will be documented in this file.
 - Initial release of agent-kit (prompts, skills, scripts, and docs).
 - Release workflow fallback template and helper scripts for changelog-driven GitHub releases.
 
-[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.4...HEAD
+[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.5...HEAD
+[2.4.5]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.5
 [2.4.4]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.4
 [2.4.3]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.3
 [2.4.2]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.2
