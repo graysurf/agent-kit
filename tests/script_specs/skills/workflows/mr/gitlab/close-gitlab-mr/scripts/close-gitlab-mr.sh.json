@@ -3,7 +3,7 @@
   "timeout_sec": 5,
   "expect": {
     "exit_codes": [0],
-    "stdout_regex": "deliver-gitlab-mr\\.sh --kind <feature\\|bug\\|config\\|deploy\\|docs\\|chore> <command>"
+    "stdout_regex": "close-gitlab-mr\\.sh --kind <feature\\|bug\\|config\\|deploy\\|docs\\|chore>"
   },
   "smoke": [
     {
@@ -12,7 +12,7 @@
       "timeout_sec": 5,
       "expect": {
         "exit_codes": [0],
-        "stdout_regex": "close-gitlab-mr"
+        "stdout_regex": "close-gitlab-mr\\.sh --kind <feature\\|bug\\|config\\|deploy\\|docs\\|chore>"
       }
     }
   ]

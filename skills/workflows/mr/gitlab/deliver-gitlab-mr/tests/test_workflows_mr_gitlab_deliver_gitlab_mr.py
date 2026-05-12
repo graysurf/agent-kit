@@ -154,7 +154,8 @@ def test_preflight_outputs_gitlab_kind_mapping(tmp_path: Path) -> None:
     assert "KIND=deploy" in proc.stdout
     assert "BRANCH_PREFIX=chore" in proc.stdout
     assert "CREATE_SKILL=create-gitlab-mr" in proc.stdout
-    assert "FINALIZE_COMMAND=merge" in proc.stdout
+    assert "CLOSE_SKILL=close-gitlab-mr" in proc.stdout
+    assert "FINALIZE_COMMAND=close" in proc.stdout
 
 
 def test_preflight_blocks_branch_mismatch(tmp_path: Path) -> None:
@@ -290,7 +291,7 @@ def test_wait_pipeline_accepts_missing_pipeline_when_explicitly_allowed(tmp_path
     assert "accepted by --allow-no-pipeline" in proc.stdout
 
 
-def test_merge_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_path: Path) -> None:
+def test_close_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_path: Path) -> None:
     repo, env, log_path = _setup_repo(tmp_path)
 
     proc = _run_skill(
@@ -298,7 +299,7 @@ def test_merge_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_p
         env,
         "--kind",
         "feature",
-        "merge",
+        "close",
         "--mr",
         "7",
         "--poll-seconds",
@@ -315,7 +316,7 @@ def test_merge_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_p
     assert "--remove-source-branch" not in log
 
 
-def test_merge_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) -> None:
+def test_close_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) -> None:
     repo, env, log_path = _setup_repo(tmp_path)
     env["GLAB_FAKE_PIPELINE_STATUS"] = "no_pipeline"
 
@@ -324,7 +325,7 @@ def test_merge_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) 
         env,
         "--kind",
         "docs",
-        "merge",
+        "close",
         "--mr",
         "7",
         "--allow-no-pipeline",
@@ -341,7 +342,7 @@ def test_merge_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) 
     assert "glab mr merge 7 --yes" in log
 
 
-def test_merge_passes_explicit_merge_controls(tmp_path: Path) -> None:
+def test_close_passes_explicit_merge_controls(tmp_path: Path) -> None:
     repo, env, log_path = _setup_repo(tmp_path)
     env["GLAB_FAKE_DRAFT"] = "false"
 
@@ -350,7 +351,7 @@ def test_merge_passes_explicit_merge_controls(tmp_path: Path) -> None:
         env,
         "--kind",
         "deploy",
-        "merge",
+        "close",
         "--mr",
         "7",
         "--skip-pipeline",
@@ -367,3 +368,25 @@ def test_merge_passes_explicit_merge_controls(tmp_path: Path) -> None:
     log = log_path.read_text(encoding="utf-8")
     assert "glab mr update" not in log
     assert "glab mr merge 7 --remove-source-branch --squash --sha abc123 --yes" in log
+
+
+def test_merge_alias_delegates_to_close_helper(tmp_path: Path) -> None:
+    repo, env, log_path = _setup_repo(tmp_path)
+    env["GLAB_FAKE_DRAFT"] = "false"
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "feature",
+        "merge",
+        "--mr",
+        "7",
+        "--skip-pipeline",
+        "--no-cleanup",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "PIPELINE_STATUS=skipped_by_user_confirmation" in proc.stdout
+    log = log_path.read_text(encoding="utf-8")
+    assert "glab mr merge 7 --yes" in log

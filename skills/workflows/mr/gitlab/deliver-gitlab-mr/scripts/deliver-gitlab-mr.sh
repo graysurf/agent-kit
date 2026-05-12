@@ -9,7 +9,8 @@ Usage:
 Commands:
   preflight      Validate delivery preconditions and enforce base-branch guard.
   wait-pipeline  Poll the source branch pipeline until success, failure, or timeout.
-  merge          Mark a draft MR ready when needed, merge it, and clean local state.
+  close          Delegate MR merge/cleanup to close-gitlab-mr.
+  merge          Alias for close.
 
 Global options:
   --kind <kind>  Delivery kind: feature, bug, config, deploy, docs, or chore.
@@ -27,8 +28,8 @@ wait-pipeline options:
   --poll-seconds <n>         Poll interval in seconds (default: 20)
   --max-wait-seconds <n>     Maximum wait time in seconds (default: 7200)
 
-merge options:
-  --mr <iid|branch>          MR to merge (optional; defaults to current-branch MR).
+close options:
+  --mr <iid|branch>          MR to close (optional; defaults to current-branch MR).
   --poll-seconds <n>         Pipeline poll interval before merge (default: 20)
   --max-wait-seconds <n>     Maximum pipeline wait before merge (default: 7200)
   --skip-pipeline            Skip pipeline wait only after explicit user confirmation.
@@ -789,7 +790,8 @@ cmd_preflight() {
   echo "KIND=$DELIVER_GITLAB_MR_KIND"
   echo "BRANCH_PREFIX=$(branch_prefix_for_kind "$DELIVER_GITLAB_MR_KIND")"
   echo "CREATE_SKILL=create-gitlab-mr"
-  echo "FINALIZE_COMMAND=merge"
+  echo "CLOSE_SKILL=close-gitlab-mr"
+  echo "FINALIZE_COMMAND=close"
 
   local current_branch
   current_branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -876,7 +878,7 @@ cmd_wait_pipeline() {
   wait_pipeline_for_branch "$branch" "$poll_seconds" "$max_wait_seconds" "$allow_no_pipeline"
 }
 
-cmd_merge() {
+cmd_close() {
   local mr_ref=''
   local poll_seconds="20"
   local max_wait_seconds="7200"
@@ -951,7 +953,7 @@ cmd_merge() {
         exit 0
         ;;
       *)
-        echo "error: unknown merge argument: ${1:-}" >&2
+        echo "error: unknown close argument: ${1:-}" >&2
         exit 2
         ;;
     esac
@@ -962,73 +964,46 @@ cmd_merge() {
   require_cmd python3
   require_git_repo
   require_clean_worktree
-  parse_positive_int "--poll-seconds" "$poll_seconds"
-  parse_positive_int "--max-wait-seconds" "$max_wait_seconds"
 
-  local mr_json mr_iid mr_url source_branch target_branch mr_state mr_draft
-  mr_json="$(mr_json_for_ref "$mr_ref")"
-  mr_iid="$(printf '%s' "$mr_json" | json_field iid id 2>/dev/null || true)"
-  mr_url="$(printf '%s' "$mr_json" | json_field web_url webUrl url 2>/dev/null || true)"
-  source_branch="$(printf '%s' "$mr_json" | json_field source_branch sourceBranch headRefName 2>/dev/null || true)"
-  target_branch="$(printf '%s' "$mr_json" | json_field target_branch targetBranch baseRefName 2>/dev/null || true)"
-  mr_state="$(printf '%s' "$mr_json" | json_field state 2>/dev/null || true)"
-  mr_draft="$(printf '%s' "$mr_json" | json_field draft work_in_progress workInProgress isDraft 2>/dev/null || true)"
+  local script_dir gitlab_workflow_dir close_script
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  gitlab_workflow_dir="$(cd "$script_dir/../.." && pwd)"
+  close_script="$gitlab_workflow_dir/close-gitlab-mr/scripts/close-gitlab-mr.sh"
 
-  if [[ -z "$source_branch" || -z "$target_branch" ]]; then
-    echo "error: failed to resolve MR source/target branch metadata" >&2
+  if [[ ! -x "$close_script" ]]; then
+    echo "error: close-gitlab-mr helper not found or not executable: $close_script" >&2
     exit 1
   fi
-  case "$(printf '%s' "$mr_state" | tr '[:upper:]' '[:lower:]')" in
-    opened|open|"")
-      ;;
-    *)
-      echo "error: MR is not open (state=${mr_state})" >&2
-      exit 1
-      ;;
-  esac
 
-  echo "MR_IID=${mr_iid:-$mr_ref}"
-  echo "MR_URL=${mr_url:-unknown}"
-  echo "SOURCE_BRANCH=$source_branch"
-  echo "TARGET_BRANCH=$target_branch"
-
-  if [[ "$skip_pipeline" == "0" ]]; then
-    wait_pipeline_for_branch "$source_branch" "$poll_seconds" "$max_wait_seconds" "$allow_no_pipeline"
-  else
-    echo "PIPELINE_STATUS=skipped_by_user_confirmation"
-  fi
-
-  local -a mr_args=()
+  local -a cmd=( "$close_script" --kind "$DELIVER_GITLAB_MR_KIND" )
   if [[ -n "$mr_ref" ]]; then
-    mr_args+=("$mr_ref")
+    cmd+=(--mr "$mr_ref")
   fi
-
-  if [[ "$(printf '%s' "$mr_draft" | tr '[:upper:]' '[:lower:]')" == "true" ]]; then
-    glab mr update "${mr_args[@]}" --ready --yes
+  cmd+=(--poll-seconds "$poll_seconds")
+  cmd+=(--max-wait-seconds "$max_wait_seconds")
+  if [[ "$skip_pipeline" == "1" ]]; then
+    cmd+=(--skip-pipeline)
   fi
-
-  local -a merge_args=(mr merge)
-  if [[ -n "$mr_ref" ]]; then
-    merge_args+=("$mr_ref")
+  if [[ "$allow_no_pipeline" == "1" ]]; then
+    cmd+=(--allow-no-pipeline)
   fi
   if [[ "$remove_source_branch" == "1" ]]; then
-    merge_args+=(--remove-source-branch)
+    cmd+=(--remove-source-branch)
   fi
   if [[ "$squash" == "1" ]]; then
-    merge_args+=(--squash)
+    cmd+=(--squash)
   fi
   if [[ -n "$sha" ]]; then
-    merge_args+=(--sha "$sha")
+    cmd+=(--sha "$sha")
   fi
-  merge_args+=(--yes)
-
-  glab "${merge_args[@]}"
-
-  if [[ "$no_cleanup" == "0" ]]; then
-    cleanup_after_merge "$target_branch" "$source_branch" "$keep_local_branch"
+  if [[ "$keep_local_branch" == "1" ]]; then
+    cmd+=(--keep-local-branch)
+  fi
+  if [[ "$no_cleanup" == "1" ]]; then
+    cmd+=(--no-cleanup)
   fi
 
-  echo "ok: merged GitLab MR ${mr_iid:+!$mr_iid}"
+  "${cmd[@]}"
 }
 
 main() {
@@ -1081,8 +1056,8 @@ main() {
     wait-pipeline)
       cmd_wait_pipeline "$@"
       ;;
-    merge)
-      cmd_merge "$@"
+    close|merge)
+      cmd_close "$@"
       ;;
     -h|--help|help)
       usage

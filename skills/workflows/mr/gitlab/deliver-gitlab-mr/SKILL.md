@@ -1,7 +1,7 @@
 ---
 name: deliver-gitlab-mr
 description:
-  "Deliver GitLab merge requests end to end with one workflow: preflight, create via create-gitlab-mr, wait/fix pipeline until green, then merge and clean up."
+  "Deliver GitLab merge requests end to end with one workflow: preflight, create via create-gitlab-mr, wait/fix pipeline until green, then close via close-gitlab-mr."
 ---
 
 # Deliver GitLab MR
@@ -14,7 +14,7 @@ Prereqs:
 - `git`, `glab`, and `python3` available on `PATH`, and `glab auth status` succeeds for the target host.
 - Working tree may be dirty before preflight; preflight must run scope triage first.
 - Working tree must be clean before merge.
-- Companion skill available: `create-gitlab-mr`.
+- Companion skills available: `create-gitlab-mr` and `close-gitlab-mr`.
 
 Inputs:
 
@@ -36,8 +36,8 @@ Outputs:
   - `kind=config|deploy|chore` -> `chore/<slug>`
 - A GitLab MR created through `create-gitlab-mr`.
 - Pipeline status fully green; failed or blocked pipelines are fixed before merge.
-- MR marked ready when it is draft, merged through `glab mr merge`, and locally cleaned up.
-- `deliver-gitlab-mr` is successful only after merge is complete; create-only or close-without-merge is not a successful delivery outcome.
+- MR marked ready when it is draft, merged, and cleaned up through `close-gitlab-mr`.
+- `deliver-gitlab-mr` is successful only after close/merge is complete; create-only is not a successful delivery outcome.
 
 Exit codes:
 
@@ -105,10 +105,10 @@ Failure modes:
      - re-run `wait-pipeline`
    - Do not proceed to merge until the pipeline is green, unless the user explicitly confirms `--allow-no-pipeline` or `--skip-pipeline`.
 
-5. Merge MR
+5. Close MR
    - Run:
-     - `deliver-gitlab-mr.sh --kind <kind> merge --mr <iid>`
-   - The merge flow:
+     - `deliver-gitlab-mr.sh --kind <kind> close --mr <iid>`
+   - The close flow delegates to `close-gitlab-mr` and:
      - requires a clean working tree
      - marks draft MRs ready with `glab mr update <iid> --ready --yes`
      - merges with `glab mr merge <iid> --yes`
@@ -121,12 +121,12 @@ Failure modes:
 
 ## Completion Gate
 
-- If there is no blocking error, this workflow must run end-to-end through `merge`.
-- Do not stop after create/open MR and report "next step is wait-pipeline/merge".
-- A stop before `merge` is valid only when a real block/failure exists (for example: ambiguity confirmation pending, pipeline still
+- If there is no blocking error, this workflow must run end-to-end through `close`.
+- Do not stop after create/open MR and report "next step is wait-pipeline/close".
+- A stop before `close` is valid only when a real block/failure exists (for example: ambiguity confirmation pending, pipeline still
   failing, timeout, auth/permission failure, non-mergeable MR, or explicit user pause).
 - Closing an MR without merge is cleanup/abort, not successful delivery.
-- When stopping before `merge`, report status as `BLOCKED` or `FAILED` with the exact unblock action; do not report partial success.
+- When stopping before `close`, report status as `BLOCKED` or `FAILED` with the exact unblock action; do not report partial success.
 
 ## Suspicious-Signal Matrix
 

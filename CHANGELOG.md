@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - **GitLab MR workflows**: add `create-gitlab-mr` and allow-list audited
   GitLab MR creation commands while preserving the direct creation guard.
+- **GitLab MR workflows**: add provider-scoped `close-gitlab-mr` for pipeline
+  gating, draft readiness, merge, and local cleanup.
 - **GitHub PR workflows**: add provider-scoped `create-github-pr`,
   `deliver-github-pr`, and `close-github-pr` skills with `kind=feature|bug`.
 
@@ -15,6 +17,8 @@ All notable changes to this project will be documented in this file.
 
 - **PR workflows**: update the skill catalog to the provider-scoped GitHub
   layout with `create-github-pr`, `deliver-github-pr`, and `close-github-pr`.
+- **MR workflows**: align `deliver-gitlab-mr` with the GitHub delivery shape by
+  delegating its final close/merge step to `close-gitlab-mr`.
 - **codex-hooks**: allow direct `gh pr create` only from `create-github-pr` and
   `create-plan-issue-sprint-pr`; legacy `create-feature-pr` and
   `create-bug-pr` markers now remain blocked.
