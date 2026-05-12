@@ -138,6 +138,7 @@ Core skills are grouped under [skills/workflows/](skills/workflows), [skills/too
 | SQL              | [sql](./skills/tools/sql/sql/)                                                             | Run PostgreSQL, MySQL, or SQL Server queries through one dialect subcommand and prefix + env file convention    |
 | Testing          | [api-test-runner](./skills/tools/testing/api-test-runner/)                                 | Canonical REST + GraphQL API testing skill: suites via `api-test`, focused calls via `api-rest` / `api-gql`     |
 | Computer Use     | [google-sheets-cell-edit](./skills/tools/computer-use/google-sheets-cell-edit/) | Edit Google Sheets cells through browser automation with reliable cell targeting, multiline content, partial rich-text hyperlinks, and in-app validation. |
+| Market Research | [polymarket-readonly](./skills/tools/market-research/polymarket-readonly/) | Research Polymarket markets through read-only public APIs and MCP servers without trading credentials. |
 
 ### Automation
 
