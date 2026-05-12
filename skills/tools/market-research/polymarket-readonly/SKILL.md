@@ -24,6 +24,7 @@ Outputs:
 - Market/event summaries, public price/orderbook context, or public wallet analytics.
 - Source-grounded notes that separate observed Polymarket data from inference.
 - MCP setup or smoke-test diagnostics when requested.
+- REST fallback search output when MCP free-text search is unavailable or known-broken.
 
 Exit codes:
 
@@ -60,8 +61,18 @@ Failure modes:
    $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --smoke
    ```
 
-4. For market discovery without MCP, use public Gamma endpoints. For live price/orderbook context,
+4. For free-text market discovery, be aware that `polymarket-mcp-server==0.1.3`
+   sends `query=` to Gamma `/public-search`, while the public API currently
+   expects `q=`. That upstream mismatch returns HTTP 422 and is masked by the
+   MCP server as a generic tool error. Until a newer MCP package fixes this,
+   use the REST fallback:
+
+   ```bash
+   $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --search "fed decision" --limit 5
+   ```
+
+5. For market discovery without MCP, use public Gamma endpoints. For live price/orderbook context,
    use public CLOB read endpoints. For wallet analytics, use public Data API endpoints and state
    that wallet data is public/onchain-derived.
-5. Cite the concrete tool result, local config, or official API doc when the answer depends on auth, setup, or current market data.
-6. Keep analysis non-advisory unless the user explicitly asks for a forecast. Do not frame output as financial, betting, or trading advice.
+6. Cite the concrete tool result, local config, or official API doc when the answer depends on auth, setup, or current market data.
+7. Keep analysis non-advisory unless the user explicitly asks for a forecast. Do not frame output as financial, betting, or trading advice.

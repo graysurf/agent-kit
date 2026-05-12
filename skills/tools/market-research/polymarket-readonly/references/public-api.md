@@ -37,4 +37,12 @@ Market search:
 curl -fsSL 'https://gamma-api.polymarket.com/public-search?q=ai&limit=5'
 ```
 
+Skill fallback search:
+
+```bash
+$AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --search ai --limit 5
+```
+
+Do not use `query=` for `/public-search`; the current Gamma API expects `q=`.
+
 When reporting results, state which endpoint or MCP tool produced the data and avoid unsupported conclusions.

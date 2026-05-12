@@ -11,6 +11,11 @@ Use this reference when choosing, validating, or changing the MCP server for rea
 - Scope: Gamma discovery, Data API wallet/activity reads, public CLOB prices/orderbooks/history.
 - Safety model: intentionally read-only in the `0.1.x` line; it does not place trades, sign orders, manage keys, or require wallet credentials.
 - Local Codex config should use no `env` block for this server.
+- Known caveat: in `0.1.3`, `gamma_search_public` sends `query=` to
+  Gamma `/public-search`; the current public API expects `q=`, returns HTTP
+  422 for `query=`, and FastMCP masks the details as a generic tool error.
+  Use `polymarket-readonly.sh --search <query>` or a direct REST fallback for
+  free-text search until the upstream package changes.
 
 ## Acceptable Fallbacks
 

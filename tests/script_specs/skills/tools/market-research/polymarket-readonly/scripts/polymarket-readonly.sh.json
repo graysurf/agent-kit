@@ -1,0 +1,22 @@
+{
+  "args": ["--help"],
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "--search <query>"
+  },
+  "smoke": [
+    {
+      "name": "public-search-rest-fallback",
+      "args": ["--search", "ai", "--limit", "5"],
+      "env": {
+        "CODEX_CURL_STUB_MODE_ENABLED": "true",
+        "CODEX_CURL_STUB_BODY": "{\"events\":[{\"id\":\"1\",\"slug\":\"sample-event\",\"title\":\"Sample Event\",\"active\":true,\"closed\":false,\"markets\":[{\"id\":\"2\",\"slug\":\"sample-market\",\"question\":\"Sample market?\",\"active\":true,\"closed\":false,\"clobTokenIds\":\"[\\\"1\\\", \\\"2\\\"]\"}]}],\"pagination\":{\"totalResults\":1}}"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"source\": \"gamma-api/public-search\""
+      }
+    }
+  ]
+}

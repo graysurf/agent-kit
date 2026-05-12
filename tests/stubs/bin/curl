@@ -48,7 +48,10 @@ fi
 
 status="${CODEX_CURL_STUB_STATUS:-200}"
 body_file="${CODEX_CURL_STUB_BODY_FILE:-}"
-body="${CODEX_CURL_STUB_BODY:-{\"ok\":true}}"
+body="${CODEX_CURL_STUB_BODY:-}"
+if [[ -z "$body" ]]; then
+  body='{"ok":true}'
+fi
 
 out_file=""
 write_fmt=""
