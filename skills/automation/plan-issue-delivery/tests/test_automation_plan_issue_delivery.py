@@ -345,7 +345,7 @@ def test_sprint_pr_template_reference_exists_and_documents_required_schema() -> 
     # Issue bullet shape
     assert "- #<ISSUE_NUMBER>" in text
     # Cross-reference to feature template (so authors know which one to use)
-    assert "skills/create-feature-pr/references/PR_TEMPLATE.md" in text
+    assert "skills/workflows/pr/github/create-github-pr/references/FEATURE_PR_TEMPLATE.md" in text
     # Sprint 4 follow-up reference trail
     assert "claude-kit Sprint 4 Task 4.2" in text
 
@@ -364,7 +364,7 @@ def test_sprint_pr_template_named_by_pr_body_validator_error_message() -> None:
     validator_text = (repo_root / VALIDATOR_REL).read_text(encoding="utf-8")
     # The PR-body hygiene validator must NAME the schema and the template
     # path so the operator knows which template to switch to (vs.
-    # claude-kit's create-feature-pr template, which uses
+    # create-github-pr's feature template, which uses
     # Summary/Changes/Testing/Risk/Notes).
     assert "schema_label='sprint-pr (Summary / Scope / Testing / Issue)'" in validator_text
     assert (

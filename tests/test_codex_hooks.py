@@ -350,17 +350,24 @@ class TestDirectPrCreateHook:
             assert code == 0
             assert_blocked(decision, "AGENT_KIT_PR_SKILL")
 
-    def test_allows_exact_agent_kit_pr_marker(self) -> None:
-        code, decision, _ = run_python_hook(
-            "block-direct-pr-create.py",
-            command_payload("AGENT_KIT_PR_SKILL=create-feature-pr gh pr create --draft"),
+    def test_allows_current_agent_kit_pr_markers(self) -> None:
+        commands = (
+            "AGENT_KIT_PR_SKILL=create-github-pr gh pr create --draft",
+            "AGENT_KIT_PR_SKILL=create-plan-issue-sprint-pr gh pr create --draft",
         )
-        assert code == 0
-        assert_allowed(decision)
+        for command in commands:
+            code, decision, _ = run_python_hook(
+                "block-direct-pr-create.py",
+                command_payload(command),
+            )
+            assert code == 0
+            assert_allowed(decision)
 
     def test_blocks_legacy_or_unknown_markers(self) -> None:
         commands = (
             "CLAUDE_KIT_PR_SKILL=create-feature-pr gh pr create --draft",
+            "AGENT_KIT_PR_SKILL=create-feature-pr gh pr create --draft",
+            "AGENT_KIT_PR_SKILL=create-bug-pr gh pr create --draft",
             "AGENT_KIT_PR_SKILL=1 gh pr create --draft",
             "AGENT_KIT_PR_SKILL=evil-skill gh pr create --draft",
         )
@@ -375,7 +382,7 @@ class TestDirectPrCreateHook:
     def test_blocks_glab_mr_create_without_mr_skill_marker(self) -> None:
         commands = (
             "glab mr create --draft",
-            "AGENT_KIT_PR_SKILL=create-feature-pr glab mr create --draft",
+            "AGENT_KIT_PR_SKILL=create-github-pr glab mr create --draft",
             "env AGENT_KIT_PR_SKILL=evil-skill glab -R group/project mr create --draft",
         )
         for command in commands:
@@ -403,7 +410,7 @@ class TestDirectPrCreateHook:
         commands = (
             "glab api --method POST projects/:fullpath/merge_requests -F source_branch=feat/demo",
             "glab api projects/123/merge_requests --field source_branch=feat/demo",
-            "AGENT_KIT_PR_SKILL=create-feature-pr glab api -X POST projects/123/merge_requests",
+            "AGENT_KIT_PR_SKILL=create-github-pr glab api -X POST projects/123/merge_requests",
         )
         for command in commands:
             code, decision, _ = run_python_hook(

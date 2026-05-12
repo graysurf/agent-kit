@@ -73,7 +73,7 @@ $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skil
 
 ## Naming conventions
 
-- Skill directories use kebab-case (e.g., `create-feature-pr`).
+- Skill directories use kebab-case (e.g., `create-github-pr`).
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
 

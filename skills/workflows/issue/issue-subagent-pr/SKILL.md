@@ -215,11 +215,11 @@ Failure modes:
        --testing "<real command> (pass)"
      ```
 
-   - For non-plan-issue flows, use `gh pr create` directly:
+   - For non-plan-issue flows, use the audited GitHub PR marker:
 
    - ```bash
      if [ -z "${PR_NUMBER:-}" ]; then
-       gh pr create \
+       AGENT_KIT_PR_SKILL=create-github-pr gh pr create \
          --draft \
          --base "$BASE" \
          --head "$BRANCH" \

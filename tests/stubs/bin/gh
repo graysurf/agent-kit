@@ -67,6 +67,10 @@ die_unhandled() {
   exit 91
 }
 
+if [[ "${1-}" == "auth" && "${2-}" == "status" ]]; then
+  exit 0
+fi
+
 render_pr_url() {
   local pr_number="$1"
   printf "%s" "${CODEX_GH_STUB_PR_URL:-https://github.com/example/repo/pull/${pr_number}}"
@@ -292,6 +296,56 @@ if [[ "${1-}" == "pr" && "${2-}" == "edit" ]]; then
 fi
 
 if [[ "${1-}" == "pr" && "${2-}" == "checks" ]]; then
+  shift 2
+  json_fields=""
+  while [[ $# -gt 0 ]]; do
+    case "${1-}" in
+      --json)
+        json_fields="${2:-}"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  checks_mode="${CODEX_GH_STUB_PR_CHECKS_MODE:-pass}"
+  if [[ -n "$json_fields" ]]; then
+    case "$checks_mode" in
+      none|missing|no_checks)
+        printf '[]\n'
+        ;;
+      fail|failed)
+        printf '[{"name":"ci","state":"FAILURE","bucket":"fail"}]\n'
+        ;;
+      pending)
+        printf '[{"name":"ci","state":"PENDING","bucket":"pending"}]\n'
+        ;;
+      custom)
+        printf '%s\n' "${CODEX_GH_STUB_PR_CHECKS_JSON:-[]}"
+        ;;
+      *)
+        printf '[{"name":"ci","state":"SUCCESS","bucket":"pass"}]\n'
+        ;;
+    esac
+    exit 0
+  fi
+
+  case "$checks_mode" in
+    none|missing|no_checks)
+      echo "no checks reported on the 'main' branch" >&2
+      exit 1
+      ;;
+    fail|failed)
+      echo "ci fail" >&2
+      exit 1
+      ;;
+    pending)
+      echo "ci pending" >&2
+      exit 8
+      ;;
+  esac
   exit 0
 fi
 
