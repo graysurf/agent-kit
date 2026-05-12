@@ -2,10 +2,10 @@
 
 This template is the canonical PR-body shape for sprint PRs opened by
 plan-issue implementation lanes (`PLAN_BRANCH` base, sprint-scoped
-heads). It is intentionally **separate** from the claude-kit
-feature-PR template at
-`skills/create-feature-pr/references/PR_TEMPLATE.md`, which uses the
-`Summary / Changes / Testing / Risk / Notes` shape.
+heads). It is intentionally **separate** from the GitHub feature PR
+template at
+`skills/workflows/pr/github/create-github-pr/references/FEATURE_PR_TEMPLATE.md`,
+which uses the `Summary / Changes / Testing / Risk / Notes` shape.
 
 The validator in
 `$AGENT_HOME/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh`
@@ -14,9 +14,9 @@ enforces this shape via `validate_pr_body_hygiene_text` and reports
 to this file when a sprint PR body fails hygiene. Operators who hit
 that error must either rewrite the PR body to match this template or,
 if the PR is a non-sprint feature/bug PR by mistake, switch to the
-appropriate claude-kit feature/bug template instead.
+appropriate `create-github-pr` feature/bug template instead.
 
-> TODO (sprint 4): the claude-kit wrapper at
+> TODO (sprint 4): the legacy claude-kit wrapper at
 > `plugins/plan-issue/skills/plan-issue-delivery/SKILL.md` is updated to
 > point at this template in claude-kit Sprint 4 Task 4.2 — see the plan
 > at `docs/plans/plan-issue-delivery-improvements-plan.md` (Sprint 4) in
@@ -70,7 +70,7 @@ also rejects placeholder strings (`<...>`, `TODO`, `TBD`, `#<number>`,
 
 ## Anti-patterns
 
-- Do **not** use the feature-PR sections (`## Changes`, `## Risk / Notes`)
+- Do **not** use the feature PR sections (`## Changes`, `## Risk / Notes`)
   on a plan-issue sprint PR. Switch templates if you opened the wrong
   type of PR.
 - Do **not** leave `<...>` placeholders in the body; fill or delete the

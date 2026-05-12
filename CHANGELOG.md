@@ -8,11 +8,24 @@ All notable changes to this project will be documented in this file.
 
 - **GitLab MR workflows**: add `create-gitlab-mr` and allow-list audited
   GitLab MR creation commands while preserving the direct creation guard.
+- **GitHub PR workflows**: add provider-scoped `create-github-pr`,
+  `deliver-github-pr`, and `close-github-pr` skills with `kind=feature|bug`.
 
 ### Changed
 
+- **PR workflows**: update the skill catalog to the provider-scoped GitHub
+  layout with `create-github-pr`, `deliver-github-pr`, and `close-github-pr`.
+- **codex-hooks**: allow direct `gh pr create` only from `create-github-pr` and
+  `create-plan-issue-sprint-pr`; legacy `create-feature-pr` and
+  `create-bug-pr` markers now remain blocked.
 - **development docs**: streamline `DEVELOPMENT.md` validation guidance around
   `scripts/check.sh` modes and current `nils-cli` tooling.
+
+### Removed
+
+- **skill catalog**: remove legacy feature/bug GitHub PR rows for
+  `create-feature-pr`, `create-bug-pr`, `close-feature-pr`, `close-bug-pr`, and
+  the generic `deliver-pr` entry in favor of provider-scoped GitHub PR skills.
 
 ## [2.4.4] - 2026-05-10
 

@@ -12,8 +12,7 @@ from hook_common import ALLOW, command_from, emit_block, read_payload
 
 ALLOWED_PR_SKILLS: frozenset[str] = frozenset(
     {
-        "create-feature-pr",
-        "create-bug-pr",
+        "create-github-pr",
         "create-plan-issue-sprint-pr",
     }
 )

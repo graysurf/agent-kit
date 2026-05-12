@@ -1,0 +1,40 @@
+{
+  "smoke": [
+    {
+      "name": "feature-pr-template",
+      "args": ["--kind", "feature", "--pr"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Changes"
+      }
+    },
+    {
+      "name": "bug-pr-template",
+      "args": ["--kind", "bug", "--pr"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Issues Found"
+      }
+    },
+    {
+      "name": "feature-output-template",
+      "args": ["--kind", "feature", "--output"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Feature Summary"
+      }
+    },
+    {
+      "name": "bug-output-template",
+      "args": ["--kind", "bug", "--output"],
+      "timeout_sec": 5,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Issues List"
+      }
+    }
+  ]
+}
