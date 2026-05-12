@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **README**: refresh the project map and setup notes for tracked hooks,
+  release helpers, workspace launcher docs, and public skill-catalog
+  boundaries.
+
 ## [2.4.5] - 2026-05-12
 
 ### Added

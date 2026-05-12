@@ -8,19 +8,22 @@ agent-kit tracks AI agent setup to keep workflows consistent across machines. It
 
 ```text
 .
+├── .agents/    # repo-local agent helper scripts, including release entrypoint
 ├── .github/    # CI workflows (GitHub Actions)
-├── prompts/    # prompt presets
-├── skills/     # skills (tools/, workflows/, automation/, .system/, _shared/, _projects/)
-├── scripts/    # loader + helper scripts
-├── docker/     # Docker images + env tooling
+├── docker/     # Docker image docs and workspace launcher pointers
 ├── docs/       # runbooks, plans, and testing docs
+├── hooks/      # Codex hook source and managed config block
+├── prompts/    # prompt presets
+├── scripts/    # validation, sync, build, and helper entrypoints
+├── skills/     # tracked public skills plus ignored local/system overlays
 ├── tests/      # pytest regression/smoke tests
-└── AGENTS.md   # global agent rules (response/tooling)
+├── AGENTS.md   # global agent rules (response/tooling)
+└── DEVELOPMENT.md
 ```
 
 ## ⚙️ Setup
 
-Install required tooling via the Homebrew tap:
+Install agent-kit CLI tooling via the Homebrew tap:
 
 ```zsh
 brew tap sympoies/tap
@@ -44,6 +47,9 @@ binaries (`agent-docs`, `plan-issue`) no longer auto-read `AGENT_HOME`. Pass the
 home explicitly via `agent-docs --docs-home "$AGENT_HOME"` and
 `plan-issue --state-dir "$AGENT_HOME"`, or export `AGENT_DOCS_HOME` /
 `PLAN_ISSUE_HOME` alongside `AGENT_HOME`.
+
+`nils-cli` also provides shared helper binaries used by skills and checks, including
+`plan-tooling`, `api-*`, `semantic-commit`, `agent-out`, and media tooling.
 
 Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
 
@@ -69,9 +75,11 @@ into the local config with:
 $AGENT_HOME/scripts/codex-hooks-sync sync --apply
 ```
 
-## 🐳 Docker environment
+## 🐳 Docker And Workspace Environments
 
 See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Docker environment, Docker Hub publish steps, and compose usage.
+See [docker/agent-workspace-launcher/README.md](docker/agent-workspace-launcher/README.md) for the host-native
+`agent-workspace-launcher` runtime that replaced legacy Docker wrapper usage.
 
 ## 🧰 Prompts
 
@@ -90,10 +98,11 @@ See [docker/agent-env/README.md](docker/agent-env/README.md) for the Ubuntu Dock
 See [skills/tools/skill-management/README.md](./skills/tools/skill-management/README.md) for how to create/validate/remove skills (including
 project-local `.agents/skills`) using canonical entrypoints.
 
-Core skills are grouped under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
-[skills/automation/](skills/automation). Tool skills may also be grouped by execution surface, such as
-`skills/tools/computer-use/` for live GUI automation. Internal/meta skills live under `skills/.system/`
-(not listed below).
+The catalog below covers tracked public skills under [skills/workflows/](skills/workflows),
+[skills/tools/](skills/tools), and [skills/automation/](skills/automation). Tool skills may also be
+grouped by execution surface, such as `skills/tools/computer-use/` for live GUI automation.
+Ignored local/system overlays may exist under `skills/_projects/` and `skills/.system/`, but they are
+not part of the public catalog unless explicitly tracked.
 
 ### Workflows
 
