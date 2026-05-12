@@ -86,6 +86,10 @@ def _install_fake_glab(tmp_path: Path) -> tuple[Path, Path]:
         "  exit 0\n"
         "fi\n"
         "if [[ \"${1-}\" == \"ci\" && \"${2-}\" == \"status\" ]]; then\n"
+        "  if [[ \"${GLAB_FAKE_PIPELINE_STATUS:-success}\" == \"no_pipeline\" ]]; then\n"
+        "    echo \"No pipeline found. It might not exist yet. Check your pipeline configuration.\" >&2\n"
+        "    exit 1\n"
+        "  fi\n"
         "  printf '{\"status\":\"%s\"}\\n' \"${GLAB_FAKE_PIPELINE_STATUS:-success}\"\n"
         "  exit 0\n"
         "fi\n"
@@ -239,6 +243,53 @@ def test_wait_pipeline_fails_on_failed_status(tmp_path: Path) -> None:
     assert "pipeline is not mergeable" in proc.stderr
 
 
+def test_wait_pipeline_fails_on_missing_pipeline_by_default(tmp_path: Path) -> None:
+    repo, env, _ = _setup_repo(tmp_path)
+    env["GLAB_FAKE_PIPELINE_STATUS"] = "no_pipeline"
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "docs",
+        "wait-pipeline",
+        "--branch",
+        "docs/no-ci",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 1
+    assert "PIPELINE_STATUS=missing" in proc.stdout
+    assert "use --allow-no-pipeline" in proc.stderr
+
+
+def test_wait_pipeline_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) -> None:
+    repo, env, _ = _setup_repo(tmp_path)
+    env["GLAB_FAKE_PIPELINE_STATUS"] = "no_pipeline"
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "docs",
+        "wait-pipeline",
+        "--branch",
+        "docs/no-ci",
+        "--allow-no-pipeline",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "PIPELINE_STATUS=missing" in proc.stdout
+    assert "accepted by --allow-no-pipeline" in proc.stdout
+
+
 def test_merge_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_path: Path) -> None:
     repo, env, log_path = _setup_repo(tmp_path)
 
@@ -262,6 +313,32 @@ def test_merge_marks_draft_ready_and_keeps_remote_source_branch_by_default(tmp_p
     assert "glab mr update 7 --ready --yes" in log
     assert "glab mr merge 7 --yes" in log
     assert "--remove-source-branch" not in log
+
+
+def test_merge_accepts_missing_pipeline_when_explicitly_allowed(tmp_path: Path) -> None:
+    repo, env, log_path = _setup_repo(tmp_path)
+    env["GLAB_FAKE_PIPELINE_STATUS"] = "no_pipeline"
+
+    proc = _run_skill(
+        repo,
+        env,
+        "--kind",
+        "docs",
+        "merge",
+        "--mr",
+        "7",
+        "--allow-no-pipeline",
+        "--poll-seconds",
+        "1",
+        "--max-wait-seconds",
+        "1",
+        "--no-cleanup",
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    assert "PIPELINE_STATUS=missing" in proc.stdout
+    log = log_path.read_text(encoding="utf-8")
+    assert "glab mr merge 7 --yes" in log
 
 
 def test_merge_passes_explicit_merge_controls(tmp_path: Path) -> None:

@@ -23,6 +23,7 @@ wait-pipeline options:
   --mr <iid|branch>          Resolve the source branch from a GitLab MR.
   --branch <branch>          Source branch to poll.
   --source-branch <branch>   Alias of --branch.
+  --allow-no-pipeline        Treat an absent GitLab pipeline as an explicit pass.
   --poll-seconds <n>         Poll interval in seconds (default: 20)
   --max-wait-seconds <n>     Maximum wait time in seconds (default: 7200)
 
@@ -31,6 +32,7 @@ merge options:
   --poll-seconds <n>         Pipeline poll interval before merge (default: 20)
   --max-wait-seconds <n>     Maximum pipeline wait before merge (default: 7200)
   --skip-pipeline            Skip pipeline wait only after explicit user confirmation.
+  --allow-no-pipeline        Merge when no pipeline exists, but still fail failed pipelines.
   --remove-source-branch     Ask GitLab to remove the remote source branch on merge.
   --squash                   Squash commits on merge.
   --sha <commit>             Merge only if the source branch HEAD matches the SHA.
@@ -567,6 +569,11 @@ pipeline_status_for_branch() {
   set -e
 
   if [[ "$rc" -ne 0 ]]; then
+    if printf '%s\n' "$output" | grep -qi 'No pipeline found'; then
+      printf '%s\n' "$output" >&2
+      printf '%s\n' "missing"
+      return 3
+    fi
     printf '%s\n' "$output" >&2
     return "$rc"
   fi
@@ -585,7 +592,8 @@ wait_pipeline_for_branch() {
   local branch="${1:-}"
   local poll_seconds="${2:-20}"
   local max_wait_seconds="${3:-7200}"
-  local start now elapsed status normalized
+  local allow_no_pipeline="${4:-0}"
+  local start now elapsed status normalized status_rc
 
   if [[ -z "$branch" ]]; then
     echo "error: source branch is required for pipeline wait" >&2
@@ -596,9 +604,25 @@ wait_pipeline_for_branch() {
 
   start="$(date +%s)"
   while true; do
+    status_rc=0
+    set +e
     status="$(pipeline_status_for_branch "$branch")"
+    status_rc=$?
+    set -e
     normalized="$(printf '%s' "$status" | tr '[:upper:]' '[:lower:]')"
     echo "PIPELINE_STATUS=${normalized}"
+
+    if [[ "$status_rc" -eq 3 && "$normalized" == "missing" ]]; then
+      if [[ "$allow_no_pipeline" == "1" ]]; then
+        echo "ok: no pipeline found for branch ${branch}; accepted by --allow-no-pipeline"
+        return 0
+      fi
+      echo "error: no pipeline found for branch ${branch}; use --allow-no-pipeline only after confirming this repo has no CI" >&2
+      return 1
+    fi
+    if [[ "$status_rc" -ne 0 ]]; then
+      return "$status_rc"
+    fi
 
     case "$normalized" in
       success|succeeded|passed|pass)
@@ -783,6 +807,7 @@ cmd_preflight() {
 cmd_wait_pipeline() {
   local mr_ref=''
   local branch=''
+  local allow_no_pipeline="0"
   local poll_seconds="20"
   local max_wait_seconds="7200"
 
@@ -803,6 +828,10 @@ cmd_wait_pipeline() {
         fi
         branch="${2:-}"
         shift 2
+        ;;
+      --allow-no-pipeline)
+        allow_no_pipeline="1"
+        shift
         ;;
       --poll-seconds)
         if [[ $# -lt 2 ]]; then
@@ -844,7 +873,7 @@ cmd_wait_pipeline() {
   fi
 
   echo "SOURCE_BRANCH=$branch"
-  wait_pipeline_for_branch "$branch" "$poll_seconds" "$max_wait_seconds"
+  wait_pipeline_for_branch "$branch" "$poll_seconds" "$max_wait_seconds" "$allow_no_pipeline"
 }
 
 cmd_merge() {
@@ -852,6 +881,7 @@ cmd_merge() {
   local poll_seconds="20"
   local max_wait_seconds="7200"
   local skip_pipeline="0"
+  local allow_no_pipeline="0"
   local remove_source_branch="0"
   local squash="0"
   local sha=''
@@ -886,6 +916,10 @@ cmd_merge() {
         ;;
       --skip-pipeline)
         skip_pipeline="1"
+        shift
+        ;;
+      --allow-no-pipeline)
+        allow_no_pipeline="1"
         shift
         ;;
       --remove-source-branch)
@@ -959,7 +993,7 @@ cmd_merge() {
   echo "TARGET_BRANCH=$target_branch"
 
   if [[ "$skip_pipeline" == "0" ]]; then
-    wait_pipeline_for_branch "$source_branch" "$poll_seconds" "$max_wait_seconds"
+    wait_pipeline_for_branch "$source_branch" "$poll_seconds" "$max_wait_seconds" "$allow_no_pipeline"
   else
     echo "PIPELINE_STATUS=skipped_by_user_confirmation"
   fi

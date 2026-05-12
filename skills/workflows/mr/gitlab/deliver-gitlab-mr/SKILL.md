@@ -22,8 +22,8 @@ Inputs:
 - MR outcome summary plus target branch, source branch, testing notes, and related deployment/config evidence when applicable.
 - Optional MR IID or current-branch MR resolution.
 - Optional base branch for preflight (default: `main`).
-- Optional merge controls: `--remove-source-branch`, `--squash`, `--sha <commit>`, `--skip-pipeline`, `--keep-local-branch`, and
-  `--no-cleanup`.
+- Optional merge controls: `--remove-source-branch`, `--squash`, `--sha <commit>`, `--skip-pipeline`, `--allow-no-pipeline`,
+  `--keep-local-branch`, and `--no-cleanup`.
 - Optional ambiguity bypass flag for preflight: `--bypass-ambiguity` (alias: `--proceed-all`). Use only after explicit user confirmation
   that suspicious files are in scope.
 
@@ -54,6 +54,8 @@ Failure modes:
   - Stop and report GitLab auth/network status before attempting MR creation or merge.
 - Pipeline fails, is canceled, is skipped, is blocked, or requires a manual action:
   - Do not merge; fix issues on the delivery branch, push, and re-run pipeline wait.
+- No pipeline exists for the source branch:
+  - Stop by default; continue only when the user explicitly supplied `--allow-no-pipeline`.
 - Skill conflict or ambiguity (branch target, merge strategy, source branch deletion, or "skip pipeline"):
   - Stop and ask the user to confirm the canonical workflow before continuing.
 - MR remains draft and automatic `glab mr update --ready` fails during merge.
@@ -95,11 +97,13 @@ Failure modes:
 4. Wait for pipeline and repair until green
    - Run:
      - `deliver-gitlab-mr.sh --kind <kind> wait-pipeline --mr <iid>`
+   - For repositories without CI, use explicit no-pipeline acknowledgement:
+     - `deliver-gitlab-mr.sh --kind <kind> wait-pipeline --mr <iid> --allow-no-pipeline`
    - If any pipeline fails or blocks:
      - fix on the same delivery branch
      - push updates
      - re-run `wait-pipeline`
-   - Do not proceed to merge until the pipeline is green unless the user explicitly confirms `--skip-pipeline`.
+   - Do not proceed to merge until the pipeline is green, unless the user explicitly confirms `--allow-no-pipeline` or `--skip-pipeline`.
 
 5. Merge MR
    - Run:
@@ -108,6 +112,7 @@ Failure modes:
      - requires a clean working tree
      - marks draft MRs ready with `glab mr update <iid> --ready --yes`
      - merges with `glab mr merge <iid> --yes`
+     - allows missing CI only when `--allow-no-pipeline` is explicitly supplied
      - does not remove the remote source branch unless `--remove-source-branch` is explicitly supplied
      - switches back to the target branch, pulls it, and deletes the local source branch unless cleanup is disabled
 
@@ -141,6 +146,7 @@ Failure modes:
   - branch guard fails
   - authentication/permission checks fail
   - pipeline fails or blocks
+  - pipeline is missing and `--allow-no-pipeline` was not explicitly supplied
   - handling draft-state MRs
   - mergeability or project policy checks fail
 
