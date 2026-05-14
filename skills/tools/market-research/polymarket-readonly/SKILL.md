@@ -22,6 +22,8 @@ Inputs:
 Outputs:
 
 - Market/event summaries, public price/orderbook context, or public wallet analytics.
+- Recent trending/hot-topic rankings with explicit source, window, metric, and proxy metadata.
+- Daily or weekly Markdown digests for quick trend review.
 - Source-grounded notes that separate observed Polymarket data from inference.
 - MCP setup or smoke-test diagnostics when requested.
 - REST fallback search output when MCP free-text search is unavailable or known-broken.
@@ -71,8 +73,33 @@ Failure modes:
    $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --search "fed decision" --limit 5
    ```
 
-5. For market discovery without MCP, use public Gamma endpoints. For live price/orderbook context,
+5. For recent popular topics, use the repeatable trending workflow:
+
+   ```bash
+   $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --trending --days 3 --limit 10
+   ```
+
+   The default is a recent 3-day event ranking. Gamma currently exposes
+   `volume24hr`, `volume1wk`, and `volume1mo`, but not exact `volume3d`.
+   This helper maps `--days 1` to `volume24hr` with `rankingMode: "native"`;
+   `--days 7` to `volume1wk` with `rankingMode: "native"`; `--days 2..6`
+   to `volume1wk` with `rankingMode: "proxy"`; and
+   `--days 8..31` to `volume1mo` with `rankingMode: "proxy"`. Do not present
+   proxy output as exact custom-window volume. Use `--scope markets` when the
+   user wants market/question-level results instead of event/topic-level results,
+   or `--scope both` when they want both topic-level and question-level results.
+6. For daily or weekly trend review, prefer the report workflow:
+
+   ```bash
+   $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --report daily
+   $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --report weekly
+   ```
+
+   Reports default to Markdown, `--scope both`, and `--limit 10`. Daily reports
+   default to `--days 1` and weekly reports default to `--days 7`. Use
+   `--format json` when another tool needs a structured report payload.
+7. For market discovery without MCP, use public Gamma endpoints. For live price/orderbook context,
    use public CLOB read endpoints. For wallet analytics, use public Data API endpoints and state
    that wallet data is public/onchain-derived.
-6. Cite the concrete tool result, local config, or official API doc when the answer depends on auth, setup, or current market data.
-7. Keep analysis non-advisory unless the user explicitly asks for a forecast. Do not frame output as financial, betting, or trading advice.
+8. Cite the concrete tool result, local config, or official API doc when the answer depends on auth, setup, or current market data.
+9. Keep analysis non-advisory unless the user explicitly asks for a forecast. Do not frame output as financial, betting, or trading advice.

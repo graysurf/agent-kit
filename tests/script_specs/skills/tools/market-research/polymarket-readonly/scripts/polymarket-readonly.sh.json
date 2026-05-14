@@ -2,7 +2,7 @@
   "args": ["--help"],
   "expect": {
     "exit_codes": [0],
-    "stdout_regex": "--search <query>"
+    "stdout_regex": "--report daily\\|weekly"
   },
   "smoke": [
     {
@@ -16,6 +16,32 @@
       "expect": {
         "exit_codes": [0],
         "stdout_regex": "\"source\": \"gamma-api/public-search\""
+      }
+    },
+    {
+      "name": "trending-events-gamma-proxy",
+      "args": ["--trending", "--days", "3", "--limit", "2"],
+      "env": {
+        "CODEX_CURL_STUB_MODE_ENABLED": "true",
+        "CODEX_CURL_STUB_BODY": "[{\"id\":\"1\",\"slug\":\"sample-event\",\"title\":\"Sample Event\",\"active\":true,\"closed\":false,\"volume1wk\":123.45}]"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"rankingMode\": \"proxy\""
+      }
+    },
+    {
+      "name": "daily-report-markdown",
+      "args": ["--report", "daily", "--limit", "1"],
+      "env": {
+        "CODEX_CURL_STUB_MODE_ENABLED": "true",
+        "CODEX_CURL_STUB_BODY": "[{\"id\":\"1\",\"slug\":\"sample-event\",\"title\":\"Sample Event\",\"question\":\"Sample market?\",\"active\":true,\"closed\":false,\"volume24hr\":12.3}]"
+      },
+      "timeout_sec": 10,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "# Polymarket Daily Trends"
       }
     }
   ]

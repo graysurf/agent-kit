@@ -37,12 +37,43 @@ Market search:
 curl -fsSL 'https://gamma-api.polymarket.com/public-search?q=ai&limit=5'
 ```
 
+Trending event/topic ranking:
+
+```bash
+curl -fsSL 'https://gamma-api.polymarket.com/events?active=true&closed=false&limit=10&order=volume1wk&ascending=false'
+```
+
+Trending market/question ranking:
+
+```bash
+curl -fsSL 'https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=10&order=volume1wk&ascending=false'
+```
+
 Skill fallback search:
 
 ```bash
 $AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --search ai --limit 5
 ```
 
+Skill trending lookup:
+
+```bash
+$AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --trending --days 3 --limit 10
+```
+
+Skill daily/weekly reports:
+
+```bash
+$AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --report daily
+$AGENT_HOME/skills/tools/market-research/polymarket-readonly/scripts/polymarket-readonly.sh --report weekly
+```
+
 Do not use `query=` for `/public-search`; the current Gamma API expects `q=`.
+
+Gamma event and market endpoints expose rolling volume fields such as `volume24hr`,
+`volume1wk`, and `volume1mo`. Daily reports use `volume24hr`; weekly reports use
+`volume1wk`. Gamma does not expose exact arbitrary windows such as `volume3d`, so
+the skill's fast 3-day trending output is a ranking proxy unless a separate exact
+Data API trade aggregation is implemented.
 
 When reporting results, state which endpoint or MCP tool produced the data and avoid unsupported conclusions.
