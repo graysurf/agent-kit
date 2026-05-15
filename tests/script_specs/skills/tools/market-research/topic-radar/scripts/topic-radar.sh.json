@@ -1,0 +1,36 @@
+{
+  "args": ["--help"],
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "--preset"
+  },
+  "smoke": [
+    {
+      "name": "sample-markdown",
+      "args": ["--sample", "--format", "markdown", "--limit", "2"],
+      "timeout_sec": 20,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "# AI/Tech Topic Radar Daily"
+      }
+    },
+    {
+      "name": "sample-json",
+      "args": ["--sample", "--format", "json", "--limit", "2"],
+      "timeout_sec": 20,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "\"sample\": true"
+      }
+    },
+    {
+      "name": "sample-ai-news-brief",
+      "args": ["--sample", "--preset", "ai-news", "--format", "markdown"],
+      "timeout_sec": 20,
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "## Brief"
+      }
+    }
+  ]
+}
