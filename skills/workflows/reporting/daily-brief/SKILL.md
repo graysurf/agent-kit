@@ -21,14 +21,14 @@ Prereqs:
 
 Inputs:
 
-- Natural-language brief request, such as "AI 這幾天的新聞", "今天有什麼要看", "morning brief", or a focused topic.
+- Natural-language brief request, such as "AI news this week", "what should I watch today", "morning brief", or a focused topic.
 - Optional topic list, timeframe, source preference, freshness requirement, audience, and depth.
 - Optional instruction to force latest/live results, which maps to topic-radar `--refresh`.
-- Stable preferences from memory, such as recurring AI/Tech interests or preferred report language.
+- Stable preferences from memory, such as recurring AI/Tech interests or preferred report style.
 
 Outputs:
 
-- Concise Traditional Chinese brief with source links for material claims.
+- Concise brief in the user's language with source links for material claims.
 - Topline items, topic sections, and optional follow-up angles for deeper reading.
 - Freshness and source-health note covering `generatedAt`, `windowDays`, cache state, refresh mode, and source errors from topic-radar JSON.
 - Explicit separation between observed source signals and agent inference.
@@ -51,7 +51,7 @@ Failure modes:
 ## Skill Roles
 
 - `daily-brief` is the user-facing daily entrypoint. It owns intent resolution, preference steering, source-health explanation, and concise
-  Traditional Chinese synthesis.
+  synthesis in the user's language.
 - `topic-radar` is the lower-level radar engine. It owns source fetching, source fallback behavior, cache, ranking, clustered JSON/Markdown
   output, and source-specific errors.
 - `polymarket-readonly` is the market-only helper behind topic-radar's Polymarket source. Use it directly only when the user specifically asks
@@ -104,14 +104,15 @@ change, update `topic-radar`.
 
 5. Write the daily brief.
    - Lead with 3-5 high-signal bullets.
-   - Use compact sections such as `模型/產品`, `Agents/開發工具`, `企業採用`, `安全/治理`, `研究/開源`.
+   - Use compact sections such as `Models/Products`, `Agents/Developer Tools`, `Enterprise Adoption`, `Safety/Governance`, and
+     `Research/Open Source`, adapted to the brief language.
    - Keep each material claim source-linked.
    - Mark inference explicitly when connecting multiple source signals.
-   - Include a short `新鮮度與來源狀態` note with the absolute date/window, cache/refresh state, and source gaps.
+   - Include a short freshness/source-status note with the absolute date/window, cache/refresh state, and source gaps.
 
 ## Output Style
 
-- Default language is Traditional Chinese. Preserve precise English names for models, companies, APIs, repositories, and standards.
+- Match the user's language. Preserve precise English names for models, companies, APIs, repositories, and standards.
 - Keep the brief skimmable. Prefer source-grounded bullets over long narrative.
 - Do not present heuristic ranking as objective importance.
 - Do not make trading, investment, product, or legal recommendations from the brief alone.

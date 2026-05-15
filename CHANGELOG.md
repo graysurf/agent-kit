@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **daily-brief**: make the workflow language-neutral so briefs follow the
+  user's language instead of assuming a fixed default language.
 - **README**: refresh the project map and setup notes for tracked hooks,
   release helpers, workspace launcher docs, and public skill-catalog
   boundaries.

@@ -20,7 +20,7 @@ def test_workflows_reporting_daily_brief_orchestrates_topic_radar() -> None:
     assert "--refresh" in text
     assert "--preset radar --format json" in text
     assert "Do not split source fetchers" in text
-    assert "Traditional Chinese" in text
+    assert "Match the user's language" in text
     assert "source-health" in text
     assert "memory" in text
 

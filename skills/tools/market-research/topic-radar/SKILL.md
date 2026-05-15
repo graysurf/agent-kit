@@ -66,7 +66,7 @@ Failure modes:
 
 - Use `topic-radar` directly when the user asks for source-level scanning, custom sources, raw Markdown/JSON digest output, or automation
   input.
-- Use `daily-brief` when the user wants the normal daily information entrypoint: concise Traditional Chinese synthesis, preference steering,
+- Use `daily-brief` when the user wants the normal daily information entrypoint: concise user-language synthesis, preference steering,
   freshness notes, and source-health explanation.
 - `topic-radar` owns source fetching, ranking, fallback behavior, public-response caching, brief clusters, and per-source errors.
 - `daily-brief` must not reimplement fetchers, ranking, cache, RSS/API parsing, or Polymarket fallback logic; it should consume
