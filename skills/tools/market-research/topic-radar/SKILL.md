@@ -24,15 +24,16 @@ Inputs:
 - Optional profile name: `terry-ai-tech` by default, `ai-tech` for the generic baseline, or aliases `terry`, `personal`, and `default`.
 - Optional preset: `radar` by default, or `ai-news` for a faster daily AI news scan focused on official/news/HN sources.
 - Optional source list: `polymarket`, `hn`, `github`, `arxiv`, `hf`, `official`, `news`, or `all`.
-- Daily or weekly report request, custom day window, result limit, parallel fetch count, cache TTL, news provider strategy, brief mode, and
-  output format.
+- Daily, weekly, or monthly report request, custom rolling day window, fixed `--from/--to` or `--month` window, result limit, parallel fetch
+  count, cache TTL, news provider strategy, brief mode, and output format.
 - Optional Polymarket MCP JSON export path passed with `--polymarket-mcp-json`.
 
 Outputs:
 
 - Source-grounded AI/technology trend digest in Markdown or JSON.
 - Optional clustered brief for fast reading across product, agent/tooling, enterprise, security/governance, and research/open-ecosystem signals.
-- Ranked cross-source signal list with source metadata, URLs, timestamps, score rationale, and per-source sections.
+- Ranked cross-source signal list with source metadata, URLs, timestamps, fixed or rolling window metadata, score rationale, and per-source
+  sections.
 - Per-source errors when an upstream is unavailable, rate-limited, or malformed, including short response snippets when available.
 - Public-response cache metadata so repeated follow-up scans are auditable.
 - Sample-mode output for offline smoke checks and report-format review.
@@ -46,7 +47,7 @@ Exit codes:
 
 Failure modes:
 
-- Unknown source, report type, format, profile, or invalid numeric option.
+- Unknown source, report type, format, profile, invalid fixed-window shape, or invalid numeric option.
 - Live source returns invalid data, times out, or rate-limits; the affected source is reported in `errors`, while other sources continue.
 - The broad `radar` preset uses `news-provider=auto`: GDELT first, then Google News RSS fallback when GDELT is unavailable or empty.
 - The faster `ai-news` preset uses `news-provider=google` by default to avoid GDELT rate-limit stalls during daily scans.
@@ -139,17 +140,40 @@ Failure modes:
      --report weekly
    ```
 
-8. Use JSON when another tool, scheduled job, or agent synthesis step will consume the output:
+8. For monthly trend archive work, use a fixed calendar window rather than a rolling `--days` window:
+
+   ```bash
+   $AGENT_HOME/skills/tools/market-research/topic-radar/scripts/topic-radar.sh \
+     --preset radar \
+     --report monthly \
+     --month 2026-01 \
+     --format json
+   ```
+
+   For a partial current month, use explicit inclusive dates:
+
+   ```bash
+   $AGENT_HOME/skills/tools/market-research/topic-radar/scripts/topic-radar.sh \
+     --preset radar \
+     --from 2026-05-01 \
+     --to 2026-05-15 \
+     --format json
+   ```
+
+   Treat fixed windows as source-bounded evidence. Some sources are current snapshots rather than reliable historical archives; the JSON
+   `errors` field reports those gaps instead of silently inventing monthly history.
+
+9. Use JSON when another tool, scheduled job, or agent synthesis step will consume the output:
 
    ```bash
    $AGENT_HOME/skills/tools/market-research/topic-radar/scripts/topic-radar.sh --preset ai-news --format json
    ```
 
-9. Use sample mode for smoke checks, demos, or local validation without network access:
+10. Use sample mode for smoke checks, demos, or local validation without network access:
 
-   ```bash
-   $AGENT_HOME/skills/tools/market-research/topic-radar/scripts/topic-radar.sh --sample --format markdown
-   ```
+    ```bash
+    $AGENT_HOME/skills/tools/market-research/topic-radar/scripts/topic-radar.sh --sample --format markdown
+    ```
 
-10. Keep the report source-grounded. Separate observed source signals from inference, and do not present heuristic ranking as objective
+11. Keep the report source-grounded. Separate observed source signals from inference, and do not present heuristic ranking as objective
     importance.

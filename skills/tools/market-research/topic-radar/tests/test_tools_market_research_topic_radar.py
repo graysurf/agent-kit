@@ -71,6 +71,9 @@ def test_tools_market_research_topic_radar_help_mentions_report_options() -> Non
     assert "--sources" in proc.stdout
     assert "--polymarket-mcp-json" in proc.stdout
     assert "--report" in proc.stdout
+    assert "--from" in proc.stdout
+    assert "--to" in proc.stdout
+    assert "--month" in proc.stdout
     assert "--brief" in proc.stdout
     assert "--cache-ttl-minutes" in proc.stdout
     assert "--news-provider" in proc.stdout
@@ -95,6 +98,8 @@ def test_tools_market_research_topic_radar_sample_json_is_structured() -> None:
     assert payload["profile"] == "terry-ai-tech"
     assert payload["sample"] is True
     assert payload["ranking"]["mode"] == "heuristic"
+    assert payload["window"]["mode"] == "rolling"
+    assert payload["window"]["days"] == payload["windowDays"]
     assert payload["cache"]["enabled"] is False
     assert len(payload["items"]) == 3
     assert "robotics" in payload["topics"]
@@ -137,8 +142,75 @@ def test_tools_market_research_topic_radar_ai_news_preset_is_brief_and_focused()
     assert payload["newsProvider"] == "google"
     assert payload["sources"] == ["official", "news", "hn"]
     assert payload["windowDays"] == 5
+    assert payload["window"]["label"] == "last 5 day(s)"
     assert set(payload["sections"]) == {"official", "news", "hn"}
     assert payload["brief"]["clusters"]
+
+
+def test_tools_market_research_topic_radar_month_window_sets_fixed_metadata() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    script = skill_root / "scripts" / "topic-radar.sh"
+
+    proc = subprocess.run(
+        [str(script), "--sample", "--preset", "ai-news", "--month", "2026-02", "--format", "json"],
+        text=True,
+        capture_output=True,
+    )
+
+    assert proc.returncode == 0
+    payload = json.loads(proc.stdout)
+    assert payload["report"] == "monthly"
+    assert payload["windowDays"] == 28
+    assert payload["window"] == {
+        "mode": "fixed",
+        "label": "2026-02",
+        "start": "2026-02-01",
+        "end": "2026-02-28",
+        "days": 28,
+        "complete": True,
+    }
+
+
+def test_tools_market_research_topic_radar_from_to_window_is_inclusive() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    script = skill_root / "scripts" / "topic-radar.sh"
+
+    proc = subprocess.run(
+        [
+            str(script),
+            "--sample",
+            "--from",
+            "2026-05-01",
+            "--to",
+            "2026-05-15",
+            "--format",
+            "json",
+        ],
+        text=True,
+        capture_output=True,
+    )
+
+    assert proc.returncode == 0
+    payload = json.loads(proc.stdout)
+    assert payload["windowDays"] == 15
+    assert payload["window"]["mode"] == "fixed"
+    assert payload["window"]["label"] == "2026-05-01..2026-05-15"
+    assert payload["window"]["start"] == "2026-05-01"
+    assert payload["window"]["end"] == "2026-05-15"
+
+
+def test_tools_market_research_topic_radar_rejects_partial_fixed_window() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    script = skill_root / "scripts" / "topic-radar.sh"
+
+    proc = subprocess.run(
+        [str(script), "--sample", "--from", "2026-05-01"],
+        text=True,
+        capture_output=True,
+    )
+
+    assert proc.returncode == 2
+    assert "--from and --to" in proc.stderr
 
 
 def test_tools_market_research_topic_radar_ai_news_markdown_has_brief() -> None:

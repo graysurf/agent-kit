@@ -35,6 +35,10 @@ definitive news feed.
   `official,news,hn`, uses a five-day window, enables clustered brief output,
   keeps a short public-response cache for follow-up questions, and uses Google
   News RSS by default to avoid routine GDELT rate-limit stalls.
+- Fixed monthly or explicit date windows use `--month YYYY-MM` or
+  `--from YYYY-MM-DD --to YYYY-MM-DD`. These windows are intended for archive
+  and trend-backfill work where a rolling "last N days" window would distort
+  historical ranking.
 - Agents may use personal memory before invoking the script to choose topics,
   source filters, or whether to refresh cached source responses. Memory is only
   a steering input; output claims must remain grounded in returned source items.
@@ -74,9 +78,17 @@ morning review and agent handoff.
   failures isolated so one slow upstream does not block the whole digest.
 - Use the public-response cache only for short-lived acceleration. Bypass it
   with `--refresh` when the user asks for exact latest/current evidence.
+- Include the fixed-window dates in cache context so historical month scans do
+  not reuse a different rolling or monthly response.
 - For `news`, the broad `radar` preset tries GDELT first and falls back to
   Google News RSS when GDELT is unavailable, malformed, or empty. The fast
   `ai-news` preset uses Google News RSS directly.
+- For historical month scans, prefer date-bounded public APIs where available:
+  HN uses Algolia `created_at_i` bounds, GitHub uses `pushed:start..end`,
+  arXiv uses `submittedDate`, and GDELT/Google News use date filters. Current
+  snapshot sources such as Hugging Face trending and Polymarket helper output
+  must report source gaps or timestamp-filtered limitations rather than
+  presenting current rankings as historical monthly evidence.
 - Add source metadata to every item so reports remain auditable.
 - Use JSON output for automation and Markdown output for human daily review.
 - Do not add posting, trading, paid-account, or credentialed actions to this skill.

@@ -17,13 +17,13 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 PROFILE_TOPICS = {
     "ai-tech": [
@@ -352,6 +352,70 @@ def parse_compact_gdelt_datetime(value: str | None) -> str | None:
     return value
 
 
+def parse_date_arg(value: str | None, name: str) -> date:
+    if not value:
+        raise UsageError(f"{name} is required")
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise UsageError(f"{name} must use YYYY-MM-DD") from exc
+
+
+def parse_month_arg(value: str) -> tuple[date, date]:
+    try:
+        month_start = datetime.strptime(value, "%Y-%m").date().replace(day=1)
+    except ValueError as exc:
+        raise UsageError("--month must use YYYY-MM") from exc
+    if month_start.month == 12:
+        next_month = date(month_start.year + 1, 1, 1)
+    else:
+        next_month = date(month_start.year, month_start.month + 1, 1)
+    return month_start, next_month - timedelta(days=1)
+
+
+def utc_midnight(value: date) -> datetime:
+    return datetime(value.year, value.month, value.day, tzinfo=UTC)
+
+
+def end_exclusive(value: date) -> datetime:
+    return utc_midnight(value + timedelta(days=1))
+
+
+def window_inclusive_end(args: argparse.Namespace) -> date:
+    return (args.window_end_dt - timedelta(seconds=1)).date()
+
+
+def format_gdelt_datetime(value: datetime) -> str:
+    return value.strftime("%Y%m%d%H%M%S")
+
+
+def format_arxiv_datetime(value: datetime) -> str:
+    return value.strftime("%Y%m%d%H%M")
+
+
+def item_in_window(
+    published_at: str | None,
+    args: argparse.Namespace,
+    *,
+    slack_days: int = 0,
+    include_unknown: bool = False,
+) -> bool:
+    published = parse_iso_datetime(published_at)
+    if published is None:
+        return include_unknown
+    start = args.window_start_dt - timedelta(days=slack_days)
+    end = args.window_end_dt + timedelta(days=slack_days)
+    return start <= published < end
+
+
+def filter_items_to_window(items: list[RadarItem], args: argparse.Namespace) -> list[RadarItem]:
+    return [item for item in items if item_in_window(item.published_at, args)]
+
+
+def window_filter_slack_days(args: argparse.Namespace) -> int:
+    return 0 if args.window_mode == "fixed" else 1
+
+
 def normalize_space(value: str | None) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
@@ -405,20 +469,26 @@ def topic_term_matches(haystack: str, term: str) -> bool:
     return term in haystack
 
 
-def recency_score(published_at: str | None, days: int) -> float:
+def recency_score(published_at: str | None, days: int, reference_dt: datetime | None = None) -> float:
     published = parse_iso_datetime(published_at)
     if published is None:
         return 0.0
-    age_hours = max(0.0, (now_utc() - published).total_seconds() / 3600.0)
+    reference = reference_dt or now_utc()
+    age_hours = max(0.0, (reference - published).total_seconds() / 3600.0)
     window_hours = max(float(days * 24), 1.0)
     return max(0.0, 8.0 * (1.0 - min(age_hours / window_hours, 1.0)))
 
 
-def compute_score(item: RadarItem, topics: list[str], days: int) -> RadarItem:
+def compute_score(
+    item: RadarItem,
+    topics: list[str],
+    days: int,
+    reference_dt: datetime | None = None,
+) -> RadarItem:
     base = SOURCE_WEIGHTS.get(item.source, 10.0)
     engagement = math.log1p(max(item.engagement, 0.0)) * 2.0
     interest = interest_match_score(item, topics) * 6.0
-    item.score = base + engagement + interest + recency_score(item.published_at, days)
+    item.score = base + engagement + interest + recency_score(item.published_at, days, reference_dt)
     return item
 
 
@@ -432,11 +502,16 @@ def canonical_key(item: RadarItem) -> str:
     return f"title:{title[:120]}"
 
 
-def dedupe_and_rank(items: list[RadarItem], topics: list[str], days: int) -> list[RadarItem]:
+def dedupe_and_rank(
+    items: list[RadarItem],
+    topics: list[str],
+    days: int,
+    reference_dt: datetime | None = None,
+) -> list[RadarItem]:
     merged: dict[str, RadarItem] = {}
     seen_sources: dict[str, set[str]] = {}
     for item in items:
-        compute_score(item, topics, days)
+        compute_score(item, topics, days, reference_dt)
         key = canonical_key(item)
         if key not in merged:
             merged[key] = item
@@ -469,13 +544,14 @@ def http_get(
     cache_dir: Path | None = None,
     cache_events: list[dict[str, Any]] | None = None,
     refresh: bool = False,
+    cache_context: str | None = None,
 ) -> bytes:
     request_headers = {"User-Agent": USER_AGENT}
     if headers:
         request_headers.update(headers)
     cache_path: Path | None = None
     if cache_ttl_seconds > 0 and cache_dir is not None:
-        cache_path = cache_dir / f"{cache_key(url, request_headers)}.body"
+        cache_path = cache_dir / f"{cache_key(url, request_headers, cache_context)}.body"
         if cache_path.exists() and not refresh:
             age_seconds = max(0.0, time.time() - cache_path.stat().st_mtime)
             if age_seconds <= cache_ttl_seconds:
@@ -507,6 +583,7 @@ def get_json(url: str, timeout: int, errors: list[dict[str, Any]], source: str, 
             cache_dir=args.cache_dir,
             cache_events=args.cache_events,
             refresh=args.refresh,
+            cache_context=args.cache_context,
         ).decode("utf-8")
         return json.loads(body)
     except urllib.error.HTTPError as exc:
@@ -540,8 +617,8 @@ def default_cache_dir() -> Path:
     return root / "agent-kit" / "topic-radar"
 
 
-def cache_key(url: str, headers: dict[str, str] | None) -> str:
-    cache_input = json.dumps({"url": url, "headers": headers or {}}, sort_keys=True).encode("utf-8")
+def cache_key(url: str, headers: dict[str, str] | None, context: str | None = None) -> str:
+    cache_input = json.dumps({"url": url, "headers": headers or {}, "context": context}, sort_keys=True).encode("utf-8")
     return hashlib.sha256(cache_input).hexdigest()
 
 
@@ -795,6 +872,15 @@ def fetch_polymarket_mcp_json(args: argparse.Namespace, errors: list[dict[str, A
 
 
 def fetch_polymarket_helper(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
+    if args.window_mode == "fixed":
+        errors.append(
+            {
+                "source": "polymarket",
+                "error": "historical_window_unavailable",
+                "detail": "Polymarket helper rankings are current snapshots, not fixed-window history.",
+            }
+        )
+        return []
     skill_dir = Path(__file__).resolve().parents[1]
     script = skill_dir.parent / "polymarket-readonly/scripts/polymarket-readonly.sh"
     if not script.exists():
@@ -855,7 +941,8 @@ def fetch_polymarket(args: argparse.Namespace, errors: list[dict[str, Any]]) -> 
 
 
 def fetch_hn(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
-    since_ts = int((now_utc() - timedelta(days=args.days)).timestamp())
+    since_ts = int(args.window_start_dt.timestamp())
+    until_ts = int(args.window_end_dt.timestamp())
     topics = limited_topics(args.topics)
     per_topic = max(1, math.ceil(args.limit / max(len(topics), 1)))
     items: list[RadarItem] = []
@@ -863,7 +950,7 @@ def fetch_hn(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[Rad
         params = {
             "query": topic,
             "tags": "story",
-            "numericFilters": f"created_at_i>{since_ts}",
+            "numericFilters": f"created_at_i>={since_ts},created_at_i<{until_ts}",
             "hitsPerPage": str(per_topic),
         }
         url = f"https://hn.algolia.com/api/v1/search_by_date?{urllib.parse.urlencode(params)}"
@@ -888,18 +975,19 @@ def fetch_hn(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[Rad
                 reason=f"{format_number(points)} points, {format_number(comments)} comments",
                 raw={"objectID": object_id, "query": topic},
             )
-            if interest_match_score(item, args.topics) > 0:
+            if interest_match_score(item, args.topics) > 0 and item_in_window(item.published_at, args):
                 items.append(item)
     return items
 
 
 def fetch_github(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
-    since_date = (now_utc() - timedelta(days=max(args.days, 1))).date().isoformat()
+    start_date = args.window_start_dt.date().isoformat()
+    end_date = window_inclusive_end(args).isoformat()
     topics = limited_topics(args.topics)
     per_topic = max(1, math.ceil(args.limit / max(len(topics), 1)))
     items: list[RadarItem] = []
     for topic in topics:
-        query = f"{topic} in:name,description,readme pushed:>={since_date} stars:>10"
+        query = f"{topic} in:name,description,readme pushed:{start_date}..{end_date} stars:>10"
         params = {"q": query, "sort": "stars", "order": "desc", "per_page": str(per_topic)}
         url = f"https://api.github.com/search/repositories?{urllib.parse.urlencode(params)}"
         payload = get_json(url, args.timeout, errors, "github", args)
@@ -911,25 +999,27 @@ def fetch_github(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list
                 continue
             stars = as_float(repo.get("stargazers_count"))
             forks = as_float(repo.get("forks_count"))
-            items.append(
-                RadarItem(
-                    source="github",
-                    source_detail="api.github.com/search/repositories",
-                    title=title,
-                    url=repo.get("html_url") or "",
-                    published_at=repo.get("pushed_at") or repo.get("updated_at"),
-                    summary=normalize_space(repo.get("description")),
-                    engagement=stars + forks * 3,
-                    reason=f"{format_number(stars)} stars, pushed {repo.get('pushed_at') or 'unknown'}",
-                    tags=repo.get("topics") or [],
-                    raw={"language": repo.get("language"), "forks": forks, "query": topic},
-                )
+            item = RadarItem(
+                source="github",
+                source_detail="api.github.com/search/repositories",
+                title=title,
+                url=repo.get("html_url") or "",
+                published_at=repo.get("pushed_at") or repo.get("updated_at"),
+                summary=normalize_space(repo.get("description")),
+                engagement=stars + forks * 3,
+                reason=f"{format_number(stars)} stars, pushed {repo.get('pushed_at') or 'unknown'}",
+                tags=repo.get("topics") or [],
+                raw={"language": repo.get("language"), "forks": forks, "query": topic},
             )
+            if item_in_window(item.published_at, args) and interest_match_score(item, args.topics) > 0:
+                items.append(item)
     return items
 
 
 def fetch_arxiv(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
-    query = "(cat:cs.AI OR cat:cs.CL OR cat:cs.LG)"
+    start = format_arxiv_datetime(args.window_start_dt)
+    end = format_arxiv_datetime(args.window_end_dt - timedelta(seconds=1))
+    query = f"(cat:cs.AI OR cat:cs.CL OR cat:cs.LG) AND submittedDate:[{start} TO {end}]"
     params = {
         "search_query": query,
         "start": "0",
@@ -946,6 +1036,7 @@ def fetch_arxiv(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[
             cache_dir=args.cache_dir,
             cache_events=args.cache_events,
             refresh=args.refresh,
+            cache_context=args.cache_context,
         )
     except urllib.error.HTTPError as exc:
         errors.append(http_error_record("arxiv", exc, url))
@@ -959,15 +1050,13 @@ def fetch_arxiv(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[
         errors.append({"source": "arxiv", "error": f"xml_parse_error:{exc}", "url": url})
         return []
     ns = {"atom": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
-    cutoff = now_utc() - timedelta(days=max(args.days, 1) + 2)
     items: list[RadarItem] = []
     for entry in root.findall("atom:entry", ns):
         title = normalize_space(child_text(entry, "atom:title", ns))
         if not title:
             continue
         published = child_text(entry, "atom:published", ns) or child_text(entry, "atom:updated", ns)
-        published_dt = parse_iso_datetime(published)
-        if published_dt and published_dt < cutoff:
+        if not item_in_window(published, args, slack_days=window_filter_slack_days(args)):
             continue
         summary = normalize_space(child_text(entry, "atom:summary", ns))
         link = ""
@@ -997,6 +1086,14 @@ def fetch_arxiv(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[
 
 
 def fetch_hf(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
+    if args.window_mode == "fixed":
+        errors.append(
+            {
+                "source": "hf",
+                "error": "historical_window_limited",
+                "detail": "Hugging Face trending results are a current snapshot; items are timestamp-filtered only.",
+            }
+        )
     params = {"sort": "trendingScore", "direction": "-1", "limit": str(max(args.limit * 2, args.limit))}
     url = f"https://huggingface.co/api/models?{urllib.parse.urlencode(params)}"
     payload = get_json(url, args.timeout, errors, "hf", args)
@@ -1010,20 +1107,20 @@ def fetch_hf(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[Rad
         likes = as_float(model.get("likes"))
         downloads = as_float(model.get("downloads"))
         tags = [str(tag) for tag in model.get("tags") or []]
-        items.append(
-            RadarItem(
-                source="hf",
-                source_detail="huggingface.co/api/models",
-                title=model_id,
-                url=f"https://huggingface.co/{model_id}",
-                published_at=model.get("lastModified") or model.get("createdAt"),
-                summary=normalize_space(model.get("pipeline_tag") or model.get("library_name")),
-                engagement=likes * 10 + math.log1p(max(downloads, 0.0)) * 10,
-                reason=f"{format_number(likes)} likes, {format_number(downloads)} downloads",
-                tags=tags[:12],
-                raw={"pipelineTag": model.get("pipeline_tag"), "libraryName": model.get("library_name")},
-            )
+        item = RadarItem(
+            source="hf",
+            source_detail="huggingface.co/api/models",
+            title=model_id,
+            url=f"https://huggingface.co/{model_id}",
+            published_at=model.get("lastModified") or model.get("createdAt"),
+            summary=normalize_space(model.get("pipeline_tag") or model.get("library_name")),
+            engagement=likes * 10 + math.log1p(max(downloads, 0.0)) * 10,
+            reason=f"{format_number(likes)} likes, {format_number(downloads)} downloads",
+            tags=tags[:12],
+            raw={"pipelineTag": model.get("pipeline_tag"), "libraryName": model.get("library_name")},
         )
+        if item_in_window(item.published_at, args) and interest_match_score(item, args.topics) > 0:
+            items.append(item)
         if len(items) >= args.limit:
             break
     return items
@@ -1031,7 +1128,6 @@ def fetch_hf(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[Rad
 
 def fetch_official(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[RadarItem]:
     items: list[RadarItem] = []
-    cutoff = now_utc() - timedelta(days=max(args.days, 1) + 2)
     per_feed_limit = max(2, math.ceil(args.limit / 4))
     for feed_name, feed_url in OFFICIAL_FEEDS:
         try:
@@ -1042,6 +1138,7 @@ def fetch_official(args: argparse.Namespace, errors: list[dict[str, Any]]) -> li
                 cache_dir=args.cache_dir,
                 cache_events=args.cache_events,
                 refresh=args.refresh,
+                cache_context=args.cache_context,
             )
         except urllib.error.HTTPError as exc:
             errors.append(http_error_record("official", exc, feed_url, source_detail=feed_name))
@@ -1058,8 +1155,7 @@ def fetch_official(args: argparse.Namespace, errors: list[dict[str, Any]]) -> li
         feed_item_count = 0
         for entry in entries:
             published = entry.get("publishedAt")
-            published_dt = parse_iso_datetime(published)
-            if published_dt and published_dt < cutoff:
+            if not item_in_window(published, args, slack_days=window_filter_slack_days(args)):
                 continue
             title = normalize_space(entry.get("title"))
             if not title:
@@ -1089,6 +1185,7 @@ def fetch_official(args: argparse.Namespace, errors: list[dict[str, Any]]) -> li
                 cache_dir=args.cache_dir,
                 cache_events=args.cache_events,
                 refresh=args.refresh,
+                cache_context=args.cache_context,
             )
         except urllib.error.HTTPError as exc:
             errors.append(http_error_record("official", exc, page_url, source_detail=page_name))
@@ -1100,8 +1197,7 @@ def fetch_official(args: argparse.Namespace, errors: list[dict[str, Any]]) -> li
         page_item_count = 0
         for entry in entries:
             published = entry.get("publishedAt")
-            published_dt = parse_iso_datetime(published)
-            if published_dt and published_dt < cutoff:
+            if not item_in_window(published, args, slack_days=window_filter_slack_days(args)):
                 continue
             item = RadarItem(
                 source="official",
@@ -1126,14 +1222,20 @@ def fetch_news(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[R
     if args.news_provider == "google":
         return fetch_google_news_rss(args, errors, "Google News RSS selected")
     query = build_topic_query(args.topics)
+    if " OR " in query:
+        query = f"({query})"
     params = {
         "query": query,
         "mode": "artlist",
         "format": "json",
         "sort": "datedesc",
-        "timespan": f"{max(args.days, 1)}d",
         "maxrecords": str(args.limit),
     }
+    if args.window_mode == "fixed":
+        params["startdatetime"] = format_gdelt_datetime(args.window_start_dt)
+        params["enddatetime"] = format_gdelt_datetime(args.window_end_dt - timedelta(seconds=1))
+    else:
+        params["timespan"] = f"{max(args.days, 1)}d"
     url = f"https://api.gdeltproject.org/api/v2/doc/doc?{urllib.parse.urlencode(params)}"
     payload = get_json(url, args.timeout, errors, "news", args)
     if not isinstance(payload, dict):
@@ -1163,7 +1265,7 @@ def fetch_news(args: argparse.Namespace, errors: list[dict[str, Any]]) -> list[R
                 "query": query,
             },
         )
-        if interest_match_score(item, args.topics) > 0:
+        if interest_match_score(item, args.topics) > 0 and item_in_window(item.published_at, args):
             items.append(item)
     if not items:
         if args.news_provider == "gdelt":
@@ -1177,7 +1279,11 @@ def fetch_google_news_rss(
     errors: list[dict[str, Any]],
     fallback_reason: str,
 ) -> list[RadarItem]:
-    query = f"{build_topic_query(args.topics, max_topics=3)} when:{max(args.days, 1)}d"
+    topic_query = build_topic_query(args.topics, max_topics=3)
+    if args.window_mode == "fixed":
+        query = f"{topic_query} after:{args.window_start_dt.date().isoformat()} before:{args.window_end_dt.date().isoformat()}"
+    else:
+        query = f"{topic_query} when:{max(args.days, 1)}d"
     params = {
         "q": query,
         "hl": "en-US",
@@ -1193,6 +1299,7 @@ def fetch_google_news_rss(
             cache_dir=args.cache_dir,
             cache_events=args.cache_events,
             refresh=args.refresh,
+            cache_context=args.cache_context,
         )
     except urllib.error.HTTPError as exc:
         errors.append(http_error_record("news", exc, url, source_detail="Google News RSS"))
@@ -1205,15 +1312,13 @@ def fetch_google_news_rss(
     except ET.ParseError as exc:
         errors.append({"source": "news", "sourceDetail": "Google News RSS", "error": f"xml_parse_error:{exc}"})
         return []
-    cutoff = now_utc() - timedelta(days=max(args.days, 1) + 1)
     items: list[RadarItem] = []
     for entry in parse_feed_entries(root):
         title = normalize_space(entry.get("title"))
         if not title:
             continue
         published = entry.get("publishedAt")
-        published_dt = parse_iso_datetime(published)
-        if published_dt and published_dt < cutoff:
+        if not item_in_window(published, args, slack_days=window_filter_slack_days(args)):
             continue
         item = RadarItem(
             source="news",
@@ -1451,7 +1556,7 @@ def gather(args: argparse.Namespace) -> tuple[list[RadarItem], dict[str, list[Ra
     if args.sample:
         items = [item for item in sample_items() if item.source in args.sources]
         sections = group_by_source(items)
-        ranked = dedupe_and_rank(items, args.topics, args.days)
+        ranked = dedupe_and_rank(items, args.topics, args.days, args.window_reference_dt)
         return ranked, sections, errors
 
     fetchers = {
@@ -1484,10 +1589,10 @@ def gather(args: argparse.Namespace) -> tuple[list[RadarItem], dict[str, list[Ra
                 results.append(future.result())
 
     for source, source_items, source_errors in results:
-        sections[source] = dedupe_and_rank(source_items, args.topics, args.days)
+        sections[source] = dedupe_and_rank(source_items, args.topics, args.days, args.window_reference_dt)
         all_items.extend(source_items)
         errors.extend(source_errors)
-    ranked = dedupe_and_rank(all_items, args.topics, args.days)
+    ranked = dedupe_and_rank(all_items, args.topics, args.days, args.window_reference_dt)
     return ranked, sections, errors
 
 
@@ -1546,6 +1651,17 @@ def cache_metadata(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def window_metadata(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "mode": args.window_mode,
+        "label": args.window_label,
+        "start": args.window_start_dt.date().isoformat(),
+        "end": window_inclusive_end(args).isoformat(),
+        "days": args.days,
+        "complete": args.window_complete,
+    }
+
+
 def render_json(
     args: argparse.Namespace,
     ranked: list[RadarItem],
@@ -1559,6 +1675,7 @@ def render_json(
         "profile": args.profile,
         "report": args.report,
         "windowDays": args.days,
+        "window": window_metadata(args),
         "generatedAt": iso_now(),
         "topics": args.topics,
         "sources": args.sources,
@@ -1579,7 +1696,10 @@ def render_json(
         "cache": cache_metadata(args),
         "items": [item.to_json() for item in ranked[: args.limit]],
         "sections": {
-            source: [item.to_json() for item in dedupe_and_rank(items, args.topics, args.days)[: args.limit]]
+            source: [
+                item.to_json()
+                for item in dedupe_and_rank(items, args.topics, args.days, args.window_reference_dt)[: args.limit]
+            ]
             for source, items in sections.items()
         },
         "errors": errors,
@@ -1599,7 +1719,7 @@ def render_markdown(
         f"# AI/Tech Topic Radar {title_report}",
         "",
         f"- Generated: {iso_now()}",
-        f"- Window: {args.days} day(s)",
+        f"- Window: {args.window_label} ({args.window_start_dt.date().isoformat()} to {window_inclusive_end(args).isoformat()})",
         f"- Preset: `{args.preset}`",
         f"- Profile: `{args.profile}`",
         f"- Topics: {', '.join(args.topics)}",
@@ -1625,7 +1745,7 @@ def render_markdown(
         if not section_items:
             lines.append("- No matching signals.")
         else:
-            for item in dedupe_and_rank(section_items, args.topics, args.days)[: args.limit]:
+            for item in dedupe_and_rank(section_items, args.topics, args.days, args.window_reference_dt)[: args.limit]:
                 lines.append(render_item_bullet(item))
         lines.append("")
 
@@ -1742,8 +1862,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="helper",
         help="Fallback behavior when --polymarket-mcp-json has no usable records.",
     )
-    parser.add_argument("--report", choices=["daily", "weekly"], default="daily", help="Report cadence.")
+    parser.add_argument("--report", choices=["daily", "weekly", "monthly"], default="daily", help="Report cadence.")
     parser.add_argument("--days", type=int, help="Window in days. Defaults to report cadence.")
+    parser.add_argument("--from", dest="date_from", help="Fixed window start date in YYYY-MM-DD.")
+    parser.add_argument("--to", dest="date_to", help="Fixed window end date in YYYY-MM-DD, inclusive.")
+    parser.add_argument("--month", help="Fixed calendar month window in YYYY-MM.")
     parser.add_argument("--limit", type=int, help="Maximum items per source and top section. Defaults to the preset.")
     parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Output format.")
     parser.add_argument("--timeout", type=int, help="Per-request timeout in seconds. Defaults to the preset.")
@@ -1794,8 +1917,7 @@ def normalize_args(argv: list[str]) -> argparse.Namespace:
     if not args.topics:
         raise UsageError("at least one topic is required")
     args.sources = parse_sources(args.sources) if args.sources else list(preset["sources"])
-    if args.days is None:
-        args.days = int(preset["days"] or (1 if args.report == "daily" else 7))
+    normalize_window_args(args, preset)
     if args.limit is None:
         args.limit = int(preset["limit"])
     if args.timeout is None:
@@ -1826,6 +1948,47 @@ def normalize_args(argv: list[str]) -> argparse.Namespace:
     if args.cache_ttl_minutes < 0 or args.cache_ttl_minutes > 1440:
         raise UsageError("--cache-ttl-minutes must be between 0 and 1440")
     return args
+
+
+def normalize_window_args(args: argparse.Namespace, preset: dict[str, Any]) -> None:
+    if args.month and (args.date_from or args.date_to):
+        raise UsageError("--month cannot be combined with --from/--to")
+    if (args.date_from and not args.date_to) or (args.date_to and not args.date_from):
+        raise UsageError("--from and --to must be provided together")
+
+    if args.month:
+        start_date, end_date = parse_month_arg(args.month)
+        args.window_mode = "fixed"
+        args.window_label = args.month
+        args.report = "monthly"
+        args.window_start_dt = utc_midnight(start_date)
+        args.window_end_dt = end_exclusive(end_date)
+    elif args.date_from or args.date_to:
+        start_date = parse_date_arg(args.date_from, "--from")
+        end_date = parse_date_arg(args.date_to, "--to")
+        if end_date < start_date:
+            raise UsageError("--to must be on or after --from")
+        args.window_mode = "fixed"
+        args.window_label = f"{start_date.isoformat()}..{end_date.isoformat()}"
+        args.window_start_dt = utc_midnight(start_date)
+        args.window_end_dt = end_exclusive(end_date)
+    else:
+        if args.days is None:
+            default_days = 1 if args.report == "daily" else 7 if args.report == "weekly" else 31
+            args.days = int(preset["days"] or default_days)
+        args.window_mode = "rolling"
+        args.window_label = f"last {args.days} day(s)"
+        args.window_end_dt = now_utc().replace(microsecond=0)
+        args.window_start_dt = args.window_end_dt - timedelta(days=args.days)
+
+    if args.window_mode == "fixed":
+        args.days = max(1, (args.window_end_dt - args.window_start_dt).days)
+
+    args.window_reference_dt = args.window_end_dt
+    args.window_complete = args.window_end_dt <= utc_midnight(now_utc().date())
+    args.cache_context = (
+        f"{args.window_mode}:{args.window_start_dt.date().isoformat()}:{window_inclusive_end(args).isoformat()}"
+    )
 
 
 def main(argv: list[str]) -> int:

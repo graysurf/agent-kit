@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file.
 - **daily-brief**: add a workflow skill that turns topic-radar JSON into a
   source-grounded daily information brief with stable preference steering,
   freshness/source-health notes, and clear skill-boundary guidance.
+- **topic-radar**: add fixed `--from/--to` and `--month` windows for
+  source-grounded historical trend archive scans.
+- **daily-brief**: document monthly trend backfill records with fixed-window
+  source JSON, month-level Markdown, and index metadata.
 
 ### Changed
 
