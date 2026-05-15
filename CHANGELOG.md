@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **gh-fix-ci**: report GitHub Actions `startup_failure` conclusions as
+  failing checks instead of treating dynamic CI startup errors as clean.
 - **daily-brief**: document optional local history records with
   user-selected folders, date-first storage, machine-readable indexes, and no
   automatic git or remote setup.

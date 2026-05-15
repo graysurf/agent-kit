@@ -14,6 +14,7 @@ from typing import Any, Iterable, Sequence
 FAILURE_CONCLUSIONS = {
     "failure",
     "cancelled",
+    "startup_failure",
     "timed_out",
     "action_required",
 }
@@ -22,6 +23,7 @@ FAILURE_STATES = {
     "failure",
     "error",
     "cancelled",
+    "startup_failure",
     "timed_out",
     "action_required",
 }
