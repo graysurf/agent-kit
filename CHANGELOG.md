@@ -20,6 +20,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **daily-brief**: document optional local history records with
+  user-selected folders, date-first storage, machine-readable indexes, and no
+  automatic git or remote setup.
 - **daily-brief**: make the workflow language-neutral so briefs follow the
   user's language instead of assuming a fixed default language.
 - **README**: refresh the project map and setup notes for tracked hooks,

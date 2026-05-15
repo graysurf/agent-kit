@@ -25,6 +25,7 @@ Inputs:
 - Optional topic list, timeframe, source preference, freshness requirement, audience, and depth.
 - Optional instruction to force latest/live results, which maps to topic-radar `--refresh`.
 - Stable preferences from memory, such as recurring AI/Tech interests or preferred report style.
+- Optional request to keep local history, plus an explicit record folder when the user wants durable tracking.
 
 Outputs:
 
@@ -32,6 +33,7 @@ Outputs:
 - Topline items, topic sections, and optional follow-up angles for deeper reading.
 - Freshness and source-health note covering `generatedAt`, `windowDays`, cache state, refresh mode, and source errors from topic-radar JSON.
 - Explicit separation between observed source signals and agent inference.
+- Optional history records under the user-selected record folder.
 
 Exit codes:
 
@@ -43,6 +45,8 @@ Failure modes:
 - Live sources are unavailable or rate-limited; include source gaps from topic-radar and synthesize only from returned items.
 - Returned items are too thin for the requested topic/window; say so and offer a narrower or broader follow-up query.
 - Memory is unavailable or irrelevant; continue from the user's request without treating that as a blocker.
+- Durable history was requested but no record folder is known; ask the user to choose a folder before writing records.
+- Record folder writes fail; report the path and failure, but still provide the brief if source synthesis succeeded.
 
 ## Entrypoint
 
@@ -109,6 +113,30 @@ change, update `topic-radar`.
    - Keep each material claim source-linked.
    - Mark inference explicitly when connecting multiple source signals.
    - Include a short freshness/source-status note with the absolute date/window, cache/refresh state, and source gaps.
+
+6. Write history records only when requested.
+   - Do not hardcode a record location. Use the user's provided folder, an existing project record folder the user points to, or ask the user
+     to choose one before writing durable records.
+   - Do not initialize git, create remotes, or push the record folder unless the user explicitly asks for repository setup.
+   - Use date-first storage with topic/query metadata:
+
+     ```text
+     <record-folder>/
+     ├── README.md
+     ├── index.jsonl
+     ├── briefs/YYYY/MM/YYYY-MM-DD-<slug>.md
+     ├── raw/YYYY/MM/YYYY-MM-DD-<slug>.json
+     └── topics/<topic-slug>.md
+     ```
+
+   - Create `README.md` when absent to document the local schema and source-citation expectations.
+   - Write the rendered brief to `briefs/YYYY/MM/YYYY-MM-DD-<slug>.md`.
+   - Append one JSON object to `index.jsonl` with relative paths plus `generatedAt`, `date`, `topic`, `query`, `window`, `language`,
+     `sourceCount`, `sources`, `tags`, and `errors` when available.
+   - Store the topic-radar JSON under `raw/` when available and useful for future trend tracking; skip it if the user wants markdown-only
+     records.
+   - Update `topics/<topic-slug>.md` only for explicit tracking requests or when the user asks for a topic timeline. Keep these notes concise
+     and source-linked.
 
 ## Output Style
 

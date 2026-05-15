@@ -37,6 +37,19 @@ def test_workflows_reporting_daily_brief_declares_skill_boundaries() -> None:
     assert "Use `polymarket-readonly` directly when" in text
 
 
+def test_workflows_reporting_daily_brief_declares_history_records() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "Write history records only when requested" in text
+    assert "Do not hardcode a record location" in text
+    assert "Do not initialize git, create remotes, or push" in text
+    assert "index.jsonl" in text
+    assert "briefs/YYYY/MM/YYYY-MM-DD-<slug>.md" in text
+    assert "raw/YYYY/MM/YYYY-MM-DD-<slug>.json" in text
+    assert "topics/<topic-slug>.md" in text
+
+
 def test_workflows_reporting_daily_brief_is_listed_in_catalog() -> None:
     readme = (repo_root() / "README.md").read_text(encoding="utf-8")
 
