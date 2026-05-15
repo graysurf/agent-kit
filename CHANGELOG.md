@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **topic-radar**: add a read-only AI/technology trend digest skill that
+  aggregates Polymarket, Hacker News, GitHub, arXiv, Hugging Face, official
+  feeds, and public news search into Markdown or JSON reports.
+- **topic-radar**: add the default `terry-ai-tech` profile and support
+  Polymarket MCP JSON input before read-only helper fallback.
+- **topic-radar**: add the fast `ai-news` preset with clustered brief output,
+  parallel source fetches, short-lived public-response caching, Google News RSS
+  mainstream coverage, and official Anthropic/Meta source fallbacks.
+- **daily-brief**: add a workflow skill that turns topic-radar JSON into a
+  source-grounded daily information brief with stable preference steering,
+  freshness/source-health notes, and clear skill-boundary guidance.
+
 ### Changed
 
 - **README**: refresh the project map and setup notes for tracked hooks,
