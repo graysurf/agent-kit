@@ -2,7 +2,8 @@
 name: create-plan-rigorous
 description:
   Create an extra-thorough implementation plan (sprints + atomic tasks) and get a subagent review. Use when the user wants a more rigorous
-  plan than usual.
+  plan than usual. Do not use as the primary artifact when the user only needs a durable review finding or improvement backlog; route that
+  to review-to-improvement-doc first.
 ---
 
 # Create Plan (Rigorous)
@@ -28,6 +29,8 @@ Outputs:
 
 - A new plan file saved to `docs/plans/<slug>-plan.md`.
 - A short response linking the plan path and summarizing key decisions/risks.
+- If the request is not actually a rigorous implementation plan, a short recommendation to create or reference a durable improvement doc
+  instead of forcing `docs/plans/`.
 
 Exit codes:
 
@@ -49,6 +52,15 @@ Failure modes:
 
 - If underspecified enough to block a useful rigorous plan, ask 1-5 "need to know" questions first.
 - Use the blocking-question format from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`.
+
+1. Confirm that rigorous planning is the right artifact
+
+- Use this skill only when the user needs high-rigor execution modeling: explicit sprints, atomic tasks, complexity scores, sprint
+  scorecards, PR grouping, and subagent review.
+- Do not force `docs/plans/` when the request is mainly to preserve review findings, risks, lessons learned, improvement backlog, or
+  "what to fix later" guidance. Use `review-to-improvement-doc` first for the durable project record.
+- If the user needs both a durable review/improvement record and a rigorous plan, keep them distinct: preserve the stable findings with
+  `review-to-improvement-doc`, then create the rigorous plan and link that document as read-first context.
 
 1. Research
 

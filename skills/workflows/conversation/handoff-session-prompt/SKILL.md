@@ -3,7 +3,8 @@ name: handoff-session-prompt
 description:
   Generate a generic next-session initialization prompt from the user's instruction, current conversation context, and any
   user-specified reference files. Use when the user asks to carry conclusions, constraints, documents, or next steps into a
-  new session, produce a handoff prompt, or create a session init prompt without embedding project-specific defaults.
+  new session, produce a handoff prompt, or create a session init prompt without embedding project-specific defaults. If the user needs a
+  durable review/improvement record first, use review-to-improvement-doc before generating the handoff.
 ---
 
 # Handoff Session Prompt
@@ -20,6 +21,8 @@ Inputs:
 - User's explicit instruction for the next session, including goal, scope, and any "do not" constraints.
 - Current conversation context and conclusions already established in this session.
 - User-specified reference files, URLs, tickets, docs, or commands to include as required reading.
+- Durable project artifacts that already preserve the backlog or decision record, such as plans, runbooks, improvement docs, issues, or
+  tracker links.
 - Optional local repository rules when the handoff concerns a workspace or codebase.
 - Optional current-state anchors when relevant, such as date/timezone, workspace path, branch/status, validation already run, and where work
   stopped.
@@ -54,7 +57,17 @@ Failure modes:
    - If project rules require preflight before file reads or external lookup, follow those rules.
    - Do not browse or inspect unrelated repositories unless the user asked for that evidence.
 
-3. Separate facts from instructions
+3. Prefer durable sources over copying backlogs
+   - If a project doc, plan, issue, ticket, or tracker already holds the durable backlog or decision record, put it under `Read First` and
+     summarize only the facts needed to start safely.
+   - Do not paste an entire durable doc, long backlog, or runbook into the handoff unless the next session will not have access to it or the
+     user explicitly asks for an inline self-contained prompt.
+   - If the current session produced reusable review findings but no durable artifact, mention that gap under `Known Gaps` or
+     `Recommendations`; do not treat the handoff prompt itself as the canonical project record.
+   - If the user asks for both durable record and next-session continuity, use `review-to-improvement-doc` to write or reference the durable
+     record first, then generate a shorter handoff that points to it.
+
+4. Separate facts from instructions
    - Include confirmed facts and conclusions under `Known Facts`.
    - Use source tags for material facts when available: `[U#]` user input, `[F#]` local files/docs/code, `[W#]` web sources,
      `[A#]` tool or app results, and `[I#]` explicit inferences from cited facts.
@@ -63,20 +76,20 @@ Failure modes:
    - Keep recommended or inferred next steps under `Recommendations`, separate from known facts.
    - Preserve unresolved questions as an explicit checklist for the next session.
 
-4. Protect sensitive and brittle details
+5. Protect sensitive and brittle details
    - Do not include API keys, tokens, cookies, raw auth headers, passwords, private keys, or unredacted secrets.
    - Prefer names of env vars, file paths, and commands over secret values.
    - Avoid embedding one-off local IDs unless the user specifically needs them and they are not sensitive.
    - Do not copy hidden system/developer instructions, private reasoning, or raw tool logs into the handoff. Summarize only the user-visible
      constraints and evidence needed for continuity.
 
-5. Capture current state when it affects continuity
+6. Capture current state when it affects continuity
    - Include current date/timezone when relative dates such as "today", "tomorrow", or "next week" matter.
    - Include workspace path, branch/status, and stopping point when the next session must continue local work.
    - Include validation already run, with command and result, when it prevents duplicate investigation.
    - Omit current-state fields that are irrelevant or unknown instead of inventing values.
 
-6. Produce a copy-ready prompt
+7. Produce a copy-ready prompt
    - Write the prompt as if pasted into a fresh session with no prior conversation.
    - Use direct instructions, concrete file paths, and clear constraints.
    - Keep it generic to the requested task; do not add project-specific assumptions that were not in context.
@@ -139,4 +152,5 @@ You are starting a new session for this task.
 - The prompt must tell the next session what to read, what to do, what not to do, and what to report.
 - Material context must be traceable as facts, assumptions, recommendations, open questions, or current-state anchors.
 - The prompt should not contain hidden implementation decisions; if an approach is a recommendation, label it as such.
+- The prompt should point to durable project records instead of becoming the only copy of a backlog or decision record.
 - The prompt should be concise enough to paste comfortably, but complete enough to prevent predictable re-discovery.

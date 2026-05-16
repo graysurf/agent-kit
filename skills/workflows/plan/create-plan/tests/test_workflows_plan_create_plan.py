@@ -38,6 +38,17 @@ def test_create_plan_keeps_base_skill_policies_local_while_using_shared_cross_sp
     assert "You may omit sprint scorecards unless the user explicitly wants deeper sizing analysis" in text
 
 
+def test_create_plan_distinguishes_plans_from_durable_improvement_records() -> None:
+    text = skill_md_text(__file__)
+
+    assert "Confirm that a plan is the right artifact" in text
+    assert "Do not force `docs/plans/`" in text
+    assert "preserve review findings" in text
+    assert "Use `review-to-improvement-doc`" in text
+    assert "durable review/improvement record" in text
+    assert "link that doc under the plan's context/read-first section" in text
+
+
 def test_shared_plan_template_includes_optional_base_execution_metadata() -> None:
     shared = shared_plan_template_text(__file__)
 

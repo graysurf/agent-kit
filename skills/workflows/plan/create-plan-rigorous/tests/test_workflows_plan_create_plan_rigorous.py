@@ -56,3 +56,12 @@ def test_create_plan_rigorous_high_complexity_task_policy_requires_split_or_dedi
     assert "For a task with complexity `>=7`, try to split first" in text
     assert "keep it as a dedicated lane and dedicated PR" in text
     assert "at most one task with complexity `>=7` per sprint" in text
+
+
+def test_create_plan_rigorous_routes_durable_findings_to_improvement_doc() -> None:
+    text = skill_md_text(__file__)
+
+    assert "Confirm that rigorous planning is the right artifact" in text
+    assert "Use `review-to-improvement-doc` first" in text
+    assert "durable review/improvement record" in text
+    assert "link that document as read-first context" in text

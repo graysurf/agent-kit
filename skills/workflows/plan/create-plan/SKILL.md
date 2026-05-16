@@ -2,7 +2,8 @@
 name: create-plan
 description:
   Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make
-  a plan, outline the steps, break down tasks, etc.).
+  a plan, outline the steps, break down tasks, etc.). Do not use as the primary artifact when the user only needs a durable review finding,
+  improvement backlog, or handoff record; route that to review-to-improvement-doc or handoff-session-prompt as appropriate.
 ---
 
 # Create Plan
@@ -28,6 +29,8 @@ Outputs:
 
 - A new plan file saved to `docs/plans/<slug>-plan.md`.
 - A short response that links the plan path and summarizes the approach.
+- If the request is not actually an implementation plan, a short recommendation for a better durable artifact instead of forcing
+  `docs/plans/`.
 
 Exit codes:
 
@@ -49,6 +52,17 @@ Failure modes:
 - If the request is underspecified enough to block a useful plan, ask 1-5 "need to know" questions before writing the plan.
 - Follow the blocking-question structure from `$AGENT_HOME/skills/workflows/conversation/requirements-gap-scan/SKILL.md`
   (numbered questions, short options, explicit defaults).
+
+1. Confirm that a plan is the right artifact
+
+- Use this skill when the user needs implementation sequencing: phases, sprints, atomic tasks, validation gates, ownership boundaries, or
+  PR/issue splitting.
+- Do not force `docs/plans/` when the request is mainly to preserve review findings, risks, lessons learned, improvement backlog, or
+  "what to fix later" guidance. Use `review-to-improvement-doc` for a project-local durable doc/runbook/backlog entry, or recommend one if
+  the user did not ask you to write it.
+- If the user needs both a durable review/improvement record and an execution plan, keep them distinct: preserve the stable findings in the
+  project doc first, then write the plan under `docs/plans/` and link that doc under the plan's context/read-first section.
+- If a durable project doc, issue, or tracker already exists, reference it rather than duplicating the full backlog inside the plan.
 
 1. Research the repo just enough to plan well
 

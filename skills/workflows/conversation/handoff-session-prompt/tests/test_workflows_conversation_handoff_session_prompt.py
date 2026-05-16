@@ -40,3 +40,16 @@ def test_prompt_guidance_handles_degraded_and_hidden_context_safely() -> None:
     assert "hidden system/developer instructions" in text
     assert "private reasoning" in text
     assert "raw tool logs" in text
+
+
+def test_prompt_guidance_prefers_durable_sources_over_copying_backlogs() -> None:
+    skill_md = Path(__file__).resolve().parents[1] / "SKILL.md"
+    text = skill_md.read_text(encoding="utf-8")
+
+    assert "Prefer durable sources over copying backlogs" in text
+    assert "Read First" in text
+    assert "Do not paste an entire durable doc" in text
+    assert "do not treat the handoff prompt itself as the canonical project record" in text
+    assert "use `review-to-improvement-doc`" in text
+    assert "to write or reference the durable" in text
+    assert "record first" in text
