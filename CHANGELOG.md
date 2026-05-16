@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
   mutations through `issue-lifecycle` and implementation through existing PR
   workflows.
 
+### Changed
+
+- **README**: clarify the agent-kit distribution positioning, portable-core
+  boundary, and first-user verification path.
+
 ## [2.4.6] - 2026-05-16
 
 ### Added

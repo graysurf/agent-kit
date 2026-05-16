@@ -4,6 +4,29 @@
 
 agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling.
 
+## 🧭 Positioning
+
+agent-kit is an opinionated agent workflow distribution, not a generic skill
+marketplace. It packages reusable skills and prompts with home-scope policy,
+validation gates, delivery automation, and local setup conventions for
+Codex-style agent work.
+
+The portable core is the tracked repository content: [AGENTS.md](./AGENTS.md),
+[DEVELOPMENT.md](./DEVELOPMENT.md), [docs/](./docs), [scripts/](./scripts),
+[prompts/](./prompts), [hooks/](./hooks), and public skills under
+[skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
+[skills/automation/](skills/automation). Project, company, system, and local
+overlays are supported, but they are not part of the portable core unless they
+are explicitly tracked and documented.
+
+Best fit:
+
+- Engineers or teams who want agents to follow one validated operating model.
+- Daily multi-repo work where preflight, checks, semantic commits, PR/MR
+  delivery, release flow, and repeatable tooling matter.
+- Users who prefer explicit guardrails over a loose collection of standalone
+  prompt snippets.
+
 ## 🗂️ Project Structure
 
 ```text
@@ -74,6 +97,16 @@ into the local config with:
 ```zsh
 $AGENT_HOME/scripts/codex-hooks-sync sync --apply
 ```
+
+## 🚦 New User Path
+
+For a first install or handoff, keep the path short:
+
+1. Install `nils-cli` and set `AGENT_HOME`.
+2. Run `agent-docs --docs-home "$AGENT_HOME" resolve --context startup --strict --format checklist`.
+3. From this repository, run `scripts/check.sh --all`.
+4. Try one focused workflow, such as `agent-doc-init` in a disposable project.
+5. Add project-local `.agents/skills` or private `skills/_projects` overlays only after the portable core works.
 
 ## 🐳 Docker And Workspace Environments
 
