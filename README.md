@@ -109,7 +109,7 @@ not part of the public catalog unless explicitly tracked.
 | Area | Skill | Description |
 | --- | --- | --- |
 | Conversation | [requirements-gap-scan](./skills/workflows/conversation/requirements-gap-scan/) | Explicit requirements gap scan and blocking-clarification question format with suggested defaults                                         |
-| Conversation | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/)                             | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate                                              |
+| Coordination | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/)                             | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate                                              |
 | Conversation | [handoff-session-prompt](./skills/workflows/conversation/handoff-session-prompt/) | Generate a generic next-session initialization prompt from the user request, conversation context, and any user-specified reference files without embedding project-specific details. |
 | Conversation | [review-to-improvement-doc](./skills/workflows/conversation/review-to-improvement-doc/) | Convert review findings, risks, lessons learned, or follow-up backlog into a durable repo-local improvement document. |
 | Planning     | [create-plan](./skills/workflows/plan/create-plan/)                                                 | Create a comprehensive, phased implementation plan and save it under docs/plans/                                                          |
@@ -124,9 +124,9 @@ not part of the public catalog unless explicitly tracked.
 | MR / GitLab | [create-gitlab-mr](./skills/workflows/mr/gitlab/create-gitlab-mr/)                                  | Create GitLab Merge Requests through an audited glab workflow with a standard MR body and explicit source-branch policy                   |
 | MR / GitLab | [deliver-gitlab-mr](./skills/workflows/mr/gitlab/deliver-gitlab-mr/)                                | Deliver GitLab merge requests end to end with preflight, creation, pipeline wait/fix loop, close, and cleanup                             |
 | MR / GitLab | [close-gitlab-mr](./skills/workflows/mr/gitlab/close-gitlab-mr/)                                    | Merge and close GitLab merge requests after pipeline gating, draft readiness, and branch cleanup                                          |
-| PR / GitHub | [create-github-pr](./skills/workflows/pr/github/create-github-pr/SKILL.md)                          | Create GitHub pull requests through the canonical provider-scoped workflow with audited hook bypass markers                               |
-| PR / GitHub | [deliver-github-pr](./skills/workflows/pr/github/deliver-github-pr/SKILL.md)                        | Deliver GitHub pull requests end to end with preflight, creation, CI wait/fix loop, merge, and cleanup                                    |
-| PR / GitHub | [close-github-pr](./skills/workflows/pr/github/close-github-pr/SKILL.md)                            | Merge and close GitHub pull requests after PR hygiene review and branch cleanup                                                           |
+| PR / GitHub | [create-github-pr](./skills/workflows/pr/github/create-github-pr/)                                  | Create GitHub pull requests through the canonical provider-scoped workflow with audited hook bypass markers                               |
+| PR / GitHub | [deliver-github-pr](./skills/workflows/pr/github/deliver-github-pr/)                                | Deliver GitHub pull requests end to end with preflight, creation, CI wait/fix loop, merge, and cleanup                                    |
+| PR / GitHub | [close-github-pr](./skills/workflows/pr/github/close-github-pr/)                                    | Merge and close GitHub pull requests after PR hygiene review and branch cleanup                                                           |
 | PR / Plan Issue | [create-plan-issue-sprint-pr](./skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/) | Open a draft GitHub sprint PR for a plan-issue implementation lane using the canonical sprint PR body schema and assigned dispatch record |
 
 ### Tools
