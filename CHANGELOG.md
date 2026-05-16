@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **issue-follow-up**: add a lightweight entrypoint skill for opening or
+  continuing GitHub issues as durable follow-up timelines while routing
+  mutations through `issue-lifecycle` and implementation through existing PR
+  workflows.
+
 ## [2.4.6] - 2026-05-16
 
 ### Added
