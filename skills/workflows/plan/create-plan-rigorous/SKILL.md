@@ -23,11 +23,14 @@ Prereqs:
 Inputs:
 
 - User request (goal, scope, constraints, success criteria).
+- Primary source artifact or source material to convert into one.
 - Optional: repo context (files, architecture notes, existing patterns).
 
 Outputs:
 
 - A new plan file saved to `docs/plans/<slug>-plan.md`.
+- A `Read First` section that links the primary source artifact or records an
+  explicit plan-only waiver.
 - A short response linking the plan path and summarizing key decisions/risks.
 - If the request is not actually a rigorous implementation plan, a short recommendation to create or reference a durable improvement doc
   instead of forcing `docs/plans/`.
@@ -39,6 +42,8 @@ Exit codes:
 Failure modes:
 
 - Request remains underspecified and the user won’t confirm assumptions.
+- No usable source artifact exists and the user does not approve a plan-only
+  waiver.
 - Plan requires repo access/info you can’t obtain.
 - Subagent review yields conflicting guidance; reconcile and document the decision.
 
@@ -59,8 +64,32 @@ Failure modes:
   scorecards, PR grouping, and subagent review.
 - Do not force `docs/plans/` when the request is mainly to preserve review findings, risks, lessons learned, improvement backlog, or
   "what to fix later" guidance. Use `review-to-improvement-doc` first for the durable project record.
+- Do not force `docs/plans/` when the request is mainly to preserve converged
+  requirements, design, feasibility, product, or customer-facing discussion.
+  Use `discussion-to-implementation-doc` first for the implementation-readiness
+  source artifact.
 - If the user needs both a durable review/improvement record and a rigorous plan, keep them distinct: preserve the stable findings with
   `review-to-improvement-doc`, then create the rigorous plan and link that document as read-first context.
+
+1. Establish the plan source artifact
+
+- Rigorous plans must have exactly one primary source artifact unless the user
+  explicitly asks for a plan-only waiver.
+- For converged requirements, design, feasibility, product, architecture, or
+  customer-facing discussion, first use `discussion-to-implementation-doc` or
+  reference an equivalent existing doc/spec. When creating it for this plan,
+  save it as `docs/plans/<slug>-discussion-source.md`.
+- For review findings, risks, lessons learned, or fix-later backlog, first use
+  `review-to-improvement-doc` or reference an equivalent existing issue/doc.
+  When creating it for this plan, save it as
+  `docs/plans/<slug>-review-source.md`.
+- Existing issues, tickets, specs, or project docs can be the primary source
+  when they already separate facts, scope, decisions, acceptance criteria, and
+  open questions well enough for execution.
+- Link the primary source under `Read First`; do not duplicate the full
+  requirements, findings, or rationale in the plan.
+- Treat plan-created source docs as coordination artifacts that are eligible
+  for cleanup after execution unless they are explicitly promoted.
 
 1. Research
 
@@ -146,6 +175,8 @@ Failure modes:
     `--strategy deterministic --pr-grouping per-sprint` when explicitly
     requested).
   - Check sprint metadata labels are exact (`PR grouping intent`, `Execution Profile`) and consistent with grouping strategy.
+  - Check that `Read First` names one primary source artifact or an explicit
+    plan-only waiver, and that the plan does not duplicate the source artifact.
   - Check sprint/task sizing is realistic for subagent PR execution (not just conceptually valid).
   - Check the sprint scorecard (`Execution Profile`, `TotalComplexity`, `CriticalPathComplexity`, `MaxBatchWidth`, `OverlapHotspots`) is
     present and consistent with dependencies.

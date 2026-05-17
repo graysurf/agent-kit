@@ -1,8 +1,8 @@
 ---
 name: review-to-improvement-doc
 description:
-  Convert review findings, risks, lessons learned, or "fix later" notes into a durable repo-local improvement document. Use when the user
-  asks to preserve a review as docs, create a durable improvement/backlog record, or write a docs-based follow-up artifact before planning
+  Convert review findings, risks, lessons learned, or "fix later" notes into a repo-local improvement source document. Use when the user
+  asks to preserve a review as docs, create an improvement/backlog source record, or write a docs-based follow-up artifact before planning
   or handoff. Do not use for ordinary implementation plans, discussion-to-implementation handoffs, or copy-ready next-session prompts.
 ---
 
@@ -12,7 +12,7 @@ description:
 
 Prereqs:
 
-- User explicitly asks to preserve review findings, risks, lessons learned, or improvement backlog as a durable project artifact; or
+- User explicitly asks to preserve review findings, risks, lessons learned, or improvement backlog as a project artifact; or
 - User asks to create a docs record for later fixes, follow-up work, or future planning.
 - Target workspace is available and project rules allow writing docs after required preflight.
 
@@ -20,15 +20,19 @@ Inputs:
 
 - User request and current review conclusions.
 - Relevant local code/docs/test evidence for material findings.
-- Optional target docs area, filename, project conventions, validation commands, and existing plan/issue/handoff links.
+- Optional target docs area, filename, project conventions, validation commands, retention intent, and existing plan/issue/handoff links.
 
 Outputs:
 
-- A durable repo-local document in the relevant docs area, not under `docs/plans/` unless the project explicitly uses that area for
-  non-plan records.
+- A repo-local improvement source document. When it exists to feed plan execution, save it under
+  `docs/plans/<slug>-review-source.md` by default.
+- If the document is long-lived knowledge rather than execution coordination, save it in the relevant domain docs/runbook area instead.
+- A source artifact that `create-plan` or `create-plan-rigorous` can link under
+  `Read First` when execution sequencing is needed.
 - An `Execution` section with executable backlog, validation gates, and execution-state link when the review record should drive later
   implementation.
-- Updated local docs index or README when the project has one.
+- Updated local docs index or README only when the document is intentionally promoted as retained knowledge and should be discoverable
+  outside the plan.
 - A short response linking the document path and listing validation run.
 
 Exit codes:
@@ -53,14 +57,20 @@ Failure modes:
      implementer. Use `discussion-to-implementation-doc` for that artifact.
    - Do not turn it into a phased implementation plan. If the user also wants execution sequencing, write the durable improvement doc first,
      then use `create-plan` or `create-plan-rigorous` and link the doc as read-first context.
+   - Treat this document as the primary source artifact for later plan
+     generation when the source material is review findings, risks, lessons
+     learned, validation guardrails, or a fix-later backlog.
+   - Treat `docs/plans/` as the default location for plan-source documents. Promote or rewrite into domain docs/runbooks only when the
+     content has value after execution finishes.
    - Do not turn it into a handoff prompt. If the user also wants session continuity, write or reference the durable doc first, then use
      `handoff-session-prompt` with the doc under `Read First`.
 
 2. Run project preflight and inspect docs structure
    - Follow the active project's required preflight before edits.
-   - Read the target docs index/README and nearby docs to choose the narrowest correct location.
-   - Prefer an existing domain folder over creating a new top-level docs area.
-   - Avoid `docs/plans/` unless the artifact is a real implementation plan.
+   - Read nearby docs and local project rules before choosing a path.
+   - If this document is a source for plan generation, place it under `docs/plans/` using `docs/plans/<slug>-review-source.md`.
+   - Prefer an existing domain folder or runbook area only when the artifact is meant to remain after execution.
+   - Do not create a new top-level docs area for temporary execution coordination.
 
 3. Gather evidence and separate certainty levels
    - Base findings on user-provided review conclusions plus local file/code/test evidence.
@@ -81,14 +91,18 @@ Failure modes:
      - backlog or next fixes
      - execution, including executable backlog, validation gates, execution-state path, and next-task source when this document should drive
        later implementation
+     - retention intent, such as cleanup after execution or promotion candidate
      - validation gate
      - do-not-do / guardrails
      - open questions, if any
    - Keep implementation task sequencing lightweight; leave detailed sprint/task decomposition to plan skills.
 
 5. Update discoverability
-   - Update the nearest docs index or README when the project maintains one.
-   - Link from broader docs entrypoints only when this document is meant to be found by future maintainers.
+   - For `docs/plans/` source documents, use the plan's `Read First` section as the discoverability path; do not update broad indexes by
+     default.
+   - Update the nearest docs index or README only when this document is promoted or intentionally retained after execution.
+   - Link from broader docs entrypoints only when this document is meant to be found by future maintainers without prior plan/session
+     context.
    - If there is no index, mention that explicitly in the final response instead of inventing broad navigation.
 
 6. Validate
@@ -107,8 +121,9 @@ Failure modes:
   and the next artifact should prepare later implementation.
 - `execute-from-implementation-doc`: use after this skill when the improvement record has executable backlog, acceptance, validation, and
   an execution-state path or enough context to create one.
-- `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing.
+- `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing; link this
+  document under the plan's `Read First` section as the primary source.
 - `create-plan-rigorous`: use after this skill when the user wants sizing, sprint scorecards, subagent review, or high-rigor execution
-  modeling.
+  modeling; link this document under the plan's `Read First` section as the primary source.
 - `handoff-session-prompt`: use after this skill when the user wants a copy-ready prompt for a fresh session; put this durable doc under
   `Read First`.

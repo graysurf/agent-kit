@@ -14,7 +14,7 @@ def test_discussion_to_implementation_doc_defines_artifact_boundary() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
 
-    assert "implementation-readiness document" in text
+    assert "implementation-readiness source document" in text
     assert "not execute the implementation now" in text
     assert "Do not turn the document into a task-by-task implementation plan" in text
     assert "Do not use the document as a session prompt" in text
@@ -40,6 +40,19 @@ def test_discussion_to_implementation_doc_can_prepare_execution_state() -> None:
     assert "An `Execution` section" in text
     assert "execution-state path" in text
     assert "next-task source" in text
+
+
+def test_discussion_to_implementation_doc_can_be_plan_source() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "primary source artifact for later plan" in text
+    assert "requirements, design, feasibility" in text
+    assert "docs/plans/<slug>-discussion-source.md" in text
+    assert "Promote or rewrite into domain docs/runbooks" in text
+    assert "cleanup after execution or promotion candidate" in text
+    assert "plan's `Read First` section as the primary source" in text
+    assert "`create-plan-rigorous`" in text
 
 
 def test_discussion_to_implementation_doc_documents_skill_usage_recording_pilot() -> None:

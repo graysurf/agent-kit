@@ -8,6 +8,33 @@ policy.
 
 ## Authoring baseline
 
+- Every plan needs a primary source artifact unless the user explicitly asks
+  for a plan-only waiver. The plan is the execution-control document, not the
+  durable place for requirements, review findings, rationale, or backlog
+  details.
+- Add a `Read First` section immediately after `Overview` with:
+  - `Primary source`: repo path, issue/ticket URL, or explicit waiver.
+  - `Source type`: `discussion-to-implementation-doc`,
+    `review-to-improvement-doc`, `existing issue/spec`, or
+    `plan-only waiver`.
+  - `Open questions carried into execution`: short list or `none`.
+- Default to one primary source. Add secondary references only when they are
+  materially needed for execution.
+- If source material is converged requirements, design, feasibility, product,
+  or customer-facing discussion, create or reference a
+  `discussion-to-implementation-doc` artifact before writing the plan.
+- If source material is review findings, risks, lessons learned, or a
+  fix-later backlog, create or reference a `review-to-improvement-doc` artifact
+  before writing the plan.
+- When creating a source artifact specifically for plan execution, save it next
+  to the plan under `docs/plans/` using `<slug>-discussion-source.md` or
+  `<slug>-review-source.md`. Promote or rewrite it into domain docs/runbooks
+  only when it has value after execution finishes.
+- Existing issues, tickets, specs, or project docs can be the primary source
+  only when they already separate facts, scope, decisions, acceptance criteria,
+  and open questions well enough for execution.
+- Keep only execution-relevant summaries in the plan. Link source documents
+  instead of duplicating their full requirements, findings, or rationale.
 - Use sprints/phases that each produce a demoable or testable increment.
 - Treat sprints as sequential integration gates; do not imply cross-sprint
   execution parallelism.
