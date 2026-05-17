@@ -1,8 +1,8 @@
 ---
 name: semantic-commit-autostage
 description:
-  Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where the active agent owns the full
-  change set and the user should not manually stage files.
+  Autostage the full in-scope working tree delta and commit it using Semantic Commit format when the active agent owns the complete change
+  set and the user should not manually stage files.
 ---
 
 # Semantic Commit (Autostage)
@@ -18,7 +18,7 @@ Prereqs:
 
 Inputs:
 
-- Unstaged changes in the working tree (this skill stages them via `git add`).
+- Unstaged changes in the working tree that are all intended for this commit (this skill stages them via `git add`).
 - Prepared commit message via `--message`, `--message-file`, or stdin (`--automation` disables stdin fallback).
 - Optional target repository via `--repo <path>`.
 
@@ -51,7 +51,8 @@ Failure modes:
 ## Setup
 
 - Use this skill only when full autostage is intended and safe.
-- If user expects review-first partial staging, switch to `semantic-commit` (non-autostage).
+- Use it when the whole dirty tree is one work intent, or when all tracked changes are in scope and `git add -u` is explicitly chosen.
+- Do not use it for agent-selected partial commits; stage the selected subset first and switch to `semantic-commit` (non-autostage).
 
 ## Commands (only entrypoints)
 
@@ -69,6 +70,7 @@ Failure modes:
 Rules:
 
 - Use `git add -A` by default; use `git add -u` only when untracked files must stay uncommitted.
+- Do not use this skill to choose a subset of paths from a mixed dirty tree.
 - Generate the message from `semantic-commit staged-context` output only.
 - For non-interactive reliability, prefer `--automation` with `--message` or `--message-file`.
 
@@ -108,4 +110,5 @@ Rules:
 
 - On failure: include the failing command, exit code, and key stderr.
 - On success: include commit summary stdout in a code block.
-- If staged context and user intent conflict (mixed unrelated changes), stop and ask whether to proceed with broad autostage.
+- If staged context and user intent conflict (mixed unrelated changes), stop and switch to selective staging plus `semantic-commit`, or ask
+  whether to proceed with broad autostage.

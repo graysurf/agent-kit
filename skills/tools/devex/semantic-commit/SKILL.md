@@ -1,6 +1,6 @@
 ---
 name: semantic-commit
-description: Commit staged changes using Semantic Commit format.
+description: Commit a staged or deliberately selected change set using Semantic Commit format.
 ---
 
 # Semantic Commit
@@ -16,7 +16,8 @@ Prereqs:
 
 Inputs:
 
-- Staged changes (`git add ...`) for `semantic-commit staged-context`.
+- Staged changes (`git add ...`) for `semantic-commit staged-context`; the staged set may come from the user, an existing index state, or
+  agent-selected pre-skill staging.
 - Prepared commit message via stdin (preferred), `--message`, or `--message-file` for `semantic-commit commit`.
 - Optional target repository via `--repo <path>`.
 
@@ -49,6 +50,13 @@ Failure modes:
 - Run inside the target git repo, or use `--repo <path>` to avoid shell `cwd` switching.
 - Use only the entrypoints below; they are the stable interface for agents.
 
+Use this skill for:
+
+- User-staged or pre-existing staged changes.
+- Agent-selected task changes after the agent has inspected the working tree and staged only the intended paths.
+
+Use `semantic-commit-autostage` instead when the full working tree delta is intentionally in scope.
+
 ## Commands (only entrypoints)
 
 - Get staged context:
@@ -64,6 +72,7 @@ Failure modes:
 Rules:
 
 - Never run `git add` in this skill; commit only what the user has already staged.
+- If the agent must select this task's changes, inspect `git status`/diff and complete selective staging before entering this skill.
 - Build message intent from `semantic-commit staged-context` output only.
 - Prefer explicit `--repo <path>` when operating from another working directory.
 
