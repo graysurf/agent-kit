@@ -34,6 +34,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **subagent workflows**: downgrade `delegate-parallel` from a public workflow
+  skill to a shared parallel delegation protocol used by explicit delegation
+  modes and fix `parallel-first` clarification routing to
+  `requirements-gap-scan`.
 - **README**: clarify the agent-kit distribution positioning, portable-core
   boundary, and first-user verification path.
 

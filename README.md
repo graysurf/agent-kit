@@ -145,7 +145,6 @@ not part of the public catalog unless explicitly tracked.
 | Area | Skill | Description |
 | --- | --- | --- |
 | Conversation | [requirements-gap-scan](./skills/workflows/conversation/requirements-gap-scan/) | Explicit requirements gap scan and blocking-clarification question format with suggested defaults                                         |
-| Coordination | [delegate-parallel](./skills/workflows/coordination/delegate-parallel/)                             | Decompose a goal into parallelizable tasks and execute via parallel subagents, then validate                                              |
 | Conversation | [handoff-session-prompt](./skills/workflows/conversation/handoff-session-prompt/) | Generate a generic next-session initialization prompt from the user request, conversation context, and any user-specified reference files without embedding project-specific details. |
 | Conversation | [review-to-improvement-doc](./skills/workflows/conversation/review-to-improvement-doc/) | Convert review findings, risks, lessons learned, or follow-up backlog into a durable repo-local improvement document. |
 | Conversation | [discussion-to-implementation-doc](./skills/workflows/conversation/discussion-to-implementation-doc/) | Convert completed requirements, design, feasibility, or customer-facing discussion into a durable implementation-readiness document. |

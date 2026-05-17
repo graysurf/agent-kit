@@ -17,4 +17,5 @@ def test_orchestrator_first_prompt_source_is_present() -> None:
 
     assert "argument-hint: goal / constraints (optional)" in text
     assert "Enable **orchestrator-first mode**" in text
+    assert "PARALLEL_DELEGATION_PROTOCOL.md" in text
     assert "orchestrator-first off" in text

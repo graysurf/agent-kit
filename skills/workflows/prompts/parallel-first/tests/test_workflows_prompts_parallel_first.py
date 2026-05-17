@@ -17,4 +17,5 @@ def test_parallel_first_prompt_source_is_present() -> None:
 
     assert "argument-hint: preferences (optional)" in text
     assert "Enable **parallel-first mode**" in text
-    assert "delegate-parallel" in text
+    assert "PARALLEL_DELEGATION_PROTOCOL.md" in text
+    assert "requirements-gap-scan" in text

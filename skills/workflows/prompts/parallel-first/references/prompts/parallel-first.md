@@ -1,5 +1,5 @@
 ---
-description: Enable a parallel-first policy for this thread and prefer delegate-parallel subagents when safe.
+description: Enable a parallel-first policy for this thread and prefer the shared parallel delegation protocol when safe.
 argument-hint: preferences (optional)
 ---
 
@@ -21,8 +21,8 @@ POLICY (sticky for this conversation)
      - Straightforward integration path
    - If not parallelizable: do NOT spawn subagents; proceed sequentially.
 
-3. If parallelizable: use `delegate-parallel` workflow
-   - Follow: `skills/workflows/coordination/delegate-parallel/SKILL.md`
+3. If parallelizable: use the shared parallel delegation protocol
+   - Follow: `skills/workflows/_shared/references/PARALLEL_DELEGATION_PROTOCOL.md`
    - Defaults (unless overridden by the user in plain language):
      - max_agents = 3
      - max_retries_per_task = 2
@@ -31,7 +31,7 @@ POLICY (sticky for this conversation)
      accepted.
 
 4. If underspecified: ask must-have questions first
-   - Use: `skills/workflows/conversation/ask-questions-if-underspecified/SKILL.md`
+   - Use: `skills/workflows/conversation/requirements-gap-scan/SKILL.md`
    - Ask 1–5 “Need to know” questions with defaults.
    - Do not dispatch subagents until the user answers or approves assumptions.
 

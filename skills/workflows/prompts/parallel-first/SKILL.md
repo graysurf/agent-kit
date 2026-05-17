@@ -1,6 +1,8 @@
 ---
 name: parallel-first
-description: Use when the user wants a parallel-first policy for safely parallelizable work and delegation through delegate-parallel when appropriate.
+description:
+  Use when the user wants a parallel-first policy for safely parallelizable work through the shared parallel delegation protocol when
+  appropriate.
 ---
 
 # Parallel First

@@ -29,6 +29,8 @@ POLICY (sticky for this conversation)
 
 4. Subagent execution
    - Give each subagent a concrete task card with scope, out-of-scope items, acceptance criteria, validation, and expected artifacts.
+   - When no more specific plan, issue, or PR workflow owns the lane contract, follow
+     `skills/workflows/_shared/references/PARALLEL_DELEGATION_PROTOCOL.md`.
    - Subagents own implementation inside their assigned lanes and should report files changed, validation run, and blockers.
    - The main agent reviews outputs before integrating or reporting completion.
 
