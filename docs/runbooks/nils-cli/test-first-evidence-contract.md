@@ -17,7 +17,7 @@ session should treat as read-first context.
 
 Source facts:
 
-- A reusable tracked prompt exists at `prompts/test-first.md`.
+- A reusable tracked prompt-style skill exists at `skills/workflows/prompts/test-first/`.
 - agent-kit favors stable CLI primitives for deterministic behavior while
   leaving workflow judgment in skills.
 - Existing nils-cli adoption records keep candidate commands separate from
@@ -72,8 +72,8 @@ can normalize records.
 
 ## Landing Layers
 
-1. Prompt layer: `prompts/test-first.md` gives the user an immediate opt-in
-   prompt for ordinary implementation requests.
+1. Prompt layer: `skills/workflows/prompts/test-first/references/prompts/test-first.md`
+   gives the user an immediate opt-in prompt through the `test-first` skill.
 2. Policy layer: `AGENTS.md` carries the concise default expectation, but not
    the full checklist.
 3. Implementation workflow layer: behavior-editing skills own the test-first
@@ -145,7 +145,7 @@ Suggested record fields:
 
 | Priority | Work item | Acceptance |
 | --- | --- | --- |
-| P1 | Add the prompt for immediate user opt-in. | Done: `prompts/test-first.md` exists and describes failing evidence, waiver, and final validation. |
+| P1 | Add the prompt for immediate user opt-in. | Done: `skills/workflows/prompts/test-first/` exists and describes failing evidence, waiver, and final validation. |
 | P1 | Update behavior-editing workflow skills. | Done: behavior-editing skills tell agents to capture failing evidence or waiver before production edits. |
 | P1 | Update create PR/MR body contracts. | Done: PR/MR bodies include test-first evidence or explicit waiver when production behavior changed. |
 | P2 | Prototype nils-cli evidence capture. | Command emits deterministic JSON and stores evidence under `agent-out`. |

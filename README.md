@@ -2,22 +2,19 @@
 
 <!-- markdownlint-disable-file MD060 -->
 
-agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt presets, custom skills, and local tooling.
+agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt-style skills, custom workflows, and local
+tooling.
 
 ## 🧭 Positioning
 
-agent-kit is an opinionated agent workflow distribution, not a generic skill
-marketplace. It packages reusable skills and prompts with home-scope policy,
-validation gates, delivery automation, and local setup conventions for
-Codex-style agent work.
+agent-kit is an opinionated agent workflow distribution, not a generic skill marketplace. It packages reusable skills, prompt-style skills,
+home-scope policy, validation gates, delivery automation, and local setup conventions for Codex-style agent work.
 
 The portable core is the tracked repository content: [AGENTS.md](./AGENTS.md),
 [DEVELOPMENT.md](./DEVELOPMENT.md), [docs/](./docs), [scripts/](./scripts),
-[prompts/](./prompts), [hooks/](./hooks), and public skills under
-[skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
-[skills/automation/](skills/automation). Project, company, system, and local
-overlays are supported, but they are not part of the portable core unless they
-are explicitly tracked and documented.
+[hooks/](./hooks), and public skills under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
+[skills/automation/](skills/automation). Project, company, system, and local overlays are supported, but they are not part of the portable
+core unless they are explicitly tracked and documented.
 
 Best fit:
 
@@ -36,9 +33,8 @@ Best fit:
 ├── docker/     # Docker image docs and workspace launcher pointers
 ├── docs/       # runbooks, plans, and testing docs
 ├── hooks/      # Codex hook source and managed config block
-├── prompts/    # prompt presets
 ├── scripts/    # validation, sync, build, and helper entrypoints
-├── skills/     # tracked public skills plus ignored local/system overlays
+├── skills/     # tracked public skills, prompt-style skills, and ignored overlays
 ├── tests/      # pytest regression/smoke tests
 ├── AGENTS.md   # global agent rules (response/tooling)
 └── DEVELOPMENT.md
@@ -116,15 +112,19 @@ See [docker/agent-workspace-launcher/README.md](docker/agent-workspace-launcher/
 
 ## 🧰 Prompts
 
+Prompt presets are implemented as prompt-style skills so Codex CLI can surface
+them through `/skills`. The source prompt text lives under each skill's
+`references/prompts/` directory.
+
 ### Common
 
-| Prompt                                                                                  | Description                                                                                                          | Usage                                                                                                   |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [actionable-advice](./prompts/actionable-advice.md)                                     | Answer a question with clarifying questions, multiple options, and a single recommendation                           | `/prompts:actionable-advice <question>`                                                                 |
-| [actionable-knowledge](./prompts/actionable-knowledge.md)                               | Answer a learning/knowledge question with multiple explanation paths and a single recommended path                   | `/prompts:actionable-knowledge <question>`                                                              |
-| [orchestrator-first](./prompts/orchestrator-first.md)                                   | Make the main agent own intent, dispatch, integration, validation, and final synthesis while subagents own lanes     | `/prompts:orchestrator-first`                                                                           |
-| [parallel-first](./prompts/parallel-first.md)                                           | Enable a parallel-first execution policy for this conversation thread (prefer delegate-parallel subagents when safe) | `/prompts:parallel-first`                                                                               |
-| [test-first](./prompts/test-first.md)                                                   | Require failing-test evidence or an explicit waiver before production behavior changes                               | `/prompts:test-first <implementation task>`                                                             |
+| Prompt | Description | Usage |
+| --- | --- | --- |
+| [actionable-advice](./skills/workflows/prompts/actionable-advice/) | Answer a question with clarifying questions, multiple options, and a single recommendation | Use the `actionable-advice` skill |
+| [actionable-knowledge](./skills/workflows/prompts/actionable-knowledge/) | Answer a learning/knowledge question with multiple explanation paths and a single recommended path | Use the `actionable-knowledge` skill |
+| [orchestrator-first](./skills/workflows/prompts/orchestrator-first/) | Make the main agent own intent, dispatch, integration, validation, and final synthesis while subagents own lanes | Use the `orchestrator-first` skill |
+| [parallel-first](./skills/workflows/prompts/parallel-first/) | Enable a parallel-first execution policy for this conversation thread when delegation is safe | Use the `parallel-first` skill |
+| [test-first](./skills/workflows/prompts/test-first/) | Require failing-test evidence or an explicit waiver before production behavior changes | Use the `test-first` skill |
 
 ## 🛠️ Skills
 
@@ -136,6 +136,7 @@ project-local `.agents/skills`) using canonical entrypoints.
 The catalog below covers tracked public skills under [skills/workflows/](skills/workflows),
 [skills/tools/](skills/tools), and [skills/automation/](skills/automation). Tool skills may also be
 grouped by execution surface, such as `skills/tools/computer-use/` for live GUI automation.
+Prompt-style skills are listed in the Prompts section above and are not duplicated in the general workflow table.
 Ignored local/system overlays may exist under `skills/_projects/` and `skills/.system/`, but they are
 not part of the public catalog unless explicitly tracked.
 

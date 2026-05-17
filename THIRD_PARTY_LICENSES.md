@@ -56,7 +56,7 @@ Not included:
 - `pyproject.toml` SHA256: `c8995d3b200c0b5d883507d998f4bea580aa4f8724616d1e0814b5eae519353c`
 - `uv.lock` SHA256: `45e0d855107d21d51a75c6a9f6e794d7429578b7ae6328dd6a0f7d002c66681e`
 - `.rumdl.toml` SHA256: `31667aa68116c0811cc8afcfa726ab5b6da25deb47cf737e54c51a7910a9cf5d`
-- `scripts/ci/markdownlint-audit.sh` SHA256: `2f7a9fbabc675f3f7db2ce5930dd1d144f614d01b094d468e05619ae063189a1`
+- `scripts/ci/markdownlint-audit.sh` SHA256: `5169a51a9770a4b236201b5a6e26cc935f10e37e480267076c2315b21b420d53`
 - `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
 - `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`

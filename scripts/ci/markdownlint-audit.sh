@@ -53,9 +53,17 @@ if [[ ! -f "$config_file" ]]; then
 fi
 
 md_files=()
-while IFS= read -r -d '' file; do
-  md_files+=("$file")
-done < <(git ls-files -z '*.md')
+append_existing_markdown_files() {
+  local file=''
+  while IFS= read -r -d '' file; do
+    if [[ -f "$file" ]]; then
+      md_files+=("$file")
+    fi
+  done
+}
+
+append_existing_markdown_files < <(git ls-files -z '*.md')
+append_existing_markdown_files < <(git ls-files -z --others --exclude-standard '*.md')
 
 if [[ "${#md_files[@]}" -eq 0 ]]; then
   echo "PASS: markdown lint audit (strict=$strict; no markdown files)"

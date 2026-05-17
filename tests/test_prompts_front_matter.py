@@ -35,7 +35,14 @@ def parse_front_matter(text: str) -> dict[str, str]:
     return data
 
 
-@pytest.mark.parametrize("prompt_path", sorted(Path("prompts").glob("*.md")))
+PROMPT_PATHS = sorted(Path("skills/workflows/prompts").glob("*/references/prompts/*.md"))
+
+
+def test_prompt_sources_exist() -> None:
+    assert PROMPT_PATHS, "expected prompt-style skill prompt sources"
+
+
+@pytest.mark.parametrize("prompt_path", PROMPT_PATHS)
 def test_prompts_front_matter_required_keys(prompt_path: Path):
     text = prompt_path.read_text("utf-8")
     fm = parse_front_matter(text)
