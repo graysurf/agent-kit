@@ -18,6 +18,7 @@ def test_execute_from_implementation_doc_accepts_expected_sources() -> None:
     assert "review-to-improvement-doc" in text
     assert "create-plan" in text
     assert "create-plan-rigorous" in text
+    assert "durable-artifact-cleanup" in text
     assert "review-evidence.json" in text
 
 

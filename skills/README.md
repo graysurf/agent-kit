@@ -47,6 +47,11 @@ $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skil
 
 See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatomy table, shared-directory rules, and examples.
 
+## Workflow Guides
+
+- Planning and durable implementation artifact lifecycle:
+  - `workflows/plan/README.md`
+
 ## Naming and layout conventions
 
 - Skill directories use kebab-case (e.g., `create-github-pr`).

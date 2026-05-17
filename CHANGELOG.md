@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **durable artifacts**: document the cross-session artifact workflow in
+  `skills/workflows/plan/README.md` and add a cleanup workflow for deleting
+  obsolete coordination docs after completion and reference checks.
 - **execute-from-implementation-doc**: add a workflow for resuming long-running
   implementation from execution-ready handoff, improvement, or plan documents
   with a separate execution-state ledger.

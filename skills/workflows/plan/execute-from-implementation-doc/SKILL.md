@@ -153,5 +153,6 @@ Do not treat `review-evidence.json` as the primary source document. Link it as e
 - `review-to-improvement-doc`: creates improvement records; use this skill after the record has executable backlog and validation gates.
 - `create-plan` / `create-plan-rigorous`: create execution-ready plans; use this skill to resume implementation from those plans.
 - `execute-plan-parallel`: use only when the user explicitly wants plan execution through parallel subagents.
+- `durable-artifact-cleanup`: use after execution is complete and the source/progress docs are no longer needed as maintained records.
 - `handoff-session-prompt`: use when a fresh session prompt is needed; point it at the source document and execution state instead of
   copying the full progress record.
