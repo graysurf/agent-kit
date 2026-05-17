@@ -448,13 +448,13 @@ validate_pr_body_hygiene_text() {
 
   # Plan-issue sprint PRs use the five-section schema documented in
   # `references/SPRINT_PR_TEMPLATE.md` under
-  # `skills/automation/plan-issue-delivery/`. This validator names that
+  # `skills/automation/issue/plan-issue-delivery/`. This validator names that
   # schema so the operator knows which template to switch to when the PR
   # body was authored against a different shape (e.g. claude-kit's
   # feature-PR template at `references/PR_TEMPLATE.md`, which uses
   # Summary / Changes / Testing / Risk / Notes instead).
   local schema_label='sprint-pr (Summary / Scope / Test-First Evidence / Testing / Issue)'
-  local template_hint='see skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md'
+  local template_hint='see skills/automation/issue/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md'
 
   if [[ -z "${body_text//[[:space:]]/}" ]]; then
     printf 'error: %s: PR body cannot be empty (schema: %s; %s)\n' \

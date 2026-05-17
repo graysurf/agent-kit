@@ -149,14 +149,14 @@ def test_script_smoke_release_and_ci_specs_match_retained_entrypoints() -> None:
     repo = repo_root()
 
     expected_specs = [
-        "tests/script_specs/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh.json",
-        "tests/script_specs/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py.json",
-        "tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json",
-        "tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json",
+        "tests/script_specs/skills/automation/ci/gh-fix-ci/scripts/gh-fix-ci.sh.json",
+        "tests/script_specs/skills/automation/ci/gh-fix-ci/scripts/inspect_ci_checks.py.json",
+        "tests/script_specs/skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh.json",
+        "tests/script_specs/skills/automation/release/release-workflow/scripts/release-resolve.sh.json",
     ]
     spec_roots = [
-        repo / "tests" / "script_specs" / "skills" / "automation" / "gh-fix-ci" / "scripts",
-        repo / "tests" / "script_specs" / "skills" / "automation" / "release-workflow" / "scripts",
+        repo / "tests" / "script_specs" / "skills" / "automation" / "ci" / "gh-fix-ci" / "scripts",
+        repo / "tests" / "script_specs" / "skills" / "automation" / "release" / "release-workflow" / "scripts",
     ]
     discovered_specs = sorted(
         str(path.relative_to(repo))
@@ -166,21 +166,21 @@ def test_script_smoke_release_and_ci_specs_match_retained_entrypoints() -> None:
     assert discovered_specs == expected_specs
 
     expected_scripts = [
-        "skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh",
-        "skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py",
-        "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh",
-        "skills/automation/release-workflow/scripts/release-resolve.sh",
+        "skills/automation/ci/gh-fix-ci/scripts/gh-fix-ci.sh",
+        "skills/automation/ci/gh-fix-ci/scripts/inspect_ci_checks.py",
+        "skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh",
+        "skills/automation/release/release-workflow/scripts/release-resolve.sh",
     ]
     for script_path in expected_scripts:
         assert (repo / script_path).is_file(), script_path
 
     expected_case_names = {
-        "tests/script_specs/skills/automation/gh-fix-ci/scripts/gh-fix-ci.sh.json": {"help-surface"},
-        "tests/script_specs/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py.json": {"help"},
-        "tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json": {
+        "tests/script_specs/skills/automation/ci/gh-fix-ci/scripts/gh-fix-ci.sh.json": {"help-surface"},
+        "tests/script_specs/skills/automation/ci/gh-fix-ci/scripts/inspect_ci_checks.py.json": {"help"},
+        "tests/script_specs/skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh.json": {
             "help-surface"
         },
-        "tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json": {"json-defaults"},
+        "tests/script_specs/skills/automation/release/release-workflow/scripts/release-resolve.sh.json": {"json-defaults"},
     }
     for spec_path, expected_names in expected_case_names.items():
         payload = json.loads((repo / spec_path).read_text("utf-8"))
@@ -233,7 +233,7 @@ def test_script_smoke_release_publish_from_changelog(tmp_path: Path):
     system_path = os.environ.get("PATH", "")
     path = os.pathsep.join([str(fixture_bin), str(stub_bin), system_path])
 
-    script = "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh"
+    script = "skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh"
     spec = {
         "args": [
             "--repo",
@@ -310,7 +310,7 @@ def test_script_smoke_release_publish_requires_synced_upstream_by_default(tmp_pa
     system_path = os.environ.get("PATH", "")
     path = os.pathsep.join([str(fixture_bin), str(stub_bin), system_path])
 
-    script = "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh"
+    script = "skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh"
     spec = {
         "args": [
             "--repo",
@@ -381,7 +381,7 @@ def test_script_smoke_release_publish_pushes_current_branch_when_requested(tmp_p
     system_path = os.environ.get("PATH", "")
     path = os.pathsep.join([str(fixture_bin), str(stub_bin), system_path])
 
-    script = "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh"
+    script = "skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh"
     spec = {
         "args": [
             "--repo",
@@ -452,7 +452,7 @@ def test_script_smoke_release_publish_keeps_existing_output_on_failure(tmp_path:
     out_path.write_text("sentinel-old-content\n", "utf-8")
 
     repo = repo_root()
-    script = "skills/automation/release-workflow/scripts/release-publish-from-changelog.sh"
+    script = "skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh"
     spec = {
         "args": [
             "--repo",

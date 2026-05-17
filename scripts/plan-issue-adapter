@@ -77,6 +77,7 @@ def runtime_template_root(runtime: str) -> Path:
         repo_root()
         / "skills"
         / "automation"
+        / "issue"
         / "plan-issue-delivery"
         / "assets"
         / "runtime-adapters"

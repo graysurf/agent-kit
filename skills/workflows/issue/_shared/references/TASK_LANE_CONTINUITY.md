@@ -7,8 +7,8 @@ Applies to:
 - `skills/workflows/issue/issue-lifecycle`
 - `skills/workflows/issue/issue-pr-review`
 - `skills/workflows/issue/issue-subagent-pr`
-- `skills/automation/issue-delivery`
-- `skills/automation/plan-issue-delivery`
+- `skills/automation/issue/issue-delivery`
+- `skills/automation/issue/plan-issue-delivery`
 - plan-issue main/subagent init prompts
 
 ## Canonical Lane Model

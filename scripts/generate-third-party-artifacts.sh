@@ -148,8 +148,12 @@ pyproject_path = repo_root / "pyproject.toml"
 uv_lock_path = repo_root / "uv.lock"
 rumdl_config = repo_root / ".rumdl.toml"
 markdown_script = repo_root / "scripts" / "ci" / "markdownlint-audit.sh"
-playwright_script = repo_root / "skills" / "tools" / "browser" / "playwright" / "scripts" / "playwright_cli.sh"
-agent_browser_script = repo_root / "skills" / "tools" / "browser" / "agent-browser" / "scripts" / "agent-browser.sh"
+playwright_script = (
+    repo_root / "skills" / "tools" / "browser" / "runtime" / "playwright" / "scripts" / "playwright_cli.sh"
+)
+agent_browser_script = (
+    repo_root / "skills" / "tools" / "browser" / "runtime" / "agent-browser" / "scripts" / "agent-browser.sh"
+)
 lint_script = repo_root / "scripts" / "lint.sh"
 install_script = repo_root / "scripts" / "install-homebrew-nils-cli.sh"
 workflow_lint = repo_root / ".github" / "workflows" / "lint.yml"
@@ -290,8 +294,8 @@ rumdl_spec = extract_once(
 )
 
 npm_specs = [
-    ("@playwright/cli", playwright_spec, "skills/tools/browser/playwright/scripts/playwright_cli.sh"),
-    ("agent-browser", agent_browser_spec, "skills/tools/browser/agent-browser/scripts/agent-browser.sh"),
+    ("@playwright/cli", playwright_spec, "skills/tools/browser/runtime/playwright/scripts/playwright_cli.sh"),
+    ("agent-browser", agent_browser_spec, "skills/tools/browser/runtime/agent-browser/scripts/agent-browser.sh"),
     ("rumdl", rumdl_spec, "scripts/ci/markdownlint-audit.sh"),
 ]
 
@@ -338,8 +342,8 @@ source_paths = [
     "uv.lock",
     ".rumdl.toml",
     "scripts/ci/markdownlint-audit.sh",
-    "skills/tools/browser/playwright/scripts/playwright_cli.sh",
-    "skills/tools/browser/agent-browser/scripts/agent-browser.sh",
+    "skills/tools/browser/runtime/playwright/scripts/playwright_cli.sh",
+    "skills/tools/browser/runtime/agent-browser/scripts/agent-browser.sh",
     "scripts/lint.sh",
     ".github/workflows/lint.yml",
     "scripts/install-homebrew-nils-cli.sh",

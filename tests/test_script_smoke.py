@@ -19,12 +19,12 @@ CRITICAL_SMOKE_ENTRYPOINTS = {
     "scripts/check.sh",
     "scripts/check_plan_issue_worktree_cleanup.sh",
     "scripts/install-homebrew-nils-cli.sh",
-    "skills/tools/devex/desktop-notify/scripts/desktop-notify.sh",
-    "skills/tools/devex/desktop-notify/scripts/project-notify.sh",
+    "skills/tools/notifications/desktop-notify/scripts/desktop-notify.sh",
+    "skills/tools/notifications/desktop-notify/scripts/project-notify.sh",
 }
 
 REMOVED_SMOKE_ENTRYPOINTS = {
-    "skills/tools/devex/desktop-notify/scripts/codex-notify.sh",
+    "skills/tools/notifications/desktop-notify/scripts/codex-notify.sh",
 }
 
 

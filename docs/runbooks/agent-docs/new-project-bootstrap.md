@@ -7,14 +7,14 @@
 
 ## Canonical command path
 
-- `$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh`
+- `$AGENT_HOME/skills/tools/agent-docs/agent-doc-init/scripts/agent_doc_init.sh`
 
 ## Bootstrap sequence
 
 1. Preview changes (default dry-run):
 
 ```bash
-$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENT_HOME/skills/tools/agent-docs/agent-doc-init/scripts/agent_doc_init.sh \
   --dry-run \
   --project-path "$PROJECT_PATH"
 ```
@@ -22,7 +22,7 @@ $AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
 1. Apply missing baseline docs (safe default: missing-only scaffold):
 
 ```bash
-$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENT_HOME/skills/tools/agent-docs/agent-doc-init/scripts/agent_doc_init.sh \
   --apply \
   --project-path "$PROJECT_PATH"
 ```
@@ -47,7 +47,7 @@ agent-docs --docs-home "$AGENT_HOME" resolve --context skill-dev --strict --form
 If the project needs extra required docs beyond built-ins, add entries during apply mode:
 
 ```bash
-$AGENT_HOME/skills/tools/agent-doc-init/scripts/agent_doc_init.sh \
+$AGENT_HOME/skills/tools/agent-docs/agent-doc-init/scripts/agent_doc_init.sh \
   --apply \
   --project-path "$PROJECT_PATH" \
   --project-required "project-dev:BINARY_DEPENDENCIES.md:External runtime tools"

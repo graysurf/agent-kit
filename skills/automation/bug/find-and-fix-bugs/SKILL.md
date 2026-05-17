@@ -1,0 +1,167 @@
+---
+name: find-and-fix-bugs
+description:
+  Find, triage, and fix bugs with or without user input. Autonomously scan codebases, produce an issues list, implement a fix, create a fix
+  branch, commit via semantic-commit, and open a PR with gh.
+---
+
+# Find and Fix Bugs
+
+## Contract
+
+Prereqs:
+
+- Run inside the target git repo.
+- `rg` available on `PATH` for codebase scanning.
+- `git` and `gh` available on `PATH`, and `gh auth status` succeeds.
+
+Inputs:
+
+- Optional bug report (repro steps, expected vs actual, environment); otherwise autonomous discovery.
+
+Outputs:
+
+- An issues list (per `references/ISSUES_TEMPLATE.md`), a fix branch, commits, and a GitHub PR.
+- After PR creation, return to the original branch (leave the fix branch intact for follow-ups).
+
+Exit codes:
+
+- N/A (multi-command workflow; failures surfaced from underlying commands)
+
+Failure modes:
+
+- Cannot reproduce or insufficient input to confirm impact (record as uncertainty rather than guessing).
+- High-risk changes (auth/billing/migrations) should halt or be skipped per guardrails.
+- Missing tooling (`rg`/`git`/`gh`) or insufficient repo permissions.
+
+## Entrypoint
+
+- `$AGENT_HOME/skills/automation/bug/find-and-fix-bugs/scripts/render_issues_pr.sh`
+- Legacy wrapper paths are not supported; keep docs and callers pinned to this script.
+
+## Setup
+
+- Record the starting branch/ref (for return after PR creation):
+  `start_ref="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD)"`
+
+## Trigger
+
+Use this skill when the user asks to find or fix bugs, or when no concrete issue is provided and you are asked to proactively discover
+issues.
+
+## Intake rules
+
+- If the user provides a bug report: ensure reproduction steps, expected vs actual, and environment. Ask only for missing details.
+- If the user provides no input: do not ask; proceed autonomously.
+- When using GitHub issues as intake targets, you must read the full issue context before selection: description/body, reproduction steps,
+  expected vs actual behavior, labels, comments/discussion, and linked references.
+- Skip immediately and move to the next issue when either condition is true: the issue has any comments/discussion, or the issue has any
+  opened linked PR (including draft PRs).
+
+## Discovery
+
+- Scope scanning to tracked files only (ignore untracked files).
+- Use `rg` to scan for bug-prone patterns (TODO, FIXME, BUG, HACK, XXX, panic, unwrap, throw, catch, console.error, assert).
+- Exclude generated, vendor, or codegen directories when present (node_modules, dist, build, vendor, .git, gen, generated, codegen).
+- Keep scan rules general; do not add repo-specific patterns.
+- Do not rely on grep results alone; use LLM analysis to confirm plausibility and impact.
+- Produce an issues list using `references/ISSUES_TEMPLATE.md`.
+- Use the ID format `PR-<number>-BUG-##` (example: `PR-128-BUG-01`). If the PR number is not known yet, use `PR-<number>` as a placeholder
+  and update after PR creation.
+- For project-specific skills, consider adding a minimal repro script requirement; see `references/REPRO_GUIDE.md`.
+
+## Context window management
+
+- Prioritize scanning changed files and adjacent code before wider searches.
+- If `rg` results are large, process in batches (for example: 20-50 hits per batch).
+- Stop after enough high-confidence issues are identified to proceed with a fix.
+
+## Selection
+
+- If user input exists, fix that issue.
+- If autonomous, fix the single most severe or highest-confidence issue.
+- Only fix multiple issues when they share the same root cause and the diff remains small.
+- Severity levels are fixed: critical, high, medium, low.
+
+## Severity rubric
+
+- critical: security exploit, auth bypass, data loss/corruption, or production outage
+- high: frequent crash, major feature broken, or incorrect core outputs
+- medium: incorrect behavior with workaround, edge cases, or performance regression
+- low: minor bug, UX issue, or noisy logs without functional impact
+
+## Confidence rubric
+
+- high: clear reproduction or strong evidence, root cause identified, fix is validated
+- medium: likely issue with partial evidence, root cause inferred, fix is plausible
+- low: speculative issue, weak evidence, or no repro path
+
+## High-risk guardrails
+
+- Do not auto-fix changes involving auth, permission/authorization, payment/billing, migration, or infrastructure/deployment.
+- If autonomous and the top issue is high-risk, record it and move to the next eligible issue. If all issues are high-risk, stop after
+  reporting.
+
+## Test-First Evidence Gate
+
+- Before editing production behavior, capture failing-test evidence or an explicit waiver.
+- This gate applies before editing production behavior.
+- For testable bug fixes, add or identify a focused failing regression, unit, integration, or acceptance test before the production edit.
+- Record the command, exit code, failing test file/name, and concise failure summary.
+- If a failing test is not practical, record the waiver reason, why test-first is not practical now, and substitute validation.
+- PR bodies must surface `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when applicable.
+
+## Fix workflow
+
+1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
+2. Capture the test-first evidence gate above before production edits.
+3. Implement the fix with minimal scope; avoid refactors.
+4. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see
+   Validation commands fallback). Treat validation as a gate: if validation fails, do not commit/open a PR; follow Retry policy.
+5. Update the issues list with status.
+
+## Validation commands
+
+- Prefer the repo’s documented commands (README/DEVELOPMENT/CONTRIBUTING/CI). Use the below as fallback heuristics.
+- package.json scripts: `lint`, `test`, `build` (npm, pnpm, yarn, or bun)
+- Makefile targets: `lint`, `test`, `build`
+- Justfile targets: `lint`, `test`, `build`
+- Taskfile targets: `lint`, `test`, `build`
+- Language defaults when applicable: `go test ./...`, `pytest`, `cargo test`, `mvn test`, `gradle test`, `dotnet test`
+
+## Retry policy
+
+- If validation fails, fix based on error output and retry up to 2 times.
+- After 2 failed attempts, stop and report the failure with the last error output.
+
+## Commit
+
+- Use `semantic-commit-autostage` for end-to-end automation (it stages changes); use `semantic-commit` only when the user has explicitly
+  staged a reviewed subset.
+- Prefer a single commit unless there is a clear reason to split.
+
+## PR
+
+- Use `gh pr create` and write the body using `references/PR_TEMPLATE.md`.
+- Set the PR title to the primary issue or a short summary of the fix. Do not reuse the commit subject. Capitalize the first word.
+- Replace the first H1 line in `references/PR_TEMPLATE.md` with the same PR title.
+- The PR must include:
+  - Problem description (expected vs actual, impact)
+  - Reproduction steps (or why repro is not feasible)
+  - Issues found (including those not fixed)
+  - Fix approach
+  - Test-first evidence or waiver
+  - Testing results or "not run"
+- Include the issues list in the PR body.
+- Use `$AGENT_HOME/skills/automation/bug/find-and-fix-bugs/scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.
+- After the PR is created, return to the original branch/ref: `git switch "$start_ref"` (or `git switch -` if you stayed on the fix branch
+  the whole time).
+
+## Output and clarification rules
+
+- Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` as the response format.
+- The response must include, in order:
+  1. Issues list
+  2. `git-scope` output
+  3. Tests run (commands and results)
+  4. PR link

@@ -29,8 +29,8 @@ Third-party notice obligations are tracked by linking each component to its upst
 - `uv.lock` SHA256: `45e0d855107d21d51a75c6a9f6e794d7429578b7ae6328dd6a0f7d002c66681e`
 - `.rumdl.toml` SHA256: `31667aa68116c0811cc8afcfa726ab5b6da25deb47cf737e54c51a7910a9cf5d`
 - `scripts/ci/markdownlint-audit.sh` SHA256: `5169a51a9770a4b236201b5a6e26cc935f10e37e480267076c2315b21b420d53`
-- `skills/tools/browser/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
-- `skills/tools/browser/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
+- `skills/tools/browser/runtime/playwright/scripts/playwright_cli.sh` SHA256: `36a188349ae575e2ffd7fe47cad0f8b86317032f4f7bd75a1598b5d16eddf4e0`
+- `skills/tools/browser/runtime/agent-browser/scripts/agent-browser.sh` SHA256: `c9daa00c327c0258d8496b1e8a5cea3827af9cb73ee357682b670918ce7a1d94`
 - `scripts/lint.sh` SHA256: `9b5c184d47de4213abb0e49eb39b80814c811edfdf6f06285142e20c56b770ea`
 - `.github/workflows/lint.yml` SHA256: `3375c624066e97fd42dd0037fb04de299656a90a8b87bf8d32ba7df6dc5b97e6`
 - `scripts/install-homebrew-nils-cli.sh` SHA256: `60a844d5bc666bf54d9f91ead661cd76c98e432ecc6ec00e6f50fd2456fe0748`

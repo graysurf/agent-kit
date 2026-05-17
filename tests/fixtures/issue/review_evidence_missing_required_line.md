@@ -18,7 +18,7 @@
 
 ## Task Fidelity
 
-- Scope verdict: pass (evidence: skills/automation/plan-issue-delivery/SKILL.md maps to assigned task scope)
+- Scope verdict: pass (evidence: skills/automation/issue/plan-issue-delivery/SKILL.md maps to assigned task scope)
 
 ## Correctness
 
@@ -30,7 +30,7 @@
 
 ## Evidence Links
 
-- Diff refs: skills/automation/plan-issue-delivery/SKILL.md, skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md
+- Diff refs: skills/automation/issue/plan-issue-delivery/SKILL.md, skills/automation/issue/plan-issue-delivery/references/prompts/main-agent-init.md
 - Validation refs: scripts/check.sh --all and pytest issue_pr_review
 - CI refs: Analyze (actions) pass, pytest pass
 - Residual risk: none

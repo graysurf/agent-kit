@@ -304,8 +304,19 @@ def titleize_token(token: str) -> str:
     token = token.replace("_", "-").strip("-").strip()
     if not token:
         return ""
+    acronyms = {
+        "api": "API",
+        "ci": "CI",
+        "cli": "CLI",
+        "gui": "GUI",
+        "mr": "MR",
+        "pr": "PR",
+        "qa": "QA",
+        "sql": "SQL",
+        "ux": "UX",
+    }
     parts = [p for p in token.split("-") if p]
-    return " ".join(p[:1].upper() + p[1:] for p in parts)
+    return " ".join(acronyms.get(p.lower(), p[:1].upper() + p[1:]) for p in parts)
 
 
 def parse_table_row(line: str) -> list[str] | None:
@@ -346,7 +357,7 @@ def infer_fallback_area(skill_dir: str) -> str:
     area_parts = [titleize_token(p) for p in parts[2:-1] if titleize_token(p)]
     if not area_parts:
         return "General"
-    return " / ".join(area_parts)
+    return " ".join(area_parts)
 
 
 readme_path = Path(sys.argv[1])

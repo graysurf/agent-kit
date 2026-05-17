@@ -39,7 +39,7 @@ Outputs:
 - In create mode, a draft PR opened from the dispatch-record worktree:
   - `--base` is the dispatch record `base_branch` (`PLAN_BRANCH`).
   - `--head` is the dispatch record `branch`.
-  - body follows `$AGENT_HOME/skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md`.
+  - body follows `$AGENT_HOME/skills/automation/issue/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md`.
 - PR URL printed on stdout after creation.
 
 Exit codes:

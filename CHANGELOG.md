@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **skill taxonomy**: move public tool and automation skills into nested
+  behavior-boundary folders, update catalog/runbook/script-spec references, and
+  teach skill-management tooling to catalog nested public areas.
+
+### Removed
+
+- **plans**: remove completed skill-folder migration coordination docs after
+  promoting durable guidance into maintained docs, tests, and catalog entries.
+
 ## [2.4.7] - 2026-05-18
 
 ### Added

@@ -46,7 +46,9 @@ This folder groups tools for maintaining the `skills/` tree (create/validate/rem
 
 ## Conventions
 
-- Skill paths: `skills/<category>/<area>/<skill-name>` (kebab-case directory names).
+- Skill paths: `skills/<category>/<area>/<skill-name>` or
+  `skills/<category>/<area>/<subarea>/<skill-name>` when a nested area matches
+  the catalog taxonomy.
 - Entry points live under `skills/**/scripts/` and must support `--help` with exit code `0` (required by repo script regression tests).
 - Use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full v2 directory anatomy and canonical path-rule wording.
 - Shared, non-entrypoint code/assets:
