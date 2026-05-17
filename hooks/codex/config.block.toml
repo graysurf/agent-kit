@@ -56,6 +56,12 @@ command = "{{AGENT_HOME}}/hooks/codex/user-prompt-agent-docs.sh"
 timeout = 10
 statusMessage = "agent-kit: Remind agent-docs preflight"
 
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/skill-usage-reminder.py"
+timeout = 10
+statusMessage = "agent-kit: Remind skill-usage recording"
+
 [[hooks.SessionStart]]
 matcher = "startup|resume|clear"
 

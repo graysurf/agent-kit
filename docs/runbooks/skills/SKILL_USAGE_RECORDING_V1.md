@@ -210,6 +210,22 @@ Command surface:
 - `skill-usage verify`
 - `skill-usage show`
 
+## Hook-Assisted Reminder
+
+Codex hooks may remind agents when a prompt appears to invoke a high-impact
+workflow skill such as PR delivery, release, CI repair, web QA, issue review, or
+bug/security automation. The hook is intentionally advisory only:
+
+- It does not create directories or write `skill-usage.record.json`.
+- It does not infer final outcome, validation status, failures, or artifacts.
+- It does not replace this runbook, the calling skill contract, or project
+  retention policy.
+
+When the reminder applies and the record criteria above are met, the active
+workflow should call the `skill-usage` primitive directly, link typed child
+evidence when available, record validation and outcome, then run
+`skill-usage verify --out <record-dir> --format json`.
+
 ## Prompt-Style Skills
 
 Do not create a second schema for conversational prompt-style skills yet. Use the
