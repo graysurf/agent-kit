@@ -31,6 +31,9 @@ All notable changes to this project will be documented in this file.
 - **nils-cli workflow primitives**: add tool skills for `browser-session`,
   `canary-check`, `docs-impact`, `model-cross-check`, and `review-evidence`
   with release/PATH and local-checkout boundaries.
+- **skill-usage hooks**: add a Codex prompt hook that reminds high-impact skill
+  workflows to retain `skill-usage.record.v1` evidence while keeping record
+  writing in the `skill-usage` primitive.
 
 ### Changed
 

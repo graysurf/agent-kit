@@ -753,6 +753,38 @@ class TestUserPromptAgentDocsHook:
         assert_allowed(output)
 
 
+class TestSkillUsageReminderHook:
+    def test_injects_context_for_high_impact_skill_invocation(self) -> None:
+        code, output, _ = run_python_hook(
+            "skill-usage-reminder.py",
+            {"prompt": "go ahead and finish [$deliver-github-pr](/skills/deliver-github-pr/SKILL.md)"},
+        )
+
+        assert code == 0
+        assert output is not None
+        hook_output = cast(dict[str, Any], output.get("hookSpecificOutput"))
+        assert hook_output["hookEventName"] == "UserPromptSubmit"
+        assert "skill-usage.record.v1" in hook_output["additionalContext"]
+        assert "deliver-github-pr" in hook_output["additionalContext"]
+
+    def test_skips_discussion_and_suppressed_prompt(self) -> None:
+        code, output, _ = run_python_hook(
+            "skill-usage-reminder.py",
+            {"prompt": "why is deliver-github-pr stricter than create-github-pr?"},
+        )
+        assert code == 0
+        assert_allowed(output)
+
+        suppressed_env = os.environ.copy() | {"AGENT_KIT_SUPPRESS_SKILL_USAGE_REMINDER": "1"}
+        code, output, _ = run_python_hook(
+            "skill-usage-reminder.py",
+            {"prompt": "run gh-fix-ci on this repository"},
+            env=suppressed_env,
+        )
+        assert code == 0
+        assert_allowed(output)
+
+
 @pytest.mark.skipif(shutil.which("agent-docs") is None, reason="agent-docs is not installed")
 class TestSessionStartHealthcheckHook:
     def test_reports_missing_baseline_once_per_day(self, tmp_path: Path) -> None:
@@ -911,6 +943,7 @@ unified_exec = true
         assert "# BEGIN agent-kit managed codex hooks" in updated
         assert 'command = "/opt/agent-kit/hooks/codex/block-direct-git-commit.py"' in updated
         assert 'command = "/opt/agent-kit/hooks/codex/block-direct-python.py"' in updated
+        assert 'command = "/opt/agent-kit/hooks/codex/skill-usage-reminder.py"' in updated
         assert updated.count("[[hooks.PreToolUse]]") == 2
         assert "[features]" in updated
 
