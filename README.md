@@ -7,11 +7,15 @@ tooling.
 
 ## 🧭 Positioning
 
-agent-kit is an opinionated agent workflow distribution, not a generic skill marketplace. It packages reusable skills, prompt-style skills,
-home-scope policy, validation gates, delivery automation, and local setup conventions for Codex-style agent work.
+agent-kit is an agent-facing Heuristic System framework, not a generic skill marketplace. It gives agents a portable operating layer where
+skills, scripts, runbooks, evidence records, tests, hooks, and guardrails can turn repeated workflow experience into maintainable repo
+knowledge.
+
+The framework does not train model weights. It keeps learning explicit and auditable: when agents run workflows, inspect failures, apply
+fixes, validate outcomes, or update policies, the durable lessons can become skill contracts, tests, scripts, primitives, or runbooks.
 
 The portable core is the tracked repository content: [AGENTS.md](./AGENTS.md),
-[DEVELOPMENT.md](./DEVELOPMENT.md), [docs/](./docs), [scripts/](./scripts),
+[DEVELOPMENT.md](./DEVELOPMENT.md), [HEURISTIC_SYSTEM.md](./HEURISTIC_SYSTEM.md), [docs/](./docs), [scripts/](./scripts),
 [hooks/](./hooks), and public skills under [skills/workflows/](skills/workflows), [skills/tools/](skills/tools), and
 [skills/automation/](skills/automation). Project, company, system, and local overlays are supported, but they are not part of the portable
 core unless they are explicitly tracked and documented.
@@ -21,8 +25,8 @@ Best fit:
 - Engineers or teams who want agents to follow one validated operating model.
 - Daily multi-repo work where preflight, checks, semantic commits, PR/MR
   delivery, release flow, and repeatable tooling matter.
-- Users who prefer explicit guardrails over a loose collection of standalone
-  prompt snippets.
+- Users who prefer explicit guardrails, failure handling, and durable workflow
+  learning over a loose collection of standalone prompt snippets.
 
 ## 🗂️ Project Structure
 
@@ -37,7 +41,8 @@ Best fit:
 ├── skills/     # tracked public skills, prompt-style skills, and ignored overlays
 ├── tests/      # pytest regression/smoke tests
 ├── AGENTS.md   # global agent rules (response/tooling)
-└── DEVELOPMENT.md
+├── DEVELOPMENT.md
+└── HEURISTIC_SYSTEM.md
 ```
 
 ## ⚙️ Setup

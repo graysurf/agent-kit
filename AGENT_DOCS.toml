@@ -49,6 +49,14 @@ notes = "Project implementation workflow: build, test, validation, and delivery 
 [[document]]
 context = "skill-dev"
 scope = "home"
+path = "HEURISTIC_SYSTEM.md"
+required = true
+when = "always"
+notes = "Agent-facing Heuristic System framework: read before skill development/review and as recommended context for explicit skill use"
+
+[[document]]
+context = "skill-dev"
+scope = "home"
 path = "docs/runbooks/agent-docs/SKILL_DEV_WORKFLOW.md"
 required = true
 when = "always"
