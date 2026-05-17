@@ -28,6 +28,9 @@
 - Prefer delegating independent sidecar work to subagents when a task has clear
   parallel lanes, limited file overlap, concrete validation, and a straightforward
   integration path.
+- For broad implementation, audit, or delivery tasks that naturally split into
+  independent lanes, this file grants standing permission to use subagents when
+  the delegation gate passes, unless the user asks for sequential work.
 - The main agent owns scope, critical path, integration, validation, and final answer.
 - Do not delegate small changes, tightly coupled refactors, unclear requirements,
   destructive actions, or work whose next step blocks on the subagent result.
