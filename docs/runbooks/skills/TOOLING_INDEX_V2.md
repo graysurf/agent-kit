@@ -101,3 +101,50 @@ implemented entrypoints.
   example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
   nils-agent-scope-lock --bin agent-scope-lock -- <subcommand> ...` from the
   target git work tree.
+
+## Test-first evidence
+
+- Record deterministic test-first evidence or waivers for agent workflows:
+  - Skill contract: `skills/tools/devex/test-first-evidence/SKILL.md`
+  - `test-first-evidence init --out <dir> --classification <classification>`
+  - `test-first-evidence record-failing --out <dir> --command <command> --exit-code <code> --summary <summary>`
+  - `test-first-evidence record-waiver --out <dir> --reason <reason>`
+  - `test-first-evidence record-final --out <dir> --command <command> --status pass|fail`
+  - `test-first-evidence verify --out <dir> --format json`
+  - `test-first-evidence show --out <dir> --format json`
+- Artifact contract: `test-first-evidence.json` under the requested output
+  directory, with record schema `test-first-evidence.record.v1`.
+- Version floor: requires the `nils-test-first-evidence` package from the
+  `nils-cli` release that includes that package.
+- Local checkout boundary: before that release is installed on PATH, consume the
+  same command surface only through a validated local `nils-cli` checkout, for
+  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
+  nils-test-first-evidence --bin test-first-evidence -- <subcommand> ...`.
+
+## Agent workflow primitives
+
+- Record and verify deterministic workflow evidence through the
+  `nils-agent-workflow-primitives` package:
+  - Skill contracts:
+    - `skills/tools/browser/browser-session/SKILL.md`
+    - `skills/tools/devex/canary-check/SKILL.md`
+    - `skills/tools/devex/docs-impact/SKILL.md`
+    - `skills/tools/devex/model-cross-check/SKILL.md`
+    - `skills/tools/devex/review-evidence/SKILL.md`
+  - `browser-session init|record-step|verify|show`
+  - `canary-check run|verify|show`
+  - `docs-impact scan`
+  - `model-cross-check init|record-observation|verify|show`
+  - `review-evidence init|record-finding|record-validation|verify|show`
+- Artifact contracts:
+  - `browser-session.json` with record schema `browser-session.record.v1`.
+  - `canary-check.json` with record schema `canary-check.record.v1`.
+  - `model-cross-check.json` with record schema `model-cross-check.record.v1`.
+  - `review-evidence.json` with record schema `review-evidence.record.v1`.
+  - `docs-impact` emits JSON scan results and does not write project files.
+- Version floor: requires the `nils-agent-workflow-primitives` package from the
+  `nils-cli` release that includes these binaries.
+- Local checkout boundary: before that release is installed on PATH, consume the
+  same command surfaces only through a validated local `nils-cli` checkout, for
+  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
+  nils-agent-workflow-primitives --bin docs-impact -- scan --format json`.

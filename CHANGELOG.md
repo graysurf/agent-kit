@@ -13,6 +13,18 @@ All notable changes to this project will be documented in this file.
   continuing GitHub issues as durable follow-up timelines while routing
   mutations through `issue-lifecycle` and implementation through existing PR
   workflows.
+- **nils-cli runbooks**: add skill-facing adoption records for implemented
+  `agent-scope-lock` and `web-evidence` primitives, future primitive candidates,
+  and the test-first evidence contract.
+- **web-evidence**: add a Browser tool skill, tooling index/catalog entries, and
+  static HTTP evidence guidance for release and issue follow-up workflows.
+- **agent-scope-lock**: add a DevEx tool skill and Codex hook guard that validates
+  active edit-scope locks around write hooks and stop-time reporting.
+- **test-first**: add a prompt-style skill, a `test-first-evidence` tool skill,
+  and evidence gates across behavior-editing workflows and PR/MR body templates.
+- **nils-cli workflow primitives**: add tool skills for `browser-session`,
+  `canary-check`, `docs-impact`, `model-cross-check`, and `review-evidence`
+  with release/PATH and local-checkout boundaries.
 
 ### Changed
 

@@ -7,8 +7,7 @@ Scope: agent-kit skill layout and adoption path for `nils-cli` commands
 ## Purpose
 
 Define how agent-kit should organize skills around `nils-cli` primitives,
-starting with the implemented `agent-scope-lock` and `web-evidence` commands
-while preserving the same adoption criteria for future primitives.
+starting with implemented command contracts and thin tool skills.
 
 This document is a landing architecture record. It is not an implementation
 plan, and it should not be used to claim that any candidate `nils-cli` command
@@ -24,7 +23,7 @@ Source facts:
 - Existing skill docs distinguish CLI-backed tool skills from workflow skills:
   tool skills expose deterministic entrypoints, while workflow and automation
   skills decide when and how to use them.
-- Candidate `nils-cli` primitives are tracked in
+- Candidate and landed `nils-cli` primitives are tracked in
   `docs/runbooks/nils-cli/skill-consumable-primitives.md`.
 - `agent-scope-lock` is implemented in the nils-cli repository with
   `create`, `read`, `validate`, `clear`, and `completion` subcommands.
@@ -34,6 +33,12 @@ Source facts:
   workflows when static HTTP/HTTPS evidence is enough.
 - agent-kit now has a Codex hook guard that validates active
   `agent-scope-lock` scopes and reports concise violations.
+- `nils-cli` now has the `nils-agent-workflow-primitives` package with
+  `browser-session`, `canary-check`, `docs-impact`, `model-cross-check`, and
+  `review-evidence` binaries.
+- agent-kit now has thin tool skills for those five binaries. They document
+  released PATH expectations, verified local PATH usage on this machine, and
+  validated local-checkout fallback usage before distributable release adoption.
 
 Assumptions:
 
@@ -71,11 +76,16 @@ First adoption slices:
 - Both are intentionally scriptless: skills and agents call the nils-cli
   command surfaces directly instead of reimplementing lock storage, validation,
   HTTP fetching, redaction, schema generation, or artifact naming.
-- They document both the released PATH boundary and the pre-release local
-  checkout boundary.
+- They document both the released PATH boundary and the local checkout fallback
+  boundary.
 - First workflow consumers landed for static URL evidence and test-first
-  evidence fields; future CLI primitives should still wait for command
-  contracts before getting tool skills.
+  evidence fields. `test-first-evidence` now also has a tool skill contract for
+  the implemented nils-cli command.
+- `browser-session`, `canary-check`, `docs-impact`, `model-cross-check`, and
+  `review-evidence` now have tool skill contracts for the implemented
+  `nils-agent-workflow-primitives` binaries. Their first slice is deterministic
+  evidence capture or Git change scanning; active browser automation, provider
+  model calls, and deploy orchestration stay in higher-level workflows.
 
 Do not create broad gstack-style specialist skills as part of this landing
 architecture. The first value is reusable evidence, guardrails, and validation,
@@ -86,13 +96,13 @@ not new product-review personas.
 | nils-cli primitive | First agent-kit landing | Later consumers | Notes |
 | --- | --- | --- | --- |
 | `web-evidence` | Landed: `skills/tools/browser/web-evidence/`. | Landed: `release-workflow`, `issue-follow-up`; later: future `web-qa`, `gh-fix-ci` | First slice is static HTTP evidence; use browser tooling when JavaScript, screenshots, cookies, auth state, or console logs are required. |
-| `browser-session` | New `skills/tools/browser/browser-session/` only if nils-cli owns persistent browser lifecycle. | `web-evidence`, future `web-qa`, `screenshot`, possible `agent-browser` replacement | Keep `agent-browser` explicitly legacy until migration is proven. |
+| `browser-session` | Landed: `skills/tools/browser/browser-session/`. | `web-evidence`, future `web-qa`, `screenshot`, possible `agent-browser` replacement | First slice records session evidence; it does not replace Browser, Chrome, or Playwright automation. |
 | `agent-scope-lock` | Landed: `skills/tools/devex/agent-scope-lock/`. | Landed: Codex hook guard; later: `gh-fix-ci`, `find-and-fix-bugs`, `plan-issue-delivery` | Hook guard validates active locks and reports violations; workflow consumption should stay opt-in until unattended failure modes are proven. |
-| `docs-impact` | New `skills/tools/devex/docs-impact/` only after output is stable enough for docs workflows. | `release-workflow`, `docs-plan-cleanup`, future document-release equivalent | It should report likely stale docs; rewriting docs remains a skill decision. |
-| `review-evidence` | Prefer updating existing review/conversation workflows first; add a tool skill only if users will invoke it directly. | `review-to-improvement-doc`, `issue-pr-review`, PR workflows | Normalize findings without replacing code-review judgment. |
-| `test-first-evidence` | Workflow contract landed; add a tool skill only after nils-cli can record evidence and waivers. | Landed: `find-and-fix-bugs`, `fix-bug-pr`, `gh-fix-ci`, `issue-subagent-pr`, `execute-plan-parallel`, PR/MR creation workflows | Skills decide whether test-first applies; the future CLI should record failing evidence, waiver, and final validation. |
-| `canary-check` | New automation-facing tool or release reference after deploy targets are configurable. | `release-workflow`, future `land-and-deploy`, future `web-qa` | Must stay read-only and evidence-first before it becomes a deploy gate. |
-| `model-cross-check` | Defer. | PR review workflows, research workflows | Needs careful auth, cost, provider, and redaction boundaries. |
+| `docs-impact` | Landed: `skills/tools/devex/docs-impact/`. | `release-workflow`, `docs-plan-cleanup`, future document-release equivalent | Reports docs/non-doc changed files and review hints; rewriting docs remains a skill decision. |
+| `review-evidence` | Landed: `skills/tools/devex/review-evidence/`. | `review-to-improvement-doc`, `issue-pr-review`, PR workflows | Normalizes findings without replacing code-review judgment. |
+| `test-first-evidence` | Landed: `skills/tools/devex/test-first-evidence/`. | Landed: `find-and-fix-bugs`, `fix-bug-pr`, `gh-fix-ci`, `issue-subagent-pr`, `execute-plan-parallel`, PR/MR creation workflows | Skills decide whether test-first applies; the CLI records failing evidence, waiver, final validation, redaction, and completeness checks. |
+| `canary-check` | Landed: `skills/tools/devex/canary-check/`. | `release-workflow`, future `land-and-deploy`, future `web-qa` | Runs one caller-owned local command and records redacted pass/fail evidence; it is not a deploy orchestrator. |
+| `model-cross-check` | Landed: `skills/tools/devex/model-cross-check/`. | PR review workflows, research workflows | Records observations only; provider auth, cost, and routing remain outside the CLI. |
 
 ## Adoption Criteria
 
@@ -118,8 +128,9 @@ Before updating workflow or automation skills to consume it:
 ## Skill Layout Rules
 
 - Put browser and web evidence primitives under `skills/tools/browser/`.
-- Put edit-scope, docs-impact, and review-evidence primitives under
-  `skills/tools/devex/` unless a clearer existing category emerges.
+- Put edit-scope, docs-impact, review-evidence, canary-check, and
+  model-cross-check primitives under `skills/tools/devex/` unless a clearer
+  existing category emerges.
 - Put release/canary orchestration in existing automation or release workflow
   skills; do not create a parallel release stack.
 - Keep project or company-specific adoption under `skills/_projects/` until the
@@ -143,9 +154,9 @@ Before updating workflow or automation skills to consume it:
 
 | Priority | Work item | Acceptance |
 | --- | --- | --- |
-| P1 | Watch each new nils-cli primitive shape and choose the matching agent-kit landing area. | `agent-scope-lock` landed under DevEx and `web-evidence` landed under Browser based on actual command help/source. |
+| P1 | Watch each new nils-cli primitive shape and choose the matching agent-kit landing area. | First set landed: Browser owns `web-evidence` and `browser-session`; DevEx owns `agent-scope-lock`, `test-first-evidence`, `docs-impact`, `review-evidence`, `canary-check`, and `model-cross-check`. |
 | P1 | Add a tool skill only after command contract exists. | Skill has contract, prerequisites, failure modes, usage, guardrails, tests, and catalog update if public. |
-| P1 | Define too-old nils-cli behavior for each consuming skill. | Skill reports blocked/degraded mode with upgrade command or fallback. |
+| P1 | Define too-old nils-cli behavior for each consuming skill. | Done for landed tool skills: they document the released PATH boundary, local checkout fallback, and blocked/degraded behavior. |
 | P2 | Add workflow integration after the tool skill is stable. | First integrations landed for `web-evidence` and `agent-scope-lock`; future integrations should reference tool contracts and keep decision logic out of the tool. |
 | P2 | Revisit legacy browser wrappers after browser primitive lands. | Migration note documents keep/replace decision with evidence. |
 
@@ -180,7 +191,11 @@ For docs-only adoption records:
 
 ## Open Questions
 
-- Will nils-cli expose one command per primitive, or a grouped command with
-  subcommands?
+- For future primitives, should agent-kit continue to expose one tool skill per
+  nils-cli binary, or group skills only when nils-cli itself ships a stable
+  grouped command?
 - Which workflow should consume `agent-scope-lock` after the hook guard proves
   stable in real use?
+- Should `browser-session` remain a lower-level record-only complement to
+  Browser, Chrome, Playwright, and `web-evidence`, or grow a separate active
+  browser automation slice?

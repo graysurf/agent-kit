@@ -1,8 +1,8 @@
 # Test-First Evidence Contract Improvement Record
 
-Status: active; workflow contract landed, nils-cli primitive pending
+Status: active; workflow contract, nils-cli primitive, tool skill, and local PATH install landed; distributable release adoption pending
 Date: 2026-05-17
-Scope: agent-kit skill behavior and future `nils-cli` evidence support
+Scope: agent-kit skill behavior and `nils-cli` evidence support
 
 ## Purpose
 
@@ -30,9 +30,14 @@ Source facts:
 
 Assumptions:
 
-- The final `nils-cli` command name and output schema are not decided yet.
-- The first implementation can start in skills and PR/MR templates before a
-  nils-cli primitive exists.
+- The `nils-cli` command name is `test-first-evidence`, implemented in the
+  `nils-test-first-evidence` package.
+- Local PATH availability on this machine was verified on 2026-05-17 at
+  `/Users/terry/.local/nils-cli/bin/test-first-evidence`, installed from the
+  local nils-cli checkout. Distributable release/Homebrew adoption still
+  depends on a nils-cli release artifact that includes the binary.
+- The first workflow implementation started in skills and PR/MR templates before
+  agent-kit consumed the nils-cli primitive.
 - Repositories vary in test maturity, so a hard unwaivable rule would create
   false failures in valid docs-only, config-only, generated, visual, or no-test
   harness tasks.
@@ -55,8 +60,8 @@ Add a default test-first evidence contract:
 
 This is now an agent-kit workflow contract, not only a prompt habit. The prompt
 is useful for immediate opt-in, implementation skills own the waiver decision,
-PR/MR templates surface evidence fields, and later a nils-cli evidence primitive
-can normalize records.
+PR/MR templates surface evidence fields, and the nils-cli evidence primitive
+normalizes records.
 
 ## Applicability
 
@@ -80,8 +85,8 @@ can normalize records.
    decision and waiver path.
 4. PR/MR creation layer: create skills display evidence or waiver in the body;
    they do not retroactively enforce the whole development process.
-5. CLI primitive layer: future nils-cli support should capture evidence,
-   normalize waiver records, and verify final pass results.
+5. CLI primitive layer: nils-cli support captures evidence, normalizes waiver
+   records, redacts secret-like text, and verifies final pass results.
 6. Hook layer: optional later soft warning or fail-closed checks can be added
    only after the evidence shape is stable.
 
@@ -109,24 +114,34 @@ Recommended PR/MR body fields:
 - `Final validation`
 - `Waiver reason`, when applicable
 
-## Future nils-cli Primitive
+## nils-cli Primitive
 
-Working name: `test-first-evidence`.
+Command name: `test-first-evidence`.
 
 The command should not decide whether a change is semantically testable. Skills
 own that judgment. The CLI should own recording and validating evidence.
 
-Minimum candidate capabilities:
+Implemented command surface:
 
-- Start or append an evidence record for the current repo/task.
-- Record failing-test evidence: command, exit code, test path or test name,
-  concise failure summary, cwd, and artifact path if available.
-- Record waiver evidence: reason, affected scope, why a failing test is not
-  practical, and substitute validation.
-- Record final validation: command, exit code, pass/fail status, and summary.
+- `init`
+- `record-failing`
+- `record-waiver`
+- `record-final`
+- `verify`
+- `show`
+- `completion`
+
+Implemented capabilities:
+
+- Start an evidence record for the current repo/task under explicit `--out DIR`.
+- Record failing-test evidence: command, exit code, concise failure summary, test
+  name, and artifact paths when available.
+- Record waiver evidence: reason and substitute validation.
+- Record final validation: command, pass/fail status, summary, and artifact
+  paths when available.
 - Emit deterministic JSON for skills and PR/MR body renderers.
-- Store artifacts in a canonical `agent-out` run directory unless an explicit
-  output path is provided.
+- Store `test-first-evidence.json` in the requested output directory.
+- Redact secret-like tokens in recorded text.
 
 Suggested record fields:
 
@@ -148,8 +163,8 @@ Suggested record fields:
 | P1 | Add the prompt for immediate user opt-in. | Done: `skills/workflows/prompts/test-first/` exists and describes failing evidence, waiver, and final validation. |
 | P1 | Update behavior-editing workflow skills. | Done: behavior-editing skills tell agents to capture failing evidence or waiver before production edits. |
 | P1 | Update create PR/MR body contracts. | Done: PR/MR bodies include test-first evidence or explicit waiver when production behavior changed. |
-| P2 | Prototype nils-cli evidence capture. | Command emits deterministic JSON and stores evidence under `agent-out`. |
-| P2 | Add skill consumption after nils-cli stabilizes. | Skills call the CLI instead of hand-formatting evidence records. |
+| P2 | Prototype nils-cli evidence capture. | Done: command emits deterministic JSON and stores `test-first-evidence.json` under explicit `--out DIR`; publish dry-run succeeds in the nils-cli repo. |
+| P2 | Add skill consumption after nils-cli stabilizes. | Done: `skills/tools/devex/test-first-evidence/` documents PATH and local-checkout usage. |
 | P3 | Consider hook support. | Hook only warns or fails after evidence fields and waiver behavior are stable. |
 
 ## Validation Gate
@@ -188,12 +203,15 @@ For future nils-cli changes:
   path are stable.
 - Do not list a nils-cli command in the canonical tooling index before it
   exists and is tested.
+- Do not claim released PATH availability until the installed nils-cli artifact
+  includes the binary.
 
 ## Open Questions
 
-- Should the eventual nils-cli command be named `test-first-evidence`, or should
-  it be a subcommand under a broader evidence tool?
 - What exact PR/MR body field names should be shared between GitHub and GitLab
   without weakening provider-specific workflow boundaries?
 - Should hooks begin as warnings only, or stay out of scope until nils-cli
   evidence capture is implemented?
+- Should agent-kit workflows start calling `test-first-evidence` directly after
+  the next nils-cli release, or first keep it as an optional record artifact
+  behind explicit user/workflow opt-in?
