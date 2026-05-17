@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.4.7] - 2026-05-18
+
 ### Added
 
 - **durable artifacts**: document the cross-session artifact workflow in
@@ -836,7 +838,8 @@ All notable changes to this project will be documented in this file.
 - Initial release of agent-kit (prompts, skills, scripts, and docs).
 - Release workflow fallback template and helper scripts for changelog-driven GitHub releases.
 
-[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.6...HEAD
+[unreleased]: https://github.com/graysurf/agent-kit/compare/v2.4.7...HEAD
+[2.4.7]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.7
 [2.4.6]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.6
 [2.4.5]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.5
 [2.4.4]: https://github.com/graysurf/agent-kit/releases/tag/v2.4.4
