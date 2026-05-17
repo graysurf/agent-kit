@@ -68,7 +68,8 @@ def test_create_plan_requires_primary_source_artifact_before_plan() -> None:
     assert "<slug>-discussion-source.md" in shared
     assert "<slug>-review-source.md" in shared
     assert "docs/plans/<slug>/<slug>-plan.md" in shared
-    assert "plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md" in shared
+    assert "plan-tooling scaffold --slug <slug>" in shared
+    assert "nils-cli >= 0.8.7" in text
     assert "Link the primary source under `Read First`" in text
     assert "Every plan needs a primary source artifact" in shared
     assert "Source type" in shared

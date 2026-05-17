@@ -17,8 +17,8 @@ Prereqs:
 
 - User explicitly requests a more rigorous plan than normal.
 - You can spawn a review subagent.
-- `plan-tooling` available on `PATH` for linting/parsing/splitting (`validate`, `to-json`, `batches`, `split-prs`; install via
-  `brew install nils-cli`).
+- `plan-tooling` available on `PATH` from `nils-cli >= 0.8.7` for scaffold/lint/parse/split flows (`scaffold`, `validate`,
+  `to-json`, `batches`, `split-prs`; install via `brew install nils-cli`).
 
 Inputs:
 

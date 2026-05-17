@@ -85,5 +85,6 @@ def test_create_plan_rigorous_requires_source_artifact_and_review_check() -> Non
     assert "Every plan needs a primary source artifact" in shared
     assert "<slug>-review-source.md" in shared
     assert "docs/plans/<slug>/<slug>-plan.md" in shared
+    assert "nils-cli >= 0.8.7" in text
     assert "## Read First" in template
     assert "Open questions carried into execution" in template

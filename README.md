@@ -78,7 +78,8 @@ home explicitly via `agent-docs --docs-home "$AGENT_HOME"` and
 `PLAN_ISSUE_HOME` alongside `AGENT_HOME`.
 
 `nils-cli` also provides shared helper binaries used by skills and checks, including
-`plan-tooling`, `api-*`, `semantic-commit`, `agent-out`, and media tooling.
+`plan-tooling`, `api-*`, `semantic-commit`, `agent-out`, and media tooling. Use
+`nils-cli >= 0.8.7` for plan-folder scaffold defaults.
 
 Optional: set `PROJECT_PATH` per project (e.g. in a repo’s `.envrc`) so tools can treat that repo as the active project context:
 

@@ -16,7 +16,7 @@
   - `git` (required by lint scripts for tracked-file discovery)
   - `node`/`npx` (required by `rumdl` markdown lint)
   - `zsh` and `shellcheck` (macOS: `brew install shellcheck`; Ubuntu: `sudo apt-get install -y shellcheck zsh`)
-  - `nils-cli` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `agent-docs`, `plan-issue`,
+  - `nils-cli >= 0.8.7` (Homebrew: `brew tap sympoies/tap && brew install nils-cli`; provides `agent-docs`, `plan-issue`,
     `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out`)
 
 ## Quick Setup (Repository Root)

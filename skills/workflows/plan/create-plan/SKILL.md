@@ -18,8 +18,8 @@ Prereqs:
 
 - User is asking for an implementation plan (not asking you to build it yet).
 - You can read enough repo context to plan safely (or the user provides constraints).
-- `plan-tooling` available on `PATH` for linting/parsing/splitting (`validate`, `to-json`, `batches`, `split-prs`; install via
-  `brew install nils-cli`).
+- `plan-tooling` available on `PATH` from `nils-cli >= 0.8.7` for scaffold/lint/parse/split flows (`scaffold`, `validate`,
+  `to-json`, `batches`, `split-prs`; install via `brew install nils-cli`).
 
 Inputs:
 
@@ -137,6 +137,4 @@ Canonical shared authoring and validation rules:
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
-- `plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md --title "<task name>"`
-  - `plan-tooling scaffold --slug` still writes the legacy flat path; use
-    `--file` until nils-cli supports plan-folder defaults.
+- `plan-tooling scaffold --slug <slug> --title "<task name>"`

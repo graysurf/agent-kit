@@ -63,8 +63,8 @@ policy.
 - Save plans to `docs/plans/<slug>/<slug>-plan.md`.
 - Slug rules: lowercase kebab-case, 3-6 words, with a plan file named
   `<slug>-plan.md` inside the matching folder.
-- Use `plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md`; the
-  `--slug` shortcut still writes the legacy flat path until nils-cli is updated.
+- Use `plan-tooling scaffold --slug <slug>` with `nils-cli >= 0.8.7`; the
+  scaffold writes `docs/plans/<slug>/<slug>-plan.md` by default.
 - Lint with:
 
   ```bash

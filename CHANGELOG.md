@@ -18,7 +18,8 @@ All notable changes to this project will be documented in this file.
 - **plan workflows**: default new plan artifacts to
   `docs/plans/<slug>/<slug>-plan.md`, keep plan-created source docs in the same
   folder, and teach `docs-plan-cleanup` to preserve or delete those bundles
-  together.
+  together. `plan-tooling scaffold --slug <slug>` is now the documented helper
+  path with `nils-cli >= 0.8.7`.
 
 ### Removed
 
