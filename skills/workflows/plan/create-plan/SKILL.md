@@ -3,7 +3,8 @@ name: create-plan
 description:
   Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make
   a plan, outline the steps, break down tasks, etc.). Do not use as the primary artifact when the user only needs a durable review finding,
-  improvement backlog, or handoff record; route that to review-to-improvement-doc or handoff-session-prompt as appropriate.
+  improvement backlog, or handoff record; route that to review-to-improvement-doc, discussion-to-implementation-doc, or
+  handoff-session-prompt as appropriate.
 ---
 
 # Create Plan
@@ -23,11 +24,14 @@ Prereqs:
 Inputs:
 
 - User request (goal, scope, constraints, success criteria).
+- Primary source artifact or source material to convert into one.
 - Optional: repo context (files, architecture notes, existing patterns).
 
 Outputs:
 
 - A new plan file saved to `docs/plans/<slug>-plan.md`.
+- A `Read First` section that links the primary source artifact or records an
+  explicit plan-only waiver.
 - A short response that links the plan path and summarizes the approach.
 - If the request is not actually an implementation plan, a short recommendation for a better durable artifact instead of forcing
   `docs/plans/`.
@@ -39,6 +43,8 @@ Exit codes:
 Failure modes:
 
 - Request remains underspecified and the user won’t confirm assumptions.
+- No usable source artifact exists and the user does not approve a plan-only
+  waiver.
 - Plan requires access/info the user cannot provide (credentials, private APIs, etc.).
 
 ## Entrypoint
@@ -60,11 +66,35 @@ Failure modes:
 - Do not force `docs/plans/` when the request is mainly to preserve review findings, risks, lessons learned, improvement backlog, or
   "what to fix later" guidance. Use `review-to-improvement-doc` for a project-local durable doc/runbook/backlog entry, or recommend one if
   the user did not ask you to write it.
+- Do not force `docs/plans/` when the request is mainly to preserve converged
+  requirements, design, feasibility, product, or customer-facing discussion.
+  Use `discussion-to-implementation-doc` for the implementation-readiness
+  source artifact.
 - If the user needs both a durable review/improvement record and an execution plan, keep them distinct: preserve the stable findings in the
   project doc first, then write the plan under `docs/plans/` and link that doc under the plan's context/read-first section.
 - If a durable project doc, issue, or tracker already exists, reference it rather than duplicating the full backlog inside the plan.
 - If the user wants to execute or resume an existing plan or implementation-ready document, use `execute-from-implementation-doc` instead
   of creating another plan.
+
+1. Establish the plan source artifact
+
+- Every plan must have exactly one primary source artifact unless the user
+  explicitly asks for a plan-only waiver.
+- For converged requirements, design, feasibility, product, architecture, or
+  customer-facing discussion, first use `discussion-to-implementation-doc` or
+  reference an equivalent existing doc/spec. When creating it for this plan,
+  save it as `docs/plans/<slug>-discussion-source.md`.
+- For review findings, risks, lessons learned, or fix-later backlog, first use
+  `review-to-improvement-doc` or reference an equivalent existing issue/doc.
+  When creating it for this plan, save it as
+  `docs/plans/<slug>-review-source.md`.
+- Existing issues, tickets, specs, or project docs can be the primary source
+  when they already separate facts, scope, decisions, acceptance criteria, and
+  open questions well enough for execution.
+- Link the primary source under `Read First`; do not duplicate the full
+  requirements, findings, or rationale in the plan.
+- Treat plan-created source docs as coordination artifacts that are eligible
+  for cleanup after execution unless they are explicitly promoted.
 
 1. Research the repo just enough to plan well
 

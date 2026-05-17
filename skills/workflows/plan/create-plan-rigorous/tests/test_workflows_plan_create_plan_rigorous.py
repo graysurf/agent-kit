@@ -63,5 +63,26 @@ def test_create_plan_rigorous_routes_durable_findings_to_improvement_doc() -> No
 
     assert "Confirm that rigorous planning is the right artifact" in text
     assert "Use `review-to-improvement-doc` first" in text
+    assert "Use `discussion-to-implementation-doc` first" in text
     assert "durable review/improvement record" in text
     assert "link that document as read-first context" in text
+
+
+def test_create_plan_rigorous_requires_source_artifact_and_review_check() -> None:
+    text = skill_md_text(__file__)
+    shared = shared_plan_baseline_text(__file__)
+    template = shared_plan_template_text(__file__)
+
+    assert "Establish the plan source artifact" in text
+    assert "Rigorous plans must have exactly one primary source artifact" in text
+    assert "docs/plans/<slug>-discussion-source.md" in text
+    assert "docs/plans/<slug>-review-source.md" in text
+    assert "coordination artifacts" in text
+    assert "cleanup after execution" in text
+    assert "Link the primary source under `Read First`" in text
+    assert "one primary source artifact or an explicit" in text
+    assert "plan-only waiver" in text
+    assert "Every plan needs a primary source artifact" in shared
+    assert "<slug>-review-source.md" in shared
+    assert "## Read First" in template
+    assert "Open questions carried into execution" in template

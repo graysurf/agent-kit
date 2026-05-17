@@ -30,6 +30,8 @@ def test_docs_plan_cleanup_skill_declares_response_template_usage() -> None:
     assert "## Output and clarification rules" in text
     assert "references/ASSISTANT_RESPONSE_TEMPLATE.md" in text
     assert "status: applied" in text
+    assert "coordination markdown" in text
+    assert "plan-source coordination docs" in text
 
 
 def test_docs_plan_cleanup_response_template_includes_required_summary_fields() -> None:

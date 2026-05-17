@@ -116,4 +116,18 @@ PROJECT_PATH="/path/does/not/exist" bash "$entrypoint" --project-path "$repo_fou
 [[ ! -f "${repo_four}/docs/plans/a-plan.md" ]]
 [[ -f "${repo_four}/docs/plans/b-plan.md" ]]
 
+repo_five="${tmp_root}/repo-five"
+setup_repo "$repo_five"
+cat > "${repo_five}/docs/plans/a-review-source.md" <<'EOF_INNER'
+# A review source
+EOF_INNER
+
+source_keep_output="$(bash "$entrypoint" --project-path "$repo_five" --keep-plan a-review-source)"
+echo "$source_keep_output" | grep -Fq -- "- docs/plans/a-review-source.md"
+
+bash "$entrypoint" --project-path "$repo_five" --keep-plan a-review-source --execute >/dev/null
+[[ -f "${repo_five}/docs/plans/a-review-source.md" ]]
+[[ ! -f "${repo_five}/docs/plans/a-plan.md" ]]
+[[ ! -f "${repo_five}/docs/plans/b-plan.md" ]]
+
 echo "ok: docs-plan-cleanup tests passed"

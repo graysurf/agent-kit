@@ -85,5 +85,5 @@ Failure modes:
   needed.
 - `execute-from-implementation-doc`: updates execution state; use this cleanup skill after execution status is complete and no future resume
   is needed.
-- `docs-plan-cleanup`: use for broad `docs/plans/` pruning with its existing plan-specific report format.
+- `docs-plan-cleanup`: use for broad `docs/plans/` coordination-doc pruning with its existing report format.
 - `handoff-session-prompt`: prompt artifacts should usually be deleted once source docs and execution state are the maintained record.

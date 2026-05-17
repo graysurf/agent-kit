@@ -2,133 +2,108 @@
 
 ## Overview
 
-This plan migrates the public skill folder layout after the README catalog
-boundary cleanup. The top-level public domains stay stable:
-`skills/workflows/`, `skills/tools/`, and `skills/automation/`. The work only
-rehomes overloaded areas such as `tools/devex` and flat automation folders into
-clearer subareas, then updates references, tooling assumptions, and validation
-coverage in the same branch.
+Migrate the public skill folder layout below the existing top-level domains.
+The migration keeps `skills/workflows/`, `skills/tools/`, and
+`skills/automation/` stable while moving overloaded subareas into folders that
+match the catalog taxonomy. The source artifact owns the rationale and target
+map; this plan owns execution order, dependencies, and validation gates.
+
+## Read First
+
+- Primary source:
+  `docs/plans/skill-folder-migration-review-source.md`
+- Source type: `review-to-improvement-doc`
+- Open questions carried into execution: none
 
 ## Scope
 
 - In scope: tracked public skills under `skills/tools/` and
-  `skills/automation/`, README catalogs, skill anatomy docs, tooling indexes,
-  skill-management scripts/tests, and repo-local references to moved paths.
-- In scope: compatibility notes for old paths during the migration window.
-- Out of scope: changing skill behavior, changing public top-level domains,
-  moving prompt-style skills, moving `skills/workflows/`, moving
-  `skills/_projects/`, moving `skills/.system/`, or adding new automation.
+  `skills/automation/`, README catalog rows, skill anatomy docs, tooling
+  indexes, skill-management scripts/tests, and current-contract references to
+  moved paths.
+- In scope: repeated stale-path audits after each move batch.
+- Out of scope: skill behavior changes, public top-level domain changes,
+  prompt-style skill moves, `skills/workflows/`, `skills/_projects/`,
+  `skills/.system/`, compatibility symlinks, and new automation.
 
 ## Assumptions
 
-1. `skills/workflows/`, `skills/tools/`, and `skills/automation/` remain the
-   only tracked public skill domains.
+1. The target folder map in the primary source artifact is the migration map.
 2. Directory moves use `git mv` so history remains traceable.
-3. No compatibility symlinks are added unless skill discovery and validation
-   are explicitly checked to accept them.
-4. The migration starts from a clean branch after the README-only catalog
-   clarification commit.
-5. Old path mentions in historical docs are updated only when they describe the
-   current contract, not when they intentionally describe past behavior.
+3. No compatibility symlinks are added unless validation proves a concrete
+   need.
+4. Current-contract path references are updated; intentional historical notes
+   are left alone or explicitly labeled as history.
+5. Each sprint lands with docs, markdown, and relevant skill validation passing.
 
-## Proposed target map
+## Sprint 1: Nested Area Readiness
 
-| Current path | Target path |
-| --- | --- |
-| `skills/tools/agent-doc-init/` | `skills/tools/agent-docs/agent-doc-init/` |
-| `skills/tools/macos-agent-ops/` | `skills/tools/app-runtime/macos-agent-ops/` |
-| `skills/tools/browser/playwright/` | `skills/tools/browser/runtime/playwright/` |
-| `skills/tools/browser/agent-browser/` | `skills/tools/browser/runtime/agent-browser/` |
-| `skills/tools/browser/browser-session/` | `skills/tools/browser/evidence/browser-session/` |
-| `skills/tools/browser/web-evidence/` | `skills/tools/browser/evidence/web-evidence/` |
-| `skills/tools/browser/web-qa/` | `skills/tools/browser/evidence/web-qa/` |
-| `skills/tools/devex/agent-scope-lock/` | `skills/tools/scope/agent-scope-lock/` |
-| `skills/tools/devex/semantic-commit/` | `skills/tools/git/semantic-commit/` |
-| `skills/tools/devex/open-changed-files-review/` | `skills/tools/review/open-changed-files-review/` |
-| `skills/tools/devex/desktop-notify/` | `skills/tools/notifications/desktop-notify/` |
-| `skills/tools/devex/canary-check/` | `skills/tools/workflow-evidence/canary-check/` |
-| `skills/tools/devex/docs-impact/` | `skills/tools/workflow-evidence/docs-impact/` |
-| `skills/tools/devex/model-cross-check/` | `skills/tools/workflow-evidence/model-cross-check/` |
-| `skills/tools/devex/review-evidence/` | `skills/tools/workflow-evidence/review-evidence/` |
-| `skills/tools/devex/skill-usage/` | `skills/tools/workflow-evidence/skill-usage/` |
-| `skills/tools/devex/test-first-evidence/` | `skills/tools/workflow-evidence/test-first-evidence/` |
-| `skills/automation/semantic-commit-autostage/` | `skills/automation/commit/semantic-commit-autostage/` |
-| `skills/automation/issue-delivery/` | `skills/automation/issue/issue-delivery/` |
-| `skills/automation/plan-issue-delivery/` | `skills/automation/issue/plan-issue-delivery/` |
-| `skills/automation/gh-fix-ci/` | `skills/automation/ci/gh-fix-ci/` |
-| `skills/automation/fix-bug-pr/` | `skills/automation/bug/fix-bug-pr/` |
-| `skills/automation/find-and-fix-bugs/` | `skills/automation/bug/find-and-fix-bugs/` |
-| `skills/automation/semgrep-find-and-fix/` | `skills/automation/security/semgrep-find-and-fix/` |
-| `skills/automation/release-workflow/` | `skills/automation/release/release-workflow/` |
-
-## Sprint 1: Taxonomy And Tooling Guardrails
-
-**Goal**: Make the repo explicitly accept nested skill subareas before any
-folder moves.
+**Goal**: Make nested public skill areas explicit and testable before moving
+folders.
 **Demo/Validation**:
 
 - Command(s): `scripts/check.sh --docs`, `scripts/check.sh --markdown`,
   `scripts/check.sh --tests -- -k tools_skill_management_create_skill`
-- Verify: docs and create-skill tests describe the new area taxonomy and still
-  generate README catalog rows correctly.
+- Verify: docs and create-skill coverage accept nested tool and automation
+  areas while preserving the three public top-level domains.
 
 **PR grouping intent**: group
 **Execution Profile**: serial
 
-### Task 1.1: Document the target taxonomy
+### Task 1.1: Document nested area rules
 
 - **Location**:
   - `README.md`
   - `skills/README.md`
   - `docs/runbooks/skills/SKILLS_ANATOMY_V2.md`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
-- **Description**: Add the target folder taxonomy and clarify that nested
-  subareas such as `skills/tools/browser/evidence/<skill>` are valid when they
-  express a real execution boundary.
-- **Dependencies**: none
+  - `docs/plans/skill-folder-migration-review-source.md`
+- **Description**: Document nested area rules and link the target map source.
+- **Dependencies**:
+  - none
 - **Complexity**: 3
 - **Acceptance criteria**:
-  - The three public domains stay unchanged.
-  - The target map is documented once and referenced instead of duplicated.
-  - The docs distinguish folder taxonomy from skill behavior.
+  - The three public domains remain the only public top-level domains.
+  - Nested areas are described as folder taxonomy, not behavior changes.
+  - The source artifact is the single target-map copy.
 - **Validation**:
   - `scripts/check.sh --docs`
   - `scripts/check.sh --markdown`
 
-### Task 1.2: Harden README catalog insertion for nested areas
+### Task 1.2: Support nested README Area labels
 
 - **Location**:
   - `skills/tools/skill-management/create-skill/scripts/create_skill.sh`
   - `skills/tools/skill-management/create-skill/tests/test_tools_skill_management_create_skill.py`
-- **Description**: Add focused coverage for nested tool and automation paths so
-  new skills such as `skills/tools/workflow-evidence/example-skill` and
-  `skills/automation/ci/example-skill` produce useful README Area labels.
+  - `README.md`
+- **Description**: Add create-skill coverage for nested public skill paths.
 - **Dependencies**:
   - Task 1.1
 - **Complexity**: 3
 - **Acceptance criteria**:
   - Existing direct-area paths still insert correctly.
-  - New nested paths insert deterministic Area labels.
+  - Nested tool and automation paths insert deterministic Area labels.
   - Non-public domains still skip README insertion.
 - **Validation**:
   - `scripts/check.sh --tests -- -k tools_skill_management_create_skill`
 
-### Task 1.3: Prepare a path reference audit checklist
+### Task 1.3: Add the stale-path audit procedure
 
 - **Location**:
   - `docs/plans/skill-folder-migration-plan.md`
   - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
-- **Description**: Define the `rg` queries and review rules used before each
-  move so old current-contract paths are updated without rewriting unrelated
-  historical notes.
+  - `docs/plans/skill-folder-migration-review-source.md`
+- **Description**: Define old-path audit commands and move-batch review rules.
 - **Dependencies**:
   - Task 1.1
 - **Complexity**: 1
 - **Acceptance criteria**:
-  - The migration has a repeatable audit command for each moved directory.
-  - Historical references are explicitly reviewed rather than blindly replaced.
+  - Each moved directory has a repeatable old-path audit.
+  - Historical references are reviewed deliberately.
+  - The audit rule is captured in both the source artifact and execution plan.
 - **Validation**:
-  - `rg -n "skills/tools/devex|skills/automation/(gh-fix-ci|release-workflow|issue-delivery)" README.md docs skills tests`
+  - `rg -n "skills/tools/devex" README.md docs skills tests scripts`
+  - `rg -n "skills/automation/(gh-fix-ci|release-workflow)" README.md docs skills tests scripts`
 
 ## Sprint 2: Tool Folder Migration
 
@@ -138,8 +113,8 @@ changing skill behavior.
 
 - Command(s): `scripts/check.sh --contracts --skills-layout`,
   `scripts/check.sh --docs`, `scripts/check.sh --markdown`
-- Verify: every moved tool skill validates, README links resolve, and no stale
-  current-contract references point to old tool paths.
+- Verify: moved tool skills validate, README links resolve, and old
+  current-contract tool paths are gone.
 
 **PR grouping intent**: group
 **Execution Profile**: parallel-x2
@@ -154,18 +129,16 @@ changing skill behavior.
   - `skills/tools/devex/skill-usage/SKILL.md`
   - `skills/tools/devex/test-first-evidence/SKILL.md`
   - `skills/tools/workflow-evidence/canary-check/SKILL.md`
-- **Description**: Move deterministic evidence-recording skills from
-  `tools/devex` into `tools/workflow-evidence`, then update SKILL.md
-  entrypoint references, tests, README rows, and tooling indexes.
+- **Description**: Move evidence primitives into `tools/workflow-evidence`.
 - **Dependencies**:
   - Task 1.2
   - Task 1.3
 - **Complexity**: 5
 - **Acceptance criteria**:
-  - Evidence capture remains in nils-cli primitives; skills still own workflow
-    judgment and policy.
-  - All moved skills keep their tests and references intact.
-  - No old path remains in current-contract docs.
+  - Evidence capture remains in nils-cli primitives.
+  - Skill judgment and policy remain in SKILL.md.
+  - Moved skills keep tests and references intact.
+  - No old current-contract path remains for the moved evidence skills.
 - **Validation**:
   - `scripts/check.sh --contracts --skills-layout`
   - `scripts/check.sh --tests -- -k "canary_check or docs_impact or model_cross_check or review_evidence or skill_usage or test_first_evidence"`
@@ -181,8 +154,7 @@ changing skill behavior.
   - `skills/tools/git/semantic-commit/SKILL.md`
   - `skills/tools/review/open-changed-files-review/SKILL.md`
   - `skills/tools/notifications/desktop-notify/SKILL.md`
-- **Description**: Split the remaining `tools/devex` skills into narrower
-  caller-owned tool areas.
+- **Description**: Move scope, git, review, and notification helpers out of `tools/devex`.
 - **Dependencies**:
   - Task 1.2
   - Task 1.3
@@ -209,17 +181,14 @@ changing skill behavior.
   - `skills/tools/app-runtime/macos-agent-ops/SKILL.md`
   - `skills/tools/browser/runtime/playwright/SKILL.md`
   - `skills/tools/browser/evidence/web-evidence/SKILL.md`
-- **Description**: Move direct tool folders and browser skills into the
-  taxonomy that README already exposes: runtime execution surfaces separate
-  from retained browser evidence.
+- **Description**: Move browser, agent-doc bootstrap, and app runtime tools into target areas.
 - **Dependencies**:
   - Task 1.2
   - Task 1.3
 - **Complexity**: 5
 - **Acceptance criteria**:
   - Runtime browser tools stay distinct from evidence-recording tools.
-  - Agent-doc bootstrap and macOS app runtime no longer sit as flat one-off
-    folders under `skills/tools/`.
+  - Agent-doc bootstrap and macOS app runtime move out of flat `skills/tools/`.
   - Browser-related tests and references still resolve.
 - **Validation**:
   - `scripts/check.sh --contracts --skills-layout`
@@ -227,14 +196,14 @@ changing skill behavior.
 
 ## Sprint 3: Automation Folder Migration
 
-**Goal**: Move flat automation skills into areas that reflect the loop they own:
-commit, issue delivery, CI repair, bug work, security scan, and release.
+**Goal**: Move flat automation skills into areas that reflect the loop they
+own: commit, issue delivery, CI repair, bug work, security scan, and release.
 **Demo/Validation**:
 
 - Command(s): `scripts/check.sh --contracts --skills-layout`,
   `scripts/check.sh --docs`, `scripts/check.sh --markdown`
-- Verify: automation skills still read as end-to-end loop owners and all old
-  current-contract path references are removed.
+- Verify: automation skills still read as end-to-end loop owners and no old
+  current-contract automation path remains.
 
 **PR grouping intent**: group
 **Execution Profile**: parallel-x2
@@ -248,9 +217,7 @@ commit, issue delivery, CI repair, bug work, security scan, and release.
   - `skills/automation/commit/semantic-commit-autostage/SKILL.md`
   - `skills/automation/issue/issue-delivery/SKILL.md`
   - `skills/automation/issue/plan-issue-delivery/SKILL.md`
-- **Description**: Move commit automation and issue-delivery loop skills into
-  target subareas, then update references in issue workflows, plan-issue
-  runtime adapter docs, README, and tests.
+- **Description**: Move commit and issue-delivery automation into target subareas.
 - **Dependencies**:
   - Task 1.2
   - Task 1.3
@@ -275,15 +242,14 @@ commit, issue delivery, CI repair, bug work, security scan, and release.
   - `skills/automation/bug/find-and-fix-bugs/SKILL.md`
   - `skills/automation/security/semgrep-find-and-fix/SKILL.md`
   - `skills/automation/release/release-workflow/SKILL.md`
-- **Description**: Move the remaining flat automation skills into target areas
-  that match the README Area labels.
+- **Description**: Move CI, bug, security, and release automation into target subareas.
 - **Dependencies**:
   - Task 1.2
   - Task 1.3
 - **Complexity**: 5
 - **Acceptance criteria**:
-  - CI repair, bug repair/discovery, Semgrep, and release workflows stay under
-    `automation`, not `tools`.
+  - CI, bug, Semgrep, and release workflows stay under `automation`.
+  - `tools` never owns those automation loops.
   - Release helper paths and response templates still resolve.
   - README catalog links match the moved folders.
 - **Validation**:
@@ -310,8 +276,7 @@ contract.
   - `skills/README.md`
   - `scripts/ci/stale-skill-scripts-audit.sh`
   - `tests/conftest.py`
-- **Description**: Run broad `rg` audits for old paths, review each hit, and
-  update only current-contract references.
+- **Description**: Run old-path audits and update only current-contract references.
 - **Dependencies**:
   - Task 2.1
   - Task 2.2
@@ -322,7 +287,7 @@ contract.
 - **Acceptance criteria**:
   - No stale current-contract references to old paths remain.
   - Historical notes are either updated or clearly left as history.
-  - Entry-point ownership checks pass.
+  - Entrypoint ownership checks pass.
 - **Validation**:
   - `rg -n "skills/tools/devex" README.md docs skills tests scripts`
   - `rg -n "skills/tools/browser/(agent-browser|browser-session|playwright|web-evidence|web-qa)" README.md docs skills tests scripts`
@@ -337,44 +302,43 @@ contract.
 - **Location**:
   - `scripts/check.sh`
   - `.github/workflows/lint.yml`
-- **Description**: Run the full validation gate and fix any breakage caused by
-  moved paths.
+- **Description**: Run the full validation gate and fix moved-path breakage.
 - **Dependencies**:
   - Task 4.1
 - **Complexity**: 3
 - **Acceptance criteria**:
   - `scripts/check.sh --all` passes.
-  - Any CI-specific generated phase mappings remain unchanged unless a path move
-    requires an intentional update.
+  - CI phase mappings change only for intentional moved-path updates.
 - **Validation**:
   - `scripts/check.sh --all`
 
 ## Testing Strategy
 
-- Unit: run focused pytest selections for moved skill tests after each sprint.
+- Unit: run focused pytest selections for moved skill groups after each sprint.
 - Integration: run contract/layout checks after each directory move batch.
 - Docs: run `scripts/check.sh --docs` and `scripts/check.sh --markdown` after
-  every sprint.
+  each sprint.
 - Repository gate: run `scripts/check.sh --all` before reporting the migration
   complete.
 
 ## Risks & gotchas
 
-- Moving skill folders can break skill discovery, README links, hook allow-lists,
-  and test fixtures even when SKILL.md content is unchanged.
-- `create-skill` currently maps only the three public README sections; preserve
-  that boundary while allowing nested Area labels.
+- Moving skill folders can break skill discovery, README links, hook
+  allow-lists, and test fixtures even when SKILL.md content is unchanged.
+- `create-skill` README insertion is the first dependency to prove before
+  moving folders.
 - `plan-issue-delivery` and browser skills have many nested references and are
   likely overlap hotspots.
-- Blind search-and-replace can corrupt historical docs. Review old-path hits
+- Blind search-and-replace can corrupt historical docs; review old-path hits
   before editing them.
-- Symlinks or duplicate compatibility folders may confuse layout audits and
-  should be avoided unless explicitly validated.
+- Symlinks or duplicate compatibility folders can confuse layout audits and are
+  out of scope unless validation proves they are required.
 
 ## Rollback plan
 
-- Revert each sprint commit independently if validation fails after that sprint.
-- If a move batch is partially applied, use `git mv` to restore the old path and
-  rerun `scripts/check.sh --contracts --skills-layout`.
-- If README/catalog tooling changes are valid but a later move is risky, keep
+- Revert each sprint commit independently if validation fails after that
+  sprint.
+- If a move batch is partially applied, use `git mv` to restore the old path
+  and rerun `scripts/check.sh --contracts --skills-layout`.
+- If nested-area tooling changes are valid but a later move is risky, keep
   Sprint 1 and postpone the folder moves.

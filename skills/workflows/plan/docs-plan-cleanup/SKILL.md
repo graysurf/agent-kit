@@ -1,6 +1,6 @@
 ---
 name: docs-plan-cleanup
-description: Prune outdated docs/plans markdown and reconcile plan-related docs safely for a target project.
+description: Prune outdated docs/plans coordination markdown and reconcile plan-related docs safely for a target project.
 ---
 
 # Docs Plan Cleanup
@@ -11,13 +11,13 @@ Prereqs:
 
 - `bash`, `git`, `find`, and `rg` available on `PATH`.
 - Target project must be a git work tree and contain `docs/plans/`.
-- Choose preserved plans first; run dry-run before `--execute`.
+- Choose preserved active plans/source docs first; run dry-run before `--execute`.
 
 Inputs:
 
 - Optional:
   - `--project-path <path>`: target project path override. Default resolution order: `--project-path` > `$PROJECT_PATH` > current directory.
-  - `--keep-plan <path|name>`: plan to preserve (repeatable). Supports:
+  - `--keep-plan <path|name>`: plan or source doc to preserve (repeatable). Supports:
     - repo-relative path (for example `docs/plans/foo-plan.md`),
     - filename (`foo-plan.md`),
     - stem (`foo-plan`).
@@ -35,8 +35,9 @@ Outputs:
   - `[plan_related_md_to_rehome]`
   - `[plan_related_md_manual_review]`
   - `[non_docs_md_referencing_removed_plan]`
+- Report section names keep the historical `plan_md_*` labels for compatibility, but candidates include plan-source coordination docs.
 - In `--execute` mode:
-  - removes non-preserved `docs/plans/**/*.md`,
+  - removes non-preserved `docs/plans/**/*.md` coordination files,
   - removes related `docs/**/*.md` that only depend on removed plans and are not externally referenced,
   - preserves important docs unless `--delete-important` is explicitly set.
 
@@ -60,7 +61,7 @@ Failure modes:
 
 ## Workflow
 
-1. Identify plans that must be kept.
+1. Identify active plans and plan-source docs that must be kept.
 2. Run dry-run first (defaults to `$PROJECT_PATH` when exported):
    - `PROJECT_PATH=/path/to/project bash $AGENT_HOME/skills/workflows/plan/docs-plan-cleanup/scripts/docs-plan-cleanup.sh --keep-plan active-plan`
 3. Review report sections:

@@ -14,10 +14,10 @@ def test_review_to_improvement_doc_defines_artifact_boundary() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
 
-    assert "durable repo-local document" in text
+    assert "repo-local improvement source document" in text
     assert "Do not turn it into a phased implementation plan" in text
     assert "Do not turn it into a handoff prompt" in text
-    assert "Avoid `docs/plans/` unless the artifact is a real implementation plan" in text
+    assert "docs/plans/<slug>-review-source.md" in text
 
 
 def test_review_to_improvement_doc_requires_findings_and_discoverability() -> None:
@@ -26,7 +26,7 @@ def test_review_to_improvement_doc_requires_findings_and_discoverability() -> No
 
     assert "findings table with priority, issue, evidence, fix location, and acceptance" in text
     assert "runtime vs test/harness vs docs" in text
-    assert "Update the nearest docs index or README" in text
+    assert "Update the nearest docs index or README only when this document is promoted" in text
     assert "`Read First`" in text
 
 
@@ -47,3 +47,15 @@ def test_review_to_improvement_doc_can_prepare_execution_ready_records() -> None
     assert "executable backlog" in text
     assert "execution-state path" in text
     assert "later implementation" in text
+
+
+def test_review_to_improvement_doc_can_be_plan_source() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "primary source artifact for later plan" in text
+    assert "review findings, risks, lessons" in text
+    assert "Promote or rewrite into domain docs/runbooks" in text
+    assert "cleanup after execution or promotion candidate" in text
+    assert "plan's `Read First` section as the primary source" in text
+    assert "`create-plan-rigorous`" in text

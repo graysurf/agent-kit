@@ -45,9 +45,32 @@ def test_create_plan_distinguishes_plans_from_durable_improvement_records() -> N
     assert "Do not force `docs/plans/`" in text
     assert "preserve review findings" in text
     assert "Use `review-to-improvement-doc`" in text
+    assert "Use `discussion-to-implementation-doc`" in text
     assert "durable review/improvement record" in text
     assert "link that doc under the plan's context/read-first section" in text
     assert "use `execute-from-implementation-doc` instead" in text
+
+
+def test_create_plan_requires_primary_source_artifact_before_plan() -> None:
+    text = skill_md_text(__file__)
+    shared = shared_plan_baseline_text(__file__)
+    template = shared_plan_template_text(__file__)
+
+    assert "Establish the plan source artifact" in text
+    assert "Every plan must have exactly one primary source artifact" in text
+    assert "`discussion-to-implementation-doc`" in text
+    assert "`review-to-improvement-doc`" in text
+    assert "docs/plans/<slug>-discussion-source.md" in text
+    assert "docs/plans/<slug>-review-source.md" in text
+    assert "coordination artifacts" in text
+    assert "cleanup after execution" in text
+    assert "<slug>-discussion-source.md" in shared
+    assert "<slug>-review-source.md" in shared
+    assert "Link the primary source under `Read First`" in text
+    assert "Every plan needs a primary source artifact" in shared
+    assert "Source type" in shared
+    assert "## Read First" in template
+    assert "Primary source:" in template
 
 
 def test_shared_plan_template_includes_optional_base_execution_metadata() -> None:
