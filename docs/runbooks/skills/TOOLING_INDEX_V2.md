@@ -1,9 +1,14 @@
 # Skills Tooling Index v2
 
 This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts). Install `nils-cli` via
-`brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out` on PATH. For skill directory layout/path rules,
-use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
+`brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out` on PATH; `agent-scope-lock` and `web-evidence`
+require the release that includes workspace version `0.8.3`. For skill directory layout/path rules, use
+`docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
+
+Candidate future `nils-cli` primitives are tracked separately in
+`docs/runbooks/nils-cli/skill-consumable-primitives.md`; this index lists only
+implemented entrypoints.
 
 ## SKILL.md format
 
@@ -63,3 +68,36 @@ use `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For 
   - `agent-out project --topic <topic> --mkdir`
 - Audit `$AGENT_HOME/out/` for noncanonical top-level entries:
   - `agent-out audit --agent-home "$AGENT_HOME"`
+
+## Web evidence
+
+- Capture deterministic, redacted static HTTP evidence bundles for agent
+  workflows:
+  - Skill contract: `skills/tools/browser/web-evidence/SKILL.md`
+  - `web-evidence capture <url> --out <dir> [--format text|json] [--label <label>]`
+  - `web-evidence capture <url> --out <dir> [--method get|head]`
+  - `web-evidence completion <bash|zsh>`
+- Artifact contract: `summary.json`, `headers.redacted.json`, and
+  `body-preview.redacted.txt` under the requested output directory.
+- Version floor: requires the `nils-web-evidence` package from the `nils-cli`
+  release that includes workspace version `0.8.3`.
+- Scope boundary: this is static HTTP/HTTPS evidence only; use Browser, Chrome,
+  Playwright, or future browser-session tooling for JavaScript execution,
+  screenshots, cookies, authenticated sessions, console logs, or browser state.
+
+## Edit-scope locks
+
+- Create, read, validate, and clear deterministic edit-scope locks for agent
+  workflows:
+  - Skill contract: `skills/tools/devex/agent-scope-lock/SKILL.md`
+  - `agent-scope-lock create --path <repo-relative-path> [--path <path> ...]`
+  - `agent-scope-lock validate --changes all --format json`
+  - `agent-scope-lock read --format json`
+  - `agent-scope-lock clear`
+- Version floor: requires the `nils-agent-scope-lock` package from the
+  `nils-cli` release that includes workspace version `0.8.3`.
+- Local checkout boundary: before that release is installed on PATH, consume the
+  same command surface only through a validated local `nils-cli` checkout, for
+  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
+  nils-agent-scope-lock --bin agent-scope-lock -- <subcommand> ...` from the
+  target git work tree.
