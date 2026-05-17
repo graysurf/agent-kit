@@ -85,7 +85,7 @@ blocks in `.github/workflows/lint.yml`.
   preflight + `scripts/check.sh --all`, promotes `[Unreleased]` into the
   versioned heading, updates the footer compare-links, commits, pushes main,
   and delegates the GitHub release publish to
-  `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`.
+  `skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh`.
   GitHub release bodies start with the release date only (`YYYY-MM-DD`); the
   publish script strips the changelog heading prefix (`## [X.Y.Z] -`).
 

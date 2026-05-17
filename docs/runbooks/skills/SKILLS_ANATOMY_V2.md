@@ -20,6 +20,10 @@ Applies to tracked skills under:
 - `skills/tools/`
 - `skills/automation/`
 
+These are the only public top-level skill domains. Nested folders below a
+domain are allowed when they express catalog taxonomy and a clear behavior
+boundary, not a new skill type.
+
 Non-tracked directories (`skills/_projects/`, `skills/.system/`) are best-effort only.
 
 ## Skill directory anatomy
@@ -74,6 +78,8 @@ $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skil
 ## Naming conventions
 
 - Skill directories use kebab-case (e.g., `create-github-pr`).
+- Nested area directories use kebab-case and should match the catalog taxonomy
+  when the area boundary is stable enough to document.
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
 
@@ -82,13 +88,22 @@ $AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skil
 New skill:
 
 ```text
-skills/tools/devex/example-skill/
+skills/tools/workflow-evidence/example-skill/
   SKILL.md
   scripts/
   lib/
   tests/
   references/
   assets/
+```
+
+Nested public area:
+
+```text
+skills/automation/ci/example-skill/
+  SKILL.md
+  scripts/
+  tests/
 ```
 
 Shared reuse (category-level):

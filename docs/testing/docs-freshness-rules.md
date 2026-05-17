@@ -73,7 +73,7 @@ REQUIRED_PATH|scripts/ci/stale-skill-scripts-audit.sh
 REQUIRED_PATH|scripts/ci/third-party-artifacts-audit.sh
 REQUIRED_PATH|scripts/check_plan_issue_worktree_cleanup.sh
 REQUIRED_PATH|scripts/test.sh
-REQUIRED_PATH|skills/tools/agent-doc-init/scripts/agent_doc_init.sh
+REQUIRED_PATH|skills/tools/agent-docs/agent-doc-init/scripts/agent_doc_init.sh
 REQUIRED_PATH|docs/testing/script-smoke.md
 REQUIRED_PATH|.agents/scripts/release.sh
 <!-- docs-freshness-audit:end -->

@@ -64,7 +64,7 @@ When a script decision changes the public surface, update all applicable items i
 
 - `old entrypoint`: `audit-changelog.zsh`, `release-audit.sh`, `release-find-guide.sh`, `release-notes-from-changelog.sh`, `release-scaffold-entry.sh`
 - `decision`: merge publish behavior into `release-publish-from-changelog.sh`, remove the rest from the public surface
-- `new entrypoint`: `skills/automation/release-workflow/scripts/release-publish-from-changelog.sh`
+- `new entrypoint`: `skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh`
 - `test/spec updates`: keep contract and smoke coverage aligned with the new public entrypoint set; remove stale specs for retired scripts
 - `migration note`: callers of retired release scripts must switch to `release-publish-from-changelog.sh`
 

@@ -86,7 +86,7 @@ Minimal success example:
     "summary": "Created implementation handoff"
   },
   "artifacts": [
-    "docs/runbooks/skills/skill-usage-recording-implementation-handoff.md"
+    "docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md"
   ],
   "linked_records": [],
   "validation": [
@@ -177,7 +177,7 @@ Validate a record with:
 skill-usage verify --out <record-dir> --format json
 ```
 
-Use the local checkout fallback from `skills/tools/devex/skill-usage/SKILL.md`
+Use the local checkout fallback from `skills/tools/workflow-evidence/skill-usage/SKILL.md`
 only when the released PATH binary is absent or older than nils-cli 0.8.5:
 
 ```bash

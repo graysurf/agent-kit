@@ -94,9 +94,10 @@ local exceptions, retries, or failure notes, compress them:
 
 ## Relationship To Skill Usage Recording
 
-The detailed draft for automatic skill usage records lives at
-`docs/runbooks/skills/skill-usage-recording-implementation-handoff.md`.
+The implemented convention for automatic skill usage records lives at
+`docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`.
 
-That draft should be treated as a proposal until accepted and implemented. This
-root document defines the durable framework concept and the required read-first
-boundary for skill development.
+Use the nils-cli `skill-usage` primitive for deterministic record writing,
+validation, redaction, and linked evidence. This root document defines the
+durable framework concept and the required read-first boundary for skill
+development.

@@ -18,11 +18,11 @@
 
 ## Task Fidelity
 
-- Scope verdict: pass (evidence: skills/automation/plan-issue-delivery/SKILL.md maps to assigned task scope)
+- Scope verdict: pass (evidence: skills/automation/issue/plan-issue-delivery/SKILL.md maps to assigned task scope)
 
 ## Correctness
 
-- Correctness verdict: pass (evidence: tests updated in skills/automation/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py)
+- Correctness verdict: pass (evidence: tests updated in skills/automation/issue/plan-issue-delivery/tests/test_automation_plan_issue_delivery.py)
 
 ## Integration Readiness
 
@@ -30,7 +30,7 @@
 
 ## Evidence Links
 
-- Diff refs: skills/automation/plan-issue-delivery/SKILL.md, skills/automation/plan-issue-delivery/references/prompts/main-agent-init.md
+- Diff refs: skills/automation/issue/plan-issue-delivery/SKILL.md, skills/automation/issue/plan-issue-delivery/references/prompts/main-agent-init.md
 - Validation refs: `scripts/check.sh --all` + `pytest ...issue_pr_review...`
 - CI refs: Analyze (actions) pass, pytest pass
 - Residual risk: low; behavior change is constrained to review-evidence gate enforcement

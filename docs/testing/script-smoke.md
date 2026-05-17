@@ -35,8 +35,8 @@ scripts/check.sh --entrypoint-ownership
   - Fixture-driven: pytest builds temporary repos/files (used for scripts that mutate git state, etc.).
 - Critical smoke specs retained after desktop-notify pruning:
   - `tests/script_specs/scripts/check.sh.json`
-  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/desktop-notify.sh.json`
-  - `tests/script_specs/skills/tools/devex/desktop-notify/scripts/project-notify.sh.json`
+  - `tests/script_specs/skills/tools/notifications/desktop-notify/scripts/desktop-notify.sh.json`
+  - `tests/script_specs/skills/tools/notifications/desktop-notify/scripts/project-notify.sh.json`
 - Retained issue-workflow smoke specs:
   - `tests/script_specs/skills/workflows/issue/issue-lifecycle/scripts/manage_issue_lifecycle.sh.json`
   - `tests/script_specs/skills/workflows/issue/issue-pr-review/scripts/manage_issue_pr_review.sh.json`
@@ -44,8 +44,8 @@ scripts/check.sh --entrypoint-ownership
 - Deprecated release-workflow helper entrypoints removed in PR #221 (`audit-changelog.zsh`, `release-audit.sh`,
   `release-find-guide.sh`, `release-notes-from-changelog.sh`, `release-scaffold-entry.sh`) should not keep stale smoke specs.
   Keep smoke coverage on retained entrypoints only:
-  - `tests/script_specs/skills/automation/release-workflow/scripts/release-resolve.sh.json`
-  - `tests/script_specs/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.json`
+  - `tests/script_specs/skills/automation/release/release-workflow/scripts/release-resolve.sh.json`
+  - `tests/script_specs/skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh.json`
 - Writes evidence (untracked) under:
   - `out/tests/script-smoke/summary.json`
   - `out/tests/script-smoke/logs/**`

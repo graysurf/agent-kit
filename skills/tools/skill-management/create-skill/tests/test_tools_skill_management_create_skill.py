@@ -87,3 +87,83 @@ def test_create_skill_generates_contract_first_skill_md() -> None:
         readme.write_text(original_readme, encoding="utf-8")
         if skill_dir.exists():
             shutil.rmtree(skill_dir)
+
+
+def test_create_skill_catalogs_nested_public_tool_area() -> None:
+    root = repo_root()
+    create_script = (
+        root / "skills" / "tools" / "skill-management" / "create-skill" / "scripts" / "create_skill.sh"
+    )
+    parent_dir = root / "skills" / "tools" / "workflow-evidence"
+    skill_dir = parent_dir / f"create-skill-nested-tool-{uuid.uuid4().hex}"
+    rel_skill_dir = skill_dir.relative_to(root).as_posix()
+    readme = root / "README.md"
+    original_readme = readme.read_text(encoding="utf-8")
+
+    try:
+        proc = subprocess.run(
+            [
+                "bash",
+                str(create_script),
+                "--skill-dir",
+                rel_skill_dir,
+                "--title",
+                "Create Skill Nested Tool Smoke",
+                "--description",
+                "Nested tool catalog update from create-skill",
+            ],
+            cwd=root,
+            text=True,
+            capture_output=True,
+        )
+        assert proc.returncode == 0, f"create_skill.sh failed:\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+
+        readme_after = readme.read_text(encoding="utf-8")
+        expected_link = f"[{skill_dir.name}](./{rel_skill_dir}/)"
+        assert f"| Workflow Evidence | {expected_link} |" in readme_after
+    finally:
+        readme.write_text(original_readme, encoding="utf-8")
+        if skill_dir.exists():
+            shutil.rmtree(skill_dir)
+        if parent_dir.exists() and not any(parent_dir.iterdir()):
+            parent_dir.rmdir()
+
+
+def test_create_skill_catalogs_nested_public_automation_area() -> None:
+    root = repo_root()
+    create_script = (
+        root / "skills" / "tools" / "skill-management" / "create-skill" / "scripts" / "create_skill.sh"
+    )
+    parent_dir = root / "skills" / "automation" / "ci"
+    skill_dir = parent_dir / f"create-skill-nested-automation-{uuid.uuid4().hex}"
+    rel_skill_dir = skill_dir.relative_to(root).as_posix()
+    readme = root / "README.md"
+    original_readme = readme.read_text(encoding="utf-8")
+
+    try:
+        proc = subprocess.run(
+            [
+                "bash",
+                str(create_script),
+                "--skill-dir",
+                rel_skill_dir,
+                "--title",
+                "Create Skill Nested Automation Smoke",
+                "--description",
+                "Nested automation catalog update from create-skill",
+            ],
+            cwd=root,
+            text=True,
+            capture_output=True,
+        )
+        assert proc.returncode == 0, f"create_skill.sh failed:\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+
+        readme_after = readme.read_text(encoding="utf-8")
+        expected_link = f"[{skill_dir.name}](./{rel_skill_dir}/)"
+        assert f"| CI Repair | {expected_link} |" in readme_after
+    finally:
+        readme.write_text(original_readme, encoding="utf-8")
+        if skill_dir.exists():
+            shutil.rmtree(skill_dir)
+        if parent_dir.exists() and not any(parent_dir.iterdir()):
+            parent_dir.rmdir()

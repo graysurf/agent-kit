@@ -54,7 +54,7 @@ Notes:
   CHANGELOG.md `## [Unreleased]` body must be non-empty. Authors are expected
   to keep it current as work lands; release.sh does not auto-generate entries
   from git log. The publish step is delegated to
-  skills/automation/release-workflow/scripts/release-publish-from-changelog.sh.
+  skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh.
 USAGE
 }
 
@@ -124,7 +124,7 @@ cd "$repo_root"
 
 [[ -f CHANGELOG.md ]] || die "CHANGELOG.md missing at $repo_root"
 
-publish_script="skills/automation/release-workflow/scripts/release-publish-from-changelog.sh"
+publish_script="skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh"
 [[ -x "$publish_script" ]] || die "$publish_script missing or not executable"
 
 current_branch="$(git symbolic-ref --short -q HEAD 2>/dev/null || true)"

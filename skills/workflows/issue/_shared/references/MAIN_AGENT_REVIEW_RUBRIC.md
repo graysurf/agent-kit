@@ -6,8 +6,8 @@ delivery loops.
 Applies to:
 
 - `skills/workflows/issue/issue-pr-review`
-- `skills/automation/issue-delivery`
-- `skills/automation/plan-issue-delivery`
+- `skills/automation/issue/issue-delivery`
+- `skills/automation/issue/plan-issue-delivery`
 - plan-issue main-agent init prompt
 
 ## Review Owner

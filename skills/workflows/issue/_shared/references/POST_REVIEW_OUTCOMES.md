@@ -6,8 +6,8 @@ made.
 Applies to:
 
 - `skills/workflows/issue/issue-pr-review`
-- `skills/automation/issue-delivery`
-- `skills/automation/plan-issue-delivery`
+- `skills/automation/issue/issue-delivery`
+- `skills/automation/issue/plan-issue-delivery`
 - `skills/workflows/issue/issue-lifecycle`
 - plan-issue main-agent init prompt
 

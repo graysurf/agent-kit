@@ -28,6 +28,11 @@ Tracked skills live under:
 - `skills/tools/`
 - `skills/automation/`
 
+These are the only public top-level domains. Nested folders below them are
+taxonomy for behavior boundaries, not behavior changes; for example,
+`skills/tools/workflow-evidence/` still contains bounded tool skills, and
+`skills/automation/ci/` still contains automation skills.
+
 Non-tracked directories are best-effort only:
 
 - `skills/_projects/`
@@ -57,6 +62,8 @@ See `../docs/runbooks/skills/SKILLS_ANATOMY_V2.md` for the full directory anatom
 ## Naming and layout conventions
 
 - Skill directories use kebab-case (e.g., `create-github-pr`).
+- Nested area directories use kebab-case and should match the catalog taxonomy
+  when the area boundary is stable enough to document.
 - `_shared` is reserved for shared, non-skill content only.
 - Avoid uppercase or spaces in directory names.
 

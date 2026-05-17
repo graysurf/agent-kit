@@ -77,8 +77,8 @@ $AGENT_HOME/scripts/test.sh -m script_smoke
   - deprecated helpers removed in PR #221 must stay removed (`audit-changelog.zsh`, `release-audit.sh`,
     `release-find-guide.sh`, `release-notes-from-changelog.sh`, `release-scaffold-entry.sh`)
   - replace old release helper usage with:
-    - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-resolve.sh --repo .`
-    - `$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>`
+    - `$AGENT_HOME/skills/automation/release/release-workflow/scripts/release-resolve.sh --repo .`
+    - `$AGENT_HOME/skills/automation/release/release-workflow/scripts/release-publish-from-changelog.sh --repo . --version <tag>`
 
 ## Script smoke tests
 

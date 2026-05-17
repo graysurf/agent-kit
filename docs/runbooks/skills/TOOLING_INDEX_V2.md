@@ -7,7 +7,20 @@ boundary. For skill directory layout/path rules, use
 `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
 
+Public skill domains remain `skills/workflows/`, `skills/tools/`, and
+`skills/automation/`. Nested folders below those domains are allowed as catalog
+taxonomy when they express a stable behavior boundary; they do not change the
+workflow/tool/automation contract.
+
 This index lists implemented entrypoints only.
+
+## Stale path audits after skill moves
+
+After moving a skill directory, audit current-contract references to the old
+path before declaring the move complete. Use `rg -n` across `README.md docs
+skills tests scripts .github`, then update executable paths, script specs,
+tests, catalog links, and maintained runbook references. Leave historical notes
+only when they are intentionally retained as migration history.
 
 ## SKILL.md format
 
@@ -32,7 +45,7 @@ This index lists implemented entrypoints only.
 - Draft JSON schema:
   - `docs/runbooks/skills/skill-usage-record-v1.schema.json`
 - Canonical nils-cli primitive:
-  - Skill contract: `skills/tools/devex/skill-usage/SKILL.md`
+  - Skill contract: `skills/tools/workflow-evidence/skill-usage/SKILL.md`
   - `skill-usage init --out <dir> --skill <skill> --intent <intent> --user-request-summary <summary>`
   - `skill-usage link-record --out <dir> --type <record-type> --path <path>`
   - `skill-usage record-failure --out <dir> --phase preflight|execution|validation|cleanup|delivery --classification <classification>
@@ -97,7 +110,7 @@ This index lists implemented entrypoints only.
 
 - Capture deterministic, redacted static HTTP evidence bundles for agent
   workflows:
-  - Skill contract: `skills/tools/browser/web-evidence/SKILL.md`
+  - Skill contract: `skills/tools/browser/evidence/web-evidence/SKILL.md`
   - `web-evidence capture <url> --out <dir> [--format text|json] [--label <label>]`
   - `web-evidence capture <url> --out <dir> [--method get|head]`
   - `web-evidence completion <bash|zsh>`
@@ -112,7 +125,7 @@ This index lists implemented entrypoints only.
 ## Web QA
 
 - Run scriptless static or active browser QA evidence workflows:
-  - Skill contract: `skills/tools/browser/web-qa/SKILL.md`
+  - Skill contract: `skills/tools/browser/evidence/web-qa/SKILL.md`
   - Static mode: `web-evidence capture <url> --out <run-dir>/web-evidence --label <scenario> --format json`
   - Active mode: open or inspect the target with Browser, Chrome, Playwright, or
     a verified explicit nils-cli browser driver, then record the action and
@@ -132,7 +145,7 @@ This index lists implemented entrypoints only.
 
 - Create, read, validate, and clear deterministic edit-scope locks for agent
   workflows:
-  - Skill contract: `skills/tools/devex/agent-scope-lock/SKILL.md`
+  - Skill contract: `skills/tools/scope/agent-scope-lock/SKILL.md`
   - `agent-scope-lock create --path <repo-relative-path> [--path <path> ...]`
   - `agent-scope-lock validate --changes all --format json`
   - `agent-scope-lock read --format json`
@@ -148,7 +161,7 @@ This index lists implemented entrypoints only.
 ## Test-first evidence
 
 - Record deterministic test-first evidence or waivers for agent workflows:
-  - Skill contract: `skills/tools/devex/test-first-evidence/SKILL.md`
+  - Skill contract: `skills/tools/workflow-evidence/test-first-evidence/SKILL.md`
   - `test-first-evidence init --out <dir> --classification <classification>`
   - `test-first-evidence record-failing --out <dir> --command <command> --exit-code <code> --summary <summary>`
   - `test-first-evidence record-waiver --out <dir> --reason <reason>`
@@ -170,12 +183,12 @@ This index lists implemented entrypoints only.
 - Record and verify deterministic workflow evidence through the
   `nils-agent-workflow-primitives` package:
   - Skill contracts:
-    - `skills/tools/browser/browser-session/SKILL.md`
-    - `skills/tools/devex/canary-check/SKILL.md`
-    - `skills/tools/devex/docs-impact/SKILL.md`
-    - `skills/tools/devex/model-cross-check/SKILL.md`
-    - `skills/tools/devex/review-evidence/SKILL.md`
-    - `skills/tools/devex/skill-usage/SKILL.md`
+    - `skills/tools/browser/evidence/browser-session/SKILL.md`
+    - `skills/tools/workflow-evidence/canary-check/SKILL.md`
+    - `skills/tools/workflow-evidence/docs-impact/SKILL.md`
+    - `skills/tools/workflow-evidence/model-cross-check/SKILL.md`
+    - `skills/tools/workflow-evidence/review-evidence/SKILL.md`
+    - `skills/tools/workflow-evidence/skill-usage/SKILL.md`
   - `browser-session init|record-step|verify|show`
   - `canary-check run|verify|show`
   - `docs-impact scan`

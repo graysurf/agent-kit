@@ -9,11 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 SKILLS = {
-    "browser-session": ROOT / "skills/tools/browser/browser-session",
-    "docs-impact": ROOT / "skills/tools/devex/docs-impact",
-    "review-evidence": ROOT / "skills/tools/devex/review-evidence",
-    "canary-check": ROOT / "skills/tools/devex/canary-check",
-    "model-cross-check": ROOT / "skills/tools/devex/model-cross-check",
+    "browser-session": ROOT / "skills/tools/browser/evidence/browser-session",
+    "docs-impact": ROOT / "skills/tools/workflow-evidence/docs-impact",
+    "review-evidence": ROOT / "skills/tools/workflow-evidence/review-evidence",
+    "canary-check": ROOT / "skills/tools/workflow-evidence/canary-check",
+    "model-cross-check": ROOT / "skills/tools/workflow-evidence/model-cross-check",
 }
 
 
