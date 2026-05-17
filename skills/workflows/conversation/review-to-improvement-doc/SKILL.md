@@ -3,7 +3,7 @@ name: review-to-improvement-doc
 description:
   Convert review findings, risks, lessons learned, or "fix later" notes into a durable repo-local improvement document. Use when the user
   asks to preserve a review as docs, create a durable improvement/backlog record, or write a docs-based follow-up artifact before planning
-  or handoff. Do not use for ordinary implementation plans or copy-ready next-session prompts.
+  or handoff. Do not use for ordinary implementation plans, discussion-to-implementation handoffs, or copy-ready next-session prompts.
 ---
 
 # Review To Improvement Doc
@@ -36,6 +36,8 @@ Exit codes:
 Failure modes:
 
 - The user actually needs an implementation plan; use `create-plan` or `create-plan-rigorous` instead.
+- The user needs a durable requirements, design, feasibility, or customer-facing discussion handoff for later implementation; use
+  `discussion-to-implementation-doc` instead.
 - The user only needs a copy-ready next-session prompt; use `handoff-session-prompt` instead.
 - The target project has no appropriate durable-doc location and assumptions would create unwanted repo clutter; ask or recommend a path.
 - Required source evidence is unavailable or too ambiguous to record as fact; label it under assumptions/open questions or ask before writing.
@@ -45,6 +47,8 @@ Failure modes:
 1. Confirm this is the right artifact
    - Use this skill when the requested output is a reusable project record: review findings, risk register, improvement backlog, lessons
      learned, runtime/test boundary, validation gate, or "do not repeat" guidance.
+   - Do not use this skill for converged requirements, design, feasibility, or product discussion handoffs whose primary reader is the next
+     implementer. Use `discussion-to-implementation-doc` for that artifact.
    - Do not turn it into a phased implementation plan. If the user also wants execution sequencing, write the durable improvement doc first,
      then use `create-plan` or `create-plan-rigorous` and link the doc as read-first context.
    - Do not turn it into a handoff prompt. If the user also wants session continuity, write or reference the durable doc first, then use
@@ -95,6 +99,8 @@ Failure modes:
 
 ## Relationship To Nearby Skills
 
+- `discussion-to-implementation-doc`: use when the source material is a converged requirements, design, feasibility, or product discussion
+  and the next artifact should prepare later implementation.
 - `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing.
 - `create-plan-rigorous`: use after this skill when the user wants sizing, sprint scorecards, subagent review, or high-rigor execution
   modeling.

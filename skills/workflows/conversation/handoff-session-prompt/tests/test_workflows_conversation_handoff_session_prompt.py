@@ -50,6 +50,7 @@ def test_prompt_guidance_prefers_durable_sources_over_copying_backlogs() -> None
     assert "Read First" in text
     assert "Do not paste an entire durable doc" in text
     assert "do not treat the handoff prompt itself as the canonical project record" in text
+    assert "discussion-to-implementation-doc" in text
     assert "use `review-to-improvement-doc`" in text
     assert "to write or reference the durable" in text
     assert "record first" in text

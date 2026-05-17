@@ -1,0 +1,32 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from skills._shared.python.skill_testing import assert_skill_contract
+
+
+def test_workflows_conversation_discussion_to_implementation_doc_contract() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    assert_skill_contract(skill_root)
+
+
+def test_discussion_to_implementation_doc_defines_artifact_boundary() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "implementation-readiness document" in text
+    assert "not execute the implementation now" in text
+    assert "Do not turn the document into a task-by-task implementation plan" in text
+    assert "Do not use the document as a session prompt" in text
+
+
+def test_discussion_to_implementation_doc_routes_to_nearby_skills() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "Relationship To Nearby Skills" in text
+    assert "`review-evidence`" in text
+    assert "`review-to-improvement-doc`" in text
+    assert "`create-plan`" in text
+    assert "`handoff-session-prompt`" in text
+    assert "review findings and validation records" in text

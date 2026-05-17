@@ -4,7 +4,7 @@ description:
   Generate a generic next-session initialization prompt from the user's instruction, current conversation context, and any
   user-specified reference files. Use when the user asks to carry conclusions, constraints, documents, or next steps into a
   new session, produce a handoff prompt, or create a session init prompt without embedding project-specific defaults. If the user needs a
-  durable review/improvement record first, use review-to-improvement-doc before generating the handoff.
+  durable review/improvement record or implementation-readiness document first, write that artifact before generating the handoff.
 ---
 
 # Handoff Session Prompt
@@ -64,6 +64,8 @@ Failure modes:
      user explicitly asks for an inline self-contained prompt.
    - If the current session produced reusable review findings but no durable artifact, mention that gap under `Known Gaps` or
      `Recommendations`; do not treat the handoff prompt itself as the canonical project record.
+   - If the current session produced converged requirements, design, feasibility, or product decisions for later implementation but no
+     durable artifact, recommend `discussion-to-implementation-doc` before using this prompt as the only continuity record.
    - If the user asks for both durable record and next-session continuity, use `review-to-improvement-doc` to write or reference the durable
      record first, then generate a shorter handoff that points to it.
 

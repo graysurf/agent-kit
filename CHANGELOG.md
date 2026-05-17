@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **discussion-to-implementation-doc**: add a conversation workflow for turning
+  converged requirements, design, feasibility, or customer-facing discussion
+  into a durable implementation-readiness document before planning or handoff.
 - **issue-follow-up**: add a lightweight entrypoint skill for opening or
   continuing GitHub issues as durable follow-up timelines while routing
   mutations through `issue-lifecycle` and implementation through existing PR

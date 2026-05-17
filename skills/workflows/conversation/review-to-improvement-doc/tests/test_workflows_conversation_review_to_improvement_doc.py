@@ -28,3 +28,12 @@ def test_review_to_improvement_doc_requires_findings_and_discoverability() -> No
     assert "runtime vs test/harness vs docs" in text
     assert "Update the nearest docs index or README" in text
     assert "`Read First`" in text
+
+
+def test_review_to_improvement_doc_routes_discussion_handoffs_elsewhere() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "`discussion-to-implementation-doc`" in text
+    assert "discussion handoff for later implementation" in text
+    assert "primary reader is the next" in text
