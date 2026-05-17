@@ -48,6 +48,8 @@ scripts/
 ├── plan-issue-adapter
 ├── project-resolve
 ├── semgrep-scan.sh
+├── skills/
+│   └── validate_skill_usage_record.py
 └── test.sh
 ```
 
@@ -81,6 +83,10 @@ scripts/
   - Classifies skill scripts as `ACTIVE` / `TRANSITIONAL` / `REMOVABLE`.
 - `scripts/generate-third-party-artifacts.sh`
   - Generates `THIRD_PARTY_LICENSES.md` and `THIRD_PARTY_NOTICES.md`.
+- `scripts/skills/validate_skill_usage_record.py`
+  - Legacy fallback/reference validator for retained `skill-usage.record.v1`
+    JSON records. Canonical writing and verification belong to the nils-cli
+    `skill-usage` primitive.
 
 ### Shell maintenance utilities
 

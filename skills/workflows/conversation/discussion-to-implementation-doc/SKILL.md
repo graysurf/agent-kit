@@ -29,6 +29,8 @@ Outputs:
 - An `Execution` section with an execution-state link or creation recommendation when the document is intended to drive long-running
   implementation work.
 - Updated local docs index or README when the project has one and the new document should be discoverable.
+- When following the skill usage recording convention, a `skill-usage.record.v1` envelope that links the created document and validation
+  evidence.
 - A short response linking the document path and listing validation run.
 
 Exit codes:
@@ -99,6 +101,13 @@ Failure modes:
    - Run the smallest project-appropriate docs checks, usually markdown lint and docs freshness/index checks.
    - If the document names commands, files, tests, or runtime gates as acceptance criteria, verify obvious references when cheap.
    - Report validation that was run and anything intentionally skipped.
+
+7. Record skill usage when retained evidence is required
+   - This skill is the first docs-only pilot for `skill-usage.record.v1`.
+   - When the skill creates or updates durable docs and the project allows retained evidence, write a compact skill usage record in the
+     project evidence path or an `agent-out project --topic skill-usage --mkdir` run directory.
+   - Link the implementation-readiness document, docs index changes, validation commands, and any typed child records from the envelope.
+   - Prefer `skill-usage verify --out <record-dir> --format json`; use the documented local checkout fallback when PATH has not caught up.
 
 ## Relationship To Nearby Skills
 

@@ -40,3 +40,12 @@ def test_discussion_to_implementation_doc_can_prepare_execution_state() -> None:
     assert "An `Execution` section" in text
     assert "execution-state path" in text
     assert "next-task source" in text
+
+
+def test_discussion_to_implementation_doc_documents_skill_usage_recording_pilot() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "first docs-only pilot for `skill-usage.record.v1`" in text
+    assert "agent-out project --topic skill-usage --mkdir" in text
+    assert "skill-usage verify --out <record-dir> --format json" in text

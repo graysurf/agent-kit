@@ -26,6 +26,7 @@ This checklist applies to existing skills, newly created skills, and refactors t
 | Template markdown lives only under `references/` or `assets/templates/`. | Keeps executable and reusable docs separated. | `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh --skill-dir <skill-dir>` |
 | Every maintained script under `skills/**/scripts/` is owned by a skill test via `assert_entrypoints_exist(...)` or an explicit reviewed exclusion. | Prevents orphaned public entrypoints. | `scripts/check.sh --entrypoint-ownership` |
 | If a script is expected to participate in smoke coverage, its `tests/script_specs/...json` file stays in sync with the current entrypoint path. | Prevents stale smoke fixtures after script changes. | `bash scripts/ci/stale-skill-scripts-audit.sh --check` |
+| Retained skill usage records use `skill-usage.record.v1` and link typed child evidence instead of copying it. | Keeps skill execution traceable without duplicating evidence primitive schemas. | `skill-usage verify --out <record-dir> --format json` or the documented local checkout fallback |
 | Skill docs reference only maintained entrypoints and current supporting docs. | Avoids contract/docs mismatch after simplification. | `scripts/check.sh --docs` and targeted `rg -n '\$AGENT_HOME/.*/scripts/' <skill-dir> docs/runbooks/skills skills/README.md` |
 | Repo-wide contract/layout checks remain green after a skill change. | Ensures changes do not break unrelated tracked skills. | `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh && skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh` |
 
@@ -37,6 +38,7 @@ This checklist applies to existing skills, newly created skills, and refactors t
 | Add or remove non-template files under the skill directory | `audit-skill-layout.sh --skill-dir <skill-dir>` |
 | Add, remove, or rename a script entrypoint | `scripts/check.sh --entrypoint-ownership` and `bash scripts/ci/stale-skill-scripts-audit.sh --check` |
 | Update repo-facing skill docs or runbooks | `scripts/check.sh --docs` |
+| Add or curate retained skill usage records | `skill-usage verify --out <record-dir> --format json` |
 | Large skill-management or multi-skill refactor | `scripts/check.sh --contracts --skills-layout --entrypoint-ownership` plus `bash scripts/ci/stale-skill-scripts-audit.sh --check` |
 
 ## Reviewer Notes

@@ -2,7 +2,8 @@
 
 This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts). Install `nils-cli` via
 `brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, `agent-out`, and the current evidence and guardrail primitives
-on PATH. The workflow primitive skills below require `nils-cli 0.8.4` or newer. For skill directory layout/path rules, use
+on PATH. The workflow primitive skills below require `nils-cli 0.8.4` or newer unless a skill explicitly states a newer binary-surface
+boundary. For skill directory layout/path rules, use
 `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
 
@@ -23,6 +24,31 @@ This index lists implemented entrypoints only.
   - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
 - Validate runnable path rules in SKILL.md:
   - `$AGENT_HOME/skills/tools/skill-management/skill-governance/scripts/validate_skill_paths.sh`
+
+## Skill usage recording
+
+- Skill usage recording convention:
+  - `docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`
+- Draft JSON schema:
+  - `docs/runbooks/skills/skill-usage-record-v1.schema.json`
+- Canonical nils-cli primitive:
+  - Skill contract: `skills/tools/devex/skill-usage/SKILL.md`
+  - `skill-usage init --out <dir> --skill <skill> --intent <intent> --user-request-summary <summary>`
+  - `skill-usage link-record --out <dir> --type <record-type> --path <path>`
+  - `skill-usage record-failure --out <dir> --phase preflight|execution|validation|cleanup|delivery --classification <classification>
+    --symptom <text> --diagnosis <text> --handling <text> --result fixed|worked-around|blocked|accepted-risk`
+  - `skill-usage record-validation --out <dir> --command <command> --status pass|fail|skipped --summary <summary>`
+  - `skill-usage record-outcome --out <dir> --status pass|fail|blocked|worked-around|accepted-risk|skipped --summary <summary>`
+  - `skill-usage verify --out <dir> --format json`
+  - `skill-usage show --out <dir> --format json`
+- Artifact contract: `skill-usage.record.json` with record schema `skill-usage.record.v1`.
+- Boundary: use a PATH `skill-usage` binary only after `skill-usage --version` reports 0.8.5 or newer. If the released PATH binary is
+  absent or older, consume the primitive through a validated local `nils-cli` checkout:
+  `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p nils-agent-workflow-primitives --bin skill-usage -- <subcommand>
+  ...`.
+- Legacy fallback/reference validator:
+  - `scripts/skills/validate_skill_usage_record.py path/to/skill-usage.record.json`
+  - Keep this only for transition and fixtures; do not add new canonical behavior outside nils-cli.
 
 ## Skill management
 
@@ -149,16 +175,19 @@ This index lists implemented entrypoints only.
     - `skills/tools/devex/docs-impact/SKILL.md`
     - `skills/tools/devex/model-cross-check/SKILL.md`
     - `skills/tools/devex/review-evidence/SKILL.md`
+    - `skills/tools/devex/skill-usage/SKILL.md`
   - `browser-session init|record-step|verify|show`
   - `canary-check run|verify|show`
   - `docs-impact scan`
   - `model-cross-check init|record-observation|verify|show`
   - `review-evidence init|record-finding|record-validation|verify|show`
+  - `skill-usage init|link-record|record-failure|record-validation|record-outcome|verify|show`
 - Artifact contracts:
   - `browser-session.json` with record schema `browser-session.record.v1`.
   - `canary-check.json` with record schema `canary-check.record.v1`.
   - `model-cross-check.json` with record schema `model-cross-check.record.v1`.
   - `review-evidence.json` with record schema `review-evidence.record.v1`.
+  - `skill-usage.record.json` with record schema `skill-usage.record.v1`.
   - `docs-impact` emits JSON scan results and does not write project files.
 - Version floor: requires `nils-cli 0.8.4` or newer with the
   `nils-agent-workflow-primitives` package on PATH.

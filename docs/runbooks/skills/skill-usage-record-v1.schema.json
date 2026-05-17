@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-kit.local/schemas/skill-usage.record.v1.json",
+  "title": "Skill Usage Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "skill",
+    "started_at",
+    "cwd",
+    "trigger",
+    "intent",
+    "inputs",
+    "outcome",
+    "artifacts",
+    "linked_records",
+    "validation",
+    "follow_up"
+  ],
+  "properties": {
+    "schema": {
+      "const": "skill-usage.record.v1"
+    },
+    "skill": {
+      "type": "string",
+      "minLength": 1
+    },
+    "started_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ended_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cwd": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trigger": {
+      "enum": [
+        "user_explicit",
+        "agent_selected",
+        "project_policy",
+        "other"
+      ]
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "user_request_summary",
+        "referenced_files",
+        "external_sources"
+      ],
+      "properties": {
+        "user_request_summary": {
+          "type": "string"
+        },
+        "referenced_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "external_sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "status",
+        "summary"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "blocked",
+            "worked_around",
+            "accepted_risk",
+            "skipped"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "path"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "validation_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "validation_waiver": {
+      "type": "string",
+      "minLength": 1
+    },
+    "validation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "command",
+          "status",
+          "summary"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "skipped"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "phase",
+          "symptom",
+          "classification",
+          "diagnosis",
+          "handling",
+          "result"
+        ],
+        "properties": {
+          "phase": {
+            "enum": [
+              "preflight",
+              "execution",
+              "validation",
+              "cleanup",
+              "delivery"
+            ]
+          },
+          "command": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "symptom": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "enum": [
+              "skill_contract",
+              "script_bug",
+              "missing_dependency",
+              "external_service",
+              "project_state",
+              "user_scope",
+              "unknown"
+            ]
+          },
+          "diagnosis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "handling": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "fixed",
+              "worked_around",
+              "blocked",
+              "accepted_risk"
+            ]
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "follow_up": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

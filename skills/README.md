@@ -15,6 +15,8 @@ scripts, helpers, tests, and references needed to keep it reliable.
   - `tools/skill-management/README.md`
 - Repo-wide review checklist:
   - `../docs/runbooks/skills/SKILL_REVIEW_CHECKLIST.md`
+- Skill usage recording convention:
+  - `../docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`
 - Script simplification playbook:
   - `../docs/runbooks/skills/SCRIPT_SIMPLIFICATION_PLAYBOOK.md`
 

@@ -1,9 +1,10 @@
 # Skill Usage Recording Implementation Handoff
 
-Status: Draft for discussion
+Status: Implemented; nils-cli primitive released through Homebrew
 Date: 2026-05-17
 Source: user request plus current agent-kit skill/tooling contracts
-Intended next step: review the proposed contract, then turn accepted parts into a plan or direct implementation
+Intended next step: use accumulated records to promote the first repeated
+failure into durable skill docs, tests, scripts, primitives, or runbook guidance
 
 ## Purpose
 
@@ -29,10 +30,18 @@ The goal is to make skill execution behave like an explicit heuristic learning l
   `docs-impact`, `model-cross-check`, and `review-evidence`.
 - [F3] Existing repo policy keeps deterministic evidence and guardrail primitives in nils-cli, while skills keep workflow framing,
   judgment, and repo-local policy.
+- [F4] nils-cli implements `skill-usage` under `nils-agent-workflow-primitives`, with agent-kit consuming it through
+  `skills/tools/devex/skill-usage/SKILL.md`.
+- [F5] nils-cli v0.8.5 was released through `sympoies/tap`; local Homebrew install now provides `skill-usage 0.8.5` on PATH.
 - [W1] The "Learning Beyond Gradients" article frames Heuristic Learning as code, tests, records, feedback, memory, and agent-driven updates
   rather than neural-network weight updates.
 
 ## Decisions To Review
+
+The docs-first subset below is implemented in
+`docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`. Writer/validator behavior is
+now implemented as the nils-cli `skill-usage` primitive and released through
+Homebrew in nils-cli v0.8.5 while workflow policy remains in agent-kit.
 
 ### 1. Record every skill invocation at the workflow boundary
 
@@ -56,9 +65,9 @@ Minimum fields:
   },
   "outcome": {
     "status": "pass",
-    "summary": "Created draft implementation handoff",
-    "artifacts": []
+    "summary": "Created draft implementation handoff"
   },
+  "artifacts": [],
   "validation": [],
   "follow_up": []
 }
@@ -74,7 +83,7 @@ Examples:
 - `browser-session.json` for active browser QA.
 - `canary-check.json` for one local canary command.
 - `review-evidence.json` for review findings or validation records.
-- A future `skill-usage.record.v1` file for the skill invocation envelope.
+- `skill-usage.record.v1` for the skill invocation envelope.
 
 This keeps the record readable while preserving machine-verifiable evidence where it already exists.
 
@@ -160,7 +169,7 @@ This proposal does not cover:
 ## Implementation Boundaries
 
 - Keep the top-level skill usage record small and stable.
-- Prefer a nils-cli primitive for record writing and validation if this becomes machine-enforced.
+- Use the nils-cli `skill-usage` primitive for record writing and validation when available.
 - Do not hand-edit generated JSON evidence in normal workflows.
 - Do not require every conversational prompt-style skill to write repo artifacts unless the user requested durable output or the skill touches
   files, tools, external sources, or validation.
@@ -198,8 +207,8 @@ During implementation, validate in layers:
 2. Contract validation if SKILL.md files change:
    - `skills/tools/skill-management/skill-governance/scripts/validate_skill_contracts.sh`
    - `skills/tools/skill-management/skill-governance/scripts/audit-skill-layout.sh`
-3. Primitive validation if a nils-cli command is added:
-   - unit tests in the nils-cli repo;
+3. Primitive validation if a nils-cli command changes:
+   - unit and integration tests in the nils-cli repo;
    - local PATH or local checkout boundary checks;
    - record redaction tests.
 4. Pilot validation:
@@ -220,7 +229,36 @@ During implementation, validate in layers:
 
 ## Execution
 
-Execution state: not created yet.
+Execution state:
+`docs/runbooks/skills/skill-usage-recording-implementation-handoff-execution-state.md`
+
+Implemented docs-first artifacts:
+
+- Canonical convention:
+  `docs/runbooks/skills/SKILL_USAGE_RECORDING_V1.md`
+- Draft schema:
+  `docs/runbooks/skills/skill-usage-record-v1.schema.json`
+- Repo-local validator:
+  `scripts/skills/validate_skill_usage_record.py`
+- Pilot skill wording:
+  `skills/workflows/conversation/discussion-to-implementation-doc/SKILL.md`
+- nils-cli primitive:
+  `skill-usage` from nils-cli v0.8.5 or newer
+- Installed-binary pilot record:
+  `/Users/terry/.config/agent-kit/out/projects/graysurf__agent-kit/20260517-224427-skill-usage-homebrew-pilot/skill-usage/skill-usage.record.json`
+
+Implemented follow-up decisions:
+
+- Promote `skill-usage.record.v1` writer/validator behavior into the nils-cli
+  `skill-usage` primitive.
+- Retention precedence is project-defined evidence path first,
+  `agent-out project --topic skill-usage --mkdir` second, and `$AGENT_HOME/out/`
+  only as home-scope fallback.
+- Generated runtime records remain untracked by default. Commit only curated
+  review, incident, audit, fixture, or compressed durable records.
+- Prompt-style conversational skills do not get a separate schema yet. Use no
+  record for pure conversation; use full `skill-usage.record.v1` only when there
+  is durable work, tooling, external lookup, or validation.
 
 Recommended execution source after review:
 
@@ -228,21 +266,37 @@ Recommended execution source after review:
 - If the review finds major policy questions, use `review-to-improvement-doc` first to preserve review findings, then plan from the revised
   version.
 
-Suggested pilot order:
+Pilot status:
 
-1. Document-only pilot using `discussion-to-implementation-doc`.
-2. Tool/evidence pilot using `web-qa` or `gh-fix-ci`.
-3. Cross-skill promotion pilot using one repeated failure mode.
+1. Document-only pilot wiring is documented in `discussion-to-implementation-doc`.
+2. Installed-binary success pilot is retained under the project-scoped
+   `agent-out` run directory listed above.
+3. Cross-skill repeated-failure promotion remains pending until enough real
+   failure records accumulate.
 
-## Open Questions
+## Answered Decisions
 
-1. Should every explicit skill invocation produce an artifact, or only invocations that use tools, files, external sources, validation, or
-   delivery workflows?
-2. Should the record live under the target project run directory, `$AGENT_HOME/out/`, or a project-defined evidence path?
-3. Should skill usage records be retained by default, or cleaned after lessons are promoted?
-4. Should the first implementation be a nils-cli primitive, a lightweight shell wrapper, or docs-only convention?
-5. Should prompt-style conversational skills have a lighter record schema?
-6. Should records be committed only when they are curated evidence, or always remain untracked runtime artifacts?
+1. Records are required for explicit skills that use tools, files, external
+   sources, validation, delivery workflows, or durable artifacts. Pure
+   conversational prompt-style skills do not require records.
+2. Records prefer a project-defined evidence path, then a project-scoped
+   `agent-out` run directory, with `$AGENT_HOME/out/` only as fallback.
+3. Runtime records stay untracked by default and should be cleaned or compressed
+   after their lesson is represented in durable docs, tests, scripts, or
+   primitives.
+4. The first implementation is docs-first in agent-kit, followed by a nils-cli
+   primitive for deterministic writer/validator behavior.
+5. Prompt-style conversational skills should not get a separate lighter schema
+   yet. Use no record for pure conversation, or full `skill-usage.record.v1`
+   with `validation_required=false` and `validation_waiver` for rare retained
+   lightweight cases.
+6. Records should be committed only when curated as review, incident, audit,
+   fixture, or compressed durable evidence.
+
+## Remaining Questions
+
+1. Which accumulated repeated failure should be the first compression/promotion
+   pilot.
 
 ## Read-First References
 
@@ -259,6 +313,6 @@ Suggested pilot order:
 
 After review, create one of:
 
-- an implementation plan under `docs/plans/` if this should be delivered in phases;
-- a smaller direct patch if the first step is only docs/schema wording;
-- a nils-cli primitive design doc if the record writer/validator should become a deterministic command.
+- a short promotion record once a real repeated failure has generated enough
+  success/failure evidence to justify durable skill, test, script, primitive, or
+  runbook changes.
