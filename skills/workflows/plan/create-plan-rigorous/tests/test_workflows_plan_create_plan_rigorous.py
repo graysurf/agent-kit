@@ -75,8 +75,8 @@ def test_create_plan_rigorous_requires_source_artifact_and_review_check() -> Non
 
     assert "Establish the plan source artifact" in text
     assert "Rigorous plans must have exactly one primary source artifact" in text
-    assert "docs/plans/<slug>-discussion-source.md" in text
-    assert "docs/plans/<slug>-review-source.md" in text
+    assert "docs/plans/<slug>/<slug>-discussion-source.md" in text
+    assert "docs/plans/<slug>/<slug>-review-source.md" in text
     assert "coordination artifacts" in text
     assert "cleanup after execution" in text
     assert "Link the primary source under `Read First`" in text
@@ -84,5 +84,6 @@ def test_create_plan_rigorous_requires_source_artifact_and_review_check() -> Non
     assert "plan-only waiver" in text
     assert "Every plan needs a primary source artifact" in shared
     assert "<slug>-review-source.md" in shared
+    assert "docs/plans/<slug>/<slug>-plan.md" in shared
     assert "## Read First" in template
     assert "Open questions carried into execution" in template

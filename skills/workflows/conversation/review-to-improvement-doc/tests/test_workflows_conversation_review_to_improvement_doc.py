@@ -17,7 +17,7 @@ def test_review_to_improvement_doc_defines_artifact_boundary() -> None:
     assert "repo-local improvement source document" in text
     assert "Do not turn it into a phased implementation plan" in text
     assert "Do not turn it into a handoff prompt" in text
-    assert "docs/plans/<slug>-review-source.md" in text
+    assert "docs/plans/<slug>/<slug>-review-source.md" in text
 
 
 def test_review_to_improvement_doc_requires_findings_and_discoverability() -> None:

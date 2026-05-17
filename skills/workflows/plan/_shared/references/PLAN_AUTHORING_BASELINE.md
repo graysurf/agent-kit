@@ -27,7 +27,7 @@ policy.
   fix-later backlog, create or reference a `review-to-improvement-doc` artifact
   before writing the plan.
 - When creating a source artifact specifically for plan execution, save it next
-  to the plan under `docs/plans/` using `<slug>-discussion-source.md` or
+  to the plan in `docs/plans/<slug>/` using `<slug>-discussion-source.md` or
   `<slug>-review-source.md`. Promote or rewrite it into domain docs/runbooks
   only when it has value after execution finishes.
 - Existing issues, tickets, specs, or project docs can be the primary source
@@ -60,12 +60,15 @@ policy.
 
 ## Save and lint
 
-- Save plans to `docs/plans/<slug>-plan.md`.
-- Slug rules: lowercase kebab-case, 3-6 words, end with `-plan.md`.
+- Save plans to `docs/plans/<slug>/<slug>-plan.md`.
+- Slug rules: lowercase kebab-case, 3-6 words, with a plan file named
+  `<slug>-plan.md` inside the matching folder.
+- Use `plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md`; the
+  `--slug` shortcut still writes the legacy flat path until nils-cli is updated.
 - Lint with:
 
   ```bash
-  plan-tooling validate --file docs/plans/<slug>-plan.md
+  plan-tooling validate --file docs/plans/<slug>/<slug>-plan.md
   ```
 
 - Tighten the plan until validation passes.
@@ -77,9 +80,9 @@ policy.
 - For each sprint, run:
 
   ```bash
-  plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>
-  plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint \
+  plan-tooling to-json --file docs/plans/<slug>/<slug>-plan.md --sprint <n>
+  plan-tooling batches --file docs/plans/<slug>/<slug>-plan.md --sprint <n>
+  plan-tooling split-prs --file docs/plans/<slug>/<slug>-plan.md --scope sprint \
     --sprint <n> --strategy auto --default-pr-grouping group --format json
   ```
 
@@ -89,14 +92,14 @@ policy.
   - Validate with:
 
     ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json
+    plan-tooling split-prs --file docs/plans/<slug>/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping group --strategy deterministic --pr-group ... --format json
     ```
 
 - If the user explicitly requests one shared lane per sprint:
   - Validate with:
 
     ```bash
-    plan-tooling split-prs --file docs/plans/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json
+    plan-tooling split-prs --file docs/plans/<slug>/<slug>-plan.md --scope sprint --sprint <n> --pr-grouping per-sprint --strategy deterministic --format json
     ```
 
 - After each adjustment, rerun `plan-tooling validate` and the relevant

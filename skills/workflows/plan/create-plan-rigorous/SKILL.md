@@ -28,7 +28,7 @@ Inputs:
 
 Outputs:
 
-- A new plan file saved to `docs/plans/<slug>-plan.md`.
+- A new plan file saved to `docs/plans/<slug>/<slug>-plan.md`.
 - A `Read First` section that links the primary source artifact or records an
   explicit plan-only waiver.
 - A short response linking the plan path and summarizing key decisions/risks.
@@ -78,11 +78,11 @@ Failure modes:
 - For converged requirements, design, feasibility, product, architecture, or
   customer-facing discussion, first use `discussion-to-implementation-doc` or
   reference an equivalent existing doc/spec. When creating it for this plan,
-  save it as `docs/plans/<slug>-discussion-source.md`.
+  save it as `docs/plans/<slug>/<slug>-discussion-source.md`.
 - For review findings, risks, lessons learned, or fix-later backlog, first use
   `review-to-improvement-doc` or reference an equivalent existing issue/doc.
   When creating it for this plan, save it as
-  `docs/plans/<slug>-review-source.md`.
+  `docs/plans/<slug>/<slug>-review-source.md`.
 - Existing issues, tickets, specs, or project docs can be the primary source
   when they already separate facts, scope, decisions, acceptance criteria, and
   open questions well enough for execution.

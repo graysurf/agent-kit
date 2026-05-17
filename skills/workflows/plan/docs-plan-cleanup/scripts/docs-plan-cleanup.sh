@@ -8,7 +8,7 @@ Usage:
 
 Options:
   --project-path <path>       Target project path (default: $PROJECT_PATH when set, otherwise current directory)
-  --keep-plan <path|name>     Preserve a plan (repeatable)
+  --keep-plan <path|name>     Preserve a plan/source doc or nested plan folder (repeatable)
   --keep-plans-file <path>    File with keep-plan entries (one per line, '#' comments allowed)
   --execute                   Apply deletions (default: dry-run)
   --delete-important          Also delete stale docs/specs/** and docs/runbooks/**
@@ -17,7 +17,8 @@ Options:
 
 Behavior:
   1) Targets all markdown files under docs/plans/**.
-  2) Deletes all plans except those explicitly preserved.
+  2) Deletes all plans/source docs except those explicitly preserved.
+     When a kept file is inside docs/plans/<slug>/, preserve that whole bundle.
   3) Finds related docs under docs/**/*.md (excluding docs/plans/**):
      - auto-delete if they only reference removed plans,
      - keep them when they are referenced by other non-plan markdown files,
@@ -109,7 +110,7 @@ join_with() {
 
 resolve_keep_entry() {
   local raw="$1"
-  local normalized candidate plan base stem
+  local normalized candidate plan base stem plan_dir plan_name
   local -a matches
   matches=()
 
@@ -154,10 +155,26 @@ resolve_keep_entry() {
     return 0
   fi
 
+  if [[ "$normalized" != docs/plans/* && "$normalized" != */* ]]; then
+    if array_contains "docs/plans/${normalized}/${normalized}-plan.md" "${plan_files[@]}"; then
+      printf '%s\n' "docs/plans/${normalized}/${normalized}-plan.md"
+      return 0
+    fi
+    if [[ "$normalized" == *-plan ]] && [[ "$normalized" != *.md ]]; then
+      plan_name="$normalized"
+      plan_dir="${plan_name%-plan}"
+      if array_contains "docs/plans/${plan_dir}/${plan_name}.md" "${plan_files[@]}"; then
+        printf '%s\n' "docs/plans/${plan_dir}/${plan_name}.md"
+        return 0
+      fi
+    fi
+  fi
+
   for plan in "${plan_files[@]}"; do
     base="$(basename "$plan")"
     stem="${base%.md}"
-    if [[ "$normalized" == "$base" || "$normalized" == "$stem" || "$candidate" == "$base" || "$candidate" == "$stem" ]]; then
+    plan_dir="$(dirname "$plan")"
+    if [[ "$normalized" == "$base" || "$normalized" == "$stem" || "$normalized" == "${plan_dir#docs/plans/}" || "$candidate" == "$base" || "$candidate" == "$stem" ]]; then
       matches+=( "$plan" )
     fi
   done
@@ -174,6 +191,15 @@ resolve_keep_entry() {
 
   echo "error: keep-plan not found: $raw" >&2
   return 1
+}
+
+bundle_dir_for_plan_file() {
+  local rel="$1"
+  local dir
+  dir="$(dirname "$rel")"
+  if [[ "$dir" == docs/plans/* && "$dir" != docs/plans ]]; then
+    printf '%s\n' "$dir"
+  fi
 }
 
 print_list() {
@@ -334,11 +360,33 @@ for keep_entry in "${keep_entries[@]}"; do
   fi
 done
 
+keep_bundle_dirs=()
+for keep_plan in "${keep_plans[@]}"; do
+  bundle_dir="$(bundle_dir_for_plan_file "$keep_plan")"
+  if [[ -n "$bundle_dir" ]] && ! array_contains "$bundle_dir" "${keep_bundle_dirs[@]}"; then
+    keep_bundle_dirs+=( "$bundle_dir" )
+  fi
+done
+
+for plan in "${plan_files[@]}"; do
+  plan_bundle_dir="$(bundle_dir_for_plan_file "$plan")"
+  if [[ -z "$plan_bundle_dir" ]]; then
+    continue
+  fi
+  if ! array_contains "$plan_bundle_dir" "${keep_bundle_dirs[@]}"; then
+    continue
+  fi
+  if ! array_contains "$plan" "${keep_plans[@]}"; then
+    keep_plans+=( "$plan" )
+  fi
+done
+
 delete_plans=()
 for plan in "${plan_files[@]}"; do
-  if ! array_contains "$plan" "${keep_plans[@]}"; then
-    delete_plans+=( "$plan" )
+  if array_contains "$plan" "${keep_plans[@]}"; then
+    continue
   fi
+  delete_plans+=( "$plan" )
 done
 
 docs_files=()

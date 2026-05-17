@@ -17,21 +17,21 @@ Use durable artifacts when discussion, review, planning, execution, or handoff m
 6. `handoff-session-prompt` only when a fresh session prompt is needed; point it at the maintained source doc and execution state.
 7. `durable-artifact-cleanup` after execution is complete and the coordination docs are obsolete, unreferenced, and safe to delete.
 
-Plan-created source docs live under `docs/plans/` by default, next to the plan
-that consumes them. Promote or rewrite them into domain docs/runbooks only when
-they have value after execution.
+Plan-created source docs live under the same `docs/plans/<slug>/` folder as the
+plan that consumes them. Promote or rewrite them into domain docs/runbooks only
+when they have value after execution.
 
 Prefer deleting obsolete coordination docs after completion and reference checks. Keep or rehome retained evidence, audit material, and
 diagnostic artifacts when project policy or future validation needs require them.
 
 ## Workflow Roles
 
-- `create-plan`: create a phased implementation plan under `docs/plans/`.
+- `create-plan`: create a phased implementation plan under `docs/plans/<slug>/`.
 - `create-plan-rigorous`: create a higher-rigor plan with stronger sizing and execution metadata.
 - Plan skills require one primary source artifact under `Read First` unless the
   user explicitly asks for a plan-only waiver.
 - `discussion-to-implementation-doc` and `review-to-improvement-doc`: create
-  plan-source docs under `docs/plans/` when they exist for execution
+  plan-source docs under the matching `docs/plans/<slug>/` folder when they exist for execution
   coordination.
 - `execute-from-implementation-doc`: resume implementation from an execution-ready handoff, improvement record, or plan.
 - `execute-plan-parallel`: execute a markdown plan through explicitly requested parallel subagents.

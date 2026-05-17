@@ -1,9 +1,9 @@
 ---
 name: create-plan
 description:
-  Create a comprehensive, phased implementation plan and save it under docs/plans/. Use when the user asks for an implementation plan (make
-  a plan, outline the steps, break down tasks, etc.). Do not use as the primary artifact when the user only needs a durable review finding,
-  improvement backlog, or handoff record; route that to review-to-improvement-doc, discussion-to-implementation-doc, or
+  Create a comprehensive, phased implementation plan and save it under a dedicated docs/plans/<slug>/ folder. Use when the user asks for an
+  implementation plan (make a plan, outline the steps, break down tasks, etc.). Do not use as the primary artifact when the user only needs
+  a durable review finding, improvement backlog, or handoff record; route that to review-to-improvement-doc, discussion-to-implementation-doc, or
   handoff-session-prompt as appropriate.
 ---
 
@@ -29,7 +29,7 @@ Inputs:
 
 Outputs:
 
-- A new plan file saved to `docs/plans/<slug>-plan.md`.
+- A new plan file saved to `docs/plans/<slug>/<slug>-plan.md`.
 - A `Read First` section that links the primary source artifact or records an
   explicit plan-only waiver.
 - A short response that links the plan path and summarizes the approach.
@@ -71,7 +71,8 @@ Failure modes:
   Use `discussion-to-implementation-doc` for the implementation-readiness
   source artifact.
 - If the user needs both a durable review/improvement record and an execution plan, keep them distinct: preserve the stable findings in the
-  project doc first, then write the plan under `docs/plans/` and link that doc under the plan's context/read-first section.
+  project doc first, then write the plan under its own `docs/plans/<slug>/` folder and link that doc under the plan's
+  context/read-first section.
 - If a durable project doc, issue, or tracker already exists, reference it rather than duplicating the full backlog inside the plan.
 - If the user wants to execute or resume an existing plan or implementation-ready document, use `execute-from-implementation-doc` instead
   of creating another plan.
@@ -83,11 +84,11 @@ Failure modes:
 - For converged requirements, design, feasibility, product, architecture, or
   customer-facing discussion, first use `discussion-to-implementation-doc` or
   reference an equivalent existing doc/spec. When creating it for this plan,
-  save it as `docs/plans/<slug>-discussion-source.md`.
+  save it as `docs/plans/<slug>/<slug>-discussion-source.md`.
 - For review findings, risks, lessons learned, or fix-later backlog, first use
   `review-to-improvement-doc` or reference an equivalent existing issue/doc.
   When creating it for this plan, save it as
-  `docs/plans/<slug>-review-source.md`.
+  `docs/plans/<slug>/<slug>-review-source.md`.
 - Existing issues, tickets, specs, or project docs can be the primary source
   when they already separate facts, scope, decisions, acceptance criteria, and
   open questions well enough for execution.
@@ -136,4 +137,6 @@ Canonical shared authoring and validation rules:
 
 Optional scaffold helper (creates a placeholder plan; fill it before linting):
 
-- `plan-tooling scaffold --slug <kebab-case> --title "<task name>"`
+- `plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md --title "<task name>"`
+  - `plan-tooling scaffold --slug` still writes the legacy flat path; use
+    `--file` until nils-cli supports plan-folder defaults.

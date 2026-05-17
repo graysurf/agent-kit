@@ -73,7 +73,9 @@ only when they are intentionally retained as migration history.
 ## Plan tooling (Plan Format v1)
 
 - Scaffold a new plan file:
-  - `plan-tooling scaffold`
+  - `plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md`
+  - `plan-tooling scaffold --slug <slug>` currently writes the legacy flat path;
+    keep using `--file` until nils-cli adopts plan-folder defaults.
 - Lint plans:
   - `plan-tooling validate`
 - Parse plan → JSON:

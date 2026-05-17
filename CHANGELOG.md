@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - **skill taxonomy**: move public tool and automation skills into nested
   behavior-boundary folders, update catalog/runbook/script-spec references, and
   teach skill-management tooling to catalog nested public areas.
+- **plan workflows**: default new plan artifacts to
+  `docs/plans/<slug>/<slug>-plan.md`, keep plan-created source docs in the same
+  folder, and teach `docs-plan-cleanup` to preserve or delete those bundles
+  together.
 
 ### Removed
 

@@ -16,8 +16,8 @@ def test_create_plan_references_shared_plan_baseline_for_executability_rules() -
     shared = shared_plan_baseline_text(__file__)
 
     assert "PLAN_AUTHORING_BASELINE.md" in text
-    assert "plan-tooling to-json --file docs/plans/<slug>-plan.md --sprint <n>" in shared
-    assert "plan-tooling batches --file docs/plans/<slug>-plan.md --sprint <n>" in shared
+    assert "plan-tooling to-json --file docs/plans/<slug>/<slug>-plan.md --sprint <n>" in shared
+    assert "plan-tooling batches --file docs/plans/<slug>/<slug>-plan.md --sprint <n>" in shared
     assert "--strategy auto --default-pr-grouping group --format json" in shared
     assert "--pr-grouping group --strategy deterministic --pr-group ... --format json" in shared
     assert "--pr-grouping per-sprint --strategy deterministic --format json" in shared
@@ -47,7 +47,8 @@ def test_create_plan_distinguishes_plans_from_durable_improvement_records() -> N
     assert "Use `review-to-improvement-doc`" in text
     assert "Use `discussion-to-implementation-doc`" in text
     assert "durable review/improvement record" in text
-    assert "link that doc under the plan's context/read-first section" in text
+    assert "link that doc under the plan's" in text
+    assert "context/read-first section" in text
     assert "use `execute-from-implementation-doc` instead" in text
 
 
@@ -60,12 +61,14 @@ def test_create_plan_requires_primary_source_artifact_before_plan() -> None:
     assert "Every plan must have exactly one primary source artifact" in text
     assert "`discussion-to-implementation-doc`" in text
     assert "`review-to-improvement-doc`" in text
-    assert "docs/plans/<slug>-discussion-source.md" in text
-    assert "docs/plans/<slug>-review-source.md" in text
+    assert "docs/plans/<slug>/<slug>-discussion-source.md" in text
+    assert "docs/plans/<slug>/<slug>-review-source.md" in text
     assert "coordination artifacts" in text
     assert "cleanup after execution" in text
     assert "<slug>-discussion-source.md" in shared
     assert "<slug>-review-source.md" in shared
+    assert "docs/plans/<slug>/<slug>-plan.md" in shared
+    assert "plan-tooling scaffold --file docs/plans/<slug>/<slug>-plan.md" in shared
     assert "Link the primary source under `Read First`" in text
     assert "Every plan needs a primary source artifact" in shared
     assert "Source type" in shared

@@ -130,4 +130,55 @@ bash "$entrypoint" --project-path "$repo_five" --keep-plan a-review-source --exe
 [[ ! -f "${repo_five}/docs/plans/a-plan.md" ]]
 [[ ! -f "${repo_five}/docs/plans/b-plan.md" ]]
 
+repo_six="${tmp_root}/repo-six"
+mkdir -p "$repo_six"
+(
+  cd "$repo_six"
+  git init >/dev/null
+  mkdir -p docs/plans/keep docs/plans/stale
+  cat > docs/plans/keep/keep-plan.md <<'EOF_INNER'
+# Keep plan
+EOF_INNER
+  cat > docs/plans/keep/keep-discussion-source.md <<'EOF_INNER'
+# Keep discussion source
+EOF_INNER
+  cat > docs/plans/keep/keep-review-source.md <<'EOF_INNER'
+# Keep review source
+EOF_INNER
+  cat > docs/plans/keep/keep-execution-state.md <<'EOF_INNER'
+# Keep execution state
+EOF_INNER
+  cat > docs/plans/stale/stale-plan.md <<'EOF_INNER'
+# Stale plan
+EOF_INNER
+  cat > docs/plans/stale/stale-discussion-source.md <<'EOF_INNER'
+# Stale discussion source
+EOF_INNER
+  cat > docs/plans/stale/stale-review-source.md <<'EOF_INNER'
+# Stale review source
+EOF_INNER
+  cat > docs/plans/stale/stale-execution-state.md <<'EOF_INNER'
+# Stale execution state
+EOF_INNER
+)
+
+nested_output="$(bash "$entrypoint" --project-path "$repo_six" --keep-plan keep)"
+echo "$nested_output" | grep -Fq "plan_md_to_keep: 4"
+echo "$nested_output" | grep -Fq "plan_md_to_clean: 4"
+echo "$nested_output" | grep -Fq -- "- docs/plans/keep/keep-plan.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/keep/keep-discussion-source.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/keep/keep-review-source.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/keep/keep-execution-state.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/stale/stale-plan.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/stale/stale-discussion-source.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/stale/stale-review-source.md"
+echo "$nested_output" | grep -Fq -- "- docs/plans/stale/stale-execution-state.md"
+
+bash "$entrypoint" --project-path "$repo_six" --keep-plan keep --execute --delete-empty-dirs >/dev/null
+[[ -f "${repo_six}/docs/plans/keep/keep-plan.md" ]]
+[[ -f "${repo_six}/docs/plans/keep/keep-discussion-source.md" ]]
+[[ -f "${repo_six}/docs/plans/keep/keep-review-source.md" ]]
+[[ -f "${repo_six}/docs/plans/keep/keep-execution-state.md" ]]
+[[ ! -e "${repo_six}/docs/plans/stale" ]]
+
 echo "ok: docs-plan-cleanup tests passed"

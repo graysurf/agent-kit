@@ -48,7 +48,7 @@ def test_discussion_to_implementation_doc_can_be_plan_source() -> None:
 
     assert "primary source artifact for later plan" in text
     assert "requirements, design, feasibility" in text
-    assert "docs/plans/<slug>-discussion-source.md" in text
+    assert "docs/plans/<slug>/<slug>-discussion-source.md" in text
     assert "Promote or rewrite into domain docs/runbooks" in text
     assert "cleanup after execution or promotion candidate" in text
     assert "plan's `Read First` section as the primary source" in text

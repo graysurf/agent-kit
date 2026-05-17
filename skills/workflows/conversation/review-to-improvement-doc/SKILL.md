@@ -25,7 +25,7 @@ Inputs:
 Outputs:
 
 - A repo-local improvement source document. When it exists to feed plan execution, save it under
-  `docs/plans/<slug>-review-source.md` by default.
+  `docs/plans/<slug>/<slug>-review-source.md` by default.
 - If the document is long-lived knowledge rather than execution coordination, save it in the relevant domain docs/runbook area instead.
 - A source artifact that `create-plan` or `create-plan-rigorous` can link under
   `Read First` when execution sequencing is needed.
@@ -68,7 +68,8 @@ Failure modes:
 2. Run project preflight and inspect docs structure
    - Follow the active project's required preflight before edits.
    - Read nearby docs and local project rules before choosing a path.
-   - If this document is a source for plan generation, place it under `docs/plans/` using `docs/plans/<slug>-review-source.md`.
+   - If this document is a source for plan generation, place it inside the plan folder using
+     `docs/plans/<slug>/<slug>-review-source.md`.
    - Prefer an existing domain folder or runbook area only when the artifact is meant to remain after execution.
    - Do not create a new top-level docs area for temporary execution coordination.
 
@@ -98,8 +99,8 @@ Failure modes:
    - Keep implementation task sequencing lightweight; leave detailed sprint/task decomposition to plan skills.
 
 5. Update discoverability
-   - For `docs/plans/` source documents, use the plan's `Read First` section as the discoverability path; do not update broad indexes by
-     default.
+   - For `docs/plans/<slug>/` source documents, use the plan's `Read First` section as the discoverability path; do not update broad
+     indexes by default.
    - Update the nearest docs index or README only when this document is promoted or intentionally retained after execution.
    - Link from broader docs entrypoints only when this document is meant to be found by future maintainers without prior plan/session
      context.
