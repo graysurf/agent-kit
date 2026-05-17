@@ -1,8 +1,8 @@
 ---
 name: semantic-commit-autostage
 description:
-  Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where Codex owns the full change set and
-  the user should not manually stage files.
+  Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows where the active agent owns the full
+  change set and the user should not manually stage files.
 ---
 
 # Semantic Commit (Autostage)

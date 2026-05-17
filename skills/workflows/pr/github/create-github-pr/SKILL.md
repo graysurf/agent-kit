@@ -74,8 +74,9 @@ Failure modes:
 ## Workflow
 
 1. Run preflight and stop if required PR context remains missing.
-2. Confirm working tree scope. Commit only intended changes, using `semantic-commit-autostage` when Codex owns the full change set or
-   `semantic-commit` when the user has staged a reviewed subset.
+2. Confirm working tree scope. Commit only intended changes, using
+   `semantic-commit-autostage` when the active agent owns the full change set,
+   or `semantic-commit` when the user has staged a reviewed subset.
 3. Generate the PR body:
    - `$AGENT_HOME/skills/workflows/pr/github/create-github-pr/scripts/render_github_pr.sh --kind feature --pr`
    - `$AGENT_HOME/skills/workflows/pr/github/create-github-pr/scripts/render_github_pr.sh --kind bug --pr`

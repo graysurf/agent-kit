@@ -112,9 +112,9 @@ See [docker/agent-workspace-launcher/README.md](docker/agent-workspace-launcher/
 
 ## 🧰 Prompts
 
-Prompt presets are implemented as prompt-style skills so Codex CLI can surface
-them through `/skills`. The source prompt text lives under each skill's
-`references/prompts/` directory.
+Prompt presets are implemented as prompt-style skills so compatible agent CLIs
+can surface them through a skill picker or `/skills`-style command. The source
+prompt text lives under each skill's `references/prompts/` directory.
 
 ### Common
 

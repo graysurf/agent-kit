@@ -72,8 +72,9 @@ Failure modes:
 ## Workflow
 
 1. Run preflight and stop if required MR context remains missing.
-2. Confirm working tree scope. Commit only intended changes, using `semantic-commit-autostage` when Codex owns the full change set or
-   `semantic-commit` when the user has staged a reviewed subset.
+2. Confirm working tree scope. Commit only intended changes, using
+   `semantic-commit-autostage` when the active agent owns the full change set,
+   or `semantic-commit` when the user has staged a reviewed subset.
 3. Generate the MR body:
    - `$AGENT_HOME/skills/workflows/mr/gitlab/create-gitlab-mr/scripts/render_gitlab_mr.sh --mr`
 4. Push the source branch.
