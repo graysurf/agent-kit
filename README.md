@@ -5,7 +5,7 @@
 agent-kit tracks AI agent setup to keep workflows consistent across machines. It contains prompt-style skills, custom workflows, and local
 tooling.
 
-## 🧭 Positioning
+## 🧭 Identity & Scope
 
 agent-kit is an agent-facing Heuristic System framework, not a generic skill marketplace. It gives agents a portable operating layer where
 skills, scripts, runbooks, evidence records, tests, hooks, and guardrails can turn repeated workflow experience into maintainable repo
