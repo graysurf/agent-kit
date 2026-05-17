@@ -6,9 +6,7 @@ on PATH. The workflow primitive skills below require `nils-cli 0.8.4` or newer. 
 `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
 
-Candidate future `nils-cli` primitives are tracked separately in
-`docs/runbooks/nils-cli/skill-consumable-primitives.md`; this index lists only
-implemented entrypoints.
+This index lists implemented entrypoints only.
 
 ## SKILL.md format
 

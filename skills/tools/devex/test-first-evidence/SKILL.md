@@ -111,6 +111,4 @@ Do not hand-edit `test-first-evidence.json` or duplicate redaction, completeness
 
 ## References
 
-- `docs/runbooks/nils-cli/skill-consumable-primitives.md`
-- `docs/runbooks/nils-cli/test-first-evidence-contract.md`
 - `docs/runbooks/skills/TOOLING_INDEX_V2.md`

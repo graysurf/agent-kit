@@ -95,6 +95,4 @@ Do not reimplement HTTP fetching, redaction, schema generation, or artifact nami
 
 ## References
 
-- `docs/runbooks/nils-cli/skill-consumable-primitives.md`
-- `docs/runbooks/nils-cli/agent-kit-skill-adoption.md`
 - `docs/runbooks/skills/TOOLING_INDEX_V2.md`
