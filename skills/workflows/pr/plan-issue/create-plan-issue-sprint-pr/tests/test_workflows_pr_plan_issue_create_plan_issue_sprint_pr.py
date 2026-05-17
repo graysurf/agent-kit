@@ -60,6 +60,14 @@ def test_render_body_only_uses_dispatch_record(tmp_path: Path) -> None:
         "Sprint 2 completes the storage lane.",
         "--scope",
         "src/storage/: implements S2T3 and S2T4.",
+        "--test-first-evidence",
+        "Change classification: behavior change.",
+        "--test-first-evidence",
+        "Failing test before fix: tests/unit/test_storage.py::test_groups_by_key failed before implementation.",
+        "--test-first-evidence",
+        "Final validation: scripts/check.sh --tests -- -k storage (pass).",
+        "--test-first-evidence",
+        "Waiver reason: N/A.",
         "--testing",
         "scripts/check.sh --tests -- -k storage (pass)",
         "--body-only",
@@ -68,6 +76,8 @@ def test_render_body_only_uses_dispatch_record(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "## Summary" in result.stdout
     assert "## Scope" in result.stdout
+    assert "## Test-First Evidence" in result.stdout
+    assert "Failing test before fix: tests/unit/test_storage.py::test_groups_by_key" in result.stdout
     assert "Sprint 2 task IDs: S2T3, S2T4." in result.stdout
     assert "- #12" in result.stdout
 
@@ -131,3 +141,37 @@ def test_render_module_prints_dispatch_facts(tmp_path: Path) -> None:
     facts = json.loads(result.stdout)
     assert facts["task_ids"] == ["S3T1"]
     assert facts["sprint_number"] == 3
+
+
+def test_renderer_adds_default_test_first_evidence_when_omitted(tmp_path: Path) -> None:
+    dispatch = tmp_path / "dispatch-S1T2.json"
+    dispatch.write_text(
+        json.dumps(
+            {
+                "task_id": "S1T2",
+                "branch": "issue-8-s1",
+                "base_branch": "plan/issue-8",
+                "worktree_abs_path": str(tmp_path / "worktree"),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = _run_entrypoint(
+        "--dispatch-record",
+        str(dispatch),
+        "--issue",
+        "8",
+        "--summary",
+        "Sprint 1 completes the default-evidence lane.",
+        "--scope",
+        "src/app.py: implements S1T2.",
+        "--testing",
+        "scripts/check.sh --tests -- -k app (pass)",
+        "--body-only",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "## Test-First Evidence" in result.stdout
+    assert "Change classification: sprint implementation lane." in result.stdout
+    assert "Failing test before fix: see assigned lane evidence" in result.stdout

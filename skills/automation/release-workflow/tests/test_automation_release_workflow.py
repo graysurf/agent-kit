@@ -28,3 +28,15 @@ def test_automation_release_workflow_declares_retained_entrypoints() -> None:
     assert "$AGENT_HOME/skills/automation/release-workflow/scripts/release-publish-from-changelog.sh" in text
     assert "--push-current-branch" in text
     assert "legacy wrapper paths are not supported" in text.lower()
+
+
+def test_automation_release_workflow_documents_static_url_evidence_boundary() -> None:
+    text = (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+    assert "## Static URL evidence" in text
+    assert "Project release guides remain authoritative" in text
+    assert "web-evidence capture <url>" in text
+    assert "summary.json" in text
+    assert "headers.redacted.json" in text
+    assert "body-preview.redacted.txt" in text
+    assert "JavaScript execution" in text
+    assert "auth/cookies" in text

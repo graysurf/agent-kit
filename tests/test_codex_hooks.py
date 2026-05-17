@@ -59,6 +59,11 @@ def run_shell_hook(
     return completed.returncode, parse_stdout(completed.stdout), completed.stderr
 
 
+def write_executable(path: Path, content: str) -> None:
+    path.write_text(content, "utf-8")
+    path.chmod(0o755)
+
+
 def command_payload(command: str, **tool_input: str) -> dict[str, Any]:
     return {"tool_name": "Bash", "tool_input": {"command": command, **tool_input}}
 
@@ -552,6 +557,154 @@ class TestMcpSecretScanHook:
         assert completed.returncode == 1
         assert "Linux home path" in completed.stdout
         assert "/home/codex/" not in completed.stdout
+
+
+class TestAgentScopeLockGuardHook:
+    def stub_agent_scope_lock(
+        self,
+        tmp_path: Path,
+        response: dict[str, Any],
+        *,
+        exit_code: int,
+    ) -> dict[str, str]:
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        write_executable(
+            bin_dir / "agent-scope-lock",
+            f"""#!{sys.executable}
+import json
+import sys
+
+if sys.argv[1:] != ["validate", "--changes", "all", "--format", "json"]:
+    print("unexpected args", file=sys.stderr)
+    sys.exit(2)
+print(json.dumps({response!r}))
+sys.exit({exit_code})
+""",
+        )
+        env = os.environ.copy()
+        env["PATH"] = str(bin_dir) + os.pathsep + env.get("PATH", "")
+        return env
+
+    def test_no_lock_is_noop(self, tmp_path: Path) -> None:
+        env = self.stub_agent_scope_lock(
+            tmp_path,
+            {"ok": False, "error": {"code": "missing-lock", "message": "scope lock not found"}},
+            exit_code=1,
+        )
+
+        code, decision, _ = run_python_hook(
+            "agent-scope-lock-guard.py",
+            {"tool_name": "apply_patch", "tool_input": {"patch": "*** Begin Patch\n*** End Patch\n"}},
+            cwd=tmp_path,
+            env=env,
+        )
+
+        assert code == 0
+        assert_allowed(decision)
+
+    def test_missing_binary_without_lock_is_noop(self, tmp_path: Path) -> None:
+        empty_path = tmp_path / "empty-bin"
+        empty_path.mkdir()
+        env = os.environ.copy()
+        env["PATH"] = str(empty_path)
+
+        code, decision, _ = run_python_hook(
+            "agent-scope-lock-guard.py",
+            {"tool_name": "Write", "tool_input": {"file_path": "README.md"}},
+            cwd=tmp_path,
+            env=env,
+        )
+
+        assert code == 0
+        assert_allowed(decision)
+
+    def test_missing_binary_with_active_lock_blocks(self, tmp_path: Path) -> None:
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        write_executable(
+            bin_dir / "git",
+            """#!/bin/sh
+if [ "$1 $2 $3" = "rev-parse --git-path agent-scope-lock.json" ]; then
+  echo .git/agent-scope-lock.json
+  exit 0
+fi
+exit 1
+""",
+        )
+        lock_file = tmp_path / ".git" / "agent-scope-lock.json"
+        lock_file.parent.mkdir()
+        lock_file.write_text("{}\n", "utf-8")
+        env = os.environ.copy()
+        env["PATH"] = str(bin_dir)
+
+        code, decision, _ = run_python_hook(
+            "agent-scope-lock-guard.py",
+            {"tool_name": "Write", "tool_input": {"file_path": "README.md"}},
+            cwd=tmp_path,
+            env=env,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "binary is not on PATH")
+
+    def test_out_of_scope_changes_block_write_hook(self, tmp_path: Path) -> None:
+        env = self.stub_agent_scope_lock(
+            tmp_path,
+            {
+                "ok": False,
+                "error": {
+                    "code": "scope-violations",
+                    "message": "changed paths are outside allowed prefixes",
+                    "details": {
+                        "allowed_paths": ["hooks/codex", "tests"],
+                        "violations": [
+                            {"path": "outside.txt", "reason": "changed path is outside allowed prefixes"}
+                        ],
+                    },
+                },
+            },
+            exit_code=1,
+        )
+
+        code, decision, _ = run_python_hook(
+            "agent-scope-lock-guard.py",
+            {"tool_name": "apply_patch", "tool_input": {"patch": "*** Begin Patch\n*** End Patch\n"}},
+            cwd=tmp_path,
+            env=env,
+        )
+
+        assert code == 0
+        assert_blocked(decision, "outside.txt")
+        assert "hooks/codex, tests" in str(decision)
+
+    def test_out_of_scope_changes_report_on_stop_hook(self, tmp_path: Path) -> None:
+        env = self.stub_agent_scope_lock(
+            tmp_path,
+            {
+                "ok": False,
+                "error": {
+                    "code": "scope-violations",
+                    "details": {
+                        "allowed_paths": ["hooks/codex"],
+                        "violations": [{"path": "README.md"}],
+                    },
+                },
+            },
+            exit_code=1,
+        )
+
+        code, output, _ = run_python_hook(
+            "agent-scope-lock-guard.py",
+            {"hook_event_name": "Stop"},
+            cwd=tmp_path,
+            env=env,
+        )
+
+        assert code == 0
+        assert output is not None
+        assert "decision" not in output
+        assert "README.md" in str(output.get("systemMessage", ""))
 
 
 class TestUserPromptAgentDocsHook:

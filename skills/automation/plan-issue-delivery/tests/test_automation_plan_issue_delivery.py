@@ -44,6 +44,20 @@ def test_plan_issue_delivery_skill_enforces_main_agent_role_boundary() -> None:
     assert "--pr-grouping group --strategy auto" not in text
 
 
+def test_plan_issue_delivery_skill_requires_test_first_evidence_gate() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    subagent_prompt = (skill_root / SUBAGENT_PROMPT_REL).read_text(encoding="utf-8")
+
+    assert "## Test-First Evidence Gate" in text
+    assert "failing-test evidence or an explicit waiver" in text
+    assert "before editing production behavior" in text
+    assert "Change classification" in text
+    assert "Failing test before fix" in subagent_prompt
+    assert "Final validation" in subagent_prompt
+    assert "Waiver reason" in subagent_prompt
+
+
 def test_plan_issue_delivery_skill_requires_close_for_done() -> None:
     skill_root = Path(__file__).resolve().parents[1]
     text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
@@ -342,6 +356,10 @@ def test_sprint_pr_template_reference_exists_and_documents_required_schema() -> 
     assert "## Scope" in text
     assert "## Testing" in text
     assert "## Issue" in text
+    assert "Change classification" in text
+    assert "Failing test before fix" in text
+    assert "Final validation" in text
+    assert "Waiver reason" in text
     # Issue bullet shape
     assert "- #<ISSUE_NUMBER>" in text
     # Cross-reference to feature template (so authors know which one to use)
@@ -366,7 +384,10 @@ def test_sprint_pr_template_named_by_pr_body_validator_error_message() -> None:
     # path so the operator knows which template to switch to (vs.
     # create-github-pr's feature template, which uses
     # Summary/Changes/Testing/Risk/Notes).
-    assert "schema_label='sprint-pr (Summary / Scope / Testing / Issue)'" in validator_text
+    assert (
+        "schema_label='sprint-pr (Summary / Scope / Test-First Evidence / Testing / Issue)'"
+        in validator_text
+    )
     assert (
         "skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
         in validator_text

@@ -45,6 +45,11 @@ def test_render_github_pr_outputs_feature_template_sections() -> None:
     assert result.returncode == 0, result.stderr
     assert "## Summary" in result.stdout
     assert "## Changes" in result.stdout
+    assert "## Test-First Evidence" in result.stdout
+    assert "Change classification:" in result.stdout
+    assert "Failing test before fix:" in result.stdout
+    assert "Final validation:" in result.stdout
+    assert "Waiver reason" in result.stdout
     assert "## Testing" in result.stdout
     assert "{{OPTIONAL_SECTIONS}}" not in result.stdout
     assert "## Problem" not in result.stdout
@@ -57,6 +62,11 @@ def test_render_github_pr_outputs_bug_template_sections() -> None:
     assert "## Reproduction" in result.stdout
     assert "## Issues Found" in result.stdout
     assert "## Fix Approach" in result.stdout
+    assert "## Test-First Evidence" in result.stdout
+    assert "Change classification:" in result.stdout
+    assert "Failing test before fix:" in result.stdout
+    assert "Final validation:" in result.stdout
+    assert "Waiver reason" in result.stdout
     assert "## Changes" not in result.stdout
 
 
@@ -98,5 +108,12 @@ def test_create_github_pr_skill_keeps_provider_contract_explicit() -> None:
     assert "GitHub PR" in text
     assert "`gh`" in text
     assert "Do not derive the PR title/body from `git log -1 --pretty=%B`" in text
-    assert "feature` bodies must include Summary, Changes, Testing, and Risk/Notes" in text
-    assert "bug` bodies must include Summary, Problem, Reproduction, Issues Found, Fix Approach, Testing, and Risk/Notes" in text
+    assert "feature` bodies must include Summary, Changes, Test-First Evidence, Testing, and Risk/Notes" in text
+    assert (
+        "bug` bodies must include Summary, Problem, Reproduction, Issues Found, Fix Approach, "
+        "Test-First Evidence, Testing, and Risk/Notes"
+    ) in text
+    assert "Change classification" in text
+    assert "Failing test before fix" in text
+    assert "Final validation" in text
+    assert "Waiver reason" in text

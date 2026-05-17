@@ -23,6 +23,13 @@ You are the implementation subagent for a single issue task. Follow the assigned
 
 {{ACCEPTANCE_BULLETS}}
 
+## Test-First Evidence
+
+- Change classification: `<behavior change | bug fix | refactor | docs-only | generated-only | visual-only | other>`
+- Failing test before fix: `<command, exit code, failing test file/name, concise failure summary; or N/A with waiver>`
+- Final validation: `<command and result after implementation>`
+- Waiver reason: `<only when failing-test evidence is not practical>`
+
 ## Non-Negotiable Rules
 
 - Use the assigned `Owner / Branch / Worktree / Execution Mode`; do not replace them with guessed values.
@@ -36,6 +43,7 @@ You are the implementation subagent for a single issue task. Follow the assigned
   unblock action needed from main-agent.
 - PR body must be fully filled (no `TBD`, `TODO`, `<...>`, `#<number>`, placeholder testing lines).
 - PR body must include `## Issue` with a bullet linking the issue: `- #{{ISSUE_NUMBER}}`.
+- For production behavior changes, PR body must include concrete test-first evidence or waiver.
 - Before opening or finalizing the PR, run PR body validation and fix any errors.
 - Report/update actual task status and PR URL back to the issue task row after PR actions.
 

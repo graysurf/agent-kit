@@ -82,6 +82,14 @@ Failure modes:
 - Missing required PR body sections (`## Summary`, `## Scope`, `## Testing`, `## Issue`).
 - `gh` auth/permission failures for PR/issue reads or writes.
 
+## Test-First Evidence Gate
+
+- Before editing production behavior, capture failing-test evidence or an explicit waiver.
+- This gate applies before editing production behavior.
+- The subagent must report `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when applicable.
+- Docs-only, generated-only, formatting-only, visual-only, or no-harness tasks may use a waiver plus substitute validation.
+- Main-agent review may request follow-up when a behavior-changing PR lacks both failing-test evidence and a waiver.
+
 ## Task Lane Continuity (Mandatory)
 
 - Follow the shared task-lane continuity policy:
@@ -180,6 +188,7 @@ Failure modes:
      ```
 
 5. Implement task scope and run required task-level validation:
+   - Capture the Test-First Evidence Gate before production behavior edits.
    - Prefer validation commands from task context (`TASK_PROMPT_PATH` / sprint task section / Task Decomposition notes).
    - Keep edits inside assigned task scope; escalate before widening scope.
    - If required context is discovered missing/conflicting during implementation, stop, report the blocker packet, and wait for main-agent
@@ -209,10 +218,14 @@ Failure modes:
      ```bash
      $AGENT_HOME/skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh \
        --dispatch-record "$DISPATCH_RECORD_PATH" \
-       --issue "$ISSUE" \
-       --summary "<real summary bullet>" \
-       --scope "<file/module>: <change> (${TASK_ID})" \
-       --testing "<real command> (pass)"
+      --issue "$ISSUE" \
+      --summary "<real summary bullet>" \
+      --scope "<file/module>: <change> (${TASK_ID})" \
+      --test-first-evidence "Change classification: <behavior|bug|refactor|docs|test-only>" \
+      --test-first-evidence "Failing test before fix: <test/command/evidence or explicit waiver>" \
+      --test-first-evidence "Final validation: <command> (pass)" \
+      --test-first-evidence "Waiver reason: <N/A or reason>" \
+      --testing "<real command> (pass)"
      ```
 
    - For non-plan-issue flows, use the audited GitHub PR marker:

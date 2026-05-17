@@ -89,6 +89,7 @@ def test_issue_pr_review_script_has_internal_pr_body_validator() -> None:
     assert "validate_review_evidence_text" in text
     assert "validate_review_evidence_input" in text
     assert "post_review_evidence_comment" in text
+    assert "Test-First Evidence" in text
 
 
 def test_issue_pr_review_script_supports_structured_issue_sync_fields() -> None:
@@ -352,6 +353,7 @@ def test_pr_body_validator_names_sprint_pr_template_in_error() -> None:
     )
     assert result.returncode != 0
     assert "schema: sprint-pr" in result.stderr, result.stderr
+    assert "Test-First Evidence" in result.stderr, result.stderr
     assert (
         "skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md"
         in result.stderr

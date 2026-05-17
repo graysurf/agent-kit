@@ -43,6 +43,9 @@
 - When assumptions are acceptable, state them briefly and proceed.
 - Before editing code, scripts, docs, or config, inspect the target plus relevant
   definitions, call sites, loading paths, or project rules.
+- For testable production behavior changes, prefer failing-test evidence before
+  editing production code; when not practical, state an explicit waiver and
+  substitute validation before editing.
 - For external, unstable, or time-sensitive claims, prefer authoritative sources
   and cite the evidence used.
 - Keep answers concise, high-signal, and easy to verify.

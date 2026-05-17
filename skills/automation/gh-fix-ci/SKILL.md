@@ -66,6 +66,17 @@ $AGENT_HOME/skills/automation/gh-fix-ci/scripts/inspect_ci_checks.py --ref main 
 Use this skill when the user wants end-to-end CI fixing (no manual review pauses): diagnose, fix, commit, push, and keep iterating until CI
 is green.
 
+## Test-First Evidence Gate
+
+- Before editing production behavior, capture failing-test evidence or an explicit waiver.
+- This gate applies before editing production behavior.
+- CI failure evidence may satisfy the failing-test evidence requirement when it includes the failing check, command/log snippet, exit status
+  or failure classification, and affected test/job name.
+- If the fix is docs-only, generated-only, infra-unavailable, or cannot be reproduced locally, record a waiver reason and substitute
+  validation before editing production files.
+- Each fix iteration summary must include `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when
+  applicable.
+
 ## Workflow
 
 1. Verify `gh` authentication with `gh auth status`. If unauthenticated, ask the user to run `gh auth login` (repo + workflow scopes).
@@ -82,6 +93,7 @@ is green.
    - If `detailsUrl` is not a GitHub Actions run, label as external and report the URL only.
 5. Auto-fix loop (repeat until green):
    - Reproduce locally when feasible (prefer the repo’s documented lint/test commands; otherwise use the failing command shown in logs).
+   - Capture the Test-First Evidence Gate before production edits in each behavior-changing iteration.
    - Implement the minimal fix; avoid refactors.
    - Run the most relevant local validation command(s) as a gate (lint/test/build as applicable).
    - Commit using `semantic-commit-autostage` (single commit per iteration unless splitting is clearly beneficial).

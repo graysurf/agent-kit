@@ -55,7 +55,9 @@ Failure modes:
 3. Confirm source-branch policy:
    - default to `--remove-source-branch=false` unless the user or repo convention explicitly says otherwise.
 4. Collect testing notes before MR creation. If tests were not run, state `not run (reason)`.
-5. Do not derive the MR title/body from `git log -1 --pretty=%B`; commits like `Update values` are not valid MR narratives.
+5. For production behavior changes, collect test-first evidence or waiver:
+   `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when applicable.
+6. Do not derive the MR title/body from `git log -1 --pretty=%B`; commits like `Update values` are not valid MR narratives.
 
 ## Branch Naming
 
@@ -96,7 +98,9 @@ Failure modes:
 ## MR Rules
 
 - Title: describe the outcome, not the latest commit subject.
-- Body must include Summary, Changes, Testing, Risk/Notes, Source Branch Policy, and Rollback sections.
+- Body must include Summary, Changes, Test-First Evidence, Testing, Risk/Notes, Source Branch Policy, and Rollback sections.
+- Test-First Evidence must include `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when
+  applicable.
 - For deploy/config repos, include the rendered environment or manifest validation commands in Testing.
 - Draft is the default; ready MR creation requires explicit user instruction.
 - Do not include tokens, auth headers, cookies, or other secrets in body, commands, tests, or final output.

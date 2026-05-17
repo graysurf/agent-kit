@@ -41,6 +41,12 @@ command = "{{AGENT_HOME}}/hooks/codex/mcp-secret-scan.py"
 timeout = 10
 statusMessage = "agent-kit: Scan .mcp.json for secrets"
 
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/agent-scope-lock-guard.py"
+timeout = 10
+statusMessage = "agent-kit: Validate active scope lock"
+
 [[hooks.UserPromptSubmit]]
 matcher = ""
 
@@ -67,4 +73,10 @@ type = "command"
 command = "{{AGENT_HOME}}/hooks/codex/stop-pre-pr-reminder.sh"
 timeout = 10
 statusMessage = "agent-kit: Remind PR readiness"
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = "{{AGENT_HOME}}/hooks/codex/agent-scope-lock-guard.py"
+timeout = 10
+statusMessage = "agent-kit: Report scope lock violations"
 # END agent-kit managed codex hooks

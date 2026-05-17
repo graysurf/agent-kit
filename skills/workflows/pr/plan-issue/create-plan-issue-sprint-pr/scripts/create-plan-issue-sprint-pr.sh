@@ -10,6 +10,8 @@ Usage:
 Options:
   --summary <text>        Summary bullet. Repeatable.
   --scope <text>          Scope bullet. Repeatable.
+  --test-first-evidence <text>
+                          Test-First Evidence bullet. Repeatable.
   --testing <text>        Testing bullet. Repeatable.
   --task-ids <id>         Extra task ID. Repeatable.
   --repo-slug <owner/repo>
@@ -34,6 +36,7 @@ ready=0
 body_out=''
 declare -a summary_args=()
 declare -a scope_args=()
+declare -a test_first_args=()
 declare -a testing_args=()
 declare -a task_id_args=()
 
@@ -57,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --scope)
       scope_args+=(--scope "${2:-}")
+      shift 2
+      ;;
+    --test-first-evidence)
+      test_first_args+=(--test-first-evidence "${2:-}")
       shift 2
       ;;
     --testing)
@@ -110,6 +117,9 @@ fi
 declare -a render_args=(--dispatch-record "$dispatch_record" --issue "$issue_number" --print-title)
 render_args+=("${summary_args[@]}")
 render_args+=("${scope_args[@]}")
+if [[ ${#test_first_args[@]} -gt 0 ]]; then
+  render_args+=("${test_first_args[@]}")
+fi
 render_args+=("${testing_args[@]}")
 if [[ ${#task_id_args[@]} -gt 0 ]]; then
   render_args+=("${task_id_args[@]}")

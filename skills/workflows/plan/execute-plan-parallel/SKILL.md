@@ -38,6 +38,15 @@ Failure modes:
 - Tasks conflict in the same files and require sequential execution/merge resolution.
 - A task is underspecified or blocked (missing access, unclear acceptance criteria).
 
+## Test-First Evidence Gate
+
+- For any production behavior task, require the implementing subagent to provide failing-test evidence or an explicit waiver before editing
+  production behavior.
+- This gate applies before editing production behavior.
+- Require each implementation report to include `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason`
+  when applicable.
+- Accept waivers for docs-only, generated-only, formatting-only, visual-only, or no-harness tasks when substitute validation is stated.
+
 ## Workflow
 
 1. Parse the request

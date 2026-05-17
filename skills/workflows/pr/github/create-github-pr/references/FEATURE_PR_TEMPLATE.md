@@ -11,6 +11,13 @@
 - `<key change>`
 - `<key change>`
 
+## Test-First Evidence
+
+- Change classification: `<feature | behavior change | docs/config/generated/visual-only waiver>`
+- Failing test before fix: `<command, exit code, failing test file/name, concise failure summary; or N/A with waiver>`
+- Final validation: `<command and result after implementation>`
+- Waiver reason: `<only when failing-test evidence was not practical>`
+
 ## Testing
 
 - `<command>` (pass)

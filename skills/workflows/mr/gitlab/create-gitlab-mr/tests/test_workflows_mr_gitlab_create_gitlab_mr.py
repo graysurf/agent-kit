@@ -44,6 +44,11 @@ def test_render_gitlab_mr_outputs_required_sections() -> None:
     result = _run_render("--mr")
     assert result.returncode == 0, result.stderr
     assert "## Summary" in result.stdout
+    assert "## Test-First Evidence" in result.stdout
+    assert "Change classification:" in result.stdout
+    assert "Failing test before fix:" in result.stdout
+    assert "Final validation:" in result.stdout
+    assert "Waiver reason" in result.stdout
     assert "## Testing" in result.stdout
     assert "## Source Branch Policy" in result.stdout
     assert "remove source branch on merge: `false`" in result.stdout
@@ -74,3 +79,8 @@ def test_create_gitlab_mr_skill_keeps_gitlab_separate_from_github_pr_contract() 
     assert "GitLab MR" in text
     assert "`glab`" in text
     assert "Do not derive the MR title/body from `git log -1 --pretty=%B`" in text
+    assert "Body must include Summary, Changes, Test-First Evidence, Testing, Risk/Notes" in text
+    assert "Change classification" in text
+    assert "Failing test before fix" in text
+    assert "Final validation" in text
+    assert "Waiver reason" in text

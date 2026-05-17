@@ -446,14 +446,14 @@ validate_pr_body_hygiene_text() {
   local issue_number="${2:-}"
   local source_label="${3:-pr-body-check}"
 
-  # Plan-issue sprint PRs use the four-section schema documented in
+  # Plan-issue sprint PRs use the five-section schema documented in
   # `references/SPRINT_PR_TEMPLATE.md` under
   # `skills/automation/plan-issue-delivery/`. This validator names that
   # schema so the operator knows which template to switch to when the PR
   # body was authored against a different shape (e.g. claude-kit's
   # feature-PR template at `references/PR_TEMPLATE.md`, which uses
   # Summary / Changes / Testing / Risk / Notes instead).
-  local schema_label='sprint-pr (Summary / Scope / Testing / Issue)'
+  local schema_label='sprint-pr (Summary / Scope / Test-First Evidence / Testing / Issue)'
   local template_hint='see skills/automation/plan-issue-delivery/references/SPRINT_PR_TEMPLATE.md'
 
   if [[ -z "${body_text//[[:space:]]/}" ]]; then
@@ -465,12 +465,14 @@ validate_pr_body_hygiene_text() {
   local required_heading_regexes=(
     '^[[:space:]]*##[[:space:]]+Summary[[:space:]]*$'
     '^[[:space:]]*##[[:space:]]+Scope[[:space:]]*$'
+    '^[[:space:]]*##[[:space:]]+Test-First[[:space:]]+Evidence[[:space:]]*$'
     '^[[:space:]]*##[[:space:]]+Testing[[:space:]]*$'
     '^[[:space:]]*##[[:space:]]+Issue[[:space:]]*$'
   )
   local required_heading_labels=(
     '## Summary'
     '## Scope'
+    '## Test-First Evidence'
     '## Testing'
     '## Issue'
   )

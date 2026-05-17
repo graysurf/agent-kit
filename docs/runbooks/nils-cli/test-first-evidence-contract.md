@@ -1,6 +1,6 @@
 # Test-First Evidence Contract Improvement Record
 
-Status: proposed
+Status: active; workflow contract landed, nils-cli primitive pending
 Date: 2026-05-17
 Scope: agent-kit skill behavior and future `nils-cli` evidence support
 
@@ -17,7 +17,7 @@ session should treat as read-first context.
 
 Source facts:
 
-- A reusable ad hoc prompt now exists at `prompts/test-first.md`.
+- A reusable tracked prompt exists at `prompts/test-first.md`.
 - agent-kit favors stable CLI primitives for deterministic behavior while
   leaving workflow judgment in skills.
 - Existing nils-cli adoption records keep candidate commands separate from
@@ -25,6 +25,8 @@ Source facts:
 - GitHub and GitLab delivery workflows are provider-scoped audited boundaries,
   so PR/MR creation skills should keep that role instead of becoming generic
   implementation gatekeepers.
+- Behavior-editing workflows now carry a `Test-First Evidence Gate`.
+- GitHub PR and GitLab MR body templates now surface `Test-First Evidence`.
 
 Assumptions:
 
@@ -51,10 +53,10 @@ Add a default test-first evidence contract:
 > must state a waiver reason and substitute validation before editing production
 > code.
 
-This should become an agent-kit workflow contract, not only a prompt habit. The
-prompt is useful for immediate opt-in, but durable behavior should land in
-implementation skills, PR/MR evidence fields, and later a nils-cli evidence
-primitive.
+This is now an agent-kit workflow contract, not only a prompt habit. The prompt
+is useful for immediate opt-in, implementation skills own the waiver decision,
+PR/MR templates surface evidence fields, and later a nils-cli evidence primitive
+can normalize records.
 
 ## Applicability
 
@@ -72,12 +74,12 @@ primitive.
 
 1. Prompt layer: `prompts/test-first.md` gives the user an immediate opt-in
    prompt for ordinary implementation requests.
-2. Policy layer: `AGENTS.md` can eventually carry one concise default
-   expectation, but should not contain the full checklist.
-3. Implementation workflow layer: skills that edit behavior should own the
-   test-first decision and the waiver path.
-4. PR/MR creation layer: create skills should display evidence or waiver in the
-   body; they should not retroactively enforce the whole development process.
+2. Policy layer: `AGENTS.md` carries the concise default expectation, but not
+   the full checklist.
+3. Implementation workflow layer: behavior-editing skills own the test-first
+   decision and waiver path.
+4. PR/MR creation layer: create skills display evidence or waiver in the body;
+   they do not retroactively enforce the whole development process.
 5. CLI primitive layer: future nils-cli support should capture evidence,
    normalize waiver records, and verify final pass results.
 6. Hook layer: optional later soft warning or fail-closed checks can be added
@@ -143,9 +145,9 @@ Suggested record fields:
 
 | Priority | Work item | Acceptance |
 | --- | --- | --- |
-| P1 | Add the prompt for immediate user opt-in. | `prompts/test-first.md` exists and describes failing evidence, waiver, and final validation. |
-| P1 | Update behavior-editing workflow skills. | Each skill tells agents to capture failing evidence or waiver before production edits. |
-| P1 | Update create PR/MR body contracts. | PR/MR bodies include test-first evidence or explicit waiver when production behavior changed. |
+| P1 | Add the prompt for immediate user opt-in. | Done: `prompts/test-first.md` exists and describes failing evidence, waiver, and final validation. |
+| P1 | Update behavior-editing workflow skills. | Done: behavior-editing skills tell agents to capture failing evidence or waiver before production edits. |
+| P1 | Update create PR/MR body contracts. | Done: PR/MR bodies include test-first evidence or explicit waiver when production behavior changed. |
 | P2 | Prototype nils-cli evidence capture. | Command emits deterministic JSON and stores evidence under `agent-out`. |
 | P2 | Add skill consumption after nils-cli stabilizes. | Skills call the CLI instead of hand-formatting evidence records. |
 | P3 | Consider hook support. | Hook only warns or fails after evidence fields and waiver behavior are stable. |
@@ -191,8 +193,6 @@ For future nils-cli changes:
 
 - Should the eventual nils-cli command be named `test-first-evidence`, or should
   it be a subcommand under a broader evidence tool?
-- Should `AGENTS.md` get the concise expectation before or after workflow skills
-  are updated?
 - What exact PR/MR body field names should be shared between GitHub and GitLab
   without weakening provider-specific workflow boundaries?
 - Should hooks begin as warnings only, or stay out of scope until nils-cli

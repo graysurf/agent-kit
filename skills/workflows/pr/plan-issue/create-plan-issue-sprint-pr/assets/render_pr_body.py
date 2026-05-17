@@ -6,6 +6,7 @@ issue-pr-review validator:
 
 - `## Summary`
 - `## Scope`
+- `## Test-First Evidence`
 - `## Testing`
 - `## Issue`
 
@@ -51,6 +52,7 @@ class SprintPRBodySpec:
     task_ids: list[str]
     summary_bullets: list[str]
     scope_bullets: list[str]
+    test_first_bullets: list[str]
     testing_bullets: list[str]
     repo_slug: str | None = None
     title: str | None = None
@@ -67,6 +69,7 @@ class SprintPRBodySpec:
         task_ids = _string_list(data.get("task_ids"))
         summary_bullets = _string_list(data.get("summary_bullets"))
         scope_bullets = _string_list(data.get("scope_bullets"))
+        test_first_bullets = _string_list(data.get("test_first_bullets"))
         testing_bullets = _string_list(data.get("testing_bullets"))
 
         if not task_ids:
@@ -77,6 +80,13 @@ class SprintPRBodySpec:
             raise ValueError("scope_bullets must be a non-empty list")
         if not testing_bullets:
             raise ValueError("testing_bullets must be a non-empty list")
+        if not test_first_bullets:
+            test_first_bullets = [
+                "Change classification: sprint implementation lane.",
+                "Failing test before fix: see assigned lane evidence or explicit waiver in the task report.",
+                "Final validation: see Testing section.",
+                "Waiver reason: N/A when failing-test evidence is provided; otherwise see task report.",
+            ]
 
         return cls(
             sprint_number=sprint_number,
@@ -84,6 +94,7 @@ class SprintPRBodySpec:
             task_ids=task_ids,
             summary_bullets=summary_bullets,
             scope_bullets=scope_bullets,
+            test_first_bullets=test_first_bullets,
             testing_bullets=testing_bullets,
             repo_slug=_optional_string(data.get("repo_slug")),
             title=_optional_string(data.get("title")),
@@ -194,6 +205,7 @@ def render_body(spec: SprintPRBodySpec) -> str:
                 *[_bullet(item) for item in spec.scope_bullets],
             ]
         ),
+        "## Test-First Evidence\n\n" + "\n".join(_bullet(item) for item in spec.test_first_bullets),
         "## Testing\n\n" + "\n".join(_bullet(item) for item in spec.testing_bullets),
         f"## Issue\n\n- #{spec.issue_number}",
     ]
@@ -218,7 +230,7 @@ def load_spec(args: argparse.Namespace) -> SprintPRBodySpec:
     dispatch_facts = load_dispatch_facts(Path(args.dispatch_record)) if args.dispatch_record else None
 
     if args.spec:
-        if any((args.summary, args.scope, args.testing, args.task_ids)):
+        if any((args.summary, args.scope, args.test_first_evidence, args.testing, args.task_ids)):
             raise ValueError("--spec cannot be combined with per-field body flags")
         payload = json.load(sys.stdin) if args.spec == "-" else json.loads(Path(args.spec).read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
@@ -227,6 +239,7 @@ def load_spec(args: argparse.Namespace) -> SprintPRBodySpec:
         payload = {
             "summary_bullets": args.summary or [],
             "scope_bullets": args.scope or [],
+            "test_first_bullets": args.test_first_evidence or [],
             "testing_bullets": args.testing or [],
             "task_ids": args.task_ids or [],
         }
@@ -256,6 +269,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--task-ids", action="append", help="Task ID. Repeatable.")
     parser.add_argument("--summary", action="append", help="Summary bullet. Repeatable.")
     parser.add_argument("--scope", action="append", help="Scope bullet. Repeatable.")
+    parser.add_argument(
+        "--test-first-evidence",
+        action="append",
+        help="Test-First Evidence bullet. Repeatable.",
+    )
     parser.add_argument("--testing", action="append", help="Testing bullet. Repeatable.")
     parser.add_argument("--repo-slug", help="Optional owner/repo for default title prefix.")
     parser.add_argument("--title", help="Optional title override.")

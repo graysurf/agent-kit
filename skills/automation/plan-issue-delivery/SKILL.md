@@ -198,6 +198,16 @@ Failure modes:
 - Worktree cleanup gate fails (any issue-assigned task worktree still exists after cleanup).
 - Attempted transition to a next sprint that does not exist.
 
+## Test-First Evidence Gate
+
+- Implementation lanes that edit production behavior must capture failing-test evidence or an explicit waiver before editing production
+  behavior.
+- This gate applies before editing production behavior.
+- Main-agent dispatch must ask subagents to report `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver
+  reason` when applicable.
+- Docs-only, generated-only, formatting-only, visual-only, or no-harness tasks may use a waiver plus substitute validation.
+- Review evidence should treat missing test-first evidence or waiver as a follow-up item for behavior-changing sprint PRs.
+
 ## Runtime Workspace Policy (Mandatory)
 
 - nils-cli ≥ 0.8.0 is required (`plan-issue --version` must report `>= 0.8.0`).

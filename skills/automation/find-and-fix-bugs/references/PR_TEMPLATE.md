@@ -30,6 +30,13 @@ Severity: critical | high | medium | low Confidence: high | medium | low Status:
 
 - `<key changes>`
 
+## Test-First Evidence
+
+- Change classification: `<bug fix | behavior change | docs/config/generated/visual-only waiver>`
+- Failing test before fix: `<command, exit code, failing test file/name, concise failure summary; or N/A with waiver>`
+- Final validation: `<command and result after fix>`
+- Waiver reason: `<only when failing-test evidence was not practical>`
+
 ## Testing
 
 - `<command>` (pass)

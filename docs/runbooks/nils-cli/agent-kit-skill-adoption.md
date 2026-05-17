@@ -1,6 +1,6 @@
 # Agent-kit Skill Adoption Architecture For nils-cli Primitives
 
-Status: active; first adoption slices landed
+Status: active; first adoption and workflow-consumption slices landed
 Date: 2026-05-17
 Scope: agent-kit skill layout and adoption path for `nils-cli` commands
 
@@ -30,6 +30,10 @@ Source facts:
   `create`, `read`, `validate`, `clear`, and `completion` subcommands.
 - `web-evidence` is implemented in the nils-cli repository with `capture` and
   `completion` subcommands for redacted static HTTP evidence bundles.
+- agent-kit now consumes `web-evidence` from release and issue-follow-up
+  workflows when static HTTP/HTTPS evidence is enough.
+- agent-kit now has a Codex hook guard that validates active
+  `agent-scope-lock` scopes and reports concise violations.
 
 Assumptions:
 
@@ -69,6 +73,9 @@ First adoption slices:
   HTTP fetching, redaction, schema generation, or artifact naming.
 - They document both the released PATH boundary and the pre-release local
   checkout boundary.
+- First workflow consumers landed for static URL evidence and test-first
+  evidence fields; future CLI primitives should still wait for command
+  contracts before getting tool skills.
 
 Do not create broad gstack-style specialist skills as part of this landing
 architecture. The first value is reusable evidence, guardrails, and validation,
@@ -78,12 +85,12 @@ not new product-review personas.
 
 | nils-cli primitive | First agent-kit landing | Later consumers | Notes |
 | --- | --- | --- | --- |
-| `web-evidence` | Landed: `skills/tools/browser/web-evidence/`. | `release-workflow`, future `web-qa`, `issue-follow-up`, `gh-fix-ci` | First slice is static HTTP evidence; use browser tooling when JavaScript, screenshots, cookies, auth state, or console logs are required. |
+| `web-evidence` | Landed: `skills/tools/browser/web-evidence/`. | Landed: `release-workflow`, `issue-follow-up`; later: future `web-qa`, `gh-fix-ci` | First slice is static HTTP evidence; use browser tooling when JavaScript, screenshots, cookies, auth state, or console logs are required. |
 | `browser-session` | New `skills/tools/browser/browser-session/` only if nils-cli owns persistent browser lifecycle. | `web-evidence`, future `web-qa`, `screenshot`, possible `agent-browser` replacement | Keep `agent-browser` explicitly legacy until migration is proven. |
-| `agent-scope-lock` | Landed: `skills/tools/devex/agent-scope-lock/`. | `gh-fix-ci`, `find-and-fix-bugs`, `plan-issue-delivery`, Codex hooks | Start as manual validation before hook fail-closed behavior. |
+| `agent-scope-lock` | Landed: `skills/tools/devex/agent-scope-lock/`. | Landed: Codex hook guard; later: `gh-fix-ci`, `find-and-fix-bugs`, `plan-issue-delivery` | Hook guard validates active locks and reports violations; workflow consumption should stay opt-in until unattended failure modes are proven. |
 | `docs-impact` | New `skills/tools/devex/docs-impact/` only after output is stable enough for docs workflows. | `release-workflow`, `docs-plan-cleanup`, future document-release equivalent | It should report likely stale docs; rewriting docs remains a skill decision. |
 | `review-evidence` | Prefer updating existing review/conversation workflows first; add a tool skill only if users will invoke it directly. | `review-to-improvement-doc`, `issue-pr-review`, PR workflows | Normalize findings without replacing code-review judgment. |
-| `test-first-evidence` | Prefer updating behavior-editing workflows first; add a tool skill only after nils-cli can record evidence and waivers. | `find-and-fix-bugs`, `fix-bug-pr`, `gh-fix-ci`, `issue-subagent-pr`, PR/MR creation workflows | Skills decide whether test-first applies; the CLI should record failing evidence, waiver, and final validation. |
+| `test-first-evidence` | Workflow contract landed; add a tool skill only after nils-cli can record evidence and waivers. | Landed: `find-and-fix-bugs`, `fix-bug-pr`, `gh-fix-ci`, `issue-subagent-pr`, `execute-plan-parallel`, PR/MR creation workflows | Skills decide whether test-first applies; the future CLI should record failing evidence, waiver, and final validation. |
 | `canary-check` | New automation-facing tool or release reference after deploy targets are configurable. | `release-workflow`, future `land-and-deploy`, future `web-qa` | Must stay read-only and evidence-first before it becomes a deploy gate. |
 | `model-cross-check` | Defer. | PR review workflows, research workflows | Needs careful auth, cost, provider, and redaction boundaries. |
 
@@ -139,7 +146,7 @@ Before updating workflow or automation skills to consume it:
 | P1 | Watch each new nils-cli primitive shape and choose the matching agent-kit landing area. | `agent-scope-lock` landed under DevEx and `web-evidence` landed under Browser based on actual command help/source. |
 | P1 | Add a tool skill only after command contract exists. | Skill has contract, prerequisites, failure modes, usage, guardrails, tests, and catalog update if public. |
 | P1 | Define too-old nils-cli behavior for each consuming skill. | Skill reports blocked/degraded mode with upgrade command or fallback. |
-| P2 | Add workflow integration after the tool skill is stable. | Workflow references the tool contract and keeps decision logic out of the tool. |
+| P2 | Add workflow integration after the tool skill is stable. | First integrations landed for `web-evidence` and `agent-scope-lock`; future integrations should reference tool contracts and keep decision logic out of the tool. |
 | P2 | Revisit legacy browser wrappers after browser primitive lands. | Migration note documents keep/replace decision with evidence. |
 
 ## Validation Gate
@@ -173,11 +180,7 @@ For docs-only adoption records:
 
 ## Open Questions
 
-- Which workflow should consume `agent-scope-lock` first after manual validation
-  proves useful?
 - Will nils-cli expose one command per primitive, or a grouped command with
   subcommands?
-- What nils-cli version floor should agent-kit require once the first primitive
-  is consumed?
-- Which workflow should consume `web-evidence` first now that the static HTTP
-  evidence skill is public?
+- Which workflow should consume `agent-scope-lock` after the hook guard proves
+  stable in real use?

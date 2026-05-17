@@ -43,6 +43,20 @@ Failure modes:
 4. Execute the guide steps in order, using the exact commands and tooling specified.
 5. If anything is unclear or a step fails, stop and ask rather than making assumptions.
 
+## Static URL evidence
+
+- Project release guides remain authoritative; use this guidance only when the guide or post-release check asks for static HTTP/HTTPS
+  evidence.
+- For static public or internal URLs, use the `web-evidence` skill or:
+
+  ```bash
+  web-evidence capture <url> --out <run-dir>/web-evidence --label <release-check> --format json
+  ```
+
+- Cite only redacted bundle artifacts such as `summary.json`, `headers.redacted.json`, or `body-preview.redacted.txt`.
+- Use Browser, Chrome, or Playwright instead when validation requires JavaScript execution, screenshots, auth/cookies, console logs, or
+  browser state.
+
 ## Output and clarification rules
 
 - Use `references/ASSISTANT_RESPONSE_TEMPLATE.md` when a release is published.

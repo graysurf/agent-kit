@@ -28,11 +28,14 @@ Inputs:
   - `--title <text>` to override the default sprint title.
   - `--body-only` to render the PR body without calling `gh`.
   - `--body-out <path>` to write the rendered body before creating the PR.
+  - Repeatable `--test-first-evidence <text>` to override the default
+    `## Test-First Evidence` bullets.
   - `--ready` to run `gh pr ready` after draft creation.
 
 Outputs:
 
-- Rendered PR body matching `Summary / Scope / Testing / Issue`.
+- Rendered PR body matching
+  `Summary / Scope / Test-First Evidence / Testing / Issue`.
 - In create mode, a draft PR opened from the dispatch-record worktree:
   - `--base` is the dispatch record `base_branch` (`PLAN_BRANCH`).
   - `--head` is the dispatch record `branch`.
@@ -56,6 +59,8 @@ Failure modes:
 ## Scripts (only entrypoints)
 
 - `$AGENT_HOME/skills/workflows/pr/plan-issue/create-plan-issue-sprint-pr/scripts/create-plan-issue-sprint-pr.sh`
+  - Optional repeatable input: `--test-first-evidence <text>` for concrete
+    failing-test, waiver, and final-validation evidence bullets.
 
 ## Workflow
 
@@ -78,6 +83,10 @@ Failure modes:
      --issue "$ISSUE_NUMBER" \
      --summary "Sprint 2 completes the grouped storage lane." \
      --scope "src/storage/: implements S2T2 and S2T3." \
+     --test-first-evidence "Change classification: behavior change." \
+     --test-first-evidence "Failing test before fix: tests/unit/test_storage.py::test_groups_by_key (failed before implementation)." \
+     --test-first-evidence "Final validation: scripts/check.sh --tests -- -k storage (pass)." \
+     --test-first-evidence "Waiver reason: N/A." \
      --testing "scripts/check.sh --tests -- -k storage (pass)" \
      --body-only
    ```
@@ -90,6 +99,10 @@ Failure modes:
      --issue "$ISSUE_NUMBER" \
      --summary "Sprint 2 completes the grouped storage lane." \
      --scope "src/storage/: implements S2T2 and S2T3." \
+     --test-first-evidence "Change classification: behavior change." \
+     --test-first-evidence "Failing test before fix: tests/unit/test_storage.py::test_groups_by_key (failed before implementation)." \
+     --test-first-evidence "Final validation: scripts/check.sh --tests -- -k storage (pass)." \
+     --test-first-evidence "Waiver reason: N/A." \
      --testing "scripts/check.sh --tests -- -k storage (pass)"
    ```
 

@@ -102,13 +102,23 @@ issues.
 - If autonomous and the top issue is high-risk, record it and move to the next eligible issue. If all issues are high-risk, stop after
   reporting.
 
+## Test-First Evidence Gate
+
+- Before editing production behavior, capture failing-test evidence or an explicit waiver.
+- This gate applies before editing production behavior.
+- For testable bug fixes, add or identify a focused failing regression, unit, integration, or acceptance test before the production edit.
+- Record the command, exit code, failing test file/name, and concise failure summary.
+- If a failing test is not practical, record the waiver reason, why test-first is not practical now, and substitute validation.
+- PR bodies must surface `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when applicable.
+
 ## Fix workflow
 
 1. Create a new branch: `fix/<severity>-<slug>` using the fixed severity levels.
-2. Implement the fix with minimal scope; avoid refactors.
-3. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see
+2. Capture the test-first evidence gate above before production edits.
+3. Implement the fix with minimal scope; avoid refactors.
+4. Add or update tests when possible; set up the repo’s test/build environment per its docs, then run lint/test/build commands (see
    Validation commands fallback). Treat validation as a gate: if validation fails, do not commit/open a PR; follow Retry policy.
-4. Update the issues list with status.
+5. Update the issues list with status.
 
 ## Validation commands
 
@@ -140,6 +150,7 @@ issues.
   - Reproduction steps (or why repro is not feasible)
   - Issues found (including those not fixed)
   - Fix approach
+  - Test-first evidence or waiver
   - Testing results or "not run"
 - Include the issues list in the PR body.
 - Use `$AGENT_HOME/skills/automation/find-and-fix-bugs/scripts/render_issues_pr.sh --pr` (or `--issues`) to generate templates quickly.

@@ -79,14 +79,19 @@ Delivery requirements
 6. If `DISPATCH_RECORD_PATH` declares a non-implementation `workflow_role`,
    stop and request corrected dispatch before editing.
 7. Keep changes within assigned task scope; escalate before widening scope.
-8. If required context is missing/conflicting or another blocker stops progress, return a blocker packet with exact lane facts, the missing
+8. Before editing production behavior, capture failing-test evidence or an explicit waiver:
+   - Change classification
+   - Failing test before fix
+   - Final validation plan
+   - Waiver reason, when failing-test evidence is not practical
+9. If required context is missing/conflicting or another blocker stops progress, return a blocker packet with exact lane facts, the missing
    input, current status, and the next unblock action needed from main-agent.
-9. Run relevant tests for impacted areas and capture results.
-10. Keep commits and PR description traceable to task IDs.
-11. Surface risks early with concrete mitigation options.
-12. Keep sprint PRs open for `ready-sprint` pre-merge review; do not self-merge.
-13. Wait for required PR CI checks to finish before marking work ready for review/merge.
-14. If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with
+10. Run relevant tests for impacted areas and capture results.
+11. Keep commits and PR description traceable to task IDs.
+12. Surface risks early with concrete mitigation options.
+13. Keep sprint PRs open for `ready-sprint` pre-merge review; do not self-merge.
+14. Wait for required PR CI checks to finish before marking work ready for review/merge.
+15. If PR CI fails, diagnose and fix the failures, push updates, and repeat until required checks pass (or escalate external blockers with
     evidence).
 
 Update format (every checkpoint)
@@ -95,6 +100,7 @@ Update format (every checkpoint)
 - Workflow role / runtime role:
 - Task lane facts (`Owner / Branch / Worktree / PR`):
 - Files/components changed:
+- Test-first evidence / waiver:
 - Tests run + key results:
 - PR reference (#`<number>` or URL):
 - PR CI status (required checks):

@@ -57,7 +57,9 @@ Failure modes:
    - `feature`: feature summary and acceptance criteria.
    - `bug`: bug summary, expected behavior, actual behavior, impact, and reproduction notes when available.
 4. Collect testing notes before PR creation. If tests were not run, state `not run (reason)`.
-5. Do not derive the PR title/body from `git log -1 --pretty=%B`; commits like `Add plan file` are not valid PR narratives.
+5. For production behavior changes, collect test-first evidence or waiver:
+   `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when applicable.
+6. Do not derive the PR title/body from `git log -1 --pretty=%B`; commits like `Add plan file` are not valid PR narratives.
 
 ## Branch Naming
 
@@ -96,8 +98,10 @@ Failure modes:
 
 - Title: capitalize the first word, describe the intended outcome, and never mirror a housekeeping commit subject.
 - Replace the first H1 line in the rendered PR template with the PR title.
-- `feature` bodies must include Summary, Changes, Testing, and Risk/Notes sections.
-- `bug` bodies must include Summary, Problem, Reproduction, Issues Found, Fix Approach, Testing, and Risk/Notes sections.
+- `feature` bodies must include Summary, Changes, Test-First Evidence, Testing, and Risk/Notes sections.
+- `bug` bodies must include Summary, Problem, Reproduction, Issues Found, Fix Approach, Test-First Evidence, Testing, and Risk/Notes sections.
+- Test-First Evidence must include `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when
+  applicable.
 - If tests are not run, state `not run (reason)`.
 - Do not include tokens, auth headers, cookies, or other secrets in body, commands, tests, or final output.
 

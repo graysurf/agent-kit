@@ -113,6 +113,19 @@ Use when an issue already exists and the user asks to continue it.
 
 6. Keep unresolved issues open. Close only when the requested outcome is complete or the user explicitly chooses not to continue.
 
+## Static HTTP evidence
+
+- When the follow-up concerns a public or internal HTTP/HTTPS URL and static response evidence is enough, use the `web-evidence` skill or:
+
+  ```bash
+  web-evidence capture <url> --out <run-dir>/web-evidence --label <issue-follow-up> --format json
+  ```
+
+- Attach, link, or cite only redacted artifacts from the bundle, typically `summary.json`, `headers.redacted.json`, and
+  `body-preview.redacted.txt`.
+- Keep Browser, Chrome, or Playwright for JavaScript behavior, screenshots, authenticated/cookie-backed state, console logs, or other
+  browser-session evidence.
+
 ### Implementation Handoff
 
 Use when follow-up determines the issue is actionable.

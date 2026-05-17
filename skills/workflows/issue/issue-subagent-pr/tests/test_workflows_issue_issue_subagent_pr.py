@@ -54,3 +54,20 @@ def test_issue_subagent_prompt_template_excludes_legacy_single_pr_mode() -> None
     assert "pr-shared" in prompt_template
     assert "pr-isolated" in prompt_template
     assert "single-pr" not in prompt_template
+
+
+def test_issue_subagent_pr_requires_test_first_evidence_gate() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    prompt_template = (skill_root / "references" / "SUBAGENT_TASK_PROMPT_TEMPLATE.md").read_text(
+        encoding="utf-8"
+    )
+    pr_template = (skill_root / "references" / "PR_BODY_TEMPLATE.md").read_text(encoding="utf-8")
+
+    assert "## Test-First Evidence Gate" in text
+    assert "failing-test evidence or an explicit waiver" in text
+    assert "before editing production behavior" in text
+    assert "Change classification" in prompt_template
+    assert "Failing test before fix" in prompt_template
+    assert "Final validation" in pr_template
+    assert "Waiver reason" in pr_template

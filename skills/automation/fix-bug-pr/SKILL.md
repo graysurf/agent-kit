@@ -40,6 +40,16 @@ Failure modes:
 - Dirty working tree, merge conflicts, or failing tests prevent a safe commit/push.
 - High-risk areas (auth/billing/migrations/deploy) should stop or be skipped.
 
+## Test-First Evidence Gate
+
+- Before editing production behavior, capture failing-test evidence or an explicit waiver.
+- This gate applies before editing production behavior.
+- For bug items, prefer a focused failing regression, unit, integration, or acceptance test that demonstrates the unresolved issue.
+- Record the command, exit code, failing test file/name, and concise failure summary before production edits.
+- If no failing test is practical, record why, what substitute validation will run, and the residual risk.
+- PR comments/body updates must include `Change classification`, `Failing test before fix`, `Final validation`, and `Waiver reason` when
+  applicable.
+
 ## Workflow
 
 1. Resolve the target PR:
@@ -57,6 +67,7 @@ Failure modes:
    - Fix **one** bug item per run unless multiple items share the same root cause.
 
 4. Implement the minimal fix + validation:
+   - Capture the Test-First Evidence Gate before production edits.
    - Prefer small, targeted diffs; avoid refactors.
    - Follow the target repo’s testing/build docs and CI workflow: install required tooling/deps, then run the most relevant lint/test/build
      commands.
