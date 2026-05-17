@@ -47,6 +47,7 @@ def test_create_plan_distinguishes_plans_from_durable_improvement_records() -> N
     assert "Use `review-to-improvement-doc`" in text
     assert "durable review/improvement record" in text
     assert "link that doc under the plan's context/read-first section" in text
+    assert "use `execute-from-implementation-doc` instead" in text
 
 
 def test_shared_plan_template_includes_optional_base_execution_metadata() -> None:

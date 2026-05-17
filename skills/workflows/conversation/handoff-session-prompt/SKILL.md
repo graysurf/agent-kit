@@ -68,6 +68,8 @@ Failure modes:
      durable artifact, recommend `discussion-to-implementation-doc` before using this prompt as the only continuity record.
    - If the user asks for both durable record and next-session continuity, use `review-to-improvement-doc` to write or reference the durable
      record first, then generate a shorter handoff that points to it.
+   - If a long-running task already has a source document plus execution-state document, point the prompt at both files instead of copying
+     the progress ledger into the prompt.
 
 4. Separate facts from instructions
    - Include confirmed facts and conclusions under `Known Facts`.

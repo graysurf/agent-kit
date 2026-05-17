@@ -26,6 +26,8 @@ Outputs:
 
 - A durable repo-local document in the relevant docs area, not under `docs/plans/` unless the project explicitly uses that area for
   non-plan records.
+- An `Execution` section with executable backlog, validation gates, and execution-state link when the review record should drive later
+  implementation.
 - Updated local docs index or README when the project has one.
 - A short response linking the document path and listing validation run.
 
@@ -77,6 +79,8 @@ Failure modes:
      - findings table with priority, issue, evidence, fix location, and acceptance
      - ownership boundary, such as runtime vs test/harness vs docs
      - backlog or next fixes
+     - execution, including executable backlog, validation gates, execution-state path, and next-task source when this document should drive
+       later implementation
      - validation gate
      - do-not-do / guardrails
      - open questions, if any
@@ -101,6 +105,8 @@ Failure modes:
 
 - `discussion-to-implementation-doc`: use when the source material is a converged requirements, design, feasibility, or product discussion
   and the next artifact should prepare later implementation.
+- `execute-from-implementation-doc`: use after this skill when the improvement record has executable backlog, acceptance, validation, and
+  an execution-state path or enough context to create one.
 - `create-plan`: use after this skill when the user wants phases, sprints, atomic tasks, PR grouping, or validation sequencing.
 - `create-plan-rigorous`: use after this skill when the user wants sizing, sprint scorecards, subagent review, or high-rigor execution
   modeling.

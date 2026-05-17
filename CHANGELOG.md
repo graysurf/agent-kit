@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **execute-from-implementation-doc**: add a workflow for resuming long-running
+  implementation from execution-ready handoff, improvement, or plan documents
+  with a separate execution-state ledger.
 - **discussion-to-implementation-doc**: add a conversation workflow for turning
   converged requirements, design, feasibility, or customer-facing discussion
   into a durable implementation-readiness document before planning or handoff.

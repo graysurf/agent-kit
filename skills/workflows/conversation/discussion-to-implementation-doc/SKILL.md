@@ -26,6 +26,8 @@ Outputs:
 
 - A durable repo-local implementation-readiness document in the relevant docs area, not under `docs/plans/` unless the project explicitly
   uses that area for non-plan handoff records.
+- An `Execution` section with an execution-state link or creation recommendation when the document is intended to drive long-running
+  implementation work.
 - Updated local docs index or README when the project has one and the new document should be discoverable.
 - A short response linking the document path and listing validation run.
 
@@ -83,6 +85,7 @@ Failure modes:
      - acceptance criteria
      - validation plan
      - risks and guardrails
+     - execution, including execution-state path, status, and next-task source when this document should drive implementation
      - open questions
      - read-first references
      - recommended next artifact
@@ -102,5 +105,6 @@ Failure modes:
 - `review-evidence`: use for normalized review findings and validation records; link it from this document when evidence matters.
 - `review-to-improvement-doc`: use when the durable artifact is a review finding, improvement backlog, risk register, or fix-later record.
 - `create-plan`: use after this skill when implementation needs phases, tasks, ownership lanes, PR grouping, or validation sequencing.
+- `execute-from-implementation-doc`: use after this skill when the handoff should become the execution source of truth across sessions.
 - `handoff-session-prompt`: use after this skill when the user wants a copy-ready prompt for a fresh session; put this document under
   `Read First`.

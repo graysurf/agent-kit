@@ -63,6 +63,8 @@ Failure modes:
 - If the user needs both a durable review/improvement record and an execution plan, keep them distinct: preserve the stable findings in the
   project doc first, then write the plan under `docs/plans/` and link that doc under the plan's context/read-first section.
 - If a durable project doc, issue, or tracker already exists, reference it rather than duplicating the full backlog inside the plan.
+- If the user wants to execute or resume an existing plan or implementation-ready document, use `execute-from-implementation-doc` instead
+  of creating another plan.
 
 1. Research the repo just enough to plan well
 

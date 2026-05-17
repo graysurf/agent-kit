@@ -28,5 +28,15 @@ def test_discussion_to_implementation_doc_routes_to_nearby_skills() -> None:
     assert "`review-evidence`" in text
     assert "`review-to-improvement-doc`" in text
     assert "`create-plan`" in text
+    assert "`execute-from-implementation-doc`" in text
     assert "`handoff-session-prompt`" in text
     assert "review findings and validation records" in text
+
+
+def test_discussion_to_implementation_doc_can_prepare_execution_state() -> None:
+    skill_root = Path(__file__).resolve().parents[1]
+    text = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+
+    assert "An `Execution` section" in text
+    assert "execution-state path" in text
+    assert "next-task source" in text
