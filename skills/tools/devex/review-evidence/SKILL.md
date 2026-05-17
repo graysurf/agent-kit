@@ -13,8 +13,10 @@ Prereqs:
 
 - Keep code-review judgment in the workflow; use this CLI only for structured evidence capture.
 - Choose an explicit output directory, preferably under a project-scoped `agent-out` run directory.
-- Released usage: `review-evidence` available on `PATH` from the `nils-cli` release that includes `nils-agent-workflow-primitives`.
-- Pre-release local usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`.
+- Required released PATH usage: `review-evidence` available on `PATH` from `nils-cli 0.8.4` or newer.
+- Release boundary: `0.8.4` is the release that includes `nils-agent-workflow-primitives`.
+- Local checkout fallback: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`, used
+  only when the PATH binary is absent or reports a version older than `0.8.4`.
 
 Inputs:
 
@@ -44,7 +46,29 @@ Failure modes:
 - `verify` finds no findings, missing or failing validation, or open high/medium findings.
 - Caller uses this record as a substitute for reviewing the patch; judgment remains in the workflow.
 
+## Setup
+
+Required released PATH boundary:
+
+```bash
+review-evidence --version
+```
+
+Use the PATH command when it resolves to `nils-cli 0.8.4` or newer.
+
+Local checkout fallback boundary:
+
+```bash
+cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
+  -p nils-agent-workflow-primitives --bin review-evidence -- --version
+```
+
+Run the Cargo form from the workflow's target directory. It is only a fallback transport for a validated local checkout when the released
+PATH binary is absent or too old. Do not mix PATH and local checkout evidence claims without stating which source was used.
+
 ## Commands
+
+Required released PATH command:
 
 ```bash
 review-evidence init --out <dir> --subject <subject> [--format json]
@@ -55,9 +79,15 @@ review-evidence show --out <dir> [--format json]
 review-evidence completion <bash|zsh>
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
   -p nils-agent-workflow-primitives --bin review-evidence -- <subcommand> ...
 ```
+
+## Guardrails
+
+- Do not use `review-evidence` as a substitute for code-review judgment or patch inspection.
+- Do not mark high or medium findings fixed without corresponding validation evidence.
+- Do not hand-edit `review-evidence.json` or duplicate finding, validation, schema, or JSON envelope logic in skill-local scripts.

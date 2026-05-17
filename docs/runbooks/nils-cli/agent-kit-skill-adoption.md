@@ -37,8 +37,9 @@ Source facts:
   `browser-session`, `canary-check`, `docs-impact`, `model-cross-check`, and
   `review-evidence` binaries.
 - agent-kit now has thin tool skills for those five binaries. They document
-  released PATH expectations, verified local PATH usage on this machine, and
-  validated local-checkout fallback usage before distributable release adoption.
+  released PATH expectations through `nils-cli 0.8.4`, verified local PATH usage
+  on this machine, and validated local-checkout fallback usage for machines
+  where PATH is absent or too old.
 
 Assumptions:
 
@@ -86,6 +87,19 @@ First adoption slices:
   `nils-agent-workflow-primitives` binaries. Their first slice is deterministic
   evidence capture or Git change scanning; active browser automation, provider
   model calls, and deploy orchestration stay in higher-level workflows.
+- On this machine, the implemented evidence and guardrail binaries resolve from
+  `/opt/homebrew/bin` and report `0.8.4` via Homebrew-installed `nils-cli`.
+  Local-checkout Cargo invocations remain fallback guidance only when the
+  released PATH binary is absent or too old.
+- `web-qa` now exists as a scriptless browser workflow skill. It orchestrates
+  static `web-evidence` capture or active Browser/Chrome/Playwright evidence,
+  then records useful goal, step, status, and artifact paths through
+  `browser-session`.
+- `gh-fix-ci` now consumes evidence primitives directly in its workflow
+  contract: `test-first-evidence` for CI failure evidence or waivers,
+  `agent-scope-lock` for active scope validation, `canary-check` for
+  caller-owned local canaries, and `web-evidence` or `web-qa` for CI/deploy/web
+  evidence boundaries.
 
 Do not create broad gstack-style specialist skills as part of this landing
 architecture. The first value is reusable evidence, guardrails, and validation,
@@ -95,13 +109,13 @@ not new product-review personas.
 
 | nils-cli primitive | First agent-kit landing | Later consumers | Notes |
 | --- | --- | --- | --- |
-| `web-evidence` | Landed: `skills/tools/browser/web-evidence/`. | Landed: `release-workflow`, `issue-follow-up`; later: future `web-qa`, `gh-fix-ci` | First slice is static HTTP evidence; use browser tooling when JavaScript, screenshots, cookies, auth state, or console logs are required. |
-| `browser-session` | Landed: `skills/tools/browser/browser-session/`. | `web-evidence`, future `web-qa`, `screenshot`, possible `agent-browser` replacement | First slice records session evidence; it does not replace Browser, Chrome, or Playwright automation. |
-| `agent-scope-lock` | Landed: `skills/tools/devex/agent-scope-lock/`. | Landed: Codex hook guard; later: `gh-fix-ci`, `find-and-fix-bugs`, `plan-issue-delivery` | Hook guard validates active locks and reports violations; workflow consumption should stay opt-in until unattended failure modes are proven. |
+| `web-evidence` | Landed: `skills/tools/browser/web-evidence/`. | Landed: `release-workflow`, `issue-follow-up`, `web-qa`, `gh-fix-ci` | Static HTTP evidence only; use `web-qa` active mode when JavaScript, screenshots, cookies, auth state, or console logs are required. |
+| `browser-session` | Landed: `skills/tools/browser/browser-session/`. | Landed: `web-qa`; later: `web-evidence`, `screenshot`, possible `agent-browser` replacement | Records session evidence; it does not replace Browser, Chrome, or Playwright automation. |
+| `agent-scope-lock` | Landed: `skills/tools/devex/agent-scope-lock/`. | Landed: Codex hook guard, `gh-fix-ci`; later: `find-and-fix-bugs`, `plan-issue-delivery` | Hook guard validates active locks and `gh-fix-ci` validates active scopes before commit/push. |
 | `docs-impact` | Landed: `skills/tools/devex/docs-impact/`. | `release-workflow`, `docs-plan-cleanup`, future document-release equivalent | Reports docs/non-doc changed files and review hints; rewriting docs remains a skill decision. |
 | `review-evidence` | Landed: `skills/tools/devex/review-evidence/`. | `review-to-improvement-doc`, `issue-pr-review`, PR workflows | Normalizes findings without replacing code-review judgment. |
 | `test-first-evidence` | Landed: `skills/tools/devex/test-first-evidence/`. | Landed: `find-and-fix-bugs`, `fix-bug-pr`, `gh-fix-ci`, `issue-subagent-pr`, `execute-plan-parallel`, PR/MR creation workflows | Skills decide whether test-first applies; the CLI records failing evidence, waiver, final validation, redaction, and completeness checks. |
-| `canary-check` | Landed: `skills/tools/devex/canary-check/`. | `release-workflow`, future `land-and-deploy`, future `web-qa` | Runs one caller-owned local command and records redacted pass/fail evidence; it is not a deploy orchestrator. |
+| `canary-check` | Landed: `skills/tools/devex/canary-check/`. | Landed: `gh-fix-ci`; later: `release-workflow`, future `land-and-deploy`, future `web-qa` | Runs one caller-owned local command and records redacted pass/fail evidence; it is not a deploy orchestrator. |
 | `model-cross-check` | Landed: `skills/tools/devex/model-cross-check/`. | PR review workflows, research workflows | Records observations only; provider auth, cost, and routing remain outside the CLI. |
 
 ## Adoption Criteria
@@ -147,7 +161,7 @@ Before updating workflow or automation skills to consume it:
 | `skills/tools/browser/playwright/` | Keep as direct Playwright wrapper for exploratory or framework-specific cases. | Do not force all browser use through nils-cli if Playwright CLI remains the better fit. |
 | `skills/tools/media/screenshot/` | Optionally consume `web-evidence` for URL screenshots only. | Keep generic desktop/window screenshot behavior separate. |
 | `skills/automation/release-workflow/` | Consume `web-evidence`, `docs-impact`, or `canary-check` after command contracts are stable. | Keep release guide and project-defined commands as source of truth. |
-| `skills/automation/gh-fix-ci/` | Consume `agent-scope-lock` or `web-evidence` only when it improves unattended safety. | Avoid broadening auto-fix scope without mechanical enforcement. |
+| `skills/automation/gh-fix-ci/` | Done: consumes `test-first-evidence`, `agent-scope-lock`, `canary-check`, and `web-evidence` or `web-qa` where each applies. | Avoid broadening auto-fix scope without mechanical enforcement. |
 | `skills/workflows/conversation/review-to-improvement-doc/` | Optionally consume `review-evidence` for normalized finding tables. | Durable docs remain human-readable and source-grounded. |
 
 ## Backlog
@@ -157,7 +171,7 @@ Before updating workflow or automation skills to consume it:
 | P1 | Watch each new nils-cli primitive shape and choose the matching agent-kit landing area. | First set landed: Browser owns `web-evidence` and `browser-session`; DevEx owns `agent-scope-lock`, `test-first-evidence`, `docs-impact`, `review-evidence`, `canary-check`, and `model-cross-check`. |
 | P1 | Add a tool skill only after command contract exists. | Skill has contract, prerequisites, failure modes, usage, guardrails, tests, and catalog update if public. |
 | P1 | Define too-old nils-cli behavior for each consuming skill. | Done for landed tool skills: they document the released PATH boundary, local checkout fallback, and blocked/degraded behavior. |
-| P2 | Add workflow integration after the tool skill is stable. | First integrations landed for `web-evidence` and `agent-scope-lock`; future integrations should reference tool contracts and keep decision logic out of the tool. |
+| P2 | Add workflow integration after the tool skill is stable. | `web-evidence`, `agent-scope-lock`, `test-first-evidence`, `canary-check`, and `browser-session` now have concrete consumers; future integrations should reference tool contracts and keep decision logic out of the tool. |
 | P2 | Revisit legacy browser wrappers after browser primitive lands. | Migration note documents keep/replace decision with evidence. |
 
 ## Validation Gate
@@ -196,6 +210,5 @@ For docs-only adoption records:
   grouped command?
 - Which workflow should consume `agent-scope-lock` after the hook guard proves
   stable in real use?
-- Should `browser-session` remain a lower-level record-only complement to
-  Browser, Chrome, Playwright, and `web-evidence`, or grow a separate active
-  browser automation slice?
+- Which workflows should consume `web-qa` next after the initial browser
+  evidence workflow and `gh-fix-ci` boundary are stable?

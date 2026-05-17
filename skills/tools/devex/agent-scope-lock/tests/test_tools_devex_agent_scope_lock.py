@@ -32,8 +32,9 @@ def test_tools_devex_agent_scope_lock_documents_cli_contract_surface() -> None:
 def test_tools_devex_agent_scope_lock_documents_release_and_local_boundaries() -> None:
     text = _skill_text()
 
-    assert "release that includes workspace version `0.8.3`" in text
+    assert "`nils-cli 0.8.4` or newer" in text
     assert "validated local `nils-cli` checkout" in text
+    assert "PATH is absent" in text
     assert "cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml" in text
     assert "-p nils-agent-scope-lock --bin agent-scope-lock --" in text
     assert "Run the Cargo form from the target git work tree" in text

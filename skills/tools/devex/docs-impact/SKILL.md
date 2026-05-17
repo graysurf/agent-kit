@@ -12,8 +12,10 @@ Use this skill when implementation or release work needs a deterministic check f
 Prereqs:
 
 - Run inside or point at a Git worktree.
-- Released usage: `docs-impact` available on `PATH` from the `nils-cli` release that includes `nils-agent-workflow-primitives`.
-- Pre-release local usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`.
+- Required released PATH usage: `docs-impact` available on `PATH` from `nils-cli 0.8.4` or newer.
+- Release boundary: `0.8.4` is the release that includes `nils-agent-workflow-primitives`.
+- Local checkout fallback: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`, used
+  only when the PATH binary is absent or reports a version older than `0.8.4`.
 
 Inputs:
 
@@ -38,16 +40,36 @@ Failure modes:
 - `--base` is not resolvable by Git.
 - Caller treats the heuristic as proof that docs are complete; it is only a drift signal.
 
+## Setup
+
+Required released PATH boundary:
+
+```bash
+docs-impact --version
+```
+
+Use the PATH command when it resolves to `nils-cli 0.8.4` or newer.
+
+Local checkout fallback boundary:
+
+```bash
+cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
+  -p nils-agent-workflow-primitives --bin docs-impact -- --version
+```
+
+Run the Cargo form from the workflow's target directory. It is only a fallback transport for a validated local checkout when the released
+PATH binary is absent or too old. Do not mix PATH and local checkout evidence claims without stating which source was used.
+
 ## Commands
 
-Released PATH command:
+Required released PATH command:
 
 ```bash
 docs-impact scan [--repo <dir>] [--base <ref>] [--include-untracked] [--format json]
 docs-impact completion <bash|zsh>
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
@@ -56,3 +78,9 @@ cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
 
 Treat this as a drift detector. A clean result does not prove docs are perfect; it only means the changed-file heuristic found no obvious
 docs-impact signal.
+
+## Guardrails
+
+- Do not treat `docs-impact` output as proof that docs are complete; it is only a changed-file heuristic.
+- Do not let this CLI edit docs or decide requirement coverage; the calling workflow owns those judgments.
+- Do not reimplement Git diff classification, JSON schema, or output envelope logic in skill-local scripts.

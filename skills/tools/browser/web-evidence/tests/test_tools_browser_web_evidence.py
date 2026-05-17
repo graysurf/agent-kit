@@ -31,9 +31,11 @@ def test_tools_browser_web_evidence_documents_cli_contract_surface() -> None:
 
 def test_tools_browser_web_evidence_documents_release_and_local_boundaries() -> None:
     text = _skill_text()
+    compact = " ".join(text.split())
 
-    assert "release that includes workspace version `0.8.3`" in text
-    assert "validated local checkout" in text
+    assert "`nils-cli 0.8.4` or newer" in text
+    assert "validated local `nils-cli` checkout" in compact
+    assert "PATH is absent" in compact
     assert "cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml" in text
     assert "-p nils-web-evidence --bin web-evidence --" in text
 

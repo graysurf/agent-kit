@@ -13,9 +13,9 @@ Prereqs:
 
 - Run inside the target project or from a directory where evidence paths make sense.
 - Choose an explicit output directory, preferably under a project-scoped `agent-out` run directory.
-- Released usage: `test-first-evidence` available on `PATH` from the `nils-cli` release that includes the `nils-test-first-evidence`
-  package.
-- Pre-release local usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds the `nils-test-first-evidence` package.
+- Released usage: `test-first-evidence` available on `PATH` from `nils-cli 0.8.4` or newer.
+- Local checkout fallback usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds the
+  `nils-test-first-evidence` package when PATH is absent or too old.
 
 Inputs:
 
@@ -59,17 +59,18 @@ test-first-evidence --help
 test-first-evidence --version
 ```
 
-Use the PATH command only after installing a `nils-cli` release that includes `nils-test-first-evidence`.
+Use the PATH command after installing `nils-cli 0.8.4` or newer with `nils-test-first-evidence` on PATH.
 
-Pre-release local checkout boundary:
+Local checkout fallback boundary:
 
 ```bash
 cargo run --locked --manifest-path /Users/terry/Project/sympoies/nils-cli/Cargo.toml \
   -p nils-test-first-evidence --bin test-first-evidence -- --help
 ```
 
-Run the Cargo form from the workflow's target directory. It is only a transport for a validated local checkout before the released PATH
-binary is available. Keep the same `test-first-evidence` subcommands and flags in both modes.
+Run the Cargo form from the workflow's target directory only when PATH is absent
+or reports an older `nils-cli`. Keep the same `test-first-evidence` subcommands
+and flags in both modes.
 
 ## Commands (only entrypoints)
 
@@ -85,7 +86,7 @@ test-first-evidence show --out <dir> [--format json]
 test-first-evidence completion <bash|zsh>
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \

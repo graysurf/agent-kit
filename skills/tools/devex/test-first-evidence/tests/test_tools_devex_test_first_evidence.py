@@ -35,8 +35,9 @@ def test_tools_devex_test_first_evidence_documents_cli_contract_surface() -> Non
 def test_tools_devex_test_first_evidence_documents_release_and_local_boundaries() -> None:
     text = _skill_text()
 
-    assert "release that includes `nils-test-first-evidence`" in text
+    assert "`nils-cli 0.8.4` or newer" in text
     assert "validated local `nils-cli` checkout" in text
+    assert "PATH is absent" in text
     assert "cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml" in text
     assert "-p nils-test-first-evidence --bin test-first-evidence --" in text
 

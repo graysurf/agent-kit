@@ -11,7 +11,7 @@ Use this skill when an agent workflow needs deterministic, redacted evidence for
 
 Prereqs:
 
-- `web-evidence` available on `PATH` from the `nils-cli` release that includes workspace version `0.8.3`.
+- `web-evidence` available on `PATH` from `nils-cli 0.8.4` or newer.
 - Static HTTP/HTTPS evidence only. This command does not drive a browser, execute JavaScript, reuse cookies, or use authenticated sessions.
 - The caller chooses an explicit output directory, preferably under a project-scoped `agent-out` run directory.
 
@@ -53,17 +53,18 @@ web-evidence --help
 web-evidence capture --help
 ```
 
-Use the PATH command only after installing a `nils-cli` release that includes `nils-web-evidence` workspace version `0.8.3` or newer.
+Use the PATH command after installing `nils-cli 0.8.4` or newer with `nils-web-evidence` on PATH.
 
-Pre-release local checkout boundary:
+Local checkout fallback boundary:
 
 ```bash
 cargo run --locked --manifest-path /Users/terry/Project/sympoies/nils-cli/Cargo.toml \
   -p nils-web-evidence --bin web-evidence -- --help
 ```
 
-Run the Cargo form from the workflow's target directory. It is only a transport for a validated local checkout before the released PATH
-binary is available. Keep the same `web-evidence` subcommands and flags in both modes.
+Run the Cargo form from the workflow's target directory only when PATH is absent
+or reports an older `nils-cli`, and only from a validated local `nils-cli`
+checkout. Keep the same `web-evidence` subcommands and flags in both modes.
 
 ## Commands (only entrypoints)
 
@@ -74,7 +75,7 @@ web-evidence capture <url> --out <dir> [--format text|json] [--label <label>] [-
 web-evidence completion <bash|zsh>
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \

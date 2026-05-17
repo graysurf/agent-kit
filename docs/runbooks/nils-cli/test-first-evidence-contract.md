@@ -1,6 +1,6 @@
 # Test-First Evidence Contract Improvement Record
 
-Status: active; workflow contract, nils-cli primitive, tool skill, and local PATH install landed; distributable release adoption pending
+Status: active; workflow contract, nils-cli primitive, tool skill, and released PATH usage landed
 Date: 2026-05-17
 Scope: agent-kit skill behavior and `nils-cli` evidence support
 
@@ -32,10 +32,9 @@ Assumptions:
 
 - The `nils-cli` command name is `test-first-evidence`, implemented in the
   `nils-test-first-evidence` package.
-- Local PATH availability on this machine was verified on 2026-05-17 at
-  `/Users/terry/.local/nils-cli/bin/test-first-evidence`, installed from the
-  local nils-cli checkout. Distributable release/Homebrew adoption still
-  depends on a nils-cli release artifact that includes the binary.
+- Released PATH availability on this machine was verified on 2026-05-17 at
+  `/opt/homebrew/bin/test-first-evidence`, reporting `test-first-evidence 0.8.4`
+  from Homebrew-installed `nils-cli 0.8.4`.
 - The first workflow implementation started in skills and PR/MR templates before
   agent-kit consumed the nils-cli primitive.
 - Repositories vary in test maturity, so a hard unwaivable rule would create
@@ -62,6 +61,10 @@ This is now an agent-kit workflow contract, not only a prompt habit. The prompt
 is useful for immediate opt-in, implementation skills own the waiver decision,
 PR/MR templates surface evidence fields, and the nils-cli evidence primitive
 normalizes records.
+
+Implementation update (2026-05-17): `gh-fix-ci` now documents direct
+`test-first-evidence` usage for CI failure evidence or explicit waivers, plus
+final validation recording before commit, push, or final report.
 
 ## Applicability
 
@@ -163,8 +166,8 @@ Suggested record fields:
 | P1 | Add the prompt for immediate user opt-in. | Done: `skills/workflows/prompts/test-first/` exists and describes failing evidence, waiver, and final validation. |
 | P1 | Update behavior-editing workflow skills. | Done: behavior-editing skills tell agents to capture failing evidence or waiver before production edits. |
 | P1 | Update create PR/MR body contracts. | Done: PR/MR bodies include test-first evidence or explicit waiver when production behavior changed. |
-| P2 | Prototype nils-cli evidence capture. | Done: command emits deterministic JSON and stores `test-first-evidence.json` under explicit `--out DIR`; publish dry-run succeeds in the nils-cli repo. |
-| P2 | Add skill consumption after nils-cli stabilizes. | Done: `skills/tools/devex/test-first-evidence/` documents PATH and local-checkout usage. |
+| P2 | Prototype nils-cli evidence capture. | Done: command emits deterministic JSON and stores `test-first-evidence.json` under explicit `--out DIR`; publish dry-run succeeded in the nils-cli repo before release. |
+| P2 | Add skill consumption after nils-cli stabilizes. | Done: `skills/tools/devex/test-first-evidence/` documents released PATH usage and local-checkout fallback. |
 | P3 | Consider hook support. | Hook only warns or fails after evidence fields and waiver behavior are stable. |
 
 ## Validation Gate
@@ -203,8 +206,8 @@ For future nils-cli changes:
   path are stable.
 - Do not list a nils-cli command in the canonical tooling index before it
   exists and is tested.
-- Do not claim released PATH availability until the installed nils-cli artifact
-  includes the binary.
+- Do not claim released PATH availability without live verification of the
+  installed nils-cli artifact and binary version.
 
 ## Open Questions
 
@@ -212,6 +215,5 @@ For future nils-cli changes:
   without weakening provider-specific workflow boundaries?
 - Should hooks begin as warnings only, or stay out of scope until nils-cli
   evidence capture is implemented?
-- Should agent-kit workflows start calling `test-first-evidence` directly after
-  the next nils-cli release, or first keep it as an optional record artifact
-  behind explicit user/workflow opt-in?
+- Which additional workflow should be the next direct `test-first-evidence`
+  consumer after `gh-fix-ci` records CI failure evidence and waivers?

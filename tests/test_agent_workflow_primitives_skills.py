@@ -29,8 +29,10 @@ def test_agent_workflow_primitive_skill_contracts() -> None:
 def test_agent_workflow_primitive_skills_document_release_boundary() -> None:
     for name in SKILLS:
         text = _text(name)
-        assert "release that includes `nils-agent-workflow-primitives`" in text
+        assert "`nils-cli 0.8.4` or newer" in text
+        assert "`0.8.4` is the release that includes `nils-agent-workflow-primitives`" in text
         assert "validated local `nils-cli` checkout" in text
+        assert "PATH binary is absent or too old" in text
         assert "-p nils-agent-workflow-primitives --bin" in text
         assert f"{name} completion <bash|zsh>" in text
 

@@ -1,8 +1,8 @@
 # Skills Tooling Index v2
 
 This doc lists canonical entrypoints (skill scripts, PATH-installed tooling, and scriptless command contracts). Install `nils-cli` via
-`brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, and `agent-out` on PATH; `agent-scope-lock` and `web-evidence`
-require the release that includes workspace version `0.8.3`. For skill directory layout/path rules, use
+`brew install nils-cli` to get `plan-tooling`, `api-*`, `semantic-commit`, `agent-out`, and the current evidence and guardrail primitives
+on PATH. The workflow primitive skills below require `nils-cli 0.8.4` or newer. For skill directory layout/path rules, use
 `docs/runbooks/skills/SKILLS_ANATOMY_V2.md` as the canonical reference. For create/validate/remove workflows, see
 `skills/tools/skill-management/README.md`.
 
@@ -79,11 +79,30 @@ implemented entrypoints.
   - `web-evidence completion <bash|zsh>`
 - Artifact contract: `summary.json`, `headers.redacted.json`, and
   `body-preview.redacted.txt` under the requested output directory.
-- Version floor: requires the `nils-web-evidence` package from the `nils-cli`
-  release that includes workspace version `0.8.3`.
+- Version floor: requires `nils-cli 0.8.4` or newer with the
+  `nils-web-evidence` package on PATH.
 - Scope boundary: this is static HTTP/HTTPS evidence only; use Browser, Chrome,
-  Playwright, or future browser-session tooling for JavaScript execution,
+  Playwright, or `web-qa` active mode for JavaScript execution,
   screenshots, cookies, authenticated sessions, console logs, or browser state.
+
+## Web QA
+
+- Run scriptless static or active browser QA evidence workflows:
+  - Skill contract: `skills/tools/browser/web-qa/SKILL.md`
+  - Static mode: `web-evidence capture <url> --out <run-dir>/web-evidence --label <scenario> --format json`
+  - Active mode: open or inspect the target with Browser, Chrome, Playwright, or
+    a verified explicit nils-cli browser driver, then record the action and
+    artifact paths with `browser-session record-step`.
+  - Verify recorded evidence with
+    `browser-session verify --out <run-dir>/browser-session --format json`.
+- Artifact contract: static mode retains redacted `web-evidence` bundles; active
+  mode retains redacted screenshots, DOM observations, console summaries,
+  network summaries, traces, or equivalent browser artifacts.
+- Version floor: `web-qa` relies on `web-evidence` and `browser-session` from
+  `nils-cli 0.8.4` or newer when those evidence records are used.
+- Scope boundary: `web-qa` chooses and documents browser evidence. It does not
+  add skill-local scripts, persist raw cookies or credentials, bypass MFA/CAPTCHA
+  or access controls, or replace project-owned E2E tests.
 
 ## Edit-scope locks
 
@@ -94,13 +113,13 @@ implemented entrypoints.
   - `agent-scope-lock validate --changes all --format json`
   - `agent-scope-lock read --format json`
   - `agent-scope-lock clear`
-- Version floor: requires the `nils-agent-scope-lock` package from the
-  `nils-cli` release that includes workspace version `0.8.3`.
-- Local checkout boundary: before that release is installed on PATH, consume the
-  same command surface only through a validated local `nils-cli` checkout, for
-  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
-  nils-agent-scope-lock --bin agent-scope-lock -- <subcommand> ...` from the
-  target git work tree.
+- Version floor: requires `nils-cli 0.8.4` or newer with the
+  `nils-agent-scope-lock` package on PATH.
+- Local checkout boundary: when PATH is absent or reports an older `nils-cli`,
+  consume the same command surface only through a validated local `nils-cli`
+  checkout, for example `cargo run --locked --manifest-path
+  /path/to/nils-cli/Cargo.toml -p nils-agent-scope-lock --bin
+  agent-scope-lock -- <subcommand> ...` from the target git work tree.
 
 ## Test-first evidence
 
@@ -114,12 +133,13 @@ implemented entrypoints.
   - `test-first-evidence show --out <dir> --format json`
 - Artifact contract: `test-first-evidence.json` under the requested output
   directory, with record schema `test-first-evidence.record.v1`.
-- Version floor: requires the `nils-test-first-evidence` package from the
-  `nils-cli` release that includes that package.
-- Local checkout boundary: before that release is installed on PATH, consume the
-  same command surface only through a validated local `nils-cli` checkout, for
-  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
-  nils-test-first-evidence --bin test-first-evidence -- <subcommand> ...`.
+- Version floor: requires `nils-cli 0.8.4` or newer with the
+  `nils-test-first-evidence` package on PATH.
+- Local checkout boundary: when PATH is absent or reports an older `nils-cli`,
+  consume the same command surface only through a validated local `nils-cli`
+  checkout, for example `cargo run --locked --manifest-path
+  /path/to/nils-cli/Cargo.toml -p nils-test-first-evidence --bin
+  test-first-evidence -- <subcommand> ...`.
 
 ## Agent workflow primitives
 
@@ -142,9 +162,10 @@ implemented entrypoints.
   - `model-cross-check.json` with record schema `model-cross-check.record.v1`.
   - `review-evidence.json` with record schema `review-evidence.record.v1`.
   - `docs-impact` emits JSON scan results and does not write project files.
-- Version floor: requires the `nils-agent-workflow-primitives` package from the
-  `nils-cli` release that includes these binaries.
-- Local checkout boundary: before that release is installed on PATH, consume the
-  same command surfaces only through a validated local `nils-cli` checkout, for
-  example `cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml -p
-  nils-agent-workflow-primitives --bin docs-impact -- scan --format json`.
+- Version floor: requires `nils-cli 0.8.4` or newer with the
+  `nils-agent-workflow-primitives` package on PATH.
+- Local checkout boundary: when PATH is absent or reports an older `nils-cli`,
+  consume the same command surfaces only through a validated local `nils-cli`
+  checkout, for example `cargo run --locked --manifest-path
+  /path/to/nils-cli/Cargo.toml -p nils-agent-workflow-primitives --bin
+  docs-impact -- scan --format json`.

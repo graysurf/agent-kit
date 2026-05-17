@@ -8,6 +8,10 @@ from pathlib import Path
 from skills._shared.python.skill_testing import assert_entrypoints_exist, assert_skill_contract
 
 
+def skill_text() -> str:
+    return (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+
+
 def load_inspector_module():
     script = Path(__file__).resolve().parents[1] / "scripts" / "inspect_ci_checks.py"
     spec = importlib.util.spec_from_file_location("gh_fix_ci_inspect_ci_checks", script)
@@ -36,14 +40,62 @@ def test_automation_gh_fix_ci_entrypoints_exist() -> None:
 
 
 def test_automation_gh_fix_ci_requires_test_first_evidence_gate() -> None:
-    text = (Path(__file__).resolve().parents[1] / "SKILL.md").read_text(encoding="utf-8")
+    text = skill_text()
     assert "## Test-First Evidence Gate" in text
-    assert "failing-test evidence or an explicit waiver" in text
+    assert "failing-test evidence or an explicit waiver with `test-first-evidence`" in text
     assert "before editing production behavior" in text
     assert "Change classification" in text
     assert "Failing test before fix" in text
     assert "Final validation" in text
     assert "Waiver reason" in text
+
+
+def test_automation_gh_fix_ci_documents_concrete_test_first_evidence_commands() -> None:
+    text = skill_text()
+
+    assert "test-first-evidence init --out <run-dir>/test-first" in text
+    assert "test-first-evidence record-failing --out <run-dir>/test-first" in text
+    assert "--command \"<ci-or-local-command>\"" in text
+    assert "--test-name \"<job-or-test>\"" in text
+    assert "test-first-evidence record-waiver --out <run-dir>/test-first" in text
+    assert "--substitute-validation \"<validation>\"" in text
+    assert "test-first-evidence record-final --out <run-dir>/test-first" in text
+    assert "test-first-evidence verify --out <run-dir>/test-first --format json" in text
+    assert "before `semantic-commit-autostage`, push, or final report" in text
+    assert "the `test-first-evidence.json` path" in text
+
+
+def test_automation_gh_fix_ci_documents_scope_lock_contract() -> None:
+    text = skill_text()
+
+    assert "## Scope And Auxiliary Evidence Primitives" in text
+    assert "agent-scope-lock read --format json" in text
+    assert "agent-scope-lock validate --changes all --format json" in text
+    assert "before staging, committing, pushing, or" in text
+    assert "agent-scope-lock create --path <path> --owner gh-fix-ci" in text
+    assert "agent-scope-lock clear" in text
+    assert "If the temporary lock remains, the final report must say why" in text
+
+
+def test_automation_gh_fix_ci_documents_canary_check_contract() -> None:
+    text = skill_text()
+
+    assert "Use `canary-check` when one caller-owned local command is the appropriate post-fix canary" in text
+    assert "canary-check run --out <run-dir>/canary --name <name> --command \"<command>\"" in text
+    assert "canary-check verify --out <run-dir>/canary --format json" in text
+    assert "Do not use `canary-check` to replace project-required tests" in text
+
+
+def test_automation_gh_fix_ci_documents_web_evidence_and_web_qa_boundary() -> None:
+    text = skill_text()
+
+    assert "web-evidence capture <url> --out <run-dir>/web-evidence" in text
+    assert "static URL evidence related to CI logs, deployment previews, or status pages" in text
+    assert "`web-evidence` does not drive a browser" in text
+    assert "Use `web-qa` active mode" in text
+    assert "Browser, Chrome, or Playwright" in text
+    assert "JavaScript" in text
+    assert "Do not persist raw cookies, credentials, auth headers" in text
 
 
 def test_inspector_treats_startup_failure_as_failing() -> None:

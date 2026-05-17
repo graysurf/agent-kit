@@ -9,8 +9,13 @@ capabilities that agent-kit skills should consume as stable CLI contracts.
 - [Agent-kit Skill Adoption Architecture](./agent-kit-skill-adoption.md):
   companion record for how agent-kit skills should land around implemented and
   future `nils-cli` primitives once their actual command contracts stabilize.
+- [Workflow Primitives Finalization Handoff](./workflow-primitives-finalization-handoff.md):
+  execution-ready handoff from the current adoption state to the final
+  acceptance gates, including `web-qa`, `gh-fix-ci`, and active browser
+  automation scope.
 - Implemented tool skills: `skills/tools/devex/agent-scope-lock/`,
   `skills/tools/browser/web-evidence/`,
+  `skills/tools/browser/web-qa/`,
   `skills/tools/devex/test-first-evidence/`,
   `skills/tools/browser/browser-session/`,
   `skills/tools/devex/canary-check/`,

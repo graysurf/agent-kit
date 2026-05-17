@@ -13,8 +13,9 @@ Prereqs:
 
 - Run inside the target git work tree.
 - `git` available on `PATH`.
-- Released usage: `agent-scope-lock` available on `PATH` from the `nils-cli` release that includes workspace version `0.8.3`.
-- Pre-release local usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds the `nils-agent-scope-lock` package.
+- Released usage: `agent-scope-lock` available on `PATH` from `nils-cli 0.8.4` or newer.
+- Local checkout fallback usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds the
+  `nils-agent-scope-lock` package when PATH is absent or too old.
 - Scope paths are repository-relative paths chosen by the owning workflow or agent.
 
 Inputs:
@@ -44,7 +45,7 @@ Failure modes:
 - Current directory is not inside the intended git work tree.
 - Requested `create` paths are not repository-relative or do not match the intended edit boundary.
 - `validate` finds changes outside the active lock scope.
-- Caller mixes a pre-release local checkout with a different released PATH binary; rerun with one explicit invocation source.
+- Caller mixes a local checkout fallback with a different released PATH binary; rerun with one explicit invocation source.
 
 ## Setup
 
@@ -54,17 +55,18 @@ Released PATH boundary:
 agent-scope-lock --help
 ```
 
-Use the PATH command only after installing a `nils-cli` release that includes `nils-agent-scope-lock` workspace version `0.8.3` or newer.
+Use the PATH command after installing `nils-cli 0.8.4` or newer with `nils-agent-scope-lock` on PATH.
 
-Pre-release local checkout boundary:
+Local checkout fallback boundary:
 
 ```bash
 cargo run --locked --manifest-path /Users/terry/Project/sympoies/nils-cli/Cargo.toml \
   -p nils-agent-scope-lock --bin agent-scope-lock -- --help
 ```
 
-Run the Cargo form from the target git work tree, not from the nils-cli checkout. It is only a transport for a validated local checkout
-before the released PATH binary is available. Keep the same `agent-scope-lock` subcommands and flags in both modes.
+Run the Cargo form from the target git work tree, not from the nils-cli checkout.
+Use it only when PATH is absent or reports an older `nils-cli`. Keep the same
+`agent-scope-lock` subcommands and flags in both modes.
 
 ## Commands (only entrypoints)
 
@@ -77,7 +79,7 @@ agent-scope-lock validate --changes all|staged|unstaged [--format json]
 agent-scope-lock clear
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \

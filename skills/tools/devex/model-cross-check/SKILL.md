@@ -13,8 +13,10 @@ Prereqs:
 
 - Provider calls, authentication, cost controls, and prompt execution stay owned by the calling workflow or provider-specific skill.
 - Choose an explicit output directory, preferably under a project-scoped `agent-out` run directory.
-- Released usage: `model-cross-check` available on `PATH` from the `nils-cli` release that includes `nils-agent-workflow-primitives`.
-- Pre-release local usage: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`.
+- Required released PATH usage: `model-cross-check` available on `PATH` from `nils-cli 0.8.4` or newer.
+- Release boundary: `0.8.4` is the release that includes `nils-agent-workflow-primitives`.
+- Local checkout fallback: Rust/Cargo plus a validated local `nils-cli` checkout that builds `nils-agent-workflow-primitives`, used
+  only when the PATH binary is absent or reports a version older than `0.8.4`.
 
 Inputs:
 
@@ -43,7 +45,29 @@ Failure modes:
 - `verify` finds missing primary/checker observations or a checker `fail` verdict.
 - Caller assumes this CLI invokes providers; provider calls remain outside this evidence primitive.
 
+## Setup
+
+Required released PATH boundary:
+
+```bash
+model-cross-check --version
+```
+
+Use the PATH command when it resolves to `nils-cli 0.8.4` or newer.
+
+Local checkout fallback boundary:
+
+```bash
+cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
+  -p nils-agent-workflow-primitives --bin model-cross-check -- --version
+```
+
+Run the Cargo form from the workflow's target directory. It is only a fallback transport for a validated local checkout when the released
+PATH binary is absent or too old. Do not mix PATH and local checkout evidence claims without stating which source was used.
+
 ## Commands
+
+Required released PATH command:
 
 ```bash
 model-cross-check init --out <dir> --prompt <prompt> --primary-model <model> --checker-model <model> [--format json]
@@ -53,7 +77,7 @@ model-cross-check show --out <dir> [--format json]
 model-cross-check completion <bash|zsh>
 ```
 
-Pre-release local checkout command:
+Local checkout fallback command:
 
 ```bash
 cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
@@ -61,3 +85,9 @@ cargo run --locked --manifest-path /path/to/nils-cli/Cargo.toml \
 ```
 
 This is an evidence primitive, not a model router.
+
+## Guardrails
+
+- Do not use `model-cross-check` to call providers, route model traffic, manage credentials, or make cost-control decisions.
+- Do not record provider credentials, secret prompt material, or artifacts that the calling workflow is not allowed to retain.
+- Do not hand-edit `model-cross-check.json` or duplicate observation validation, schema, or JSON envelope logic in skill-local scripts.
