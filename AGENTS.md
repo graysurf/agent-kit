@@ -23,18 +23,18 @@
 - When conclusions depend on uncertainty, separate known facts, assumptions,
   inferences, and open questions.
 
-## Delegation Defaults
+## Delegation Modes
 
-- Prefer delegating independent sidecar work to subagents when a task has clear
-  parallel lanes, limited file overlap, concrete validation, and a straightforward
-  integration path.
-- For broad implementation, audit, or delivery tasks that naturally split into
-  independent lanes, this file grants standing permission to use subagents when
-  the delegation gate passes, unless the user asks for sequential work.
-- The main agent owns scope, critical path, integration, validation, and final answer.
-- Do not delegate small changes, tightly coupled refactors, unclear requirements,
-  destructive actions, or work whose next step blocks on the subagent result.
-- Keep subagent outputs concise and artifact-based when practical.
+- Subagent delegation is opt-in. Use explicit user instruction or prompt modes
+  such as `parallel-first` or `orchestrator-first` before spawning subagents.
+- `parallel-first` optimizes for safely parallelizable sidecar work.
+- `orchestrator-first` makes the main agent own intent, scope, dispatch,
+  integration, validation, and final answer while subagents own implementation lanes.
+- Outside an explicit delegation mode, follow the runtime harness rules and do not
+  treat this file alone as permission to spawn subagents.
+- Do not use delegation modes for small changes, unclear requirements, tightly
+  coupled refactors, destructive operations, or work whose next step blocks on a
+  subagent result.
 
 ## Operating Defaults
 
