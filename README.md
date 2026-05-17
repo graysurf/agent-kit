@@ -47,23 +47,28 @@ Best fit:
 
 ## ⚙️ Setup
 
-Install agent-kit CLI tooling via the Homebrew tap:
+Run the macOS bootstrap script for a first install or repair:
 
 ```zsh
-brew tap sympoies/tap
-brew install nils-cli
+curl -fsSL https://raw.githubusercontent.com/graysurf/agent-kit/main/install.sh | bash
 ```
 
-Upgrade when needed:
+The installer defaults to:
+
+- installing Homebrew tools from [CLI_TOOLS.md](./CLI_TOOLS.md) with the
+  `recommended` profile
+- installing or upgrading `nils-cli` from `sympoies/tap`
+- cloning this repository to `$HOME/.agents`
+- initializing `$HOME/.codex/AGENTS.md`
+- linking `$HOME/.agents/AGENTS.md` to `$HOME/.codex/AGENTS.md`
+- writing a managed `$HOME/.zshenv` block for `AGENT_HOME`,
+  `AGENT_DOCS_HOME`, `PLAN_ISSUE_HOME`, and Homebrew PATH
+- syncing the managed Codex hooks block into `$HOME/.codex/config.toml`
+
+For a local checkout, run:
 
 ```zsh
-brew upgrade nils-cli
-```
-
-Set `AGENT_HOME` in `$HOME/.zshenv`:
-
-```zsh
-export AGENT_HOME="$HOME/.agents"
+./install.sh
 ```
 
 `AGENT_HOME` is the home for this agent-kit toolchain. Note: `nils-cli` ≥ 0.8.0

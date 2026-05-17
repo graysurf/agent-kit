@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **macOS setup**: add an idempotent workstation bootstrap script that installs
+  Homebrew CLI tools, clones agent-kit into `$HOME/.agents`, links live
+  `AGENTS.md` policy through `$HOME/.codex`, and syncs Codex hook config.
+
 ### Changed
 
 - **skill taxonomy**: move public tool and automation skills into nested

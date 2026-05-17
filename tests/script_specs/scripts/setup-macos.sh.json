@@ -1,0 +1,42 @@
+{
+  "args": ["--help"],
+  "timeout_sec": 10,
+  "expect": {
+    "exit_codes": [0],
+    "stdout_regex": "Usage: setup-macos\\.sh"
+  },
+  "smoke": [
+    {
+      "name": "stub-install",
+      "args": [
+        "--profile",
+        "core",
+        "--repo-url",
+        ".",
+        "--agent-home",
+        "out/tests/script-smoke/setup-macos/home/.agents",
+        "--codex-home",
+        "out/tests/script-smoke/setup-macos/home/.codex",
+        "--skip-command-verify",
+        "--skip-hooks-sync"
+      ],
+      "timeout_sec": 30,
+      "env": {
+        "AGENT_KIT_SETUP_ASSUME_MACOS": "true",
+        "CODEX_BREW_STUB_MODE_ENABLED": "true",
+        "CODEX_BREW_STUB_LOG_DIR": "out/tests/script-smoke/setup-macos",
+        "CODEX_BREW_STUB_STATE_DIR": "out/tests/script-smoke/setup-macos/state"
+      },
+      "expect": {
+        "exit_codes": [0],
+        "stdout_regex": "agent-kit setup complete"
+      },
+      "artifacts": [
+        "out/tests/script-smoke/setup-macos/brew.calls.txt",
+        "out/tests/script-smoke/setup-macos/home/.agents/AGENTS.md",
+        "out/tests/script-smoke/setup-macos/home/.codex/AGENTS.md",
+        "out/tests/script-smoke/home/.zshenv"
+      ]
+    }
+  ]
+}

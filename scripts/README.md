@@ -48,6 +48,7 @@ scripts/
 ├── plan-issue-adapter
 ├── project-resolve
 ├── semgrep-scan.sh
+├── setup-macos.sh
 ├── skills/
 │   └── validate_skill_usage_record.py
 └── test.sh
@@ -119,6 +120,11 @@ scripts/
 
 - `scripts/install-homebrew-nils-cli.sh`
   - CI bootstrap helper to install Homebrew + `nils-cli`.
+- `scripts/setup-macos.sh`
+  - Human workstation bootstrap/repair helper for macOS. Installs Homebrew
+    CLI tools, clones agent-kit into `$HOME/.agents`, links
+    `$HOME/.agents/AGENTS.md` to `$HOME/.codex/AGENTS.md`, and syncs Codex
+    hook config.
 
 ## Bundling wrappers
 

@@ -19,6 +19,7 @@ CRITICAL_REGRESSION_ENTRYPOINTS = {
     "scripts/check.sh",
     "scripts/check_plan_issue_worktree_cleanup.sh",
     "scripts/install-homebrew-nils-cli.sh",
+    "scripts/setup-macos.sh",
     "skills/tools/notifications/desktop-notify/scripts/desktop-notify.sh",
     "skills/tools/notifications/desktop-notify/scripts/project-notify.sh",
 }

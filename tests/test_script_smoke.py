@@ -19,6 +19,7 @@ CRITICAL_SMOKE_ENTRYPOINTS = {
     "scripts/check.sh",
     "scripts/check_plan_issue_worktree_cleanup.sh",
     "scripts/install-homebrew-nils-cli.sh",
+    "scripts/setup-macos.sh",
     "skills/tools/notifications/desktop-notify/scripts/desktop-notify.sh",
     "skills/tools/notifications/desktop-notify/scripts/project-notify.sh",
 }
@@ -346,3 +347,95 @@ def test_script_smoke_fixture_semantic_commit_staged_context_cleans_tmp(tmp_path
 
     leftovers = sorted(p.name for p in tmpdir.iterdir())
     assert not leftovers, f"unexpected TMPDIR leftovers from semantic-commit staged-context: {leftovers}"
+
+
+@pytest.mark.script_smoke
+def test_setup_macos_materializes_codex_agents_before_linking(tmp_path: Path):
+    repo = repo_root()
+    source_repo = tmp_path / "source-agent-kit"
+    source_repo.mkdir(parents=True)
+
+    def run_git(cmd: list[str], cwd: Path) -> None:
+        subprocess.run(["git", *cmd], cwd=str(cwd), check=True, text=True, capture_output=True)
+
+    run_git(["init"], source_repo)
+    run_git(["config", "user.email", "fixture@example.com"], source_repo)
+    run_git(["config", "user.name", "Fixture User"], source_repo)
+    (source_repo / "AGENTS.md").write_text("# AGENTS\n", "utf-8")
+    run_git(["add", "-f", "AGENTS.md"], source_repo)
+    run_git(["commit", "-m", "init"], source_repo)
+
+    physical_agent_home = tmp_path / "physical-agent-kit"
+    run_git(["clone", str(source_repo), str(physical_agent_home)], tmp_path)
+
+    agent_home = tmp_path / ".agents"
+    agent_home.symlink_to(physical_agent_home, target_is_directory=True)
+    codex_home = tmp_path / ".codex"
+    codex_home.mkdir()
+    codex_agents = codex_home / "AGENTS.md"
+    codex_agents.symlink_to(physical_agent_home / "AGENTS.md")
+
+    env = default_smoke_env(repo)
+    env.update(
+        {
+            "AGENT_KIT_SETUP_ASSUME_MACOS": "true",
+            "CODEX_BREW_STUB_MODE_ENABLED": "true",
+            "CODEX_BREW_STUB_LOG_DIR": str(tmp_path / "brew-log"),
+            "CODEX_BREW_STUB_STATE_DIR": str(tmp_path / "brew-state"),
+            "HOME": str(tmp_path / "home"),
+        }
+    )
+    (tmp_path / "home").mkdir()
+
+    completed = subprocess.run(
+        [
+            str(repo / "scripts" / "setup-macos.sh"),
+            "--profile",
+            "core",
+            "--repo-url",
+            str(source_repo),
+            "--agent-home",
+            str(agent_home),
+            "--codex-home",
+            str(codex_home),
+            "--skip-brew-update",
+            "--skip-command-verify",
+            "--skip-hooks-sync",
+        ],
+        cwd=str(repo),
+        env=env,
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert codex_agents.is_file()
+    assert not codex_agents.is_symlink()
+    assert (agent_home / "AGENTS.md").is_symlink()
+    assert os.readlink(agent_home / "AGENTS.md") == str(codex_agents)
+    assert codex_agents.read_text("utf-8") == "# AGENTS\n"
+
+
+@pytest.mark.script_smoke
+def test_install_sh_standalone_downloads_setup_script(tmp_path: Path):
+    repo = repo_root()
+    standalone = tmp_path / "install.sh"
+    standalone.write_text((repo / "install.sh").read_text("utf-8"), "utf-8")
+    standalone.chmod(0o755)
+
+    env = default_smoke_env(repo)
+    env["PATH"] = os.environ.get("PATH", "")
+    env["AGENT_KIT_SETUP_URL"] = (repo / "scripts" / "setup-macos.sh").as_uri()
+
+    completed = subprocess.run(
+        [str(standalone), "--help"],
+        cwd=str(tmp_path),
+        env=env,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "Usage: setup-macos.sh" in completed.stdout

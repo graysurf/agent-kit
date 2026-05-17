@@ -58,6 +58,10 @@ repository="${CODEX_BREW_STUB_REPOSITORY:-${prefix}/Homebrew}"
 
 command="${1:-}"
 case "$command" in
+  --version)
+    printf "%s\n" "Homebrew 4.0.0-stub"
+    exit 0
+    ;;
   --prefix)
     printf "%s\n" "$prefix"
     exit 0
@@ -73,8 +77,15 @@ case "$command" in
   tap)
     exit "${CODEX_BREW_STUB_TAP_EXIT_CODE:-0}"
     ;;
+  update)
+    exit "${CODEX_BREW_STUB_UPDATE_EXIT_CODE:-0}"
+    ;;
   list)
-    package="${2:-}"
+    if [[ "${2:-}" == "--cask" ]]; then
+      package="${3:-}"
+    else
+      package="${2:-}"
+    fi
     if [[ "$package" == "nils-cli" && -n "${CODEX_BREW_STUB_LIST_NILS_CLI_STATUS:-}" ]]; then
       exit "${CODEX_BREW_STUB_LIST_NILS_CLI_STATUS}"
     fi
@@ -84,7 +95,11 @@ case "$command" in
     exit 1
     ;;
   install)
-    package="${2:-}"
+    if [[ "${2:-}" == "--cask" ]]; then
+      package="${3:-}"
+    else
+      package="${2:-}"
+    fi
     [[ -n "$package" ]] || {
       echo "brew-stub: missing package name for install" >&2
       exit 2
@@ -96,6 +111,20 @@ case "$command" in
       fi
     fi
     exit "${CODEX_BREW_STUB_INSTALL_EXIT_CODE:-0}"
+    ;;
+  upgrade)
+    package="${2:-}"
+    [[ -n "$package" ]] || {
+      echo "brew-stub: missing package name for upgrade" >&2
+      exit 2
+    }
+    if [[ -n "$state_dir" ]]; then
+      touch "$installed_file"
+      if ! grep -Fxq "$package" "$installed_file"; then
+        printf "%s\n" "$package" >>"$installed_file"
+      fi
+    fi
+    exit "${CODEX_BREW_STUB_UPGRADE_EXIT_CODE:-0}"
     ;;
   *)
     echo "brew-stub: unsupported arguments: $*" >&2
