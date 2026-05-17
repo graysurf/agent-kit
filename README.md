@@ -139,8 +139,13 @@ See [skills/tools/skill-management/README.md](./skills/tools/skill-management/RE
 project-local `.agents/skills`) using canonical entrypoints.
 
 The catalog below covers tracked public skills under [skills/workflows/](skills/workflows),
-[skills/tools/](skills/tools), and [skills/automation/](skills/automation). Tool skills may also be
-grouped by execution surface, such as `skills/tools/computer-use/` for live GUI automation.
+[skills/tools/](skills/tools), and [skills/automation/](skills/automation). Treat these sections as behavior boundaries:
+
+- **Workflows** guide judgment-heavy, multi-step agent work where the agent owns interpretation, sequencing, or handoff.
+- **Tools** expose bounded commands, evidence records, execution surfaces, or maintenance helpers; the caller owns intent and safety.
+- **Automation** owns an end-to-end loop and may stage, commit, push, retry checks, create or close PRs/MRs, or publish releases.
+
+Tool skills may also be grouped by execution surface, such as `skills/tools/computer-use/` for live GUI automation.
 Prompt-style skills are listed in the Prompts section above and are not duplicated in the general workflow table.
 Ignored local/system overlays may exist under `skills/_projects/` and `skills/.system/`, but they are
 not part of the public catalog unless explicitly tracked.
@@ -177,26 +182,26 @@ not part of the public catalog unless explicitly tracked.
 | Area | Skill | Description |
 | --- | --- | --- |
 | Agent Docs       | [agent-doc-init](./skills/tools/agent-doc-init/)                                           | Initialize missing baseline docs safely (dry-run first), then upsert optional project extension entries         |
-| App Ops          | [macos-agent-ops](./skills/tools/macos-agent-ops/)                                         | Run repeatable macOS app checks/scenarios with `macos-agent`                                                    |
-| Browser          | [playwright](./skills/tools/browser/playwright/)                                           | Automate a real browser via Playwright CLI using the wrapper script                                             |
-| Browser          | [agent-browser](./skills/tools/browser/agent-browser/)                                     | Optional legacy fallback for agent-browser CLI automation when native Browser/Chrome tools are unavailable      |
-| Browser          | [browser-session](./skills/tools/browser/browser-session/)                                 | Record browser-session goals, steps, statuses, and evidence artifacts through the nils-cli `browser-session` command |
-| Browser          | [web-evidence](./skills/tools/browser/web-evidence/)                                       | Capture redacted static HTTP evidence bundles through the nils-cli `web-evidence` command                      |
-| Browser          | [web-qa](./skills/tools/browser/web-qa/)                                                   | Run static or active browser QA evidence workflows with web-evidence, Browser/Chrome/Playwright, and browser-session records |
+| App Runtime      | [macos-agent-ops](./skills/tools/macos-agent-ops/)                                         | Run repeatable macOS app checks/scenarios with `macos-agent`                                                    |
+| Browser Runtime  | [playwright](./skills/tools/browser/playwright/)                                           | Automate a real browser via Playwright CLI using the wrapper script                                             |
+| Browser Runtime  | [agent-browser](./skills/tools/browser/agent-browser/)                                     | Optional legacy fallback for agent-browser CLI automation when native Browser/Chrome tools are unavailable      |
+| Browser Evidence | [browser-session](./skills/tools/browser/browser-session/)                                 | Record browser-session goals, steps, statuses, and evidence artifacts through the nils-cli `browser-session` command |
+| Browser Evidence | [web-evidence](./skills/tools/browser/web-evidence/)                                       | Capture redacted static HTTP evidence bundles through the nils-cli `web-evidence` command                      |
+| Browser Evidence | [web-qa](./skills/tools/browser/web-qa/)                                                   | Run static or active browser QA evidence workflows with web-evidence, Browser/Chrome/Playwright, and browser-session records |
 | Skill Management | [skill-governance](./skills/tools/skill-management/skill-governance/)                      | Audit skill layout and validate SKILL.md contracts                                                              |
 | Skill Management | [create-skill](./skills/tools/skill-management/create-skill/)                              | Scaffold a new skill directory that passes skill-governance audit and contract validation                       |
 | Skill Management | [create-project-skill](./skills/tools/skill-management/create-project-skill/)              | Scaffold a project-local skill under `<project>/.agents/skills/` with contract/layout validation                |
 | Skill Management | [remove-skill](./skills/tools/skill-management/remove-skill/)                              | Remove a tracked skill directory and purge non-archived repo references (breaking change)                       |
-| DevEx            | [agent-scope-lock](./skills/tools/devex/agent-scope-lock/)                                 | Create, read, validate, and clear edit-scope locks through the nils-cli `agent-scope-lock` command              |
-| DevEx            | [canary-check](./skills/tools/devex/canary-check/)                                         | Run a local canary command and persist redacted pass/fail evidence through the nils-cli `canary-check` command |
-| DevEx            | [docs-impact](./skills/tools/devex/docs-impact/)                                           | Scan Git changes for documentation impact through the nils-cli `docs-impact` command                           |
-| DevEx            | [model-cross-check](./skills/tools/devex/model-cross-check/)                               | Record primary/checker model observations through the nils-cli `model-cross-check` command                     |
-| DevEx            | [review-evidence](./skills/tools/devex/review-evidence/)                                   | Record review findings and final validation through the nils-cli `review-evidence` command                     |
-| DevEx            | [skill-usage](./skills/tools/devex/skill-usage/)                                           | Record skill invocation intent, linked evidence, validation, outcome, and failures through nils-cli `skill-usage` |
-| DevEx            | [test-first-evidence](./skills/tools/devex/test-first-evidence/)                           | Record failing-test evidence, waivers, and final validation through the nils-cli `test-first-evidence` command |
-| DevEx            | [semantic-commit](./skills/tools/devex/semantic-commit/)                                   | Commit staged changes using Semantic Commit format                                                              |
-| DevEx            | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/)               | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable)                       |
-| DevEx            | [desktop-notify](./skills/tools/devex/desktop-notify/)                                     | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux)                                 |
+| Scope / Git      | [agent-scope-lock](./skills/tools/devex/agent-scope-lock/)                                 | Create, read, validate, and clear edit-scope locks through the nils-cli `agent-scope-lock` command              |
+| Workflow Evidence | [canary-check](./skills/tools/devex/canary-check/)                                        | Run a local canary command and persist redacted pass/fail evidence through the nils-cli `canary-check` command |
+| Workflow Evidence | [docs-impact](./skills/tools/devex/docs-impact/)                                          | Scan Git changes for documentation impact through the nils-cli `docs-impact` command                           |
+| Workflow Evidence | [model-cross-check](./skills/tools/devex/model-cross-check/)                              | Record primary/checker model observations through the nils-cli `model-cross-check` command                     |
+| Workflow Evidence | [review-evidence](./skills/tools/devex/review-evidence/)                                  | Record review findings and final validation through the nils-cli `review-evidence` command                     |
+| Workflow Evidence | [skill-usage](./skills/tools/devex/skill-usage/)                                          | Record skill invocation intent, linked evidence, validation, outcome, and failures through nils-cli `skill-usage` |
+| Workflow Evidence | [test-first-evidence](./skills/tools/devex/test-first-evidence/)                          | Record failing-test evidence, waivers, and final validation through the nils-cli `test-first-evidence` command |
+| Scope / Git      | [semantic-commit](./skills/tools/devex/semantic-commit/)                                   | Commit staged changes using Semantic Commit format                                                              |
+| Review UX        | [open-changed-files-review](./skills/tools/devex/open-changed-files-review/)               | Open files edited by Codex in VSCode after making changes (silent no-op when unavailable)                       |
+| Notifications    | [desktop-notify](./skills/tools/devex/desktop-notify/)                                     | Send desktop notifications via terminal-notifier (macOS) or notify-send (Linux)                                 |
 | Media            | [image-processing](./skills/tools/media/image-processing/)                                 | Convert `svg/png/jpg/jpeg/webp` inputs to `png/webp/jpg` and validate SVGs via `image-processing`              |
 | Media            | [screen-record](./skills/tools/media/screen-record/)                                       | Record a single window or full display to a video file via the screen-record CLI (macOS 12+ and Linux)          |
 | Media            | [screenshot](./skills/tools/media/screenshot/)                                             | Capture screenshots via screen-record on macOS and Linux, with optional macOS desktop capture via screencapture |
@@ -210,13 +215,13 @@ not part of the public catalog unless explicitly tracked.
 
 | Area | Skill | Description |
 | --- | --- | --- |
-| DevEx       | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows                                                                                          |
-| Issue       | [issue-delivery](./skills/automation/issue-delivery/)                       | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates                                                    |
-| Issue       | [plan-issue-delivery](./skills/automation/plan-issue-delivery/)             | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
-| Maintenance | [gh-fix-ci](./skills/automation/gh-fix-ci/)                                 | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green                                                                                   |
-| Maintenance | [fix-bug-pr](./skills/automation/fix-bug-pr/)                               | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced                                                                                 |
-| Maintenance | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/)                 | Find, triage, and fix bugs; open a PR with a standard template                                                                                                                             |
-| Maintenance | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)           | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
+| Commit Automation | [semantic-commit-autostage](./skills/automation/semantic-commit-autostage/) | Autostage (git add) and commit changes using Semantic Commit format for fully automated workflows                                                                                          |
+| Issue Delivery | [issue-delivery](./skills/automation/issue-delivery/)                       | Orchestrate issue execution loops end-to-end: open issue, track status, request review, and close only after approval + merged PR gates                                                    |
+| Issue Delivery | [plan-issue-delivery](./skills/automation/plan-issue-delivery/)             | Orchestrate plan-driven issue delivery by sprint: split plan tasks, dispatch subagent PR work, enforce acceptance gates, and advance to the next sprint without main-agent implementation. |
+| CI Repair   | [gh-fix-ci](./skills/automation/gh-fix-ci/)                                 | Automatically fix failing GitHub Actions checks, semantic-commit-autostage + push, and retry until green                                                                                   |
+| Bug Repair  | [fix-bug-pr](./skills/automation/fix-bug-pr/)                               | Find bug-type PRs with unresolved bug items, fix and push updates, comment, and keep PR body status synced                                                                                 |
+| Bug Discovery | [find-and-fix-bugs](./skills/automation/find-and-fix-bugs/)                | Find, triage, and fix bugs; open a PR with a standard template                                                                                                                             |
+| Security Scan | [semgrep-find-and-fix](./skills/automation/semgrep-find-and-fix/)          | Scan a repo using its local Semgrep config, triage findings, and open a fix PR or report-only PR                                                                                           |
 | Release     | [release-workflow](./skills/automation/release-workflow/)                   | Execute project release workflows by following a repo release guide (with a bundled fallback)                                                                                              |
 
 ## 🧪 Local and CI Check Entrypoints
